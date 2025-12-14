@@ -149,8 +149,48 @@ export default function StreamingPreview({ text, isComplete }: StreamingPreviewP
                 strong({ children }) {
                   return <strong className="font-semibold text-foreground">{children}</strong>;
                 },
-                // List items
+                // List items - special styling for distractor analysis
                 li({ children }) {
+                  // Extract text content for pattern matching
+                  const extractText = (node: any): string => {
+                    if (typeof node === 'string') return node;
+                    if (Array.isArray(node)) return node.map(extractText).join('');
+                    if (node?.props?.children) return extractText(node.props.children);
+                    return '';
+                  };
+
+                  const text = extractText(children);
+                  const distractorMatch = text.match(/^([a-e]):\s+/);
+
+                  if (distractorMatch) {
+                    const letter = distractorMatch[1];
+
+                    // Remove the "a: " prefix from children
+                    const processChildren = (node: any): any => {
+                      if (typeof node === 'string') {
+                        return node.replace(/^[a-e]:\s+/, '');
+                      }
+                      if (Array.isArray(node)) {
+                        return node.map((child, i) => {
+                          if (i === 0 && typeof child === 'string') {
+                            return child.replace(/^[a-e]:\s+/, '');
+                          }
+                          return child;
+                        });
+                      }
+                      return node;
+                    };
+
+                    return (
+                      <li className="flex items-start gap-2 my-2" style={{ listStyle: 'none', marginLeft: '-1rem' }}>
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-red-700 font-semibold text-sm flex-shrink-0 mt-0.5">
+                          {letter}
+                        </span>
+                        <span className="flex-1">{processChildren(children)}</span>
+                      </li>
+                    );
+                  }
+
                   return <li className="my-1">{children}</li>;
                 },
                 ul({ children }) {
