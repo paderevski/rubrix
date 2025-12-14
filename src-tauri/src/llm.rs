@@ -198,9 +198,9 @@ public int mystery(int n) {
 What value is returned by the call `mystery(7)`?
 
 a. `16`
-a. `12`
-a. `7`
-a. `0`
+b. `12`
+c. `7`
+d. `0`
 
 ---
 **Correct Answer:** a
@@ -222,9 +222,9 @@ System.out.println(arr[2]);
 ```
 
 a. `6`
-a. `3`
-a. `4`
-a. `2`
+b. `3`
+c. `4`
+d. `2`
 
 ---
 **Correct Answer:** a
@@ -247,9 +247,9 @@ public int factorial(int n) {
 What value is returned by `factorial(5)`?
 
 a. `120`
-a. `24`
-a. `5`
-a. `1`
+b. `24`
+c. `5`
+d. `1`
 
 ---
 **Correct Answer:** a
@@ -267,9 +267,9 @@ int result = str.indexOf("o");
 ```
 
 a. `4`
-a. `5`
-a. `7`
-a. `-1`
+b. `5`
+c. `7`
+d. `-1`
 
 ---
 **Correct Answer:** a
