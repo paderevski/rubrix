@@ -13,6 +13,7 @@ use tauri::State;
 // Types
 // ============================================================================
 
+/// Question as displayed/edited in the UI
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Question {
     pub id: String,
@@ -42,7 +43,48 @@ pub struct GenerationRequest {
     pub notes: Option<String>,
 }
 
-// App state
+// ============================================================================
+// Question Bank Types (for few-shot examples)
+// ============================================================================
+
+/// Rich question entry from question-bank.json
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuestionBankEntry {
+    pub id: String,
+    pub stem: String,
+    pub code: Option<String>,
+    pub options: Vec<QuestionBankOption>,
+    pub explanation: String,
+    pub difficulty: String,
+    pub cognitive_level: String,
+    pub topics: Vec<String>,
+    pub skills: Vec<String>,
+    pub distractors: DistractorInfo,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuestionBankOption {
+    pub id: String,
+    pub text: String,
+    pub is_correct: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DistractorInfo {
+    pub common_mistakes: Vec<CommonMistake>,
+    pub common_errors: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommonMistake {
+    pub option_id: String,
+    pub misconception: String,
+}
+
+// ============================================================================
+// App State
+// ============================================================================
+
 pub struct AppState {
     pub questions: Mutex<Vec<Question>>,
     pub knowledge: knowledge::KnowledgeBase,
@@ -62,11 +104,17 @@ async fn generate_questions(
     request: GenerationRequest,
     state: State<'_, AppState>,
 ) -> Result<Vec<Question>, String> {
-    // Get example questions from knowledge base for few-shot prompting
-    let examples = state.knowledge.get_examples(&request.topics, 5);
+    // Get rich examples from question bank (prefer these for better distractors)
+    let bank_examples = state.knowledge.get_bank_examples(
+        &request.topics,
+        Some(&request.difficulty),
+        3,  // Get up to 3 examples
+    );
     
-    // Build prompt and call LLM
-    let prompt = prompts::build_generation_prompt(&request, &examples);
+    // Build prompt with JSON examples
+    let prompt = prompts::build_generation_prompt(&request, &bank_examples);
+    
+    // Call LLM
     let response = llm::generate(&prompt).await?;
     
     // Parse response into questions
@@ -90,11 +138,17 @@ async fn regenerate_question(
         return Err("Invalid question index".to_string());
     }
     
-    // Get the current question for context
     let current = &current_questions[index];
     
+    // Get one example for reference
+    let bank_examples = state.knowledge.get_bank_examples(
+        &["recursion".to_string()], // Default topic
+        None,
+        1,
+    );
+    
     // Build prompt for single question regeneration
-    let prompt = prompts::build_regenerate_prompt(current, &current_questions);
+    let prompt = prompts::build_regenerate_prompt(current, &current_questions, &bank_examples);
     let response = llm::generate(&prompt).await?;
     
     // Parse the single question
@@ -104,7 +158,7 @@ async fn regenerate_question(
     }
     
     let mut new_question = new_questions.remove(0);
-    new_question.id = current.id.clone(); // Keep same ID
+    new_question.id = current.id.clone();
     
     // Update in state
     let mut stored = state.questions.lock().unwrap();
@@ -183,6 +237,9 @@ fn export_to_qti(title: String, state: State<AppState>) -> Result<Vec<u8>, Strin
 
 fn main() {
     let knowledge = knowledge::KnowledgeBase::load();
+    
+    println!("Loaded {} topics", knowledge.topics.len());
+    println!("Loaded {} question bank entries", knowledge.bank_entries.len());
     
     let state = AppState {
         questions: Mutex::new(Vec::new()),
