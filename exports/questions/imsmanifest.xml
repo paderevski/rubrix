@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest xmlns="http://www.imsglobal.org/xsd/imsccv1p2/imscp_v1p1" identifier="cctd0001"
+    xmlns:lom="http://ltsc.ieee.org/xsd/imsccv1p2/LOM/resource"
+    xmlns:lomimscc="http://ltsc.ieee.org/xsd/imsccv1p2/LOM/manifest"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <metadata>
+        <schema>IMS Common Cartridge</schema>
+        <schemaversion>1.2.0</schemaversion>
+        <lomimscc:lom>
+            <lomimscc:general>
+                <lomimscc:title>
+                    <lomimscc:string>AP CS Questions</lomimscc:string>
+                </lomimscc:title>
+            </lomimscc:general>
+        </lomimscc:lom>
+    </metadata>
+    <organizations>
+        <organization identifier="org" structure="rooted-hierarchy">
+            <item identifier="root">
+                <item identifier="iden0000001" identifierref="ccres0000001">
+                    <title>AP CS Questions</title>
+                </item>
+            </item>
+        </organization>
+    </organizations>
+    <resources>
+        <resource identifier="ccres0000001" type="imsqti_xmlv1p2/imscc_xmlv1p2/question-bank">
+            <metadata />
+            <file href="AP_CS_Questions.xml" />
+        </resource>
+    </resources>
+</manifest>

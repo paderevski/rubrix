@@ -1,0 +1,90 @@
+Title: AP CS Questions
+
+1. What is the output of the following code segment?
+
+```java
+int[] arr = {1, 2, 3, 4, 5};
+for (int i = 0; i < arr.length; i++) {
+    arr[i] = arr[i] * 2;
+}
+System.out.println(arr[2]);
+```
+
+a. `6`
+a. `3`
+a. `4`
+a. `2`
+
+
+2. Consider the following recursive method:
+
+
+
+What value is returned by `factorial(5)`?
+
+```java
+public int factorial(int n) {
+    if (n <= 1)
+        return 1;
+    return n * factorial(n - 1);
+}
+```
+
+a. `120`
+a. `24`
+a. `5`
+a. `1`
+
+
+3. What is the value of `result` after the following code executes?
+
+```java
+String str = "Hello World";
+int result = str.indexOf("o");
+```
+
+a. `4`
+a. `5`
+a. `7`
+a. `-1`
+
+
+4. Consider the following method:
+
+
+
+If `arr` is `{1, 2, 3, 4, 5}`, what are the contents of `arr` after calling `mystery(arr)`?
+
+```java
+public static void mystery(int[] arr) {
+    for (int i = 0; i < arr.length / 2; i++) {
+        int temp = arr[i];
+        arr[i] = arr[arr.length - 1 - i];
+        arr[arr.length - 1 - i] = temp;
+    }
+}
+```
+
+a. `{5, 4, 3, 2, 1}`
+a. `{1, 2, 3, 4, 5}`
+a. `{2, 3, 4, 5, 1}`
+a. `{5, 2, 3, 4, 1}`
+
+
+5. What is printed by the following code segment?
+
+```java
+ArrayList<Integer> list = new ArrayList<Integer>();
+list.add(1);
+list.add(2);
+list.add(3);
+list.add(1, 4);
+System.out.println(list.get(2));
+```
+
+a. `2`
+a. `3`
+a. `4`
+a. `1`
+
+

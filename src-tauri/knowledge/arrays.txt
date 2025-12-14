@@ -1,0 +1,42 @@
+Title: Arrays - Example Questions
+
+1. What is the output of the following code segment?
+
+```java
+int[] arr = {1, 2, 3, 4, 5};
+System.out.println(arr[2]);
+```
+
+a. `3`
+a. `2`
+a. `1`
+a. `4`
+
+2. What are the contents of `arr` after executing this code?
+
+```java
+int[] arr = {10, 20, 30, 40};
+for (int i = 0; i < arr.length; i++) {
+    arr[i] = arr[i] + 5;
+}
+```
+
+a. `{15, 25, 35, 45}`
+a. `{10, 20, 30, 40}`
+a. `{5, 10, 15, 20}`
+a. `{50, 50, 50, 50}`
+
+3. What value is stored in `sum` after this code executes?
+
+```java
+int[] numbers = {2, 4, 6, 8};
+int sum = 0;
+for (int num : numbers) {
+    sum += num;
+}
+```
+
+a. `20`
+a. `8`
+a. `2`
+a. `0`

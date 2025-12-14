@@ -1,0 +1,47 @@
+Title: Recursion - Example Questions
+
+1. What value is returned by the call `factorial(4)`?
+
+```java
+public int factorial(int n) {
+    if (n <= 1)
+        return 1;
+    return n * factorial(n - 1);
+}
+```
+
+a. `24`
+a. `4`
+a. `10`
+a. `1`
+
+2. What is printed when `mystery(5)` is called?
+
+```java
+public void mystery(int n) {
+    if (n > 0) {
+        System.out.print(n + " ");
+        mystery(n - 1);
+    }
+}
+```
+
+a. `5 4 3 2 1`
+a. `1 2 3 4 5`
+a. `5`
+a. `1`
+
+3. What value is returned by `sum(4)`?
+
+```java
+public int sum(int n) {
+    if (n == 0)
+        return 0;
+    return n + sum(n - 1);
+}
+```
+
+a. `10`
+a. `4`
+a. `0`
+a. `6`
