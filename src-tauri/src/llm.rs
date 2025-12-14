@@ -169,6 +169,11 @@ pub async fn generate(
                 if let Some(output) = status.output {
                     let final_text = output_to_string(&output);
                     emit_stream(&app_handle, &final_text, true);
+                    eprintln!(
+                        "DEBUG response [{}]: {}",
+                        http_status.as_u16(),
+                        &status_text[..status_text.len()]
+                    );
                     return Ok(final_text);
                 }
                 return Err("No output from model".to_string());

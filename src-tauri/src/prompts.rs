@@ -74,17 +74,22 @@ Generate {count} NEW question(s) that:
 
 For each question, use this exact format:
 
-1. [Question stem - what are you asking?]
+## Question
+
+[Question stem - what are you asking?]
 
 ```java
 // Include code if appropriate for the question type
 // Keep code concise (under 15 lines)
 ```
 
+## Choices
+
 a. [First answer option]
 b. [Second answer option]
 c. [Third answer option]
 d. [Fourth answer option]
+e. [Fifth answer option if present]
 
 ---
 **Correct Answer:** [letter]
@@ -93,13 +98,14 @@ d. [Fourth answer option]
 - [wrong letter]: [What misconception or error leads a student to this answer]
 - [wrong letter]: [What misconception or error leads a student to this answer]
 - [wrong letter]: [What misconception or error leads a student to this answer]
+- [wrong letter]: [What misconception or error leads a student to this answer, if 5 choices present]
 
 ---
 
 (Then question 2, 3, etc. if count > 1)
 
 **Important Rules:**
-- Use standard answer labels: a. b. c. d.
+- Use standard answer labels: a. b. c. d. e.
 - Indicate the correct answer in the "Correct Answer" line
 - Each distractor must come from a real student error pattern (off-by-one, pass-by-value confusion, wrong loop bounds, etc.)
 - Code must be syntactically correct Java
@@ -250,11 +256,15 @@ Generate a NEW multiple choice question to replace this one:
 
 **Output format:**
 
-1. [New question stem]
+## Question
+
+[New question stem]
 
 ```java
 // code if needed
 ```
+
+## Choices
 
 a. [First answer]
 b. [Second answer]
@@ -283,8 +293,8 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
     // Prepend newline to handle first question uniformly
     let content = format!("\n{}", response.trim());
 
-    // Split by question markers - handle both "1." and "# Question 1" formats
-    let question_start_re = Regex::new(r"\n(?:#\s*Question\s*\d+|\d+\.)\s*").unwrap();
+    // Split by question markers - handle both "## Question" and legacy "1." formats
+    let question_start_re = Regex::new(r"\n(?:##\s*Question|\d+\.)\s*").unwrap();
     let mut blocks: Vec<String> = Vec::new();
     let mut last_end = 0;
 
@@ -338,16 +348,31 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
 
 /// Parse a single question block
 fn parse_single_question(text: &str) -> Option<Question> {
-    // Remove any leading question number/header
-    let num_re = Regex::new(r"^(?:#\s*Question\s*\d+|\d+\.)\s*").unwrap();
+    // Remove any leading question marker
+    let num_re = Regex::new(r"^(?:##\s*Question|\d+\.)\s*").unwrap();
     let text = num_re.replace(text, "").to_string();
 
-    // Find where answers start (a. b. c. or d.)
+    // Find where answers start - look for "## Choices" or fallback to "a. "
+    let choices_marker = Regex::new(r"\n##\s*Choices\s*\n").unwrap();
     let answer_re = Regex::new(r"\n\s*a\.\s+").unwrap();
-    let answer_start = answer_re.find(&text)?;
 
-    // Content is everything before answers
-    let content = text[..answer_start.start()].trim().to_string();
+    let answer_start = if let Some(m) = choices_marker.find(&text) {
+        // If we have "## Choices", answers start after it
+        m.end()
+    } else if let Some(m) = answer_re.find(&text) {
+        // Fallback to old format
+        m.start()
+    } else {
+        return None;
+    };
+
+    // Content is everything before answers (and before "## Choices" if present)
+    let content_end = if let Some(m) = choices_marker.find(&text) {
+        m.start()
+    } else {
+        answer_start
+    };
+    let content = text[..content_end].trim().to_string();
 
     // Find where distractor analysis starts (to exclude from answers)
     let analysis_re = Regex::new(r"\n---\s*\n\*?\*?Correct Answer").unwrap();
@@ -357,7 +382,7 @@ fn parse_single_question(text: &str) -> Option<Question> {
         .unwrap_or(text.len());
 
     // Extract the correct answer letter from metadata
-    let correct_re = Regex::new(r"\*?\*?Correct Answer:?\*?\*?\s*([a-dA-D])").unwrap();
+    let correct_re = Regex::new(r"\*?\*?Correct Answer:?\*?\*?\s*([a-eA-E])").unwrap();
     let correct_letter = correct_re
         .captures(&text)
         .and_then(|c| c.get(1))
@@ -365,7 +390,7 @@ fn parse_single_question(text: &str) -> Option<Question> {
         .unwrap_or_else(|| "a".to_string());
 
     // Extract answers section (between answer_start and analysis)
-    let answers_section = &text[answer_start.start()..answers_end];
+    let answers_section = &text[answer_start..answers_end];
     let answers = parse_answers(answers_section, &correct_letter);
 
     if answers.is_empty() {
@@ -385,50 +410,35 @@ fn parse_answers(text: &str, correct_letter: &str) -> Vec<Answer> {
     let mut current_letter: Option<String> = None;
     let mut current_text: Option<String> = None;
 
-    // Match a. b. c. d. or A. B. C. D.
-    let letter_re = Regex::new(r"^([a-dA-D])\.\s*").unwrap();
+    // Match a. b. c. d. e. or A. B. C. D. E.
+    let answer_marker = Regex::new(r"(?m)^([a-eA-E])\.\s+(.*)$").unwrap();
 
-    for line in text.lines() {
-        let trimmed = line.trim();
-
-        // Stop if we hit the analysis section
-        if trimmed.starts_with("---")
-            || trimmed.starts_with("**Correct")
-            || trimmed.starts_with("*Correct")
-        {
-            break;
+    for cap in answer_marker.captures_iter(text) {
+        // Save previous answer if exists
+        if let (Some(letter), Some(txt)) = (&current_letter, &current_text) {
+            answers.push(Answer {
+                text: txt.trim().to_string(),
+                is_correct: letter.to_lowercase() == correct_letter,
+            });
         }
 
-        if let Some(caps) = letter_re.captures(trimmed) {
-            // Save previous answer
-            if let (Some(letter), Some(text)) = (current_letter.take(), current_text.take()) {
-                let is_correct = letter.to_lowercase() == correct_letter;
-                answers.push(Answer { text, is_correct });
-            }
-            // Start new answer
-            let letter = caps.get(1).unwrap().as_str().to_string();
-            let rest = letter_re.replace(trimmed, "").to_string();
-            current_letter = Some(letter);
-            current_text = Some(rest);
-        } else if let Some(ref mut text) = current_text {
-            // Continuation line
-            if !trimmed.is_empty() {
-                text.push(' ');
-                text.push_str(trimmed);
-            }
-        }
+        // Start new answer
+        current_letter = Some(cap[1].to_string());
+        current_text = Some(cap[2].to_string());
     }
 
-    // Don't forget last answer
-    if let (Some(letter), Some(text)) = (current_letter, current_text) {
-        let is_correct = letter.to_lowercase() == correct_letter;
-        answers.push(Answer { text, is_correct });
+    // Don't forget the last answer
+    if let (Some(letter), Some(txt)) = (current_letter, current_text) {
+        answers.push(Answer {
+            text: txt.trim().to_string(),
+            is_correct: letter.to_lowercase() == correct_letter,
+        });
     }
 
     answers
 }
 
-/// Truncate a string to a maximum length
+/// Truncate string to max length
 fn truncate(s: &str, max_len: usize) -> String {
     if s.len() <= max_len {
         s.to_string()
@@ -442,56 +452,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_simple_question() {
-        let input = r#"1. What is 2 + 2?
+    fn test_parse_new_format() {
+        let input = r#"## Question
 
-a. 4
-b. 3
-c. 5
-d. 22
-
----
-**Correct Answer:** a
-**Explanation:** Basic addition."#;
-
-        let questions = parse_llm_response(input).unwrap();
-        assert_eq!(questions.len(), 1);
-        assert_eq!(questions[0].content, "What is 2 + 2?");
-        assert_eq!(questions[0].answers.len(), 4);
-        assert!(questions[0].answers[0].is_correct); // a is correct
-        assert!(!questions[0].answers[1].is_correct);
-    }
-
-    #[test]
-    fn test_parse_question_with_code() {
-        let input = r#"1. What does this print?
-
-```java
-System.out.println("Hello");
-```
-
-a. Hello
-b. hello
-c. HELLO
-d. Nothing
-
----
-**Correct Answer:** a"#;
-
-        let questions = parse_llm_response(input).unwrap();
-        assert_eq!(questions.len(), 1);
-        assert!(questions[0].content.contains("```java"));
-    }
-
-    #[test]
-    fn test_parse_question_with_header_format() {
-        let input = r#"# Question 1
-
-What is returned?
+What is returned by this code?
 
 ```java
 return 5 + 3;
 ```
+
+## Choices
 
 a. `8`
 b. `53`
@@ -509,8 +479,34 @@ d. Error
     }
 
     #[test]
+    fn test_parse_legacy_format() {
+        let input = r#"1. What is returned by this code?
+
+```java
+return 5 + 3;
+```
+
+a. `8`
+b. `53`
+c. `"53"`
+d. Error
+
+---
+**Correct Answer:** a
+**Explanation:** Simple addition returns 8."#;
+
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert!(questions[0].content.contains("```java"));
+    }
+
+    #[test]
     fn test_parse_correct_answer_not_a() {
-        let input = r#"1. Which is a prime number?
+        let input = r#"## Question
+
+Which is a prime number?
+
+## Choices
 
 a. 4
 b. 6
@@ -526,5 +522,28 @@ d. 8
         assert!(!questions[0].answers[1].is_correct); // b is not correct
         assert!(questions[0].answers[2].is_correct); // c IS correct
         assert!(!questions[0].answers[3].is_correct); // d is not correct
+    }
+
+    #[test]
+    fn test_parse_five_choices() {
+        let input = r#"## Question
+
+Select the correct statement.
+
+## Choices
+
+a. Wrong 1
+b. Wrong 2
+c. Wrong 3
+d. Correct answer
+e. Wrong 4
+
+---
+**Correct Answer:** d"#;
+
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert_eq!(questions[0].answers.len(), 5);
+        assert!(questions[0].answers[3].is_correct); // d is correct
     }
 }
