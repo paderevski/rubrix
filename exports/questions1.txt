@@ -1,0 +1,21 @@
+Title: AP CS Questions
+
+1. # Question 1
+
+Consider the following code segment that manipulates an array of integers:
+
+```java
+int[] data = {8, 3, 7, 2, 9, 1, 4};
+int temp;
+for (int j = 0; j < data.length / 2; j++) {
+    temp = data[j];
+    data[j] = data[data.length - 1 - j];
+    data[data.length - 1 - j] = temp;
+}
+```
+
+After this code executes, what are the contents of the `data` array?
+
+a. `[4, 1, 9, 2, 7, 3, 8]` b. `[8, 3, 7, 2, 9, 1, 4]` c. `[4, 1, 9, 7, 2, 3, 8]` d. `[1, 2, 3, 4, 7, 8, 9]`
+
+

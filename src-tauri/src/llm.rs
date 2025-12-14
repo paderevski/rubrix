@@ -6,8 +6,7 @@ use std::time::Duration;
 
 // Replicate API configuration
 // NOTE: In production, use environment variables or secure storage
-const REPLICATE_API_TOKEN: &str = "YOUR_REPLICATE_API_TOKEN_HERE";
-const MODEL_VERSION: &str = "anthropic/claude-sonnet-4-5"; // Adjust based on Replicate's model ID
+const MODEL_VERSION: &str = "anthropic/claude-4.5-sonnet"; // Adjust based on Replicate's model ID
 
 #[derive(Debug, Serialize)]
 struct ReplicateRequest {
@@ -38,19 +37,33 @@ struct ReplicatePrediction {
     error: Option<String>,
 }
 
+#[derive(Debug, Deserialize)]
+struct ReplicateError {
+    detail: Option<String>,
+    error: Option<String>,
+}
+
 /// Generate text using the Replicate API
 pub async fn generate(prompt: &str) -> Result<String, String> {
     let client = Client::new();
-    
+    // Load .env file (ignore error if already loaded or not present)
+    let _ = dotenvy::dotenv();
+    use std::env;
+    let api_token = env::var("REPLICATE_API_TOKEN")
+        .unwrap_or_else(|_| "YOUR_REPLICATE_API_TOKEN_HERE".to_string());
+
+    // DEBUG: Uncomment to see the prompt being sent
+    // eprintln!("DEBUG prompt ({} chars):\n{}", prompt.len(), &prompt[..prompt.len().min(1000)]);
+
     // For demo purposes, if no API key is set, return mock data
-    if REPLICATE_API_TOKEN == "YOUR_REPLICATE_API_TOKEN_HERE" {
+    if api_token == "YOUR_REPLICATE_API_TOKEN_HERE" {
         return Ok(generate_mock_response(prompt));
     }
-    
+
     // Create prediction
     let create_response = client
         .post("https://api.replicate.com/v1/predictions")
-        .header("Authorization", format!("Token {}", REPLICATE_API_TOKEN))
+        .header("Authorization", format!("Token {}", api_token))
         .header("Content-Type", "application/json")
         .json(&serde_json::json!({
             "version": MODEL_VERSION,
@@ -65,9 +78,35 @@ pub async fn generate(prompt: &str) -> Result<String, String> {
         .await
         .map_err(|e| format!("Failed to create prediction: {}", e))?;
 
-    let prediction: ReplicatePrediction = create_response
-        .json()
-        .await
+    // Check HTTP status before parsing
+    let status = create_response.status();
+    let response_text = create_response.text().await.unwrap_or_default();
+
+    // DEBUG: Uncomment to see raw API response
+    // eprintln!("DEBUG [{}]: {}", status.as_u16(), &response_text[..response_text.len().min(500)]);
+
+    if !status.is_success() {
+        // Try to parse as error response
+        if let Ok(error_response) = serde_json::from_str::<ReplicateError>(&response_text) {
+            let detail = error_response
+                .detail
+                .or(error_response.error)
+                .unwrap_or_else(|| "Unknown error".to_string());
+            return Err(format!(
+                "Replicate API error ({}): {}",
+                status.as_u16(),
+                detail
+            ));
+        }
+
+        return Err(format!(
+            "Replicate API error ({}): {}",
+            status.as_u16(),
+            response_text
+        ));
+    }
+
+    let prediction: ReplicatePrediction = serde_json::from_str(&response_text)
         .map_err(|e| format!("Failed to parse response: {}", e))?;
 
     if let Some(error) = prediction.error {
@@ -76,20 +115,37 @@ pub async fn generate(prompt: &str) -> Result<String, String> {
 
     // Poll for completion
     let prediction_url = format!("https://api.replicate.com/v1/predictions/{}", prediction.id);
-    
+
     for _ in 0..60 {
         tokio::time::sleep(Duration::from_secs(1)).await;
-        
+
         let status_response = client
             .get(&prediction_url)
-            .header("Authorization", format!("Token {}", REPLICATE_API_TOKEN))
+            .header("Authorization", format!("Token {}", api_token))
             .send()
             .await
             .map_err(|e| format!("Failed to check status: {}", e))?;
 
-        let status: ReplicatePrediction = status_response
-            .json()
-            .await
+        // Check HTTP status
+        let http_status = status_response.status();
+        let status_text = status_response.text().await.unwrap_or_default();
+
+        // DEBUG: Uncomment to see polling response
+        eprintln!(
+            "DEBUG poll [{}]: {}",
+            http_status.as_u16(),
+            &status_text[..status_text.len()]
+        );
+
+        if !http_status.is_success() {
+            return Err(format!(
+                "Replicate API error ({}): {}",
+                http_status.as_u16(),
+                status_text
+            ));
+        }
+
+        let status: ReplicatePrediction = serde_json::from_str(&status_text)
             .map_err(|e| format!("Failed to parse status: {}", e))?;
 
         match status.status.as_str() {
@@ -126,11 +182,10 @@ pub async fn generate(prompt: &str) -> Result<String, String> {
 /// Generate mock response for demo/testing without API key
 fn generate_mock_response(prompt: &str) -> String {
     // Check if it's asking for multiple questions or single
-    let is_single = prompt.contains("regenerate") || prompt.contains("single question");
-    
+    let is_single = prompt.contains("replace") || prompt.contains("single question");
+
     if is_single {
-        r#"
-1. Consider the following recursive method:
+        r#"1. Consider the following recursive method:
 
 ```java
 public int mystery(int n) {
@@ -146,10 +201,17 @@ a. `16`
 a. `12`
 a. `7`
 a. `0`
+
+---
+**Correct Answer:** a
+**Explanation:** mystery(7) = 7 + mystery(5) = 7 + 5 + mystery(3) = 7 + 5 + 3 + mystery(1) = 7 + 5 + 3 + 1 + mystery(-1) = 7 + 5 + 3 + 1 + 0 = 16
+**Distractor Analysis:**
+- b: Off-by-one error, stops at n=2 instead of n<=0
+- c: Only returns the initial value without recursion
+- d: Thinks base case returns for all calls
 "#.to_string()
     } else {
-        r#"
-1. What is the output of the following code segment?
+        r#"1. What is the output of the following code segment?
 
 ```java
 int[] arr = {1, 2, 3, 4, 5};
@@ -163,6 +225,14 @@ a. `6`
 a. `3`
 a. `4`
 a. `2`
+
+---
+**Correct Answer:** a
+**Explanation:** Array element at index 2 is 3, after doubling becomes 6.
+**Distractor Analysis:**
+- b: Forgets the doubling operation
+- c: Off-by-one, thinks index 2 holds the value 4
+- d: Confuses index with original value
 
 2. Consider the following recursive method:
 
@@ -181,6 +251,14 @@ a. `24`
 a. `5`
 a. `1`
 
+---
+**Correct Answer:** a
+**Explanation:** 5! = 5 × 4 × 3 × 2 × 1 = 120
+**Distractor Analysis:**
+- b: Computes factorial(4) instead
+- c: Returns just the input value
+- d: Returns the base case value
+
 3. What is the value of `result` after the following code executes?
 
 ```java
@@ -193,40 +271,14 @@ a. `5`
 a. `7`
 a. `-1`
 
-4. Consider the following method:
-
-```java
-public static void mystery(int[] arr) {
-    for (int i = 0; i < arr.length / 2; i++) {
-        int temp = arr[i];
-        arr[i] = arr[arr.length - 1 - i];
-        arr[arr.length - 1 - i] = temp;
-    }
-}
-```
-
-If `arr` is `{1, 2, 3, 4, 5}`, what are the contents of `arr` after calling `mystery(arr)`?
-
-a. `{5, 4, 3, 2, 1}`
-a. `{1, 2, 3, 4, 5}`
-a. `{2, 3, 4, 5, 1}`
-a. `{5, 2, 3, 4, 1}`
-
-5. What is printed by the following code segment?
-
-```java
-ArrayList<Integer> list = new ArrayList<Integer>();
-list.add(1);
-list.add(2);
-list.add(3);
-list.add(1, 4);
-System.out.println(list.get(2));
-```
-
-a. `2`
-a. `3`
-a. `4`
-a. `1`
-"#.to_string()
+---
+**Correct Answer:** a
+**Explanation:** indexOf returns the first occurrence of "o" which is at index 4.
+**Distractor Analysis:**
+- b: Off-by-one, counts from 1 instead of 0
+- c: Returns index of second "o" in "World"
+- d: Thinks character not found
+"#
+        .to_string()
     }
 }
