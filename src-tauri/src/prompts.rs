@@ -84,7 +84,7 @@ pub fn build_regenerate_prompt(current: &Question, all_questions: &[Question]) -
         .iter()
         .filter(|q| q.id != current.id)
         .take(3)
-        .map(|q| format!("- {}", truncate(&q.text, 50)))
+        .map(|q| format!("- {}", truncate(&q.content, 50)))
         .collect();
     
     let context_str = if context.is_empty() {
@@ -121,24 +121,18 @@ a. Wrong answer
 a. Wrong answer
 
 Generate the replacement question:"#,
-        current.text,
+        current.content,
         context_str
     )
 }
 
 /// Format a question for inclusion in a prompt as an example
 fn format_question_for_prompt(q: &Question) -> String {
-    let code_str = match &q.code {
-        Some(code) => format!("\n\n```java\n{}\n```\n", code),
-        None => String::new(),
-    };
-    
     let answers_str: Vec<String> = q.answers.iter().map(|a| format!("a. {}", a.text)).collect();
     
     format!(
-        "{}{}{}",
-        q.text,
-        code_str,
+        "{}\n\n{}",
+        q.content,
         answers_str.join("\n")
     )
 }
@@ -212,28 +206,15 @@ fn parse_single_question(text: &str) -> Option<Question> {
     let num_re = Regex::new(r"^(\d+)\.\s+").unwrap();
     let text = num_re.replace(text, "").to_string();
     
-    // Find code blocks
-    let code_re = Regex::new(r"(?s)```(\w+)?\n(.*?)```").unwrap();
-    let mut code: Option<String> = None;
-    let mut text_without_code = text.clone();
-    
-    if let Some(caps) = code_re.captures(&text) {
-        code = Some(caps.get(2)?.as_str().trim().to_string());
-        text_without_code = code_re.replace(&text, "__CODE_BLOCK__").to_string();
-    }
-    
     // Find where answers start
     let answer_re = Regex::new(r"\n\s*a\.\s+").unwrap();
-    let answer_start = answer_re.find(&text_without_code)?;
+    let answer_start = answer_re.find(&text)?;
     
-    // Extract question text (before answers)
-    let question_text = text_without_code[..answer_start.start()]
-        .replace("__CODE_BLOCK__", "")
-        .trim()
-        .to_string();
+    // Content is everything before answers (including code blocks, tables, etc.)
+    let content = text[..answer_start.start()].trim().to_string();
     
     // Extract answers
-    let answers_section = &text_without_code[answer_start.start()..];
+    let answers_section = &text[answer_start.start()..];
     let answers = parse_answers(answers_section);
     
     if answers.is_empty() {
@@ -242,8 +223,7 @@ fn parse_single_question(text: &str) -> Option<Question> {
     
     Some(Question {
         id: String::new(), // Will be set by caller
-        text: question_text,
-        code,
+        content,
         answers,
     })
 }
@@ -306,7 +286,7 @@ a. 22"#;
         
         let questions = parse_llm_response(input).unwrap();
         assert_eq!(questions.len(), 1);
-        assert_eq!(questions[0].text, "What is 2 + 2?");
+        assert_eq!(questions[0].content, "What is 2 + 2?");
         assert_eq!(questions[0].answers.len(), 4);
         assert!(questions[0].answers[0].is_correct);
         assert!(!questions[0].answers[1].is_correct);
@@ -327,7 +307,7 @@ a. Nothing"#;
         
         let questions = parse_llm_response(input).unwrap();
         assert_eq!(questions.len(), 1);
-        assert!(questions[0].code.is_some());
-        assert!(questions[0].code.as_ref().unwrap().contains("println"));
+        assert!(questions[0].content.contains("println"));
+        assert!(questions[0].content.contains("```java"));
     }
 }

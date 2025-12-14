@@ -142,28 +142,15 @@ fn parse_question(text: &str, index: usize) -> Option<Question> {
     let num_re = Regex::new(r"^\d+\.\s+").unwrap();
     let text = num_re.replace(text, "").to_string();
     
-    // Extract code block if present
-    let code_re = Regex::new(r"(?s)```(\w+)?\n(.*?)```").unwrap();
-    let mut code: Option<String> = None;
-    let mut text_without_code = text.clone();
-    
-    if let Some(caps) = code_re.captures(&text) {
-        code = Some(caps.get(2)?.as_str().trim().to_string());
-        text_without_code = code_re.replace(&text, "__CODE__").to_string();
-    }
-    
     // Find answer section
     let answer_re = Regex::new(r"\n\s*a\.\s+").unwrap();
-    let answer_start = answer_re.find(&text_without_code)?;
+    let answer_start = answer_re.find(&text)?;
     
-    // Question text
-    let question_text = text_without_code[..answer_start.start()]
-        .replace("__CODE__", "")
-        .trim()
-        .to_string();
+    // Content is everything before answers (including code blocks, tables, etc.)
+    let content = text[..answer_start.start()].trim().to_string();
     
     // Parse answers
-    let answers_section = &text_without_code[answer_start.start()..];
+    let answers_section = &text[answer_start.start()..];
     let answers = parse_answers(answers_section);
     
     if answers.is_empty() {
@@ -172,8 +159,7 @@ fn parse_question(text: &str, index: usize) -> Option<Question> {
     
     Some(Question {
         id: format!("ex{}", index),
-        text: question_text,
-        code,
+        content,
         answers,
     })
 }

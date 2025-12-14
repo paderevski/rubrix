@@ -1,7 +1,6 @@
 export interface Question {
   id: string;
-  text: string;
-  code: string | null;
+  content: string;  // Full markdown content (question text + code blocks + tables)
   answers: Answer[];
 }
 

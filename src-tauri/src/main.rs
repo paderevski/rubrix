@@ -16,8 +16,7 @@ use tauri::State;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Question {
     pub id: String,
-    pub text: String,
-    pub code: Option<String>,
+    pub content: String,  // Full markdown content
     pub answers: Vec<Answer>,
 }
 
@@ -136,8 +135,7 @@ fn add_question(state: State<AppState>) -> Question {
     
     let new_question = Question {
         id: format!("q{}", stored.len() + 1),
-        text: "New question".to_string(),
-        code: None,
+        content: "New question".to_string(),
         answers: vec![
             Answer { text: "Correct answer".to_string(), is_correct: true },
             Answer { text: "Wrong answer".to_string(), is_correct: false },

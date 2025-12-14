@@ -98,17 +98,8 @@ pub fn export_txt(title: &str, questions: &[Question]) -> Result<String, String>
     let mut output = format!("Title: {}\n\n", title);
     
     for (i, q) in questions.iter().enumerate() {
-        // Question number and text
-        output.push_str(&format!("{}. {}\n", i + 1, q.text));
-        
-        // Code block if present
-        if let Some(code) = &q.code {
-            output.push_str("\n```java\n");
-            output.push_str(code);
-            output.push_str("\n```\n");
-        }
-        
-        output.push('\n');
+        // Question number and content
+        output.push_str(&format!("{}. {}\n\n", i + 1, q.content));
         
         // Answers - correct one first
         let correct_first: Vec<_> = q.answers.iter()
@@ -205,14 +196,49 @@ fn generate_qti_xml(title: &str, questions: &[Question]) -> String {
 
 /// Convert a question to HTML format
 fn convert_to_html(q: &Question) -> String {
-    let mut html = format!("<p>{}</p>", 
-        convert_inline_code(&htmlescape::encode_minimal(&q.text)));
+    // Convert markdown-style code blocks to HTML
+    let code_re = Regex::new(r"(?s)```(\w+)?\n(.*?)```").unwrap();
+    let mut html = q.content.clone();
     
-    if let Some(code) = &q.code {
-        html.push_str(&format!("\n<pre>{}</pre>", htmlescape::encode_minimal(code)));
+    // Replace code blocks with <pre> tags
+    html = code_re.replace_all(&html, |caps: &regex::Captures| {
+        let code = caps.get(2).map_or("", |m| m.as_str());
+        format!("<pre>{}</pre>", htmlescape::encode_minimal(code.trim()))
+    }).to_string();
+    
+    // Escape remaining HTML and convert inline code
+    let parts: Vec<&str> = html.split("<pre>").collect();
+    let mut result = String::new();
+    
+    for (i, part) in parts.iter().enumerate() {
+        if i == 0 {
+            // First part - escape and convert inline code
+            let escaped = htmlescape::encode_minimal(part);
+            result.push_str(&convert_inline_code(&escaped));
+        } else {
+            // Part after <pre> - find the </pre> and handle accordingly
+            if let Some(pre_end) = part.find("</pre>") {
+                // Code block content (already escaped above)
+                result.push_str("<pre>");
+                result.push_str(&part[..pre_end]);
+                result.push_str("</pre>");
+                // Text after code block
+                let after = &part[pre_end + 6..];
+                let escaped = htmlescape::encode_minimal(after);
+                result.push_str(&convert_inline_code(&escaped));
+            } else {
+                result.push_str("<pre>");
+                result.push_str(part);
+            }
+        }
     }
     
-    html
+    // Wrap in paragraph if not already structured
+    if !result.contains("<pre>") && !result.contains("<table>") {
+        result = format!("<p>{}</p>", result);
+    }
+    
+    result
 }
 
 /// Convert backticks to <code> tags
@@ -237,8 +263,7 @@ mod tests {
         let questions = vec![
             Question {
                 id: "1".to_string(),
-                text: "What is 2+2?".to_string(),
-                code: None,
+                content: "What is 2+2?".to_string(),
                 answers: vec![
                     Answer { text: "4".to_string(), is_correct: true },
                     Answer { text: "3".to_string(), is_correct: false },

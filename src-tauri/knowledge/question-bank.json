@@ -1,0 +1,1486 @@
+{
+  "schema_version": "2.1.0",
+  "source": "AP Computer Science A Practice Test 1 - Cracking the AP CS A Exam",
+  "exam_format": "Section I - Multiple Choice",
+  "total_questions": 40,
+  "total_time_minutes": 90,
+  "structure_types": [
+    "simple_code",
+    "compare_code_segments",
+    "algorithm_description",
+    "conceptual_question"
+  ],
+  "questions": [
+    {
+      "id": "pt1_q001",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D1",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 90,
+      "content": {
+        "stem": "Consider the following methods. What is printed as the result of the call trial()?",
+        "code": "public void trial()\n{\n    int a = 10;\n    int b = 5;\n    doublevalues(a,b);\n    System.out.print(b);\n    System.out.print(a);\n}\n\npublic void doublevalues(int c, int d)\n{\n    c = c * 2;\n    d = d * 2;\n    System.out.print(c);\n    System.out.print(d);\n}",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "2010", "is_correct": false},
+          {"id": "b", "text": "2010105", "is_correct": false},
+          {"id": "c", "text": "2010510", "is_correct": true},
+          {"id": "d", "text": "20102010", "is_correct": false},
+          {"id": "e", "text": "20101020", "is_correct": false}
+        ],
+        "explanation": "Primitive types are passed by value. The doublevalues method receives copies of a and b. It prints 20 and 10, then returns. The original variables a=10, b=5 are unchanged, so trial() prints 5 and 10. Total output: 2010510."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U1",
+        "ap_cs_topics": ["1.9", "1.10"],
+        "topics": ["T012", "T001"],
+        "subtopics": ["ST049", "ST050"],
+        "skills": ["SK001", "SK008"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Student only traces the method call output", "reasoning": "Incomplete trace"},
+          {"option_id": "d", "misconception": "Pass by reference confusion", "reasoning": "E005 - thinks variables were modified"},
+          {"option_id": "e", "misconception": "Confuses execution sequence", "reasoning": "Incorrect output ordering"}
+        ],
+        "common_errors": ["E005", "E009"]
+      }
+    },
+    {
+      "id": "pt1_q002",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D2",
+      "cognitive_level": "B4",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider the following method. What is returned by the call mystery(x,y)?",
+        "code": "/**\n * Precondition: a > b > 0\n */\npublic static int mystery(int a, int b)\n{\n    int d = 0;\n    for (int c = a; c > b; c--)\n    {\n        d=d+c;\n    }\n    return d;\n}",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "The sum of all the integers greater than y but less than or equal to x", "is_correct": true},
+          {"id": "b", "text": "The sum of all the integers greater than or equal to y but less than or equal to x", "is_correct": false},
+          {"id": "c", "text": "The sum of all the integers greater than y but less than x", "is_correct": false},
+          {"id": "d", "text": "The sum of all the integers greater than y but less than or equal to x", "is_correct": false},
+          {"id": "e", "text": "The sum of all the integers less than y but greater than or equal to x", "is_correct": false}
+        ],
+        "explanation": "Loop: c starts at a (x), continues while c > b (y), decrements. Sums a + (a-1) + ... + (b+1). This is all integers greater than y but ≤ x."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U2",
+        "ap_cs_topics": ["2.8", "2.9"],
+        "topics": ["T004", "T012"],
+        "subtopics": ["ST018", "ST020"],
+        "skills": ["SK011", "SK003", "SK010"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "b", "misconception": "Off-by-one boundary error", "reasoning": "E001 - includes b in sum"},
+          {"option_id": "c", "misconception": "Wrong boundary conditions", "reasoning": "Excludes x from sum"},
+          {"option_id": "e", "misconception": "Reverses relationship", "reasoning": "Fundamental misunderstanding"}
+        ],
+        "common_errors": ["E001", "E020"]
+      }
+    },
+    {
+      "id": "pt1_q003",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D3",
+      "cognitive_level": "B4",
+      "estimated_time_seconds": 150,
+      "content": {
+        "stem": "Consider the following method. What value is returned by the call mystery(3)?",
+        "code": "public void mystery (int n)\n{\n    int k;\n    for (k = 0 ; k < n ; k++)\n    {\n        mystery(k);\n        System.out.print (n) ;\n    }\n}",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "0123", "is_correct": false},
+          {"id": "b", "text": "00123", "is_correct": false},
+          {"id": "c", "text": "0010012", "is_correct": false},
+          {"id": "d", "text": "00100123", "is_correct": true},
+          {"id": "e", "text": "001001200100123", "is_correct": false}
+        ],
+        "explanation": "mystery(3): k=0 calls mystery(0) (prints nothing), prints 3; k=1 calls mystery(1) (prints 1), prints 3; k=2 calls mystery(2) (prints 10 + 2=012), prints 3. Total: 00 + 1 + 00 + 1 + 0 + 0 + 1 + 2 + 3 = 00100123."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U2",
+        "ap_cs_topics": ["2.7", "2.9"],
+        "topics": ["T009", "T004"],
+        "subtopics": ["ST031", "ST032"],
+        "skills": ["SK012", "SK001"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Incomplete recursion trace", "reasoning": "Misses some recursive calls"},
+          {"option_id": "e", "misconception": "Over-traces recursion", "reasoning": "Includes too many outputs"},
+          {"option_id": "c", "misconception": "Incorrect output sequence", "reasoning": "Wrong ordering of prints"}
+        ],
+        "common_errors": ["E016", "E009"]
+      }
+    },
+    {
+      "id": "pt1_q004",
+      "type": "QT04",
+      "structure_type": "conceptual_question",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider an array of integers: [4, 10, 1, 2, 6, 7, 3, 5]. If selection sort is used to order the array from smallest to largest values, which of the following represents a possible state of the array at some point during the selection sort process?",
+        "options": [
+          {"id": "a", "text": "[1, 4, 10, 2, 3, 6, 7, 5]", "is_correct": false},
+          {"id": "b", "text": "[1, 2, 4, 6, 10, 7, 3, 5]", "is_correct": false},
+          {"id": "c", "text": "[1, 2, 3, 10, 6, 7, 4, 5]", "is_correct": true},
+          {"id": "d", "text": "[4, 3, 1, 2, 6, 7, 10, 5]", "is_correct": false},
+          {"id": "e", "text": "[5, 3, 7, 6, 2, 1, 10, 4]", "is_correct": false}
+        ],
+        "explanation": "Selection sort finds the minimum of unsorted portion and swaps to front. After 3 passes: sorted portion [1,2,3], unsorted [10,6,7,4,5] remains in original order. Only option C matches this pattern."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U4",
+        "ap_cs_topics": ["4.15"],
+        "topics": ["T011", "T006"],
+        "subtopics": ["ST046", "ST031"],
+        "skills": ["SK003", "SK005", "SK018"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Confuses with insertion sort", "reasoning": "E019 - wrong algorithm pattern"},
+          {"option_id": "b", "misconception": "Too much sorting in unsorted portion", "reasoning": "Unsorted elements shouldn't be sorted"},
+          {"option_id": "d", "misconception": "Wrong sort direction", "reasoning": "Descending instead of ascending"}
+        ],
+        "common_errors": ["E019"]
+      }
+    },
+    {
+      "id": "pt1_q005",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D3",
+      "cognitive_level": "B4",
+      "estimated_time_seconds": 150,
+      "content": {
+        "stem": "Consider the following code segment. What values will A contain after the code segment is executed?",
+        "code": "int k;\nint A[];\nA = new int [7];\nfor (k = 0; k < A.length; k++)\n{\n    A[k] = A.length - k;\n}\nfor (k = 0; k < A.length - 1; k++)\n{\n    A[k+1] = A[k];\n}",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "[1, 1, 2, 3, 4, 5, 6]", "is_correct": false},
+          {"id": "b", "text": "[1, 2, 3, 4, 5, 6, 7]", "is_correct": false},
+          {"id": "c", "text": "[6, 6, 5, 4, 3, 2, 1]", "is_correct": false},
+          {"id": "d", "text": "[7, 7, 6, 5, 4, 3, 2]", "is_correct": false},
+          {"id": "e", "text": "[7, 7, 7, 7, 7, 7, 7]", "is_correct": true}
+        ],
+        "explanation": "First loop: A[k] = 7-k creates [7,6,5,4,3,2,1]. Second loop: A[k+1] = A[k] cascades the first value (7) through the array. Result: [7,7,7,7,7,7,7]."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U4",
+        "ap_cs_topics": ["4.4", "4.5"],
+        "topics": ["T006", "T004"],
+        "subtopics": ["ST031", "ST034"],
+        "skills": ["SK001", "SK018", "SK011"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Incomplete cascade trace", "reasoning": "E021 - doesn't see full cascade"},
+          {"option_id": "b", "misconception": "Ignores second loop", "reasoning": "Only traces first loop"},
+          {"option_id": "d", "misconception": "Partial cascade", "reasoning": "Stops cascade prematurely"}
+        ],
+        "common_errors": ["E021", "E008"]
+      }
+    },
+    {
+      "id": "pt1_q006",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider the following code segment: PostOffice p[] p = new PostOffice[10]; Assuming that the box has been assigned and that it has at least four pieces of mail waiting in it, what is the correct way of getting the fourth piece of mail from the 57th box of the tenth post office of p?",
+        "code": "PostOffice p[];\np = new PostOffice[10];",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "Mail m = p[10].getBox(57).getmail(4);", "is_correct": false},
+          {"id": "b", "text": "Mail m = p[9].getBox(56).getMail(3);", "is_correct": true},
+          {"id": "c", "text": "Mail m = p.getMail(57).getMail(4)[10];", "is_correct": false},
+          {"id": "d", "text": "Mail m = getMail(getBox(p[9], 560, 3);", "is_correct": false},
+          {"id": "e", "text": "Mail m = new Mail(10, 57, 4);", "is_correct": false}
+        ],
+        "explanation": "Arrays are 0-indexed. 10th office = p[9], 57th box = getBox(56), 4th piece = getMail(3). Correct: p[9].getBox(56).getMail(3)."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U1",
+        "ap_cs_topics": ["1.12", "1.13", "1.14"],
+        "topics": ["T002", "T006"],
+        "subtopics": ["ST001", "ST009"],
+        "skills": ["SK007", "SK020"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Off-by-one array indexing", "reasoning": "Uses p[10] instead of p[9]"},
+          {"option_id": "c", "misconception": "Wrong method call chain", "reasoning": "Incorrect API usage"},
+          {"option_id": "d", "misconception": "Malformed syntax", "reasoning": "Wrong method signatures"}
+        ],
+        "common_errors": ["E001"]
+      }
+    },
+    {
+      "id": "pt1_q007",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider the incomplete function printEmptyBoxes given below. printEmptyBoxes should print the box numbers of all of the boxes that do not contain mail. Which of the following could be used to replace the missing expression?",
+        "code": "public void printEmptyBoxes (PostOffice p [ ])\n{\n    for (int k = 0; k < p.length - 1 ; k++)\n    {\n        for (int x = 0; x < p[k].getNumBoxes( ) - 1 ; x++)\n        {\n            // missing expression\n        }\n    }\n}",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "if (p[k].getBox(x).isAssigned( ) && !p[k].getBox(x).hasMail( ) ) { System.out.println(p[k].getBox(x).getBoxNumber( )) ; }", "is_correct": true},
+          {"id": "b", "text": "if (p[x].getBox(k).isAssigned ( ) && !p[x].getBox(k).hasMail( )) { System.out.println(p[x].getBox(k).getBoxNumber( )); }", "is_correct": false},
+          {"id": "c", "text": "if (p[k].getBox(x).isAssigned( ) && !p[k].getBox(x).hasMail( )) { System.out.println (p[k].getBoxNumber (x)); }", "is_correct": false},
+          {"id": "d", "text": "if (p[x].getBox(k).isAssigned( ) && !p[x].getBox (k).hasMail( )) { System.out.println(p[x].getBoxNumber(k)); }", "is_correct": false},
+          {"id": "e", "text": "if (p[x].getBox(k).isAssigned( ) && p[x].getBox(k).getMail( ) == 0) { System.out.println(k); }", "is_correct": false}
+        ],
+        "explanation": "Loops use k for post offices and x for boxes. Correct condition: p[k].getBox(x).isAssigned() && !p[k].getBox(x).hasMail(). Correct print: p[k].getBox(x).getBoxNumber()."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U1",
+        "ap_cs_topics": ["1.14"],
+        "topics": ["T002", "T003"],
+        "subtopics": ["ST008", "ST009"],
+        "skills": ["SK006", "SK009"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "b", "misconception": "Swapped array indices", "reasoning": "Uses p[x] and p[k] backwards"},
+          {"option_id": "c", "misconception": "Wrong method signature", "reasoning": "getBoxNumber() takes no args"},
+          {"option_id": "d", "misconception": "Multiple index errors", "reasoning": "Both indices and method wrong"}
+        ],
+        "common_errors": ["E009"]
+      }
+    },
+    {
+      "id": "pt1_q008",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D2",
+      "cognitive_level": "B4",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Assume that a and b are Boolean variables that have been initialized. Consider the following code segment. a = a && b; b = a || b; Which of the following statements is true?",
+        "options": [
+          {"id": "a", "text": "I only (The final value of a is the same as the initial value of a.)", "is_correct": false},
+          {"id": "b", "text": "II only (The final value of b is the same as the initial value of b.)", "is_correct": true},
+          {"id": "c", "text": "III only (The final value of a is the same as the initial value of b.)", "is_correct": false},
+          {"id": "d", "text": "I and II only", "is_correct": false},
+          {"id": "e", "text": "II and III only", "is_correct": false}
+        ],
+        "explanation": "Analysis: (1) a_new = a_old && b_old (not always equal to a_old). (2) b_new = (a_old && b_old) || b_old = b_old (absorption law - always true). (3) a_new ≠ b_old unless special conditions. Only II is always true."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U2",
+        "ap_cs_topics": ["2.2", "2.5"],
+        "topics": ["T003"],
+        "subtopics": ["ST010", "ST011"],
+        "skills": ["SK009", "SK020"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Doesn't trace values systematically", "reasoning": "Statement I is false"},
+          {"option_id": "c", "misconception": "Only checks one case", "reasoning": "Statement III only true sometimes"},
+          {"option_id": "d", "misconception": "Assumes a doesn't change", "reasoning": "Statement I is false"}
+        ],
+        "common_errors": ["E008"]
+      }
+    },
+    {
+      "id": "pt1_q009",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D1",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 90,
+      "content": {
+        "stem": "Consider the following code segment. What is output when the code is executed?",
+        "code": "int x;\nx = 53;\nif (x > 10) { System.out.print(\"A\") ; }\nif (x > 30) { System.out.print(\"B\") ; }\nelse if (x > 40) { System.out.print(\"C\") ; }\nif (x > 50) { System.out.print (\"D\") ; }\nif (x > 70) { System.out.print (\"E\") ; }",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "A", "is_correct": false},
+          {"id": "b", "text": "D", "is_correct": false},
+          {"id": "c", "text": "ABD", "is_correct": true},
+          {"id": "d", "text": "ABCD", "is_correct": false},
+          {"id": "e", "text": "ABCDE", "is_correct": false}
+        ],
+        "explanation": "x=53: First if (53>10) prints A; Second if (53>30) prints B, else-if skipped; Third if (53>50) prints D; Fourth if (53>70) false, no print. Output: ABD."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U2",
+        "ap_cs_topics": ["2.3", "2.4"],
+        "topics": ["T003"],
+        "subtopics": ["ST012", "ST013"],
+        "skills": ["SK020"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Only traces first if", "reasoning": "Incomplete trace"},
+          {"option_id": "d", "misconception": "Thinks else-if is independent", "reasoning": "Misunderstands else-if semantics"},
+          {"option_id": "e", "misconception": "Doesn't check conditions", "reasoning": "Traces no conditions"}
+        ],
+        "common_errors": ["E008"]
+      }
+    },
+    {
+      "id": "pt1_q010",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider the following code segment. What is the output when the code is executed?",
+        "code": "int j;\nint k;\nfor (j = -2; j <= 2; j = j + 2)\n{\n    for (k = j; k < j + 3; k++)\n    {\n        System.out.print(k + \" \" ) ;\n    }\n}",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "-2 -1 0", "is_correct": false},
+          {"id": "b", "text": "-2 -1 0 1 2", "is_correct": false},
+          {"id": "c", "text": "0 1 2 0 1 2 0 1 2", "is_correct": false},
+          {"id": "d", "text": "-2 0 2", "is_correct": false},
+          {"id": "e", "text": "-2 -1 0 0 1 2 2 3 4", "is_correct": true}
+        ],
+        "explanation": "j=-2: prints -2, -1, 0; j=0: prints 0, 1, 2; j=2: prints 2, 3, 4. Output: -2 -1 0 0 1 2 2 3 4."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U2",
+        "ap_cs_topics": ["2.8", "2.11"],
+        "topics": ["T004"],
+        "subtopics": ["ST018", "ST022"],
+        "skills": ["SK011"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Only traces first iteration", "reasoning": "Incomplete loop trace"},
+          {"option_id": "b", "misconception": "Wrong increment", "reasoning": "Uses j++ instead of j+=2"},
+          {"option_id": "d", "misconception": "Only prints outer loop variable", "reasoning": "Ignores inner loop"}
+        ],
+        "common_errors": ["E001"]
+      }
+    },
+    {
+      "id": "pt1_q011",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D3",
+      "cognitive_level": "B4",
+      "estimated_time_seconds": 150,
+      "content": {
+        "stem": "Consider the following method. What is output by the call mystery(5, \"X\")?",
+        "code": "public void mystery (int count, String s)\n{\n    if (count <= 0) { return; }\n    if (count % 3 == 0) { System.out.print(s + \"--\" + s) }\n    else if (count % 3 == 1) { System.out.print(s + \"-\" + s) }\n    else { System.out.print (s) ; }\n    mystery(count - 1, s) ;\n}",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "XX - XX - - XXX - X", "is_correct": true},
+          {"id": "b", "text": "XX - XX - XX - XX", "is_correct": false},
+          {"id": "c", "text": "XXX - - XX - X - XX - - XXX", "is_correct": false},
+          {"id": "d", "text": "XX - XXX - - XXX - XX", "is_correct": false},
+          {"id": "e", "text": "XXXXX", "is_correct": false}
+        ],
+        "explanation": "mystery(5): 5%3=2 prints X; mystery(4): 4%3=1 prints X-X; mystery(3): 3%3=0 prints X--X; mystery(2): 2%3=2 prints X; mystery(1): 1%3=1 prints X-X. Output: X X-X X--X X X-X formatted as XX - XX - - XXX - X."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U2",
+        "ap_cs_topics": ["2.9"],
+        "topics": ["T009"],
+        "subtopics": ["ST031", "ST032"],
+        "skills": ["SK012", "SK001"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "b", "misconception": "Wrong modulo pattern", "reasoning": "Incorrect condition matching"},
+          {"option_id": "c", "misconception": "Reversed recursion trace", "reasoning": "Works backwards incorrectly"},
+          {"option_id": "e", "misconception": "Counts instead of executes", "reasoning": "Ignores conditional branches"}
+        ],
+        "common_errors": ["E016"]
+      }
+    },
+    {
+      "id": "pt1_q012",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D1",
+      "cognitive_level": "B2",
+      "estimated_time_seconds": 90,
+      "content": {
+        "stem": "What is the correct way to define the signature of the constructor for the DiningRoomSet class?",
+        "options": [
+          {"id": "a", "text": "public void DiningRoomSet (Table t, ArrayList, chairs)", "is_correct": false},
+          {"id": "b", "text": "public DiningRoomSet (Table t, ArrayList chairs)", "is_correct": true},
+          {"id": "c", "text": "public void DiningRoomSet (Table t, ArrayList Chair Chairs)", "is_correct": false},
+          {"id": "d", "text": "public DiningRoomSet (Table t, ArrayList Chair Chairs)", "is_correct": false},
+          {"id": "e", "text": "public DiningRoomSet (Table t, Chair Chairs)", "is_correct": false}
+        ],
+        "explanation": "Constructor should: (1) NOT have void, (2) have correct class name, (3) have properly generic ArrayList<Chair>. Option B is closest valid syntax, though technically should be ArrayList<Chair>."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U3",
+        "ap_cs_topics": ["3.3", "3.4"],
+        "topics": ["T005"],
+        "subtopics": ["ST024", "ST025"],
+        "skills": ["SK016"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Constructor returns void", "reasoning": "Wrong signature syntax"},
+          {"option_id": "c", "misconception": "ArrayList type parameter in wrong place", "reasoning": "Malformed generics"},
+          {"option_id": "d", "misconception": "ArrayList missing generic type", "reasoning": "Not properly typed"}
+        ],
+        "common_errors": ["E007"]
+      }
+    },
+    {
+      "id": "pt1_q013",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "What is the correct way to implement the getPrice method of the DiningRoomSet class?",
+        "code": "public class DiningRoomSet {\n    private Table myTable;\n    private ArrayList<Chair> myChairs;\n}",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "public double getPrice(Table t, ArrayList chairs) { return t.getPrice() + chairs.getPrice() ; }", "is_correct": false},
+          {"id": "b", "text": "public double getPrice(Table t, ArrayList chairs) { return myTable.getPrice() + myChairs.getPrice(); }", "is_correct": false},
+          {"id": "c", "text": "public double getPrice() { return myTable.getPrice() + myChairs.getPrice(); }", "is_correct": false},
+          {"id": "d", "text": "public double getPrice() { double result = myTable.getPrice(); for (int k = 0; k < myChairs.size() - 1; k++) { result += ((Chair)myChairs.get(k)).getPrice(); } return result; }", "is_correct": false},
+          {"id": "e", "text": "public double getPrice() { double result = myTable.getPrice() ; for (int k = 0; k < myChairs.size(); k++) { result += ((Chair)myChairs.get(k)).getPrice( ); } return result ; }", "is_correct": true}
+        ],
+        "explanation": "Must iterate through ALL chairs (k < myChairs.size(), not size()-1). Option D has off-by-one error. Option E correctly sums table + all chairs."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U4",
+        "ap_cs_topics": ["4.3"],
+        "topics": ["T007"],
+        "subtopics": ["ST035", "ST036"],
+        "skills": ["SK018", "SK021"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "b", "misconception": "ArrayList has no getPrice method", "reasoning": "Wrong API usage"},
+          {"option_id": "c", "misconception": "ArrayList getPrice doesn't exist", "reasoning": "E002 - null assumption"},
+          {"option_id": "d", "misconception": "Off-by-one error in loop", "reasoning": "E001 - size()-1 skips last chair"}
+        ],
+        "common_errors": ["E001", "E018"]
+      }
+    },
+    {
+      "id": "pt1_q014",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider the following output:\n6 5 4 3 2 1\n5 4 3 2 1\n4 3 2 1\n3 2 1\n2 1\n1\nWhich of the following code segments produces the above output?",
+        "code": null,
+        "options": [
+          {"id": "a", "text": "for (int j = 6; j < 0; j--) { for (int k = j; k > 0 ; k --) { System.out.print (k + \" \") ; } System.out.println(\"\") ; }", "is_correct": false},
+          {"id": "b", "text": "for (int j = 6; j >= 0; j--) { for (int k = j; k >= 0; k--) { System.out.print(k + \" \"); } System.out.println (\" \") ; }", "is_correct": false},
+          {"id": "c", "text": "for (int j = 0; j < 6; j++) { for (int k = 6 - j; k > 0; k--) { System.out.print (k + \" \") ; } system.out.println (\" \") ; }", "is_correct": true},
+          {"id": "d", "text": "for (int j = 0; j < 6; j++) { for (int k = 7 - j ; k > 0 ; k --) { System.out.print(k + \" \"); } System.out.println (\" \") ; }", "is_correct": false},
+          {"id": "e", "text": "for (int j = 0; j < 6; j++) { for (int k = 6 - j ; k >= 0; k--) { System.out.print(k + \" \"); } System.out.println (\" \") ; }", "is_correct": false}
+        ],
+        "explanation": "Pattern: iterate j from 0 to 5; each row starts at 6-j and counts down to 1. Outer: j 0-5; Inner: k from (6-j) down to 1 (k > 0)."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U2",
+        "ap_cs_topics": ["2.8", "2.11"],
+        "topics": ["T004"],
+        "subtopics": ["ST018", "ST022"],
+        "skills": ["SK011", "SK005"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Outer loop condition never true", "reasoning": "j < 0 starts at 6"},
+          {"option_id": "d", "misconception": "Off-by-one in starting value", "reasoning": "Starts at 7-j instead of 6-j"},
+          {"option_id": "e", "misconception": "Includes 0 in output", "reasoning": "k >= 0 should be k > 0"}
+        ],
+        "common_errors": ["E001"]
+      }
+    },
+    {
+      "id": "pt1_q015",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider the following code segment. What is printed as a result of executing this code segment?",
+        "code": "List<Integer> list = new ArrayList<Integer>();\nlist.add(new Integer (7));\nlist.add (new Integer (6));\nlist.add (1, new Integer (5));\nlist.add (1, new Integer (4));\nlist.add (new Integer (3));\nlist.set (2, new Integer (2));\nlist.add (1, new Integer (1));\nSystem.out.prinln (list);",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "[1, 4, 2, 7, 6, 3]", "is_correct": false},
+          {"id": "b", "text": "[7, 1, 4, 2, 6, 3]", "is_correct": true},
+          {"id": "c", "text": "[7, 2, 5, 4, 3, 1]", "is_correct": false},
+          {"id": "d", "text": "[7, 6, 2, 4, 3, 1]", "is_correct": false},
+          {"id": "e", "text": "[7, 1, 2]", "is_correct": false}
+        ],
+        "explanation": "Trace each operation: add(7)→[7]; add(6)→[7,6]; add(1,5)→[7,5,6]; add(1,4)→[7,4,5,6]; add(3)→[7,4,5,6,3]; set(2,2)→[7,4,2,6,3]; add(1,1)→[7,1,4,2,6,3]."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U4",
+        "ap_cs_topics": ["4.2", "4.3"],
+        "topics": ["T007"],
+        "subtopics": ["ST035", "ST036"],
+        "skills": ["SK001", "SK018"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Wrong index calculations", "reasoning": "Misses shifting during inserts"},
+          {"option_id": "c", "misconception": "Ignores set operation", "reasoning": "Doesn't apply replacement"},
+          {"option_id": "d", "misconception": "Incomplete trace", "reasoning": "Misses final add(1,1)"}
+        ],
+        "common_errors": ["E001"]
+      }
+    },
+    {
+      "id": "pt1_q016",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider the following declarations. Which of the following methods must be included in the declaration of the Dog class in order for the class to successfully compile?",
+        "code": "public interface Animal { String makeSound(); String animalType(); }\npublic static class Dog implements Animal { public String makeSound(Animal a) { } }",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "I only (public String makeSound())", "is_correct": false},
+          {"id": "b", "text": "II only (public String animalType())", "is_correct": false},
+          {"id": "c", "text": "I and II only", "is_correct": true},
+          {"id": "d", "text": "II and III only", "is_correct": false},
+          {"id": "e", "text": "I, II, and III", "is_correct": false}
+        ],
+        "explanation": "Interface requires both makeSound() and animalType(). Dog has makeSound(Animal a) which is different signature. Must implement both interface methods: makeSound() and animalType()."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U3",
+        "ap_cs_topics": ["3.1"],
+        "topics": ["T019"],
+        "subtopics": ["ST061"],
+        "skills": ["SK017", "SK013"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Thinks overloading satisfies interface", "reasoning": "Different signature isn't implementation"},
+          {"option_id": "b", "misconception": "Only needs one method", "reasoning": "Forgets about second requirement"},
+          {"option_id": "d", "misconception": "Ignores makeSound requirement", "reasoning": "Doesn't see overloading is insufficient"}
+        ],
+        "common_errors": ["E014"]
+      }
+    },
+    {
+      "id": "pt1_q017",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D2",
+      "cognitive_level": "B4",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider the following two classes. Which of the following is the correct output after the following code segment is executed? Fish Bob = new Shark(); System.out.println(Bob.endoskeleton); Bob.action();",
+        "code": "public static class Fish { public String endoskeleton = \"bone\"; public void action() { System.out.println(\"splash splash\"); } }\npublic static class Shark extends Fish { public void action() { System.out.println(\"chomp chomp\"); } public String endoskeleton=\"cartilage\"; }",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "bone\\nchomp chomp", "is_correct": true},
+          {"id": "b", "text": "bone\\nsplash splash", "is_correct": false},
+          {"id": "c", "text": "cartilage\\nsplash splash", "is_correct": false},
+          {"id": "d", "text": "cartilage\\nchomp chomp", "is_correct": false},
+          {"id": "e", "text": "cartilage\\nsplash splash\\nchomp chomp", "is_correct": false}
+        ],
+        "explanation": "Instance variables are NOT polymorphic - use declared type (Fish). Methods ARE polymorphic - use runtime type (Shark). Result: endoskeleton=\"bone\" (Fish), action() calls Shark version prints \"chomp chomp\"."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U3",
+        "ap_cs_topics": ["3.6"],
+        "topics": ["T016", "T017"],
+        "subtopics": ["ST057", "ST058", "ST060"],
+        "skills": ["SK013", "SK007"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "c", "misconception": "Thinks variables are polymorphic", "reasoning": "Applies runtime type to variables"},
+          {"option_id": "b", "misconception": "Thinks methods use declared type", "reasoning": "Reverses polymorphism rule"},
+          {"option_id": "d", "misconception": "Both polymorphic", "reasoning": "Misunderstands variable semantics"}
+        ],
+        "common_errors": ["E024"]
+      }
+    },
+    {
+      "id": "pt1_q018",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "The following insertSort method sorts the values in an integer array. Which of the following can be used to replace the missing code?",
+        "code": "public static void insertSort(int[] sort) {\n    for (int index=1;index<sort.length;index++) {\n        int temp=sort[index];\n        while (index > 0 && sort[index-1]>temp) {\n            // Missing code\n        }\n        sort[index]=temp;\n    }\n}",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "sort[index]=sort[index-1]; index++;", "is_correct": false},
+          {"id": "b", "text": "sort[index-1]=sort[index]; index--;", "is_correct": false},
+          {"id": "c", "text": "sort[index]=sort[index+1]; index++;", "is_correct": false},
+          {"id": "d", "text": "sort[index]=sort[index-1]; index--;", "is_correct": true},
+          {"id": "e", "text": "sort[index]=sort[index+1]; index--;", "is_correct": false}
+        ],
+        "explanation": "Must shift element right: sort[index]=sort[index-1], and move left: index--. This creates space for smaller elements."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U4",
+        "ap_cs_topics": ["4.15"],
+        "topics": ["T011"],
+        "subtopics": ["ST047"],
+        "skills": ["SK003", "SK015"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Wrong direction increment", "reasoning": "Should decrement, not increment"},
+          {"option_id": "b", "misconception": "Wrong assignment direction", "reasoning": "Copies from wrong location"},
+          {"option_id": "c", "misconception": "Both wrong", "reasoning": "Wrong index and direction"}
+        ],
+        "common_errors": ["E008"]
+      }
+    },
+    {
+      "id": "pt1_q019",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Assuming that the missing code is implemented properly, what change can be made to the code in order for the array to be sorted in descending order?",
+        "options": [
+          {"id": "a", "text": "Replace Line 6 with: while (index < 0 && sort[index-1]<temp)", "is_correct": false},
+          {"id": "b", "text": "Replace Line 6 with: while (index < 0 && sort[index-1]<temp)", "is_correct": false},
+          {"id": "c", "text": "Replace Line 6 with: while (index > 0 && sort[index-1]<temp)", "is_correct": true},
+          {"id": "d", "text": "Replace Line 3 with: for (int index=sort.length-1;index>0;index--)", "is_correct": false},
+          {"id": "e", "text": "Replace Line 3 with: for (int index=1;index>0;index--)", "is_correct": false}
+        ],
+        "explanation": "To reverse sort order, reverse the comparison: > becomes <. Rest of logic remains same. Change sort[index-1]>temp to sort[index-1]<temp."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U4",
+        "ap_cs_topics": ["4.15"],
+        "topics": ["T011"],
+        "subtopics": ["ST047"],
+        "skills": ["SK003", "SK015"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Wrong loop condition", "reasoning": "index < 0 breaks loop logic"},
+          {"option_id": "d", "misconception": "Only changes loop initialization", "reasoning": "Doesn't reverse comparison operator"},
+          {"option_id": "e", "misconception": "Breaks loop immediately", "reasoning": "Loop never executes"}
+        ],
+        "common_errors": ["E008"]
+      }
+    },
+    {
+      "id": "pt1_q020",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Which of the following arrays would be sorted the slowest using insertion sort?",
+        "options": [
+          {"id": "a", "text": "[3 4 6 2 7 3 9]", "is_correct": false},
+          {"id": "b", "text": "[3 2 5 4 6 7 9]", "is_correct": false},
+          {"id": "c", "text": "[9 7 6 5 4 3 2]", "is_correct": true},
+          {"id": "d", "text": "[2 3 4 5 6 7 9]", "is_correct": false},
+          {"id": "e", "text": "[9 3 2 4 5 7 6]", "is_correct": false}
+        ],
+        "explanation": "Insertion sort worst case is when array is in reverse order (every element must be compared with all previous). [9,7,6,5,4,3,2] is reverse sorted, requiring maximum comparisons."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U4",
+        "ap_cs_topics": ["4.15"],
+        "topics": ["T011"],
+        "subtopics": ["ST047"],
+        "skills": ["SK003", "SK015"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "d", "misconception": "Already sorted is slow", "reasoning": "Actually already sorted is best case"},
+          {"option_id": "a", "misconception": "Random order is worst", "reasoning": "Not as bad as reverse"},
+          {"option_id": "e", "misconception": "One swap away", "reasoning": "Still better than fully reversed"}
+        ],
+        "common_errors": ["E015"]
+      }
+    },
+    {
+      "id": "pt1_q021",
+      "type": "QT02",
+      "structure_type": "compare_code_segments",
+      "difficulty": "D2",
+      "cognitive_level": "B2",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider the method multiply of the Fraction class. Which of the following statements can be used to replace the missing code?",
+        "code_segments": [
+          {
+            "label": "I",
+            "code": "return Fraction(\n    numerator * f.getNumerator(),\n    denominator * f.getDenominator());",
+            "code_language": "java"
+          },
+          {
+            "label": "II",
+            "code": "return new Fraction(\n    numerator * f.numerator,\n    denominator * f.denominator());",
+            "code_language": "java"
+          },
+          {
+            "label": "III",
+            "code": "return new Fraction(\n    numerator * f.getNumerator(),\n    denominator * f.getDenominator());",
+            "code_language": "java"
+          }
+        ],
+        "options": [
+          {"id": "a", "text": "I only", "is_correct": false},
+          {"id": "b", "text": "II only", "is_correct": false},
+          {"id": "c", "text": "III only", "is_correct": true},
+          {"id": "d", "text": "I and III", "is_correct": false},
+          {"id": "e", "text": "II and III", "is_correct": false}
+        ],
+        "explanation": "Must: (1) use 'new', (2) use public getter methods not private fields, (3) properly call getDenominator(). Option III is correct."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U3",
+        "ap_cs_topics": ["3.5"],
+        "topics": ["T005"],
+        "subtopics": ["ST025", "ST056"],
+        "skills": ["SK016", "SK007"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Missing 'new' keyword", "reasoning": "Constructor requires instantiation"},
+          {"option_id": "b", "misconception": "Accessing private fields directly", "reasoning": "Should use getters; missing ()"},
+          {"option_id": "d", "misconception": "Mixing valid and invalid", "reasoning": "I missing new, III correct"}
+        ],
+        "common_errors": ["E002", "E014"]
+      }
+    },
+    {
+      "id": "pt1_q022",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D1",
+      "cognitive_level": "B2",
+      "estimated_time_seconds": 90,
+      "content": {
+        "stem": "Consider the use of the Fraction class to multiply the fractions 3/4 and 7/19. Which of the following could be used to replace the missing code?",
+        "code": "Fraction fractionOne = new Fraction(3, 4);\nFraction fractionTwo = new Fraction(7, 19);\n/* missing code */",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "answer = fractionOne * fractionTwo", "is_correct": false},
+          {"id": "b", "text": "answer = multiply(fractionOne, fractionTwo);", "is_correct": false},
+          {"id": "c", "text": "answer = fractionOne.multiply(fractionTwo);", "is_correct": true},
+          {"id": "d", "text": "answer = new Fraction(fractionOne, fractionTwo);", "is_correct": false},
+          {"id": "e", "text": "answer = (fractionOne.getNumerator() * fractionTwo.getNumerator()) / (fractionOne.getDenominator() * fractionTwo.getDenominator());", "is_correct": false}
+        ],
+        "explanation": "Instance method syntax: object.method(parameter). answer = fractionOne.multiply(fractionTwo);"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U1",
+        "ap_cs_topics": ["1.14"],
+        "topics": ["T002"],
+        "subtopics": ["ST003", "ST008"],
+        "skills": ["SK007"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Operator overloading in Java", "reasoning": "Java doesn't support * for objects"},
+          {"option_id": "b", "misconception": "Static method call", "reasoning": "Should be instance method"},
+          {"option_id": "d", "misconception": "Constructor call instead", "reasoning": "multiply is a method, not constructor"}
+        ],
+        "common_errors": ["E014"]
+      }
+    },
+    {
+      "id": "pt1_q023",
+      "type": "QT02",
+      "structure_type": "compare_code_segments",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider the proposed constructors for the ReducedFraction class. Which of these constructor(s) would be legal?",
+        "code_segments": [
+          {
+            "label": "I",
+            "code": "public ReducedFraction ( )\n{\n    reducedNumerator = 0;\n    reducedDenominator = 1;\n}",
+            "code_language": "java"
+          },
+          {
+            "label": "II",
+            "code": "public reducedFraction (int n, int d)\n{\n    numerator = n;\n    denominator = d;\n    reducedNumerator = n / gcd (n, d);\n    reducedDenominator = d / gcd (n, d);\n}",
+            "code_language": "java"
+          },
+          {
+            "label": "III",
+            "code": "public ReducedFraction (int n, int d)\n{\n    super (n, d) ;\n    reducedNumerator = n / gcd (n, d) ;\n    reducedDenominator = d / gcd (n, d) ;\n}",
+            "code_language": "java"
+          }
+        ],
+        "options": [
+          {"id": "a", "text": "I only", "is_correct": false},
+          {"id": "b", "text": "II only", "is_correct": false},
+          {"id": "c", "text": "III only", "is_correct": false},
+          {"id": "d", "text": "I and III", "is_correct": true},
+          {"id": "e", "text": "II and III", "is_correct": false}
+        ],
+        "explanation": "Constructor I: Legal, initializes only reduced fields. Constructor II: Illegal - lowercase 'reducedFraction' wrong, directly accesses private fields. Constructor III: Legal - calls super() properly, initializes reduced fields."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U3",
+        "ap_cs_topics": ["3.3", "3.4"],
+        "topics": ["T016"],
+        "subtopics": ["ST057", "ST059"],
+        "skills": ["SK017", "SK013"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "b", "misconception": "Case sensitivity and field access", "reasoning": "Constructor name wrong case, private field access"},
+          {"option_id": "c", "misconception": "Only super() counts", "reasoning": "I is also legal"},
+          {"option_id": "e", "misconception": "II is valid", "reasoning": "II has multiple syntax errors"}
+        ],
+        "common_errors": ["E024"]
+      }
+    },
+    {
+      "id": "pt1_q024",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D1",
+      "cognitive_level": "B2",
+      "estimated_time_seconds": 90,
+      "content": {
+        "stem": "Consider s1 and s2 defined as follows. String s1 = new String(\"hello\"); String s2 = new String(\"hello\"); Which of the following is/are correct ways to see if s1 and s2 hold identical strings?",
+        "options": [
+          {"id": "a", "text": "I only: if (s1 == s2)", "is_correct": false},
+          {"id": "b", "text": "III only: if (s1.equals(s2))", "is_correct": false},
+          {"id": "c", "text": "I and III only", "is_correct": false},
+          {"id": "d", "text": "II and III only: if (s1.compareTo(s2) == 0) AND if (s1.equals(s2))", "is_correct": true},
+          {"id": "e", "text": "I, II, and III", "is_correct": false}
+        ],
+        "explanation": "== checks references (different objects, so false). compareTo()==0 checks content (true). equals() checks content (true). II and III are correct."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U1",
+        "ap_cs_topics": ["1.15"],
+        "topics": ["T013"],
+        "subtopics": ["ST039", "ST040"],
+        "skills": ["SK008"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "== compares content for strings", "reasoning": "E012 - reference vs content"},
+          {"option_id": "b", "misconception": "equals() is the only way", "reasoning": "compareTo() also works"},
+          {"option_id": "c", "misconception": "== works for objects", "reasoning": "False for separate String objects"}
+        ],
+        "common_errors": ["E012"]
+      }
+    },
+    {
+      "id": "pt1_q025",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider the following variable and method declarations. Assume that s has the value \"Elizabeth\" and t has the value \"Andrew\" and mystery(s, t) is called. What are the values of s and t after the call?",
+        "code": "String s; String t;\npublic void mystery(String a, String b) {\n    a = a + b;\n    b = b + a;\n}",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "s=Elizabeth, t=Andrew", "is_correct": true},
+          {"id": "b", "text": "s=ElizabethAndrew, t=AndrewElizabeth", "is_correct": false},
+          {"id": "c", "text": "s=ElizabethAndrew, t=AndrewElizabethAndrew", "is_correct": false},
+          {"id": "d", "text": "s=ElizabethAndrew, t=ElizabethAndrewAndrew", "is_correct": false},
+          {"id": "e", "text": "s=ElizabethAndrewElizabeth, t=AndrewElizabethAndrew", "is_correct": false}
+        ],
+        "explanation": "Strings are passed by value. Inside mystery, parameters a and b change, but original s and t are unchanged. Answer: s=Elizabeth, t=Andrew."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U1",
+        "ap_cs_topics": ["1.9", "1.10"],
+        "topics": ["T001", "T012"],
+        "subtopics": ["ST049", "ST050"],
+        "skills": ["SK001", "SK019"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "b", "misconception": "Only first concatenation", "reasoning": "E005 - incorrect trace"},
+          {"option_id": "c", "misconception": "Cascading concatenation", "reasoning": "Doesn't understand immutability"},
+          {"option_id": "d", "misconception": "Wrong string order", "reasoning": "Incorrect operation sequence"}
+        ],
+        "common_errors": ["E005"]
+      }
+    },
+    {
+      "id": "pt1_q026",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D2",
+      "cognitive_level": "B4",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider the incomplete and incorrect class declaration. For which of the following reasons is the class declaration incorrect?",
+        "code": "public class Point implements Comparable {\n    private int x; private int y;\n    public boolean compareTo(Point other) {\n        return (x == other.x && y == other.y);\n    }\n}",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "I only", "is_correct": false},
+          {"id": "b", "text": "III only", "is_correct": false},
+          {"id": "c", "text": "I and III", "is_correct": false},
+          {"id": "d", "text": "II and III", "is_correct": true},
+          {"id": "e", "text": "I, II, and III", "is_correct": false}
+        ],
+        "explanation": "I. FALSE - objects in same class CAN access private fields. II. TRUE - Comparable requires Object parameter. III. TRUE - Comparable requires int return type, not boolean."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U3",
+        "ap_cs_topics": ["3.8"],
+        "topics": ["T019"],
+        "subtopics": ["ST061"],
+        "skills": ["SK013", "SK017"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Objects can't access private", "reasoning": "I is false"},
+          {"option_id": "b", "misconception": "Only return type wrong", "reasoning": "Parameter type also wrong"},
+          {"option_id": "e", "misconception": "All three are violations", "reasoning": "I is not a violation"}
+        ],
+        "common_errors": ["E014"]
+      }
+    },
+    {
+      "id": "pt1_q027",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D2",
+      "cognitive_level": "B4",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider the following abstraction of a for loop. Which of the following while loops has the same functionality?",
+        "options": [
+          {"id": "a", "text": "<1>; while (<2>) { <3>; <4> }", "is_correct": false},
+          {"id": "b", "text": "<1>; while (<2>) { <4> <3>; }", "is_correct": true},
+          {"id": "c", "text": "<1>; while (!<2>) { <3>; <4> }", "is_correct": false},
+          {"id": "d", "text": "<1>; while (!<2>) { <4> <3>; }", "is_correct": false},
+          {"id": "e", "text": "<1>; <3>; while (<2>) { <4> <3>; }", "is_correct": false}
+        ],
+        "explanation": "For loop: init <1>, check <2>, exec <4>, then increment <3>. While: init <1>, check <2>, exec <4>, then increment <3>. Body comes before increment."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U2",
+        "ap_cs_topics": ["2.7", "2.8"],
+        "topics": ["T004"],
+        "subtopics": ["ST017", "ST018"],
+        "skills": ["SK011"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Increment before body", "reasoning": "Wrong order"},
+          {"option_id": "c", "misconception": "Negates condition", "reasoning": "Changes loop logic"},
+          {"option_id": "e", "misconception": "Executes increment before loop", "reasoning": "Wrong initialization"}
+        ],
+        "common_errors": ["E004"]
+      }
+    },
+    {
+      "id": "pt1_q028",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D1",
+      "cognitive_level": "B2",
+      "estimated_time_seconds": 90,
+      "content": {
+        "stem": "Consider the following expression: a / b + c – d % e * f Which of the expressions given below is equivalent?",
+        "options": [
+          {"id": "a", "text": "( (a / b) + (c – d) ) % (e *f)", "is_correct": false},
+          {"id": "b", "text": "( ( ( ( a / b) + c) – d) % e) * f", "is_correct": false},
+          {"id": "c", "text": "( ( a / b) + c) – (d % (e * f))", "is_correct": false},
+          {"id": "d", "text": "(a / ( (b + c) – d) % e) * f", "is_correct": false},
+          {"id": "e", "text": "( (a / b) + c) – ( (d % e) * f)", "is_correct": true}
+        ],
+        "explanation": "Precedence: /, %, * (left to right) > +, - (left to right). Expression = (a/b) + c - ((d%e)*f)."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U1",
+        "ap_cs_topics": ["1.3", "1.6"],
+        "topics": ["T001"],
+        "subtopics": ["ST004", "ST005"],
+        "skills": ["SK008"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Wrong parenthesization", "reasoning": "Groups operations incorrectly"},
+          {"option_id": "b", "misconception": "Wrong modulo position", "reasoning": "Applies % before final *"},
+          {"option_id": "c", "misconception": "Wrong modulo grouping", "reasoning": "Groups with e*f instead of d%e"}
+        ],
+        "common_errors": ["E008"]
+      }
+    },
+    {
+      "id": "pt1_q029",
+      "type": "QT02",
+      "structure_type": "compare_code_segments",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Assume that a program declares and initializes x as follows: String [] x; x = new String[10]; initialize(x); // Fills the array x with valid strings each of length 5. Which of the following code segments correctly traverses the array and prints out the first character of all ten strings followed by the second character of all ten strings?",
+        "code_segments": [
+          {
+            "label": "I",
+            "code": "int i;\nint j;\nfor (i = 0 ; i < 10 ; i++)\n  for (j = 0 ; j < 5 ; j++)\n    System.out.print (x[i].substring (j, j+1));",
+            "code_language": "java"
+          },
+          {
+            "label": "II",
+            "code": "int i;\nint j;\nfor (i = 0 ; i < 5 ; i++)\n  for (j = 0 ; j < 10 ; j++)\n    System.out.print (x[j].substring (i, i+1));",
+            "code_language": "java"
+          },
+          {
+            "label": "III",
+            "code": "int i ;\nint j ;\nfor (i = 0 ; i < 5 ; i++)\n  for (j = 0 ; j < 10 ; j++)\n    System.out.print (x[i].substring (j, j+1));",
+            "code_language": "java"
+          }
+        ],
+        "options": [
+          {"id": "a", "text": "I only", "is_correct": false},
+          {"id": "b", "text": "II only", "is_correct": true},
+          {"id": "c", "text": "I and II", "is_correct": false},
+          {"id": "d", "text": "II and III", "is_correct": false},
+          {"id": "e", "text": "I, II, and III", "is_correct": false}
+        ],
+        "explanation": "Want character index (0-4) as outer loop, string index (0-9) as inner loop. II: for(i=0; i<5; i++) for(j=0; j<10; j++) x[j].substring(i,i+1) - Correct. I and III have wrong loop order."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U2",
+        "ap_cs_topics": ["2.8", "2.11"],
+        "topics": ["T004", "T013"],
+        "subtopics": ["ST018", "ST022", "ST039"],
+        "skills": ["SK011", "SK019"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Wrong loop nesting order", "reasoning": "I prints by string first"},
+          {"option_id": "c", "misconception": "II and one other", "reasoning": "Only II is correct"},
+          {"option_id": "d", "misconception": "Includes III", "reasoning": "III has wrong indices"}
+        ],
+        "common_errors": ["E001"]
+      }
+    },
+    {
+      "id": "pt1_q030",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D1",
+      "cognitive_level": "B2",
+      "estimated_time_seconds": 90,
+      "content": {
+        "stem": "Consider the following declaration and assignment statements. int a = 7; int b = 4; double c; c = a / b; After the assignment, what's the value of c?",
+        "code": "int a = 7;\nint b = 4;\ndouble c;\nc = a / b;",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "1.0", "is_correct": true},
+          {"id": "b", "text": "1.75", "is_correct": false},
+          {"id": "c", "text": "2.0", "is_correct": false},
+          {"id": "d", "text": "Error - c not initialized", "is_correct": false},
+          {"id": "e", "text": "Error - type mismatch", "is_correct": false}
+        ],
+        "explanation": "a and b are integers, so a/b = 7/4 = 1 (integer division). Then 1 is assigned to c, giving 1.0."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U1",
+        "ap_cs_topics": ["1.2", "1.5"],
+        "topics": ["T001"],
+        "subtopics": ["ST002", "ST006"],
+        "skills": ["SK008"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "b", "misconception": "Automatic floating point division", "reasoning": "E011 - doesn't realize int division"},
+          {"option_id": "c", "misconception": "Rounds instead of truncates", "reasoning": "Integer division truncates"},
+          {"option_id": "d", "misconception": "Variables must be initialized", "reasoning": "Assignment initializes c"}
+        ],
+        "common_errors": ["E011"]
+      }
+    },
+    {
+      "id": "pt1_q031",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider the following code segment. For what values of x will \"Yes\" be printed?",
+        "code": "int x;\nif (x % 2 == 0 && x / 3 == 1) System.out.print(\"Yes\");",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "0", "is_correct": false},
+          {"id": "b", "text": "4", "is_correct": true},
+          {"id": "c", "text": "Whenever x is even and x is not divisible by 3", "is_correct": false},
+          {"id": "d", "text": "Whenever x is odd and x is divisible by 3", "is_correct": false},
+          {"id": "e", "text": "Whenever x is even and x is divisible by 3", "is_correct": false}
+        ],
+        "explanation": "x%2==0: x is even. x/3==1: x in [3,5] (integer division). Both: x in [3,5] AND even = x==4."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U2",
+        "ap_cs_topics": ["2.2", "2.5"],
+        "topics": ["T003"],
+        "subtopics": ["ST010", "ST011"],
+        "skills": ["SK009", "SK020"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Tests specific value", "reasoning": "0 fails second condition"},
+          {"option_id": "c", "misconception": "Wrong second condition", "reasoning": "x/3==1 is more specific"},
+          {"option_id": "e", "misconception": "Wrong divisibility", "reasoning": "x/3==1 not about divisibility by 3"}
+        ],
+        "common_errors": ["E011"]
+      }
+    },
+    {
+      "id": "pt1_q032",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Now consider the method swap. Which of the following code segments can replace the missing code so the method works as intended?",
+        "options": [
+          {"id": "a", "text": "I only: SomeClass temp; temp = x; x = y; y = temp;", "is_correct": false},
+          {"id": "b", "text": "III only: String temp; temp = x.getName(); x.setName(y.getName()); y.setName(temp);", "is_correct": true},
+          {"id": "c", "text": "I and III", "is_correct": false},
+          {"id": "d", "text": "II and III", "is_correct": false},
+          {"id": "e", "text": "I, II, and III", "is_correct": false}
+        ],
+        "explanation": "Must swap the NAME values, not the objects. Option III calls setName/getName correctly. Option I swaps object references (doesn't swap names). Option II accesses private fields directly."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U1",
+        "ap_cs_topics": ["1.14"],
+        "topics": ["T002"],
+        "subtopics": ["ST008", "ST009"],
+        "skills": ["SK007", "SK013"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Swapping object references", "reasoning": "Doesn't affect the objects"},
+          {"option_id": "c", "misconception": "Both I and III work", "reasoning": "I doesn't actually swap names"},
+          {"option_id": "d", "misconception": "II is valid", "reasoning": "Can't access private fields from outside"}
+        ],
+        "common_errors": ["E009"]
+      }
+    },
+    {
+      "id": "pt1_q033",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D2",
+      "cognitive_level": "B4",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "A bookstore wants to store information about books with different types. Which of the following is the best design?",
+        "options": [
+          {"id": "a", "text": "One class Book with data fields", "is_correct": false},
+          {"id": "b", "text": "Four unrelated classes", "is_correct": false},
+          {"id": "c", "text": "Book with subclass BookType", "is_correct": false},
+          {"id": "d", "text": "Book with 6 subclasses", "is_correct": false},
+          {"id": "e", "text": "Book > FictionWork/NonFictionWork > (3 sub-subclasses each)", "is_correct": true}
+        ],
+        "explanation": "Best OOP design uses inheritance hierarchy matching the data structure: Book has two main branches (Fiction/NonFiction), each with 3 sub-types. Option E shows proper abstraction and hierarchy."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U3",
+        "ap_cs_topics": ["3.1", "3.2"],
+        "topics": ["T016", "T017"],
+        "subtopics": ["ST057"],
+        "skills": ["SK013", "SK017"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Flat structure with type field", "reasoning": "No encapsulation, poor design"},
+          {"option_id": "d", "misconception": "Skips intermediate hierarchy", "reasoning": "Loses logical grouping"},
+          {"option_id": "b", "misconception": "No inheritance at all", "reasoning": "Code duplication, poor design"}
+        ],
+        "common_errors": ["E017"]
+      }
+    },
+    {
+      "id": "pt1_q034",
+      "type": "QT02",
+      "structure_type": "simple_code",
+      "difficulty": "D2",
+      "cognitive_level": "B4",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider the following code. Which value can replace the missing value so that mystery(4) returns 34?",
+        "code": "public int mystery(int x) {\n    if (x == 1) return <missing>;\n    else return (2 * mystery(x-1)) + x;\n}",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "0", "is_correct": false},
+          {"id": "b", "text": "1", "is_correct": false},
+          {"id": "c", "text": "2", "is_correct": true},
+          {"id": "d", "text": "3", "is_correct": false},
+          {"id": "e", "text": "4", "is_correct": false}
+        ],
+        "explanation": "Trace with return value 2: mystery(1)=2, mystery(2)=2*2+2=6, mystery(3)=2*6+3=15, mystery(4)=2*15+4=34. ✓"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U2",
+        "ap_cs_topics": ["2.9"],
+        "topics": ["T009"],
+        "subtopics": ["ST031", "ST032"],
+        "skills": ["SK012", "SK001"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Base case 0", "reasoning": "Produces 0"},
+          {"option_id": "b", "misconception": "Base case 1", "reasoning": "Produces 26"},
+          {"option_id": "d", "misconception": "Base case 3", "reasoning": "Produces 42"}
+        ],
+        "common_errors": ["E015"]
+      }
+    },
+    {
+      "id": "pt1_q035",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D3",
+      "cognitive_level": "B4",
+      "estimated_time_seconds": 150,
+      "content": {
+        "stem": "Assuming that after X and Y are initialized, X.length == Y.length, which of the following must be true after executing this code?",
+        "code": "for (int k = 0;\n     k < X.length && X[k] == Y[k];\n     k++)\n{\n    /* some code */\n}",
+        "code_language": "java",
+        "options": [
+          {"id": "a", "text": "k < X.length", "is_correct": false},
+          {"id": "b", "text": "k < X.length && X[k] == Y[k]", "is_correct": false},
+          {"id": "c", "text": "k < X.length && X[k] != Y[k]", "is_correct": false},
+          {"id": "d", "text": "k >= X.length || X[k] == Y[k]", "is_correct": false},
+          {"id": "e", "text": "k >= X.length || X[k] != Y[k]", "is_correct": true}
+        ],
+        "explanation": "Loop exits when: k >= X.length OR X[k] != Y[k]. By De Morgan's law, this is the negation of the loop condition. Answer: k >= X.length || X[k] != Y[k]."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U2",
+        "ap_cs_topics": ["2.2", "2.8"],
+        "topics": ["T003", "T004", "T006"],
+        "subtopics": ["ST010", "ST018"],
+        "skills": ["SK011", "SK009"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Only checks first condition", "reasoning": "Could have k>=length"},
+          {"option_id": "b", "misconception": "Thinks loop continues", "reasoning": "Loop exited, so condition false"},
+          {"option_id": "d", "misconception": "Wrong operator", "reasoning": "Should be !=, not =="}
+        ],
+        "common_errors": ["E008"]
+      }
+    },
+    {
+      "id": "pt1_q036",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D1",
+      "cognitive_level": "B2",
+      "estimated_time_seconds": 90,
+      "content": {
+        "stem": "Which of the following would NOT cause a run-time exception?",
+        "options": [
+          {"id": "a", "text": "Dividing an integer by zero", "is_correct": false},
+          {"id": "b", "text": "Using an object that has been declared but not instantiated", "is_correct": false},
+          {"id": "c", "text": "Accessing an array element with index == array length", "is_correct": false},
+          {"id": "d", "text": "Attempting to cast an object to a subclass of which it is not an instance", "is_correct": false},
+          {"id": "e", "text": "Attempting to call a method with wrong number of arguments", "is_correct": true}
+        ],
+        "explanation": "(A-D) cause ArithmeticException, NullPointerException, ArrayIndexOutOfBoundsException, ClassCastException respectively. (E) is a compile-time error, not runtime."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U1",
+        "ap_cs_topics": ["1.1"],
+        "topics": ["T001"],
+        "subtopics": ["ST001"],
+        "skills": ["SK008"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "No exception for division by zero", "reasoning": "ArithmeticException thrown"},
+          {"option_id": "b", "misconception": "No exception for null use", "reasoning": "NullPointerException thrown"},
+          {"option_id": "d", "misconception": "No exception for bad cast", "reasoning": "ClassCastException thrown"}
+        ],
+        "common_errors": ["E002", "E003"]
+      }
+    },
+    {
+      "id": "pt1_q037",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Assume that a and b are properly initialized variables of type Double. Which of the following is equivalent to: a.doubleValue() != b.doubleValue()?",
+        "options": [
+          {"id": "a", "text": "a != b", "is_correct": false},
+          {"id": "b", "text": "a.notEquals(b)", "is_correct": false},
+          {"id": "c", "text": "!(a.doubleValue().equals(b.doubleValue()))", "is_correct": false},
+          {"id": "d", "text": "!(a.compareTo(b))", "is_correct": false},
+          {"id": "e", "text": "a.compareTo(b) != 0", "is_correct": true}
+        ],
+        "explanation": "!= checks if values are different. compareTo(b) returns 0 if equal, nonzero if different. a.compareTo(b) != 0 is equivalent."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U1",
+        "ap_cs_topics": ["1.13"],
+        "topics": ["T001"],
+        "subtopics": ["ST003", "ST006"],
+        "skills": ["SK008", "SK007"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "!= compares wrapper values", "reasoning": "E010 - reference comparison"},
+          {"option_id": "b", "misconception": "Wrapper class method", "reasoning": "Double doesn't have notEquals"},
+          {"option_id": "c", "misconception": "equals on doubled values", "reasoning": "Can't call equals on double"}
+        ],
+        "common_errors": ["E023"]
+      }
+    },
+    {
+      "id": "pt1_q038",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D1",
+      "cognitive_level": "B2",
+      "estimated_time_seconds": 90,
+      "content": {
+        "stem": "Which of the following would be the LEAST effective way of ensuring reliability in a program?",
+        "options": [
+          {"id": "a", "text": "Making all data fields public", "is_correct": true},
+          {"id": "b", "text": "Defining preconditions and postconditions", "is_correct": false},
+          {"id": "c", "text": "Including assertions at key places", "is_correct": false},
+          {"id": "d", "text": "Using descriptive variable names", "is_correct": false},
+          {"id": "e", "text": "Indenting code consistently", "is_correct": false}
+        ],
+        "explanation": "Making data public violates encapsulation, the fundamental principle for reliability. All other options actively improve reliability."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U3",
+        "ap_cs_topics": ["3.1", "3.8"],
+        "topics": ["T005"],
+        "subtopics": ["ST055", "ST056"],
+        "skills": ["SK007", "SK013"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "b", "misconception": "Preconditions don't help", "reasoning": "They ensure reliability"},
+          {"option_id": "c", "misconception": "Assertions don't help", "reasoning": "They catch errors"},
+          {"option_id": "d", "misconception": "Names don't matter", "reasoning": "Readability affects reliability"}
+        ],
+        "common_errors": ["E017"]
+      }
+    },
+    {
+      "id": "pt1_q039",
+      "type": "QT02",
+      "structure_type": "algorithm_description",
+      "difficulty": "D2",
+      "cognitive_level": "B3",
+      "estimated_time_seconds": 120,
+      "content": {
+        "stem": "Consider a dictionary that has 1,000 pages with 50 words on each page. In order to look up a given target word, a student is considering using one of the following three methods. Which of the following best characterizes the greatest number of words that will be examined using each method?",
+        "algorithm_descriptions": [
+          {
+            "label": "Method 1",
+            "description": "Use a binary search technique to find the correct page (comparing the target word with the first word on a given page). When the correct page is found, use a sequential search technique to find the target word on the page.",
+            "complexity": "O(log n + m)"
+          },
+          {
+            "label": "Method 2",
+            "description": "Use a sequential search technique to find the correct page (comparing the target word with the first word on a given page). When the correct page is found, use another sequential search technique to find the target word on the page.",
+            "complexity": "O(n + m)"
+          },
+          {
+            "label": "Method 3",
+            "description": "Use a sequential search technique on all of the words in the dictionary to find the target word.",
+            "complexity": "O(n * m)"
+          }
+        ],
+        "options": [
+          {"id": "a", "text": "Method 1: 10, Method 2: 50, Method 3: 1,000", "is_correct": false},
+          {"id": "b", "text": "Method 1: 55, Method 2: 500, Method 3: 2,500", "is_correct": false},
+          {"id": "c", "text": "Method 1: 55, Method 2: 525, Method 3: 25,000", "is_correct": false},
+          {"id": "d", "text": "Method 1: 60, Method 2: 1,050, Method 3: 1,050", "is_correct": false},
+          {"id": "e", "text": "Method 1: 60, Method 2: 1,050, Method 3: 50,000", "is_correct": true}
+        ],
+        "explanation": "Method 1: Binary search pages (log₂1000≈10) + linear on page (50) ≈ 60. Method 2: Linear pages (1000) + linear on page (50) ≈ 1050. Method 3: Linear all (50000)."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U4",
+        "ap_cs_topics": ["4.13", "4.14"],
+        "topics": ["T010", "T011"],
+        "subtopics": ["ST044", "ST045"],
+        "skills": ["SK003", "SK015"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Wrong logarithm base", "reasoning": "10 is too small for 1000 pages"},
+          {"option_id": "b", "misconception": "Wrong Method 3 count", "reasoning": "Should be 50,000 not 2,500"},
+          {"option_id": "c", "misconception": "Wrong page counts", "reasoning": "Method 2 should be 1,050"}
+        ],
+        "common_errors": ["E015"]
+      }
+    },
+    {
+      "id": "pt1_q040",
+      "type": "QT02",
+      "structure_type": "conceptual_question",
+      "difficulty": "D1",
+      "cognitive_level": "B1",
+      "estimated_time_seconds": 90,
+      "content": {
+        "stem": "Which of the following is NOT a peripheral?",
+        "options": [
+          {"id": "a", "text": "A color laser printer", "is_correct": false},
+          {"id": "b", "text": "A monitor", "is_correct": false},
+          {"id": "c", "text": "A word processing application", "is_correct": true},
+          {"id": "d", "text": "A mouse", "is_correct": false},
+          {"id": "e", "text": "An external CD-ROM drive", "is_correct": false}
+        ],
+        "explanation": "Peripherals are external hardware devices. A word processing application is software, not hardware, so not a peripheral."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "U1",
+        "ap_cs_topics": ["1.1"],
+        "topics": ["T015"],
+        "subtopics": ["ST001"],
+        "skills": ["SK002"]
+      },
+      "distractors": {
+        "common_mistakes": [
+          {"option_id": "a", "misconception": "Printer is software", "reasoning": "Printers are hardware"},
+          {"option_id": "b", "misconception": "Monitor is software", "reasoning": "Monitors are hardware"},
+          {"option_id": "e", "misconception": "Internal CD drive", "reasoning": "External devices are still peripherals"}
+        ],
+        "common_errors": ["E999"]
+      }
+    }
+  ]
+}

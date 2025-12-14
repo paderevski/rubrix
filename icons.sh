@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SRC="src-tauri/icons/rubrix logo.png"
+SRC="src-tauri/icons/icon.png"
 DST="src-tauri/icons"
 
 # PNGs

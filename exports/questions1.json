@@ -1,0 +1,577 @@
+{
+  "schema_version": "1.0.0",
+  "source": "AP Computer Science A Practice Test 1 - Cracking the AP CS A Exam",
+  "questions": [
+    {
+      "id": "pt1_q001",
+      "type": "multiple_choice",
+      "difficulty": "easy",
+      "cognitive_level": "apply",
+      "estimated_time_seconds": 90,
+
+      "content": {
+        "stem": "Consider the following methods. What is printed as the result of the call trial()?",
+        "code": "public void trial()\n{\n    int a = 10;\n    int b = 5;\n    doublevalues(a,b);\n    System.out.print(b);\n    System.out.print(a);\n}\n\npublic void doublevalues(int c, int d)\n{\n    c = c * 2;\n    d = d * 2;\n    System.out.print(c);\n    System.out.print(d);\n}",
+        "code_language": "java",
+        "media": null,
+        "options": [
+          {
+            "id": "a",
+            "text": "2010",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "2010105",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "2010510",
+            "is_correct": true
+          },
+          {
+            "id": "d",
+            "text": "20102010",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "20101020",
+            "is_correct": false
+          }
+        ],
+        "explanation": "In Java, primitive types are passed by value. The method doublevalues receives copies of a and b (as c and d), doubles them to 20 and 10, and prints '2010'. After the method returns, the original variables a and b are unchanged (still 10 and 5), so trial() prints '510'. Total output: '2010510'."
+      },
+
+      "pedagogy": {
+        "topics": ["method_calls", "pass_by_value", "primitives"],
+        "subtopics": ["parameter_passing", "variable_scope", "method_execution"],
+        "skills": [
+          "code_tracing",
+          "understanding_pass_by_value",
+          "method_call_analysis"
+        ],
+        "learning_objectives": [
+          "Understand that primitive parameters are passed by value",
+          "Trace method execution and output",
+          "Recognize that changes to parameters don't affect original variables"
+        ],
+        "prerequisite_knowledge": [
+          "method_definition",
+          "method_calls",
+          "variable_declaration",
+          "system_output"
+        ],
+        "bloom_taxonomy": "apply",
+        "ap_cs_unit": "Unit 2: Using Objects",
+        "ap_cs_topics": ["2.3: Calling a Void Method", "2.5: Calling a Void Method with Parameters"]
+      },
+
+      "distractors": {
+        "common_mistakes": [
+          {
+            "option_id": "a",
+            "misconception": "Student doesn't trace the full execution and only considers the first print statements",
+            "reasoning": "Only accounts for output from doublevalues method"
+          },
+          {
+            "option_id": "b",
+            "misconception": "Student thinks original values are modified but gets order wrong",
+            "reasoning": "Believes pass by reference occurred but traces incorrectly"
+          },
+          {
+            "option_id": "d",
+            "misconception": "Student thinks parameters are passed by reference",
+            "reasoning": "Incorrectly believes a and b are modified to 20 and 10"
+          },
+          {
+            "option_id": "e",
+            "misconception": "Student confuses parameter order or execution sequence",
+            "reasoning": "Mixes up the output order or variable values"
+          }
+        ],
+        "common_errors": [
+          "pass_by_reference_confusion",
+          "incomplete_trace",
+          "parameter_scope_misunderstanding"
+        ]
+      },
+
+      "generation_context": {
+        "template_type": "method_trace_pass_by_value",
+        "variation_axes": ["initial_values", "operations", "number_of_parameters"],
+        "similar_question_ids": [],
+        "related_concepts": ["pass_by_reference", "object_parameters", "return_values"],
+        "difficulty_factors": {
+          "code_complexity": 2,
+          "cognitive_demand": 3,
+          "requires_trace": true
+        }
+      },
+
+      "metadata": {
+        "created_date": "2024-12-14T10:00:00Z",
+        "created_by": "ap_cs_test_parser",
+        "last_modified": "2024-12-14T10:00:00Z",
+        "source": "curated",
+        "quality_reviewed": true,
+        "review_score": 4.5,
+        "usage_count": 0,
+        "correct_rate": null,
+        "tags": ["pass_by_value", "method_calls", "tracing", "ap_exam"]
+      },
+
+      "adaptive_hints": [
+        {
+          "level": 1,
+          "hint": "Remember that primitive types in Java are passed by value, not by reference"
+        },
+        {
+          "level": 2,
+          "hint": "Trace through the doublevalues method first, then return to trial()"
+        },
+        {
+          "level": 3,
+          "hint": "After doublevalues executes, a is still 10 and b is still 5 in the trial method"
+        }
+      ],
+
+      "assessment_data": {
+        "discriminates_well": null,
+        "item_difficulty_index": null,
+        "average_time_spent": null,
+        "skip_rate": null
+      }
+    },
+
+    {
+      "id": "pt1_q002",
+      "type": "multiple_choice",
+      "difficulty": "medium",
+      "cognitive_level": "analyze",
+      "estimated_time_seconds": 120,
+
+      "content": {
+        "stem": "Consider the following method. What is returned by the call mystery(x,y)?",
+        "code": "/**\n * Precondition: a > b > 0\n */\npublic static int mystery(int a, int b)\n{\n    int d = 0;\n    for (int c = a; c > b; c--)\n    {\n        d=d+c;\n    }\n    return d;\n}",
+        "code_language": "java",
+        "media": null,
+        "options": [
+          {
+            "id": "a",
+            "text": "The sum of all the integers greater than y but less than or equal to x",
+            "is_correct": true
+          },
+          {
+            "id": "b",
+            "text": "The sum of all the integers greater than or equal to y but less than or equal to x",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "The sum of all the integers greater than y but less than x",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "The sum of all the integers greater than y but less than or equal to x",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "The sum of all the integers less than y but greater than or equal to x",
+            "is_correct": false
+          }
+        ],
+        "explanation": "The loop starts with c = a (which is x) and continues while c > b (which is y). It decrements c each time. So it sums: x + (x-1) + (x-2) + ... + (y+1). This is all integers greater than y but less than or equal to x."
+      },
+
+      "pedagogy": {
+        "topics": ["loops", "iteration", "algorithm_analysis"],
+        "subtopics": ["for_loops", "loop_bounds", "accumulation"],
+        "skills": [
+          "loop_analysis",
+          "boundary_condition_analysis",
+          "algorithm_understanding"
+        ],
+        "learning_objectives": [
+          "Analyze loop iteration boundaries",
+          "Understand accumulation patterns",
+          "Interpret loop conditions correctly"
+        ],
+        "prerequisite_knowledge": [
+          "for_loops",
+          "loop_conditions",
+          "increment_decrement_operators"
+        ],
+        "bloom_taxonomy": "analyze",
+        "ap_cs_unit": "Unit 4: Iteration",
+        "ap_cs_topics": ["4.1: while Loops", "4.2: for Loops"]
+      },
+
+      "distractors": {
+        "common_mistakes": [
+          {
+            "option_id": "b",
+            "misconception": "Student thinks loop includes b (y) in the sum",
+            "reasoning": "Doesn't carefully analyze the condition c > b"
+          },
+          {
+            "option_id": "c",
+            "misconception": "Student thinks loop excludes both boundaries",
+            "reasoning": "Misinterprets both the starting value and ending condition"
+          },
+          {
+            "option_id": "d",
+            "misconception": "Duplicate of correct answer - likely a typo in original test",
+            "reasoning": "Same as option A"
+          },
+          {
+            "option_id": "e",
+            "misconception": "Student reverses the relationship",
+            "reasoning": "Fundamental misunderstanding of what the loop does"
+          }
+        ],
+        "common_errors": [
+          "boundary_condition_errors",
+          "loop_condition_misinterpretation",
+          "off_by_one_errors"
+        ]
+      },
+
+      "generation_context": {
+        "template_type": "loop_analysis_summation",
+        "variation_axes": ["loop_direction", "boundary_conditions", "operation"],
+        "similar_question_ids": [],
+        "related_concepts": ["while_loops", "summation_formulas", "array_traversal"],
+        "difficulty_factors": {
+          "code_complexity": 2,
+          "cognitive_demand": 4,
+          "requires_trace": true
+        }
+      },
+
+      "metadata": {
+        "created_date": "2024-12-14T10:00:00Z",
+        "created_by": "ap_cs_test_parser",
+        "last_modified": "2024-12-14T10:00:00Z",
+        "source": "curated",
+        "quality_reviewed": true,
+        "review_score": 4.3,
+        "usage_count": 0,
+        "correct_rate": null,
+        "tags": ["loops", "summation", "boundary_analysis", "ap_exam"]
+      },
+
+      "adaptive_hints": [
+        {
+          "level": 1,
+          "hint": "Trace through the loop with specific values, like x=5 and y=2"
+        },
+        {
+          "level": 2,
+          "hint": "Pay careful attention to whether the loop condition is > or >="
+        },
+        {
+          "level": 3,
+          "hint": "The loop starts at a (x) and stops when c becomes equal to b (y)"
+        }
+      ],
+
+      "assessment_data": {
+        "discriminates_well": null,
+        "item_difficulty_index": null,
+        "average_time_spent": null,
+        "skip_rate": null
+      }
+    },
+
+    {
+      "id": "pt1_q004",
+      "type": "multiple_choice",
+      "difficulty": "medium",
+      "cognitive_level": "apply",
+      "estimated_time_seconds": 120,
+
+      "content": {
+        "stem": "Consider an array of integers: [4, 10, 1, 2, 6, 7, 3, 5]. If selection sort is used to order the array from smallest to largest values, which of the following represents a possible state of the array at some point during the selection sort process?",
+        "code": null,
+        "code_language": null,
+        "media": null,
+        "options": [
+          {
+            "id": "a",
+            "text": "[1, 4, 10, 2, 3, 6, 7, 5]",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "[1, 2, 4, 6, 10, 7, 3, 5]",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "[1, 2, 3, 10, 6, 7, 4, 5]",
+            "is_correct": true
+          },
+          {
+            "id": "d",
+            "text": "[4, 3, 1, 2, 6, 7, 10, 5]",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "[5, 3, 7, 6, 2, 1, 10, 4]",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Selection sort finds the minimum element and swaps it to the front, then finds the next minimum, etc. After 3 passes: [1, 2, 3, ...]. The remaining elements [10, 6, 7, 4, 5] are unsorted. Only option C shows the first 3 elements correctly sorted with remaining elements unsorted."
+      },
+
+      "pedagogy": {
+        "topics": ["sorting", "algorithms", "arrays"],
+        "subtopics": ["selection_sort", "sorting_algorithm_behavior"],
+        "skills": [
+          "algorithm_analysis",
+          "sorting_understanding",
+          "pattern_recognition"
+        ],
+        "learning_objectives": [
+          "Understand selection sort behavior",
+          "Recognize partially sorted arrays",
+          "Identify valid intermediate states"
+        ],
+        "prerequisite_knowledge": [
+          "arrays",
+          "sorting_concepts",
+          "algorithm_steps"
+        ],
+        "bloom_taxonomy": "apply",
+        "ap_cs_unit": "Unit 7: ArrayList",
+        "ap_cs_topics": ["7.5: Searching", "7.6: Sorting"]
+      },
+
+      "distractors": {
+        "common_mistakes": [
+          {
+            "option_id": "a",
+            "misconception": "Student confuses selection sort with insertion sort",
+            "reasoning": "This pattern looks like insertion sort behavior"
+          },
+          {
+            "option_id": "b",
+            "misconception": "Student doesn't recognize that selection sort leaves unsorted portion unchanged",
+            "reasoning": "Shows too much sorting in the unsorted portion"
+          },
+          {
+            "option_id": "d",
+            "misconception": "Student thinks selection sort works from the end",
+            "reasoning": "Shows incorrect understanding of algorithm direction"
+          },
+          {
+            "option_id": "e",
+            "misconception": "Student has no understanding of selection sort",
+            "reasoning": "Random arrangement with no sorting pattern"
+          }
+        ],
+        "common_errors": [
+          "algorithm_confusion",
+          "sorting_behavior_misunderstanding",
+          "incomplete_algorithm_knowledge"
+        ]
+      },
+
+      "generation_context": {
+        "template_type": "sorting_intermediate_state",
+        "variation_axes": ["initial_array", "sort_algorithm", "number_of_passes"],
+        "similar_question_ids": [],
+        "related_concepts": ["insertion_sort", "bubble_sort", "merge_sort"],
+        "difficulty_factors": {
+          "code_complexity": 0,
+          "cognitive_demand": 4,
+          "requires_trace": true,
+          "array_length": 8
+        }
+      },
+
+      "metadata": {
+        "created_date": "2024-12-14T10:00:00Z",
+        "created_by": "ap_cs_test_parser",
+        "last_modified": "2024-12-14T10:00:00Z",
+        "source": "curated",
+        "quality_reviewed": true,
+        "review_score": 4.6,
+        "usage_count": 0,
+        "correct_rate": null,
+        "tags": ["selection_sort", "sorting", "algorithms", "ap_exam"]
+      },
+
+      "adaptive_hints": [
+        {
+          "level": 1,
+          "hint": "Remember that selection sort builds the sorted portion from the beginning"
+        },
+        {
+          "level": 2,
+          "hint": "After k passes, the first k elements should be in their final sorted positions"
+        },
+        {
+          "level": 3,
+          "hint": "Look for an option where the beginning is sorted and the rest is still unsorted"
+        }
+      ],
+
+      "assessment_data": {
+        "discriminates_well": null,
+        "item_difficulty_index": null,
+        "average_time_spent": null,
+        "skip_rate": null
+      }
+    },
+
+    {
+      "id": "pt1_q005",
+      "type": "multiple_choice",
+      "difficulty": "hard",
+      "cognitive_level": "analyze",
+      "estimated_time_seconds": 150,
+
+      "content": {
+        "stem": "Consider the following code segment. What values will A contain after the code segment is executed?",
+        "code": "int k;\nint A[];\nA = new int [7];\nfor (k = 0; k < A.length; k++)\n{\n    A[k] = A.length - k;\n}\nfor (k = 0; k < A.length - 1; k++)\n{\n    A[k+1] = A[k];\n}",
+        "code_language": "java",
+        "media": null,
+        "options": [
+          {
+            "id": "a",
+            "text": "[1, 1, 2, 3, 4, 5, 6]",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "[1, 2, 3, 4, 5, 6, 7]",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "[6, 6, 5, 4, 3, 2, 1]",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "[7, 7, 6, 5, 4, 3, 2]",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "[7, 7, 7, 7, 7, 7, 7]",
+            "is_correct": true
+          }
+        ],
+        "explanation": "First loop creates [7,6,5,4,3,2,1]. Second loop copies each element to the next position: A[1]=A[0]=7, then A[2]=A[1]=7, then A[3]=A[2]=7, etc. This cascades the first element (7) through the entire array."
+      },
+
+      "pedagogy": {
+        "topics": ["arrays", "loops", "array_manipulation"],
+        "subtopics": ["array_traversal", "array_modification", "cascading_effects"],
+        "skills": [
+          "code_tracing",
+          "array_manipulation_understanding",
+          "loop_interaction_analysis"
+        ],
+        "learning_objectives": [
+          "Trace array modifications through multiple loops",
+          "Understand cascading array operations",
+          "Recognize destructive array operations"
+        ],
+        "prerequisite_knowledge": [
+          "arrays",
+          "for_loops",
+          "array_indexing",
+          "assignment_statements"
+        ],
+        "bloom_taxonomy": "analyze",
+        "ap_cs_unit": "Unit 6: Array",
+        "ap_cs_topics": ["6.1: Array Creation and Access", "6.2: Traversing Arrays"]
+      },
+
+      "distractors": {
+        "common_mistakes": [
+          {
+            "option_id": "a",
+            "misconception": "Student incorrectly traces the cascading effect",
+            "reasoning": "Doesn't recognize that each assignment uses the just-modified value"
+          },
+          {
+            "option_id": "b",
+            "misconception": "Student only considers the first loop",
+            "reasoning": "Ignores the second loop entirely"
+          },
+          {
+            "option_id": "c",
+            "misconception": "Student thinks second loop reverses the array",
+            "reasoning": "Misunderstands the direction of copying"
+          },
+          {
+            "option_id": "d",
+            "misconception": "Student partially traces the cascade",
+            "reasoning": "Recognizes some cascading but doesn't trace to completion"
+          }
+        ],
+        "common_errors": [
+          "cascading_effect_misunderstanding",
+          "incomplete_trace",
+          "loop_interaction_confusion"
+        ]
+      },
+
+      "generation_context": {
+        "template_type": "array_manipulation_cascade",
+        "variation_axes": ["array_size", "initial_values", "copy_direction"],
+        "similar_question_ids": [],
+        "related_concepts": ["array_copying", "array_shifting", "destructive_operations"],
+        "difficulty_factors": {
+          "code_complexity": 3,
+          "array_length": 7,
+          "cognitive_demand": 5,
+          "requires_trace": true
+        }
+      },
+
+      "metadata": {
+        "created_date": "2024-12-14T10:00:00Z",
+        "created_by": "ap_cs_test_parser",
+        "last_modified": "2024-12-14T10:00:00Z",
+        "source": "curated",
+        "quality_reviewed": true,
+        "review_score": 4.7,
+        "usage_count": 0,
+        "correct_rate": null,
+        "tags": ["arrays", "cascading", "tracing", "challenging", "ap_exam"]
+      },
+
+      "adaptive_hints": [
+        {
+          "level": 1,
+          "hint": "Trace both loops completely - what happens in the second loop?"
+        },
+        {
+          "level": 2,
+          "hint": "In the second loop, when you set A[k+1] = A[k], what happens next?"
+        },
+        {
+          "level": 3,
+          "hint": "After A[1] becomes 7, then A[2] gets the value from A[1], which is now 7..."
+        }
+      ],
+
+      "assessment_data": {
+        "discriminates_well": null,
+        "item_difficulty_index": null,
+        "average_time_spent": null,
+        "skip_rate": null
+      }
+    }
+  ]
+}

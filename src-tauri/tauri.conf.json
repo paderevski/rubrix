@@ -16,10 +16,11 @@
         "open": true
       },
       "dialog": {
-        "save": true
+        "save": true,
+        "open": true
       },
       "fs": {
-       "all": true
+        "all": true
       }
     },
     "bundle": {

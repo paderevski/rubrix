@@ -9,8 +9,7 @@ interface EditModalProps {
 }
 
 export default function EditModal({ question, onSave, onClose }: EditModalProps) {
-  const [text, setText] = useState(question.text);
-  const [code, setCode] = useState(question.code || "");
+  const [content, setContent] = useState(question.content);
   const [answers, setAnswers] = useState<Answer[]>(question.answers);
 
   const handleAnswerChange = (index: number, newText: string) => {
@@ -30,12 +29,11 @@ export default function EditModal({ question, onSave, onClose }: EditModalProps)
   };
 
   const handleRemoveAnswer = (index: number) => {
-    if (answers.length <= 2) return; // Keep at least 2 answers
+    if (answers.length <= 2) return;
     
     const wasCorrect = answers[index].is_correct;
     const newAnswers = answers.filter((_, i) => i !== index);
     
-    // If we removed the correct answer, make the first one correct
     if (wasCorrect && newAnswers.length > 0) {
       newAnswers[0].is_correct = true;
     }
@@ -44,7 +42,6 @@ export default function EditModal({ question, onSave, onClose }: EditModalProps)
   };
 
   const handleSave = () => {
-    // Ensure at least one answer is correct
     const hasCorrect = answers.some((a) => a.is_correct);
     const finalAnswers = hasCorrect
       ? answers
@@ -52,8 +49,7 @@ export default function EditModal({ question, onSave, onClose }: EditModalProps)
 
     onSave({
       ...question,
-      text,
-      code: code.trim() || null,
+      content,
       answers: finalAnswers,
     });
   };
@@ -74,30 +70,26 @@ export default function EditModal({ question, onSave, onClose }: EditModalProps)
 
         {/* Content */}
         <div className="flex-1 overflow-auto p-6 space-y-4">
-          {/* Question Text */}
+          {/* Question Content (Markdown) */}
           <div>
             <label className="text-sm font-medium text-foreground mb-1.5 block">
-              Question Text
+              Question Content (Markdown supported)
             </label>
             <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              className="w-full h-24 px-3 py-2 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Enter your question..."
-            />
-          </div>
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="w-full h-48 px-3 py-2 border rounded-md resize-none font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder={`What is printed by this code?
 
-          {/* Code Block */}
-          <div>
-            <label className="text-sm font-medium text-foreground mb-1.5 block">
-              Code (optional)
-            </label>
-            <textarea
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="w-full h-32 px-3 py-2 border rounded-md resize-none font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="public void example() {&#10;    // Java code here&#10;}"
+\`\`\`java
+System.out.println("Hello");
+\`\`\`
+
+You can also use tables, \`inline code\`, **bold**, etc.`}
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Supports Markdown: code blocks, tables, inline `code`, **bold**, *italic*
+            </p>
           </div>
 
           {/* Answers */}

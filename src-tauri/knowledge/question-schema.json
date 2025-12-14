@@ -1,0 +1,327 @@
+{
+  "schema_version": "2.1.0",
+  "description": "Controlled vocabularies for AP Computer Science A pedagogy metadata - Unified Topic List",
+  "last_updated": "2025-05-14",
+  "source": "Refactored from AP CSA 2025 Curriculum + Historical Data",
+
+  "ap_cs_units": {
+    "description": "Official AP CS A curriculum units (2025 revision)",
+    "items": [
+      {
+        "id": "U1",
+        "name": "unit_1",
+        "display": "Unit 1: Using Objects and Methods",
+        "exam_weight": "15-25%",
+        "ap_alignment": "2025+"
+      },
+      {
+        "id": "U2",
+        "name": "unit_2",
+        "display": "Unit 2: Selection and Iteration",
+        "exam_weight": "25-35%",
+        "ap_alignment": "2025+"
+      },
+      {
+        "id": "U3",
+        "name": "unit_3",
+        "display": "Unit 3: Class Creation",
+        "exam_weight": "10-18%",
+        "ap_alignment": "2025+"
+      },
+      {
+        "id": "U4",
+        "name": "unit_4",
+        "display": "Unit 4: Data Collections",
+        "exam_weight": "30-40%",
+        "ap_alignment": "2025+"
+      },
+      {
+        "id": "OLD_U9",
+        "name": "unit_9_legacy",
+        "display": "Legacy Unit 9: Inheritance",
+        "exam_weight": "0%",
+        "ap_alignment": "pre-2025"
+      }
+    ]
+  },
+
+  "topics": {
+    "description": "Combined list of official AP topics, general CS concepts, and legacy/out-of-scope material",
+    "items": [
+      {
+        "comment": "--- GENERAL CS CONCEPTS (High Level) ---"
+      },
+      {"id": "T001", "name": "primitive_types", "display": "Primitive Types", "ap_alignment": "2025+"},
+      {"id": "T002", "name": "objects", "display": "Using Objects", "ap_alignment": "2025+"},
+      {"id": "T003", "name": "boolean_expressions", "display": "Boolean Expressions and if Statements", "ap_alignment": "2025+"},
+      {"id": "T004", "name": "iteration", "display": "Iteration", "ap_alignment": "2025+"},
+      {"id": "T005", "name": "writing_classes", "display": "Writing Classes", "ap_alignment": "2025+"},
+      {"id": "T006", "name": "arrays", "display": "Array", "ap_alignment": "2025+"},
+      {"id": "T007", "name": "arraylist", "display": "ArrayList", "ap_alignment": "2025+"},
+      {"id": "T008", "name": "2d_arrays", "display": "2D Array", "ap_alignment": "2025+"},
+      {"id": "T009", "name": "recursion", "display": "Recursion", "ap_alignment": "2025+"},
+      {"id": "T010", "name": "searching", "display": "Searching", "ap_alignment": "2025+"},
+      {"id": "T011", "name": "sorting", "display": "Sorting", "ap_alignment": "2025+"},
+      {"id": "T012", "name": "methods", "display": "Methods", "ap_alignment": "2025+"},
+      {"id": "T013", "name": "strings", "display": "Strings", "ap_alignment": "2025+"},
+      {"id": "T014", "name": "data_sets", "display": "Data Sets and File I/O", "ap_alignment": "2025+"},
+      {"id": "T015", "name": "ethics", "display": "Ethical and Social Implications", "ap_alignment": "2025+"},
+
+      {
+        "comment": "--- RESTORED PRE-2025 TOPICS (Inheritance & Polymorphism) ---"
+      },
+      {"id": "T016", "name": "inheritance", "display": "Inheritance (Extends/Super)", "ap_alignment": "pre-2025"},
+      {"id": "T017", "name": "polymorphism", "display": "Polymorphism", "ap_alignment": "pre-2025"},
+      {"id": "T018", "name": "abstract_classes", "display": "Abstract Classes", "ap_alignment": "pre-2025"},
+      {"id": "T019", "name": "interfaces", "display": "Interfaces", "ap_alignment": "pre-2025"},
+      {"id": "T020", "name": "number_systems", "display": "Number Systems (Binary/Hex)", "ap_alignment": "none"},
+
+      {
+        "comment": "--- OFFICIAL AP CURRICULUM TOPICS (2025 Revision) ---"
+      },
+      {"id": "1.1", "unit": "U1", "display": "Introduction to Algorithms, Programming, and Compilers", "ap_alignment": "2025+"},
+      {"id": "1.2", "unit": "U1", "display": "Variables and Data Types", "ap_alignment": "2025+"},
+      {"id": "1.3", "unit": "U1", "display": "Expressions and Output", "ap_alignment": "2025+"},
+      {"id": "1.4", "unit": "U1", "display": "Assignment Statements and Input", "ap_alignment": "2025+"},
+      {"id": "1.5", "unit": "U1", "display": "Casting and Range of Variables", "ap_alignment": "2025+"},
+      {"id": "1.6", "unit": "U1", "display": "Compound Assignment Operators", "ap_alignment": "2025+"},
+      {"id": "1.7", "unit": "U1", "display": "Application Program Interface (API) and Libraries", "ap_alignment": "2025+"},
+      {"id": "1.8", "unit": "U1", "display": "Documentation with Comments", "ap_alignment": "2025+"},
+      {"id": "1.9", "unit": "U1", "display": "Method Signatures", "ap_alignment": "2025+"},
+      {"id": "1.10", "unit": "U1", "display": "Calling Class Methods", "ap_alignment": "2025+"},
+      {"id": "1.11", "unit": "U1", "display": "Math Class", "ap_alignment": "2025+"},
+      {"id": "1.12", "unit": "U1", "display": "Objects: Instances of Classes", "ap_alignment": "2025+"},
+      {"id": "1.13", "unit": "U1", "display": "Object Creation and Storage (Instantiation)", "ap_alignment": "2025+"},
+      {"id": "1.14", "unit": "U1", "display": "Calling Instance Methods", "ap_alignment": "2025+"},
+      {"id": "1.15", "unit": "U1", "display": "String Manipulation", "ap_alignment": "2025+"},
+
+      {"id": "2.1", "unit": "U2", "display": "Algorithms with Selection and Repetition", "ap_alignment": "2025+"},
+      {"id": "2.2", "unit": "U2", "display": "Boolean Expressions", "ap_alignment": "2025+"},
+      {"id": "2.3", "unit": "U2", "display": "if Statements", "ap_alignment": "2025+"},
+      {"id": "2.4", "unit": "U2", "display": "Nested if Statements", "ap_alignment": "2025+"},
+      {"id": "2.5", "unit": "U2", "display": "Compound Boolean Expressions", "ap_alignment": "2025+"},
+      {"id": "2.6", "unit": "U2", "display": "Comparing Boolean Expressions", "ap_alignment": "2025+"},
+      {"id": "2.7", "unit": "U2", "display": "while Loops", "ap_alignment": "2025+"},
+      {"id": "2.8", "unit": "U2", "display": "for Loops", "ap_alignment": "2025+"},
+      {"id": "2.9", "unit": "U2", "display": "Implementing Selection and Iteration Algorithms", "ap_alignment": "2025+"},
+      {"id": "2.10", "unit": "U2", "display": "Implementing String Algorithms", "ap_alignment": "2025+"},
+      {"id": "2.11", "unit": "U2", "display": "Nested Iteration", "ap_alignment": "2025+"},
+      {"id": "2.12", "unit": "U2", "display": "Informal Run-Time Analysis", "ap_alignment": "2025+"},
+
+      {"id": "3.1", "unit": "U3", "display": "Abstraction and Program Design", "ap_alignment": "2025+"},
+      {"id": "3.2", "unit": "U3", "display": "Impact of Program Design", "ap_alignment": "2025+"},
+      {"id": "3.3", "unit": "U3", "display": "Anatomy of a Class", "ap_alignment": "2025+"},
+      {"id": "3.4", "unit": "U3", "display": "Constructors", "ap_alignment": "2025+"},
+      {"id": "3.5", "unit": "U3", "display": "Methods: How to Write Them", "ap_alignment": "2025+"},
+      {"id": "3.6", "unit": "U3", "display": "Methods: Passing and Returning References of an Object", "ap_alignment": "2025+"},
+      {"id": "3.7", "unit": "U3", "display": "Class Variables and Methods", "ap_alignment": "2025+"},
+      {"id": "3.8", "unit": "U3", "display": "Scope and Access", "ap_alignment": "2025+"},
+      {"id": "3.9", "unit": "U3", "display": "this Keyword", "ap_alignment": "2025+"},
+
+      {"id": "4.1", "unit": "U4", "display": "Ethical and Social Issues Around Data Collection", "ap_alignment": "2025+"},
+      {"id": "4.2", "unit": "U4", "display": "Introduction to Using Data Sets", "ap_alignment": "2025+"},
+      {"id": "4.3", "unit": "U4", "display": "Array Creation and Access", "ap_alignment": "2025+"},
+      {"id": "4.4", "unit": "U4", "display": "Array Traversals", "ap_alignment": "2025+"},
+      {"id": "4.5", "unit": "U4", "display": "Implementing Array Algorithms", "ap_alignment": "2025+"},
+      {"id": "4.6", "unit": "U4", "display": "Using Text Files", "ap_alignment": "2025+"},
+      {"id": "4.7", "unit": "U4", "display": "Wrapper Classes", "ap_alignment": "2025+"},
+      {"id": "4.8", "unit": "U4", "display": "ArrayList Methods", "ap_alignment": "2025+"},
+      {"id": "4.9", "unit": "U4", "display": "ArrayList Traversals", "ap_alignment": "2025+"},
+      {"id": "4.10", "unit": "U4", "display": "Implementing ArrayList Algorithms", "ap_alignment": "2025+"},
+      {"id": "4.11", "unit": "U4", "display": "2D Array Creation and Access", "ap_alignment": "2025+"},
+      {"id": "4.12", "unit": "U4", "display": "2D Array Traversals", "ap_alignment": "2025+"},
+      {"id": "4.13", "unit": "U4", "display": "Implementing 2D Array Algorithms", "ap_alignment": "2025+"},
+      {"id": "4.14", "unit": "U4", "display": "Searching Algorithms", "ap_alignment": "2025+"},
+      {"id": "4.15", "unit": "U4", "display": "Sorting Algorithms", "ap_alignment": "2025+"},
+      {"id": "4.16", "unit": "U4", "display": "Recursion", "ap_alignment": "2025+"},
+      {"id": "4.17", "unit": "U4", "display": "Recursive Searching and Sorting", "ap_alignment": "2025+"},
+
+      {
+        "comment": "--- LEGACY AP TOPICS (Pre-2025) ---"
+      },
+      {"id": "OLD_9.1", "unit": "OLD_U9", "display": "Creating Superclasses and Subclasses", "ap_alignment": "pre-2025"},
+      {"id": "OLD_9.2", "unit": "OLD_U9", "display": "Writing Constructors for Subclasses", "ap_alignment": "pre-2025"},
+      {"id": "OLD_9.3", "unit": "OLD_U9", "display": "Overriding Methods", "ap_alignment": "pre-2025"},
+      {"id": "OLD_9.4", "unit": "OLD_U9", "display": "super Keyword", "ap_alignment": "pre-2025"},
+      {"id": "OLD_9.5", "unit": "OLD_U9", "display": "Creating References Using Inheritance Hierarchies", "ap_alignment": "pre-2025"},
+      {"id": "OLD_9.6", "unit": "OLD_U9", "display": "Polymorphism", "ap_alignment": "pre-2025"},
+      {"id": "OLD_9.7", "unit": "OLD_U9", "display": "Object Superclass", "ap_alignment": "pre-2025"}
+    ]
+  },
+
+  "subtopics": {
+    "description": "More granular CS concepts",
+    "items": [
+      {"id": "ST001", "name": "variable_declaration", "display": "Variable Declaration", "parent_topic": "T001"},
+      {"id": "ST002", "name": "type_casting", "display": "Type Casting", "parent_topic": "T001"},
+      {"id": "ST003", "name": "arithmetic_operators", "display": "Arithmetic Operators", "parent_topic": "T001"},
+      {"id": "ST004", "name": "integer_division", "display": "Integer Division", "parent_topic": "T001"},
+      {"id": "ST005", "name": "integer_overflow", "display": "Integer Overflow", "parent_topic": "T001"},
+
+      {"id": "ST006", "name": "object_instantiation", "display": "Object Instantiation", "parent_topic": "T002"},
+      {"id": "ST007", "name": "method_calls", "display": "Method Calls", "parent_topic": "T002"},
+      {"id": "ST008", "name": "null_references", "display": "Null References", "parent_topic": "T002"},
+      {"id": "ST009", "name": "string_methods", "display": "String Methods", "parent_topic": "T013"},
+      {"id": "ST010", "name": "string_concatenation", "display": "String Concatenation", "parent_topic": "T013"},
+      {"id": "ST011", "name": "string_comparison", "display": "String Comparison", "parent_topic": "T013"},
+
+      {"id": "ST012", "name": "conditional_statements", "display": "Conditional Statements", "parent_topic": "T003"},
+      {"id": "ST013", "name": "logical_operators", "display": "Logical Operators", "parent_topic": "T003"},
+      {"id": "ST014", "name": "short_circuit_evaluation", "display": "Short-Circuit Evaluation", "parent_topic": "T003"},
+      {"id": "ST015", "name": "nested_conditionals", "display": "Nested Conditionals", "parent_topic": "T003"},
+      {"id": "ST016", "name": "boolean_comparison", "display": "Boolean Comparison", "parent_topic": "T003"},
+
+      {"id": "ST017", "name": "while_loops", "display": "while Loops", "parent_topic": "T004"},
+      {"id": "ST018", "name": "for_loops", "display": "for Loops", "parent_topic": "T004"},
+      {"id": "ST019", "name": "nested_loops", "display": "Nested Loops", "parent_topic": "T004"},
+      {"id": "ST020", "name": "loop_conditions", "display": "Loop Conditions", "parent_topic": "T004"},
+      {"id": "ST021", "name": "infinite_loops", "display": "Infinite Loops", "parent_topic": "T004"},
+
+      {"id": "ST022", "name": "class_definition", "display": "Class Definition", "parent_topic": "T005"},
+      {"id": "ST023", "name": "constructors", "display": "Constructors", "parent_topic": "T005"},
+      {"id": "ST024", "name": "instance_variables", "display": "Instance Variables", "parent_topic": "T005"},
+      {"id": "ST025", "name": "accessor_methods", "display": "Accessor Methods (Getters)", "parent_topic": "T005"},
+      {"id": "ST026", "name": "mutator_methods", "display": "Mutator Methods (Setters)", "parent_topic": "T005"},
+      {"id": "ST027", "name": "static_vs_instance", "display": "Static vs Instance", "parent_topic": "T005"},
+      {"id": "ST028", "name": "this_keyword", "display": "this Keyword", "parent_topic": "T005"},
+
+      {"id": "ST029", "name": "array_declaration", "display": "Array Declaration", "parent_topic": "T006"},
+      {"id": "ST030", "name": "array_initialization", "display": "Array Initialization", "parent_topic": "T006"},
+      {"id": "ST031", "name": "array_traversal", "display": "Array Traversal", "parent_topic": "T006"},
+      {"id": "ST032", "name": "array_indexing", "display": "Array Indexing", "parent_topic": "T006"},
+      {"id": "ST033", "name": "array_length", "display": "Array Length", "parent_topic": "T006"},
+      {"id": "ST034", "name": "array_manipulation", "display": "Array Manipulation", "parent_topic": "T006"},
+
+      {"id": "ST035", "name": "arraylist_methods", "display": "ArrayList Methods", "parent_topic": "T007"},
+      {"id": "ST036", "name": "arraylist_traversal", "display": "ArrayList Traversal", "parent_topic": "T007"},
+      {"id": "ST037", "name": "wrapper_classes", "display": "Wrapper Classes", "parent_topic": "T007"},
+
+      {"id": "ST038", "name": "2d_array_traversal", "display": "2D Array Traversal", "parent_topic": "T008"},
+      {"id": "ST039", "name": "row_major_order", "display": "Row-Major Order", "parent_topic": "T008"},
+      {"id": "ST040", "name": "column_major_order", "display": "Column-Major Order", "parent_topic": "T008"},
+
+      {"id": "ST041", "name": "base_case", "display": "Base Case", "parent_topic": "T009"},
+      {"id": "ST042", "name": "recursive_case", "display": "Recursive Case", "parent_topic": "T009"},
+      {"id": "ST043", "name": "call_stack", "display": "Call Stack", "parent_topic": "T009"},
+
+      {"id": "ST044", "name": "linear_search", "display": "Linear Search", "parent_topic": "T010"},
+      {"id": "ST045", "name": "binary_search", "display": "Binary Search", "parent_topic": "T010"},
+
+      {"id": "ST046", "name": "selection_sort", "display": "Selection Sort", "parent_topic": "T011"},
+      {"id": "ST047", "name": "insertion_sort", "display": "Insertion Sort", "parent_topic": "T011"},
+      {"id": "ST048", "name": "merge_sort", "display": "Merge Sort", "parent_topic": "T011"},
+
+      {"id": "ST049", "name": "parameter_passing", "display": "Parameter Passing", "parent_topic": "T012"},
+      {"id": "ST050", "name": "return_values", "display": "Return Values", "parent_topic": "T012"},
+      {"id": "ST051", "name": "method_overloading", "display": "Method Overloading", "parent_topic": "T012"},
+      {"id": "ST052", "name": "void_methods", "display": "Void Methods", "parent_topic": "T012"},
+
+      {"id": "ST053", "name": "file_io", "display": "File I/O with Scanner", "parent_topic": "T014"},
+      {"id": "ST054", "name": "data_processing", "display": "Data Processing", "parent_topic": "T014"},
+
+      {"id": "ST055", "name": "access_modifiers", "display": "Access Modifiers (public/private)", "parent_topic": "T005"},
+      {"id": "ST056", "name": "encapsulation", "display": "Encapsulation", "parent_topic": "T005"},
+
+      {"id": "ST057", "name": "inheritance_basics", "display": "Extends and Class Hierarchy", "parent_topic": "T016"},
+      {"id": "ST058", "name": "method_overriding", "display": "Method Overriding", "parent_topic": "T016"},
+      {"id": "ST059", "name": "super_keyword", "display": "super Keyword (constructors/methods)", "parent_topic": "T016"},
+      {"id": "ST060", "name": "dynamic_binding", "display": "Dynamic Binding / Polymorphism", "parent_topic": "T017"},
+      {"id": "ST061", "name": "interface_implementation", "display": "Implementing Interfaces", "parent_topic": "T019"}
+    ]
+  },
+
+  "skills": {
+    "description": "Cognitive/programming skills assessed",
+    "items": [
+      {"id": "SK001", "name": "code_tracing", "display": "Code Tracing"},
+      {"id": "SK002", "name": "code_writing", "display": "Code Writing"},
+      {"id": "SK003", "name": "algorithm_analysis", "display": "Algorithm Analysis"},
+      {"id": "SK004", "name": "debugging", "display": "Debugging"},
+      {"id": "SK005", "name": "pattern_recognition", "display": "Pattern Recognition"},
+      {"id": "SK006", "name": "problem_decomposition", "display": "Problem Decomposition"},
+      {"id": "SK007", "name": "abstraction", "display": "Abstraction"},
+      {"id": "SK008", "name": "syntax_recognition", "display": "Syntax Recognition"},
+      {"id": "SK009", "name": "logical_reasoning", "display": "Logical Reasoning"},
+      {"id": "SK010", "name": "boundary_analysis", "display": "Boundary Condition Analysis"},
+      {"id": "SK011", "name": "loop_analysis", "display": "Loop Analysis"},
+      {"id": "SK012", "name": "recursion_analysis", "display": "Recursion Analysis"},
+      {"id": "SK013", "name": "object_oriented_design", "display": "Object-Oriented Design"},
+      {"id": "SK014", "name": "data_structure_selection", "display": "Data Structure Selection"},
+      {"id": "SK015", "name": "efficiency_analysis", "display": "Efficiency Analysis"},
+      {"id": "SK016", "name": "method_implementation", "display": "Method Implementation"},
+      {"id": "SK017", "name": "class_design", "display": "Class Design"},
+      {"id": "SK018", "name": "array_manipulation", "display": "Array Manipulation"},
+      {"id": "SK019", "name": "string_manipulation", "display": "String Manipulation"},
+      {"id": "SK020", "name": "conditional_logic", "display": "Conditional Logic"},
+      {"id": "SK021", "name": "iteration_implementation", "display": "Iteration Implementation"},
+      {"id": "SK022", "name": "file_processing", "display": "File Processing"},
+      {"id": "SK023", "name": "data_analysis", "display": "Data Analysis"}
+    ]
+  },
+
+  "bloom_taxonomy": {
+    "description": "Bloom's taxonomy cognitive levels",
+    "items": [
+      {"id": "B1", "name": "remember", "display": "Remember", "description": "Recall facts and basic concepts"},
+      {"id": "B2", "name": "understand", "display": "Understand", "description": "Explain ideas or concepts"},
+      {"id": "B3", "name": "apply", "display": "Apply", "description": "Use information in new situations"},
+      {"id": "B4", "name": "analyze", "display": "Analyze", "description": "Draw connections among ideas"},
+      {"id": "B5", "name": "evaluate", "display": "Evaluate", "description": "Justify a decision or course of action"},
+      {"id": "B6", "name": "create", "display": "Create", "description": "Produce new or original work"}
+    ]
+  },
+
+  "common_errors": {
+    "description": "Common programming errors and misconceptions",
+    "items": [
+      {"id": "E001", "name": "off_by_one", "display": "Off-by-One Errors"},
+      {"id": "E002", "name": "null_pointer", "display": "Null Pointer Errors"},
+      {"id": "E003", "name": "index_out_of_bounds", "display": "Index Out of Bounds"},
+      {"id": "E004", "name": "infinite_loop", "display": "Infinite Loop"},
+      {"id": "E005", "name": "pass_by_value_confusion", "display": "Pass by Value Confusion"},
+      {"id": "E006", "name": "type_mismatch", "display": "Type Mismatch"},
+      {"id": "E007", "name": "syntax_error", "display": "Syntax Error"},
+      {"id": "E008", "name": "logic_error", "display": "Logic Error"},
+      {"id": "E009", "name": "scope_confusion", "display": "Variable Scope Confusion"},
+      {"id": "E010", "name": "equals_vs_assignment", "display": "== vs = Confusion"},
+      {"id": "E011", "name": "integer_division", "display": "Integer Division Issues"},
+      {"id": "E012", "name": "string_comparison", "display": "String Comparison (== vs .equals())"},
+      {"id": "E013", "name": "missing_return", "display": "Missing Return Statement"},
+      {"id": "E014", "name": "wrong_method_signature", "display": "Wrong Method Signature"},
+      {"id": "E015", "name": "recursion_missing_base_case", "display": "Missing Base Case in Recursion"},
+      {"id": "E016", "name": "recursion_infinite", "display": "Infinite Recursion"},
+      {"id": "E017", "name": "array_initialization", "display": "Array Initialization Errors"},
+      {"id": "E018", "name": "arraylist_generic_confusion", "display": "ArrayList Generic Type Confusion"},
+      {"id": "E019", "name": "algorithm_confusion", "display": "Algorithm Confusion (e.g., selection vs insertion sort)"},
+      {"id": "E020", "name": "boundary_condition_error", "display": "Boundary Condition Error"},
+      {"id": "E021", "name": "cascading_effect_misunderstanding", "display": "Cascading Effect Misunderstanding"},
+      {"id": "E022", "name": "file_not_found", "display": "File Not Found Exception"},
+      {"id": "E023", "name": "wrapper_class_confusion", "display": "Wrapper Class Autoboxing/Unboxing Confusion"},
+      {"id": "E024", "name": "inheritance_constructor_error", "display": "Superclass Constructor Not Called (Pre-2025)"},
+      {"id": "E025", "name": "polymorphism_casting_error", "display": "Invalid Downcasting (Pre-2025)"}
+    ]
+  },
+
+  "difficulty_levels": {
+    "description": "Question difficulty levels",
+    "items": [
+      {"id": "D1", "name": "easy", "display": "Easy", "description": "Basic recall or simple application"},
+      {"id": "D2", "name": "medium", "display": "Medium", "description": "Requires analysis or multi-step reasoning"},
+      {"id": "D3", "name": "hard", "display": "Hard", "description": "Complex analysis or synthesis of multiple concepts"}
+    ]
+  },
+
+  "question_types": {
+    "description": "Types of questions",
+    "items": [
+      {"id": "QT01", "name": "multiple_choice", "display": "Multiple Choice"},
+      {"id": "QT02", "name": "code_trace", "display": "Code Trace (MC)"},
+      {"id": "QT03", "name": "code_writing", "display": "Code Writing (FRQ)"},
+      {"id": "QT04", "name": "algorithm_analysis", "display": "Algorithm Analysis"},
+      {"id": "QT05", "name": "class_design", "display": "Class Design (FRQ)"},
+      {"id": "QT06", "name": "method_implementation", "display": "Method Implementation (FRQ)"},
+      {"id": "QT07", "name": "array_2d", "display": "2D Array (FRQ)"},
+      {"id": "QT08", "name": "arraylist_analysis", "display": "ArrayList Analysis (FRQ)"}
+    ]
+  }
+}
