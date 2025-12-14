@@ -3,10 +3,10 @@
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
+use tauri::Manager;
 
 // Replicate API configuration
-// NOTE: In production, use environment variables or secure storage
-const MODEL_VERSION: &str = "anthropic/claude-4.5-sonnet"; // Adjust based on Replicate's model ID
+const MODEL_VERSION: &str = "anthropic/claude-4.5-sonnet";
 
 #[derive(Debug, Serialize)]
 struct ReplicateRequest {
@@ -43,9 +43,20 @@ struct ReplicateError {
     error: Option<String>,
 }
 
-/// Generate text using the Replicate API
-pub async fn generate(prompt: &str) -> Result<String, String> {
+/// Streaming event payload
+#[derive(Clone, Serialize)]
+pub struct StreamEvent {
+    pub text: String,
+    pub done: bool,
+}
+
+/// Generate text using the Replicate API with streaming updates
+pub async fn generate(
+    prompt: &str,
+    app_handle: Option<tauri::AppHandle>,
+) -> Result<String, String> {
     let client = Client::new();
+
     // Load .env file (ignore error if already loaded or not present)
     let _ = dotenvy::dotenv();
     use std::env;
@@ -57,8 +68,11 @@ pub async fn generate(prompt: &str) -> Result<String, String> {
 
     // For demo purposes, if no API key is set, return mock data
     if api_token == "YOUR_REPLICATE_API_TOKEN_HERE" {
-        return Ok(generate_mock_response(prompt));
+        return Ok(generate_mock_response(prompt, app_handle).await);
     }
+
+    // Emit starting event
+    emit_stream(&app_handle, "", false);
 
     // Create prediction
     let create_response = client
@@ -116,7 +130,7 @@ pub async fn generate(prompt: &str) -> Result<String, String> {
     // Poll for completion
     let prediction_url = format!("https://api.replicate.com/v1/predictions/{}", prediction.id);
 
-    for _ in 0..60 {
+    for _ in 0..120 {
         tokio::time::sleep(Duration::from_secs(1)).await;
 
         let status_response = client
@@ -131,11 +145,7 @@ pub async fn generate(prompt: &str) -> Result<String, String> {
         let status_text = status_response.text().await.unwrap_or_default();
 
         // DEBUG: Uncomment to see polling response
-        eprintln!(
-            "DEBUG poll [{}]: {}",
-            http_status.as_u16(),
-            &status_text[..status_text.len()]
-        );
+        // eprintln!("DEBUG poll [{}]: {}", http_status.as_u16(), &status_text[..status_text.len().min(300)]);
 
         if !http_status.is_success() {
             return Err(format!(
@@ -148,43 +158,66 @@ pub async fn generate(prompt: &str) -> Result<String, String> {
         let status: ReplicatePrediction = serde_json::from_str(&status_text)
             .map_err(|e| format!("Failed to parse status: {}", e))?;
 
+        // Emit partial output as it streams in
+        if let Some(ref output) = status.output {
+            let partial_text = output_to_string(output);
+            emit_stream(&app_handle, &partial_text, false);
+        }
+
         match status.status.as_str() {
             "succeeded" => {
                 if let Some(output) = status.output {
-                    // Handle different output formats
-                    return match output {
-                        serde_json::Value::String(s) => Ok(s),
-                        serde_json::Value::Array(arr) => {
-                            let parts: Vec<String> = arr
-                                .into_iter()
-                                .filter_map(|v| v.as_str().map(|s| s.to_string()))
-                                .collect();
-                            Ok(parts.join(""))
-                        }
-                        _ => Ok(output.to_string()),
-                    };
+                    let final_text = output_to_string(&output);
+                    emit_stream(&app_handle, &final_text, true);
+                    return Ok(final_text);
                 }
                 return Err("No output from model".to_string());
             }
             "failed" => {
+                emit_stream(&app_handle, "", true);
                 return Err(format!("Prediction failed: {:?}", status.error));
             }
             "canceled" => {
+                emit_stream(&app_handle, "", true);
                 return Err("Prediction was canceled".to_string());
             }
             _ => continue, // Still processing
         }
     }
 
+    emit_stream(&app_handle, "", true);
     Err("Timeout waiting for prediction".to_string())
 }
 
+/// Convert output Value to String
+fn output_to_string(output: &serde_json::Value) -> String {
+    match output {
+        serde_json::Value::String(s) => s.clone(),
+        serde_json::Value::Array(arr) => arr
+            .iter()
+            .filter_map(|v| v.as_str().map(|s| s.to_string()))
+            .collect::<Vec<_>>()
+            .join(""),
+        _ => output.to_string(),
+    }
+}
+
+/// Emit a streaming event to the frontend
+fn emit_stream(app_handle: &Option<tauri::AppHandle>, text: &str, done: bool) {
+    if let Some(handle) = app_handle {
+        let event = StreamEvent {
+            text: text.to_string(),
+            done,
+        };
+        let _ = handle.emit_all("llm-stream", event);
+    }
+}
+
 /// Generate mock response for demo/testing without API key
-fn generate_mock_response(prompt: &str) -> String {
-    // Check if it's asking for multiple questions or single
+async fn generate_mock_response(prompt: &str, app_handle: Option<tauri::AppHandle>) -> String {
     let is_single = prompt.contains("replace") || prompt.contains("single question");
 
-    if is_single {
+    let response = if is_single {
         r#"1. Consider the following recursive method:
 
 ```java
@@ -209,7 +242,7 @@ d. `0`
 - b: Off-by-one error, stops at n=2 instead of n<=0
 - c: Only returns the initial value without recursion
 - d: Thinks base case returns for all calls
-"#.to_string()
+"#
     } else {
         r#"1. What is the output of the following code segment?
 
@@ -279,6 +312,20 @@ d. `-1`
 - c: Returns index of second "o" in "World"
 - d: Thinks character not found
 "#
-        .to_string()
+    };
+
+    // Simulate streaming by emitting characters progressively
+    let chars: Vec<char> = response.chars().collect();
+    let mut accumulated = String::new();
+
+    for (i, chunk) in chars.chunks(20).enumerate() {
+        accumulated.extend(chunk);
+        emit_stream(&app_handle, &accumulated, false);
+
+        // Small delay to simulate streaming (50ms between chunks)
+        tokio::time::sleep(Duration::from_millis(50)).await;
     }
+
+    emit_stream(&app_handle, &accumulated, true);
+    response.to_string()
 }

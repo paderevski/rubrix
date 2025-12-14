@@ -1,33 +1,78 @@
 Title: AP CS Questions
 
-1. Consider the following method that is intended to return a new string where every occurrence of a two-character pattern is replaced with a single uppercase version of the first character of that pattern.
+1. Consider the following method that is intended to return `true` if a string contains at least one vowel (a, e, i, o, u) and `false` otherwise.
 
 ```java
-public String condensePattern(String str, String pattern)
-{
-    String result = "";
-    int pos = 0;
-    
-    while (pos < str.length())
-    {
-        if (pos <= str.length() - pattern.length() && 
-            str.substring(pos, pos + pattern.length()).equals(pattern))
-        {
-            result += pattern.substring(0, 1).toUpperCase();
-            pos += pattern.length();
-        }
-        else
-        {
-            result += str.substring(pos, pos + 1);
-            pos++;
+public static boolean hasVowel(String word) {
+    char[] letters = word.toCharArray();
+    for (int i = 0; i < letters.length; i++) {
+        String ch = "" + letters[i];
+        if (ch.equals("a") || ch.equals("e") || ch.equals("i") || 
+            ch.equals("o") || ch.equals("u")) {
+            return true;
         }
     }
-    return result;
+    return false;
 }
 ```
 
-Assuming `pattern` always has length 2, which of the following method calls will execute WITHOUT throwing an exception?
+Which of the following method calls will return `true`?
 
-a. I, II, and III: `condensePattern("ababcc", "ab")`, `condensePattern("xxyyzz", "xy")`, `condensePattern("aaa", "aa")` b. I and II only c. I and III only d. II only
+I. `hasVowel("AEIOU")`
+II. `hasVowel("rhythm")`
+III. `hasVowel("Apple")`
+
+a. III only
+a. I only
+a. I and III only
+a. II and III only
+
+
+2. Consider the following code segment:
+
+```java
+String str1 = "computer";
+String str2 = "science";
+String str3 = "science";
+
+int result1 = str1.compareTo(str2);
+int result2 = str2.compareTo(str1);
+int result3 = str2.compareTo(str3);
+```
+
+What are the values of `result1`, `result2`, and `result3` after the code executes?
+
+a. `result1 < 0`, `result2 > 0`, `result3 == 0`
+a. `result1 > 0`, `result2 < 0`, `result3 == 0`
+a. `result1 == 0`, `result2 == 0`, `result3 == 0`
+a. `result1 < 0`, `result2 < 0`, `result3 == 0`
+
+
+3. Consider the following method that is intended to return the number of elements in an integer array that are strictly greater than all elements that come after them.
+
+```java
+public static int countGreaterThanRest(int[] nums) {
+    int count = 0;
+    for (int i = 0; i < nums.length; i++) {
+        boolean isGreater = true;
+        for (int j = i + 1; j < nums.length; j++) {
+            if (nums[i] <= nums[j]) {
+                isGreater = false;
+            }
+        }
+        if (isGreater) {
+            count++;
+        }
+    }
+    return count;
+}
+```
+
+What value is returned by the call `countGreaterThanRest(new int[] {5, 3, 4, 2, 1})`?
+
+a. 3
+a. 1
+a. 2
+a. 4
 
 

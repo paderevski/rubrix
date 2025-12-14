@@ -41,6 +41,8 @@ pub struct GenerationRequest {
     pub difficulty: String,
     pub count: u32,
     pub notes: Option<String>,
+    #[serde(default)]
+    pub append: bool,  // If true, append to existing questions
 }
 
 // ============================================================================
@@ -103,6 +105,7 @@ fn get_topics(state: State<AppState>) -> Vec<TopicInfo> {
 async fn generate_questions(
     request: GenerationRequest,
     state: State<'_, AppState>,
+    app_handle: tauri::AppHandle,
 ) -> Result<Vec<Question>, String> {
     // Get rich examples from question bank (prefer these for better distractors)
     let bank_examples = state.knowledge.get_bank_examples(
@@ -114,23 +117,35 @@ async fn generate_questions(
     // Build prompt with JSON examples
     let prompt = prompts::build_generation_prompt(&request, &bank_examples);
     
-    // Call LLM
-    let response = llm::generate(&prompt).await?;
+    // Call LLM with streaming
+    let response = llm::generate(&prompt, Some(app_handle)).await?;
     
     // Parse response into questions
-    let questions = prompts::parse_llm_response(&response)?;
+    let mut new_questions = prompts::parse_llm_response(&response)?;
     
-    // Store in state
+    // Store in state (append or replace)
     let mut stored = state.questions.lock().unwrap();
-    *stored = questions.clone();
     
-    Ok(questions)
+    if request.append {
+        // Renumber IDs to continue from existing
+        let start_id = stored.len();
+        for (i, q) in new_questions.iter_mut().enumerate() {
+            q.id = format!("q{}", start_id + i + 1);
+        }
+        stored.extend(new_questions.clone());
+    } else {
+        *stored = new_questions.clone();
+    }
+    
+    // Return all questions (for frontend to display)
+    Ok(stored.clone())
 }
 
 #[tauri::command]
 async fn regenerate_question(
     index: usize,
     state: State<'_, AppState>,
+    app_handle: tauri::AppHandle,
 ) -> Result<Question, String> {
     let current_questions = state.questions.lock().unwrap().clone();
     
@@ -149,7 +164,7 @@ async fn regenerate_question(
     
     // Build prompt for single question regeneration
     let prompt = prompts::build_regenerate_prompt(current, &current_questions, &bank_examples);
-    let response = llm::generate(&prompt).await?;
+    let response = llm::generate(&prompt, Some(app_handle)).await?;
     
     // Parse the single question
     let mut new_questions = prompts::parse_llm_response(&response)?;

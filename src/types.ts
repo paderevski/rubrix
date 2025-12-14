@@ -1,6 +1,6 @@
 export interface Question {
   id: string;
-  content: string;  // Full markdown content (question text + code blocks + tables)
+  content: string;
   answers: Answer[];
 }
 
@@ -21,4 +21,5 @@ export interface GenerationRequest {
   difficulty: string;
   count: number;
   notes: string | null;
+  append: boolean;
 }

@@ -1,12 +1,21 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
+import { listen } from "@tauri-apps/api/event";
 import { save } from "@tauri-apps/api/dialog";
 import { writeBinaryFile, writeTextFile } from "@tauri-apps/api/fs";
 import Sidebar from "./components/Sidebar";
 import QuestionList from "./components/QuestionList";
 import EditModal from "./components/EditModal";
+import StreamingPreview from "./components/StreamingPreview";
 import { Question, TopicInfo, GenerationRequest } from "./types";
-import { FileDown, FileText, Loader2 } from "lucide-react";
+import { FileDown, FileText, Loader2, Eye, EyeOff } from "lucide-react";
+import AlertModal from "./components/AlertModal";
+
+// Event payload from Rust backend
+interface StreamEvent {
+  text: string;
+  done: boolean;
+}
 
 function App() {
   // State
@@ -19,10 +28,32 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [status, setStatus] = useState("Ready");
+  const [appendMode, setAppendMode] = useState(false);
+
+  // Streaming state
+  const [streamingText, setStreamingText] = useState("");
+  const [streamingComplete, setStreamingComplete] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
+
+  // Alert modal state
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
 
   // Load topics on mount
   useEffect(() => {
     loadTopics();
+  }, []);
+
+  // Listen for streaming events from backend
+  useEffect(() => {
+    const unlisten = listen<StreamEvent>("llm-stream", (event) => {
+      setStreamingText(event.payload.text);
+      setStreamingComplete(event.payload.done);
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
   }, []);
 
   const loadTopics = async () => {
@@ -41,7 +72,10 @@ function App() {
     }
 
     setIsGenerating(true);
-    setStatus("Generating questions...");
+    setStreamingText("");
+    setStreamingComplete(false);
+    setShowPreview(true);
+    setStatus(appendMode ? "Adding more questions..." : "Generating questions...");
 
     try {
       const request: GenerationRequest = {
@@ -49,13 +83,19 @@ function App() {
         difficulty,
         count: questionCount,
         notes: notes || null,
+        append: appendMode,
       };
 
-      const generated = await invoke<Question[]>("generate_questions", {
+      const allQuestions = await invoke<Question[]>("generate_questions", {
         request,
       });
-      setQuestions(generated);
-      setStatus(`Generated ${generated.length} questions`);
+      setQuestions(allQuestions);
+
+      if (appendMode) {
+        setStatus(`Added ${questionCount} questions (${allQuestions.length} total)`);
+      } else {
+        setStatus(`Generated ${allQuestions.length} questions`);
+      }
     } catch (err) {
       console.error("Generation failed:", err);
       setStatus(`Error: ${err}`);
@@ -66,6 +106,9 @@ function App() {
 
   const handleRegenerate = async (index: number) => {
     setStatus(`Regenerating question ${index + 1}...`);
+    setStreamingText("");
+    setStreamingComplete(false);
+    setShowPreview(true);
 
     try {
       const newQuestion = await invoke<Question>("regenerate_question", {
@@ -120,7 +163,7 @@ function App() {
     try {
       const newQuestion = await invoke<Question>("add_question");
       setQuestions((prev) => [...prev, newQuestion]);
-      setEditingIndex(questions.length); // Open edit modal for new question
+      setEditingIndex(questions.length);
     } catch (err) {
       console.error("Add failed:", err);
     }
@@ -160,14 +203,27 @@ function App() {
       });
       await writeBinaryFile(filePath, new Uint8Array(data));
       setStatus(`Exported to ${filePath}`);
+      setAlertMessage(
+        `File saved to ${filePath}.\nYou can import this file into Schoology as an .imscc file.`
+      );
+      setAlertOpen(true);
     } catch (err) {
       console.error("Export failed:", err);
       setStatus(`Export error: ${err}`);
     }
   };
 
+  // Determine what to show in main area
+  const showStreamingPreview = isGenerating || (streamingText && !streamingComplete);
+  const showQuestions = questions.length > 0 && !showStreamingPreview;
+
   return (
     <div className="flex h-screen bg-background">
+      <AlertModal
+        open={alertOpen}
+        message={alertMessage}
+        onClose={() => setAlertOpen(false)}
+      />
       {/* Sidebar */}
       <Sidebar
         topics={topics}
@@ -179,6 +235,9 @@ function App() {
         onQuestionCountChange={setQuestionCount}
         notes={notes}
         onNotesChange={setNotes}
+        appendMode={appendMode}
+        onAppendModeChange={setAppendMode}
+        existingCount={questions.length}
         onGenerate={handleGenerate}
         isGenerating={isGenerating}
       />
@@ -194,8 +253,28 @@ function App() {
             </span>
           </h1>
 
-          {/* Export Buttons */}
           <div className="flex gap-2">
+            {/* Toggle Preview Button (when streaming is complete but still visible) */}
+            {streamingText && streamingComplete && (
+              <button
+                onClick={() => setShowPreview(!showPreview)}
+                className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary"
+              >
+                {showPreview ? (
+                  <>
+                    <EyeOff className="w-4 h-4" />
+                    Hide Raw
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-4 h-4" />
+                    Show Raw
+                  </>
+                )}
+              </button>
+            )}
+
+            {/* Export Buttons */}
             <button
               onClick={handleExportTxt}
               disabled={questions.length === 0}
@@ -215,25 +294,48 @@ function App() {
           </div>
         </header>
 
-        {/* Questions List */}
-        <main className="flex-1 overflow-auto p-6">
-          {questions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-              <div className="text-6xl mb-4">📚</div>
-              <p className="text-lg">No questions yet</p>
-              <p className="text-sm">
-                Select topics and click "Generate Questions" to get started
-              </p>
+        {/* Main Area - Either streaming preview or questions */}
+        <main className="flex-1 overflow-hidden flex">
+          {/* Streaming Preview Panel */}
+          {showPreview && streamingText && (
+            <div className={`border-r bg-slate-50 overflow-hidden flex flex-col ${
+              showQuestions ? "w-1/2" : "flex-1"
+            }`}>
+              <StreamingPreview
+                text={streamingText}
+                isComplete={streamingComplete}
+              />
             </div>
-          ) : (
-            <QuestionList
-              questions={questions}
-              onRegenerate={handleRegenerate}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onAdd={handleAddQuestion}
-            />
           )}
+
+          {/* Questions Panel */}
+          <div className={`overflow-auto p-6 ${
+            showPreview && streamingText ? "flex-1" : "flex-1"
+          }`}>
+            {questions.length === 0 && !isGenerating ? (
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                <div className="text-6xl mb-4">📚</div>
+                <p className="text-lg">No questions yet</p>
+                <p className="text-sm">
+                  Select topics and click "Generate Questions" to get started
+                </p>
+              </div>
+            ) : questions.length === 0 && isGenerating ? (
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                <Loader2 className="w-8 h-8 animate-spin mb-4" />
+                <p className="text-lg">Generating questions...</p>
+                <p className="text-sm">Watch the live output on the left</p>
+              </div>
+            ) : (
+              <QuestionList
+                questions={questions}
+                onRegenerate={handleRegenerate}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onAdd={handleAddQuestion}
+              />
+            )}
+          </div>
         </main>
 
         {/* Status Bar */}

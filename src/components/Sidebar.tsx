@@ -1,5 +1,5 @@
+import { Loader2, Sparkles, Plus } from "lucide-react";
 import { TopicInfo } from "../types";
-import { Loader2, Sparkles } from "lucide-react";
 
 interface SidebarProps {
   topics: TopicInfo[];
@@ -11,6 +11,9 @@ interface SidebarProps {
   onQuestionCountChange: (count: number) => void;
   notes: string;
   onNotesChange: (notes: string) => void;
+  appendMode: boolean;
+  onAppendModeChange: (append: boolean) => void;
+  existingCount: number;
   onGenerate: () => void;
   isGenerating: boolean;
 }
@@ -25,6 +28,9 @@ export default function Sidebar({
   onQuestionCountChange,
   notes,
   onNotesChange,
+  appendMode,
+  onAppendModeChange,
+  existingCount,
   onGenerate,
   isGenerating,
 }: SidebarProps) {
@@ -37,17 +43,12 @@ export default function Sidebar({
   };
 
   return (
-    <aside className="w-72 bg-white border-r flex flex-col">
-      <div className="p-4 border-b">
-        <h2 className="font-semibold text-foreground">Settings</h2>
-      </div>
-
-      <div className="flex-1 overflow-auto p-4 space-y-6">
+    <aside className="w-80 border-r bg-card flex flex-col">
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {/* Topics */}
         <div>
-          <label className="text-sm font-medium text-foreground mb-2 block">
-            Topics
-          </label>
+          <h3 className="text-sm font-medium text-foreground mb-3">Topics</h3>
           <div className="space-y-2">
             {topics.map((topic) => (
               <label
@@ -61,11 +62,9 @@ export default function Sidebar({
                   className="rounded border-gray-300 text-primary focus:ring-primary"
                 />
                 <span className="text-sm">{topic.name}</span>
-                {topic.example_count > 0 && (
-                  <span className="text-xs text-muted-foreground">
-                    ({topic.example_count})
-                  </span>
-                )}
+                <span className="text-xs text-muted-foreground ml-auto">
+                  {topic.example_count} examples
+                </span>
               </label>
             ))}
           </div>
@@ -76,12 +75,12 @@ export default function Sidebar({
           <label className="text-sm font-medium text-foreground mb-2 block">
             Difficulty
           </label>
-          <div className="flex gap-1">
+          <div className="flex gap-2">
             {["easy", "medium", "hard"].map((level) => (
               <button
                 key={level}
                 onClick={() => onDifficultyChange(level)}
-                className={`flex-1 px-3 py-1.5 text-sm rounded-md capitalize transition-colors ${
+                className={`flex-1 py-1.5 px-3 text-sm rounded-md capitalize transition-colors ${
                   difficulty === level
                     ? "bg-primary text-primary-foreground"
                     : "bg-secondary hover:bg-secondary/80"
@@ -124,6 +123,29 @@ export default function Sidebar({
             className="w-full h-24 px-3 py-2 text-sm border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
+
+        {/* Append Mode Toggle */}
+        {existingCount > 0 && (
+          <div className="p-3 bg-secondary/50 rounded-lg">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appendMode}
+                onChange={(e) => onAppendModeChange(e.target.checked)}
+                className="mt-0.5 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              <div>
+                <span className="text-sm font-medium">Add to existing</span>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {appendMode 
+                    ? `Will add ${questionCount} to your ${existingCount} questions`
+                    : `Will replace your ${existingCount} questions`
+                  }
+                </p>
+              </div>
+            </label>
+          </div>
+        )}
       </div>
 
       {/* Generate Button */}
@@ -137,6 +159,11 @@ export default function Sidebar({
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
               Generating...
+            </>
+          ) : appendMode && existingCount > 0 ? (
+            <>
+              <Plus className="w-4 h-4" />
+              Add {questionCount} More
             </>
           ) : (
             <>
