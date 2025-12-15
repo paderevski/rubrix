@@ -48,6 +48,7 @@ export default function StreamingPreview({ text, isComplete }: StreamingPreviewP
               components={{
                 // Large, spaced question headers
                 h1({ children }) {
+                  // Could be "# Question" format
                   return (
                     <h1 className="text-2xl font-bold text-foreground mt-8 mb-4 pb-2 border-b-2 border-primary/20">
                       {children}
@@ -55,7 +56,7 @@ export default function StreamingPreview({ text, isComplete }: StreamingPreviewP
                   );
                 },
                 h2({ children }) {
-                  // Special styling for "Choices" header
+                  // Special styling for different h2 headers
                   const text = String(children);
                   if (text.toLowerCase().includes('choices')) {
                     return (
@@ -64,9 +65,24 @@ export default function StreamingPreview({ text, isComplete }: StreamingPreviewP
                       </h2>
                     );
                   }
-                  // Regular h2 (Question header)
+                  if (text.toLowerCase().includes('solution')) {
+                    return (
+                      <h2 className="text-lg font-semibold text-green-700 mt-6 mb-3 pb-2 border-b border-green-200">
+                        {children}
+                      </h2>
+                    );
+                  }
+                  if (text.toLowerCase().includes('question')) {
+                    // "## Question" format
+                    return (
+                      <h2 className="text-xl font-bold text-foreground mt-8 mb-4 pb-2 border-b border-slate-300">
+                        {children}
+                      </h2>
+                    );
+                  }
+                  // Regular h2
                   return (
-                    <h2 className="text-xl font-bold text-foreground mt-8 mb-4 pb-2 border-b border-slate-300">
+                    <h2 className="text-lg font-semibold text-foreground mt-6 mb-3">
                       {children}
                     </h2>
                   );

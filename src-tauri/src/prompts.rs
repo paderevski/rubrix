@@ -43,7 +43,19 @@ pub fn build_generation_prompt(
     };
 
     format!(
-        r#"You are an expert AP Computer Science A question writer. Generate NEW multiple choice questions based on the style and quality of these examples.
+        r#"You are an expert AP Computer Science A question writer with strong analytical and debugging skills.
+
+**CRITICAL RULE: Calculate the correct answer BEFORE writing the question.**
+
+When generating questions with code or calculations:
+1. First, decide on the concept you'll test
+2. Write the code mentally or on scratch paper
+3. TRACE through the code step-by-step and calculate the correct answer
+4. Verify your calculation is correct - double-check your math
+5. Create wrong answers based on specific misconceptions
+6. ONLY THEN start writing in the output format below
+
+If you discover an error while writing your explanation, DO NOT try to fix it mid-stream. Instead, silently start that question over with different code.
 
 **Target Topic(s):** {topics}
 **Target Difficulty:** {difficulty}
@@ -57,6 +69,7 @@ Study these examples carefully. Pay special attention to:
 - How the `distractors` field shows WHY each wrong answer is tempting
 - The `common_errors` that students make
 - The relationship between `difficulty` and `cognitive_level`
+- The precision and accuracy of the explanations
 
 {examples}
 
@@ -69,12 +82,15 @@ Generate {count} NEW question(s) that:
 2. Use DIFFERENT code and scenarios than the examples
 3. Each wrong answer must exploit a specific student misconception
 4. Match the quality and style shown in the examples
+5. Have internally consistent, mathematically correct answers that you've verified
 
 **Output Format (Markdown):**
 
 For each question, use this exact format:
 
-## Question
+---
+
+# Question [number]
 
 [Question stem - what are you asking?]
 
@@ -83,33 +99,42 @@ For each question, use this exact format:
 // Keep code concise (under 15 lines)
 ```
 
+## Solution
+
+**Correct Answer Explanation:** [Work through the problem step-by-step. Trace code execution, show calculations. Arrive at the CORRECT ANSWER VALUE at the end of this section.]
+
+**Distractor Analysis:**
+Now create 3-4 wrong answers based on these common student errors:
+- [Describe misconception 1]: This leads to answer [wrong value]
+- [Describe misconception 2]: This leads to answer [wrong value]
+- [Describe misconception 3]: This leads to answer [wrong value]
+- [Describe misconception 4, if needed]: This leads to answer [wrong value]
+
 ## Choices
 
-a. [First answer option]
-b. [Second answer option]
-c. [Third answer option]
-d. [Fourth answer option]
-e. [Fifth answer option if present]
+Now format the correct answer and distractors as multiple choice options. Put them in random order (correct answer should NOT always be 'a'):
+
+a. [One answer - could be correct or distractor]
+b. [One answer - could be correct or distractor]
+c. [One answer - could be correct or distractor]
+d. [One answer - could be correct or distractor]
+e. [One answer - could be correct or distractor, if 5 choices needed]
 
 ---
-**Correct Answer:** [letter]
-**Explanation:** [Step-by-step explanation of why the correct answer is right]
-**Distractor Analysis:**
-- [wrong letter]: [What misconception or error leads a student to this answer]
-- [wrong letter]: [What misconception or error leads a student to this answer]
-- [wrong letter]: [What misconception or error leads a student to this answer]
-- [wrong letter]: [What misconception or error leads a student to this answer, if 5 choices present]
+**Correct Answer:** [letter corresponding to the correct value you calculated above]
 
 ---
 
-(Then question 2, 3, etc. if count > 1)
+(Repeat for Question 2, Question 3, etc. if count > 1)
 
 **Important Rules:**
+- Work out the correct answer completely BEFORE writing the question
+- Verify your explanation matches the answer letter you chose
 - Use standard answer labels: a. b. c. d. e.
-- Indicate the correct answer in the "Correct Answer" line
 - Each distractor must come from a real student error pattern (off-by-one, pass-by-value confusion, wrong loop bounds, etc.)
 - Code must be syntactically correct Java
 - Use backticks for inline code in answers like `42` or `"hello"`
+- Your explanation must be clear, accurate, and consistent with the correct answer
 {notes}
 
 Generate {count} question(s) now:"#,
@@ -240,7 +265,9 @@ pub fn build_regenerate_prompt(
     };
 
     format!(
-        r#"You are an expert AP Computer Science A teacher.
+        r#"You are an expert AP Computer Science A question writer with strong analytical skills.
+
+**CRITICAL: Calculate your answer completely before writing the question.**
 
 Generate a NEW multiple choice question to replace this one:
 
@@ -253,10 +280,12 @@ Generate a NEW multiple choice question to replace this one:
 - Exactly 4 answer choices (a, b, c, d)
 - Each wrong answer should exploit a specific student misconception
 - Include code if appropriate
+- VERIFY your calculations are correct before committing to an answer
+- If you make an error, start over with different code
 
 **Output format:**
 
-## Question
+# Question 1
 
 [New question stem]
 
@@ -264,20 +293,25 @@ Generate a NEW multiple choice question to replace this one:
 // code if needed
 ```
 
+## Solution
+
+**Correct Answer Explanation:** [Work through the problem step-by-step to find the correct answer]
+
+**Distractor Analysis:**
+Create 3 wrong answers based on common errors:
+- [Misconception 1]: Leads to answer [wrong value]
+- [Misconception 2]: Leads to answer [wrong value]
+- [Misconception 3]: Leads to answer [wrong value]
+
 ## Choices
 
-a. [First answer]
-b. [Second answer]
-c. [Third answer]
-d. [Fourth answer]
+a. [One answer]
+b. [One answer]
+c. [One answer]
+d. [One answer]
 
 ---
 **Correct Answer:** [letter]
-**Explanation:** [Why correct]
-**Distractor Analysis:**
-- [wrong letter]: [What error leads here]
-- [wrong letter]: [What error leads here]
-- [wrong letter]: [What error leads here]
 
 Generate the replacement question:"#,
         current = current.content,
@@ -293,8 +327,9 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
     // Prepend newline to handle first question uniformly
     let content = format!("\n{}", response.trim());
 
-    // Split by question markers - handle both "## Question" and legacy "1." formats
-    let question_start_re = Regex::new(r"\n(?:##\s*Question|\d+\.)\s*").unwrap();
+    // Split by numbered question markers - "# Question 1", "# Question 2", etc. or legacy "1."
+    // Don't split on "## Question" which is a subsection header
+    let question_start_re = Regex::new(r"\n(?:#\s*Question\s+\d+|\d+\.)\s*").unwrap();
     let mut blocks: Vec<String> = Vec::new();
     let mut last_end = 0;
 
@@ -302,6 +337,7 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
         if last_end > 0 && last_end < mat.start() {
             let block = &content[last_end..mat.start()];
             if !block.trim().is_empty() {
+                eprintln!("DEBUG: Found question block (length: {})", block.len());
                 blocks.push(block.trim().to_string());
             }
         }
@@ -312,9 +348,15 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
     if last_end < content.len() {
         let block = &content[last_end..];
         if !block.trim().is_empty() {
+            eprintln!(
+                "DEBUG: Found final question block (length: {})",
+                block.len()
+            );
             blocks.push(block.trim().to_string());
         }
     }
+
+    eprintln!("DEBUG: Total question blocks found: {}", blocks.len());
 
     for block in &blocks {
         let block = block.trim();
@@ -348,37 +390,61 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
 
 /// Parse a single question block
 fn parse_single_question(text: &str) -> Option<Question> {
-    // Remove any leading question marker
-    let num_re = Regex::new(r"^(?:##\s*Question|\d+\.)\s*").unwrap();
+    eprintln!("DEBUG parse_single_question: Input length = {}", text.len());
+    eprintln!(
+        "DEBUG parse_single_question: First 100 chars = {}",
+        &text.chars().take(100).collect::<String>()
+    );
+
+    // Remove any leading question marker - "# Question 1", "## Question", or "1."
+    let num_re = Regex::new(r"^(?:#\s*Question\s+\d+|#{1,2}\s*Question|\d+\.)\s*").unwrap();
     let text = num_re.replace(text, "").to_string();
 
-    // Find where answers start - look for "## Choices" or fallback to "a. "
-    let choices_marker = Regex::new(r"\n##\s*Choices\s*\n").unwrap();
+    // Find where answers start - look for "## Choices" or "# Choices" or fallback to "a. "
+    let choices_marker = Regex::new(r"\n#{1,2}\s*Choices\s*\n").unwrap();
+    let solution_marker = Regex::new(r"\n#{1,2}\s*Solution\s*\n").unwrap();
     let answer_re = Regex::new(r"\n\s*a\.\s+").unwrap();
 
     let answer_start = if let Some(m) = choices_marker.find(&text) {
+        eprintln!("DEBUG: Found ## Choices marker at position {}", m.start());
         // If we have "## Choices", answers start after it
         m.end()
     } else if let Some(m) = answer_re.find(&text) {
+        eprintln!(
+            "DEBUG: Found a. marker at position {} (fallback)",
+            m.start()
+        );
         // Fallback to old format
         m.start()
     } else {
+        eprintln!("DEBUG: No answer markers found!");
         return None;
     };
 
-    // Content is everything before answers (and before "## Choices" if present)
-    let content_end = if let Some(m) = choices_marker.find(&text) {
+    // Content is everything before "## Solution" or "## Choices" (whichever comes first)
+    let content_end = if let Some(m) = solution_marker.find(&text) {
+        eprintln!("DEBUG: Found ## Solution marker at position {}", m.start());
+        m.start()
+    } else if let Some(m) = choices_marker.find(&text) {
+        eprintln!(
+            "DEBUG: Found ## Choices marker at position {} (for content_end)",
+            m.start()
+        );
         m.start()
     } else {
         answer_start
     };
     let content = text[..content_end].trim().to_string();
+    eprintln!("DEBUG: Content extracted, length = {}", content.len());
 
     // Find where distractor analysis starts (to exclude from answers)
     let analysis_re = Regex::new(r"\n---\s*\n\*?\*?Correct Answer").unwrap();
     let answers_end = analysis_re
         .find(&text)
-        .map(|m| m.start())
+        .map(|m| {
+            eprintln!("DEBUG: Found --- Correct Answer at position {}", m.start());
+            m.start()
+        })
         .unwrap_or(text.len());
 
     // Extract the correct answer letter from metadata
@@ -386,14 +452,29 @@ fn parse_single_question(text: &str) -> Option<Question> {
     let correct_letter = correct_re
         .captures(&text)
         .and_then(|c| c.get(1))
-        .map(|m| m.as_str().to_lowercase())
-        .unwrap_or_else(|| "a".to_string());
+        .map(|m| {
+            let letter = m.as_str().to_lowercase();
+            eprintln!("DEBUG: Correct answer letter = {}", letter);
+            letter
+        })
+        .unwrap_or_else(|| {
+            eprintln!("DEBUG: No correct answer found, defaulting to 'a'");
+            "a".to_string()
+        });
 
     // Extract answers section (between answer_start and analysis)
     let answers_section = &text[answer_start..answers_end];
+    eprintln!("DEBUG: Answers section length = {}", answers_section.len());
+    eprintln!(
+        "DEBUG: Answers section preview: {}",
+        &answers_section.chars().take(200).collect::<String>()
+    );
+
     let answers = parse_answers(answers_section, &correct_letter);
+    eprintln!("DEBUG: Parsed {} answers", answers.len());
 
     if answers.is_empty() {
+        eprintln!("DEBUG: No answers parsed, returning None");
         return None;
     }
 
@@ -410,15 +491,25 @@ fn parse_answers(text: &str, correct_letter: &str) -> Vec<Answer> {
     let mut current_letter: Option<String> = None;
     let mut current_text: Option<String> = None;
 
+    eprintln!(
+        "DEBUG parse_answers: Looking for correct_letter = '{}'",
+        correct_letter
+    );
+
     // Match a. b. c. d. e. or A. B. C. D. E.
     let answer_marker = Regex::new(r"(?m)^([a-eA-E])\.\s+(.*)$").unwrap();
 
     for cap in answer_marker.captures_iter(text) {
         // Save previous answer if exists
         if let (Some(letter), Some(txt)) = (&current_letter, &current_text) {
+            let is_correct = letter.to_lowercase() == correct_letter;
+            eprintln!(
+                "DEBUG parse_answers: Letter '{}' -> is_correct={}",
+                letter, is_correct
+            );
             answers.push(Answer {
                 text: txt.trim().to_string(),
-                is_correct: letter.to_lowercase() == correct_letter,
+                is_correct,
             });
         }
 
@@ -429,12 +520,21 @@ fn parse_answers(text: &str, correct_letter: &str) -> Vec<Answer> {
 
     // Don't forget the last answer
     if let (Some(letter), Some(txt)) = (current_letter, current_text) {
+        let is_correct = letter.to_lowercase() == correct_letter;
+        eprintln!(
+            "DEBUG parse_answers: Letter '{}' (last) -> is_correct={}",
+            letter, is_correct
+        );
         answers.push(Answer {
             text: txt.trim().to_string(),
-            is_correct: letter.to_lowercase() == correct_letter,
+            is_correct,
         });
     }
 
+    eprintln!(
+        "DEBUG parse_answers: Total {} answers created",
+        answers.len()
+    );
     answers
 }
 
@@ -453,13 +553,21 @@ mod tests {
 
     #[test]
     fn test_parse_new_format() {
-        let input = r#"## Question
+        let input = r#"# Question 1
 
 What is returned by this code?
 
 ```java
 return 5 + 3;
 ```
+
+## Solution
+
+**Correct Answer Explanation:** Simple addition of 5 + 3 equals 8.
+
+**Distractor Analysis:**
+- String concatenation: Would give `"53"`
+- Compilation error: Incorrect syntax assumption
 
 ## Choices
 
@@ -469,8 +577,7 @@ c. `"53"`
 d. Error
 
 ---
-**Correct Answer:** a
-**Explanation:** Simple addition returns 8."#;
+**Correct Answer:** a"#;
 
         let questions = parse_llm_response(input).unwrap();
         assert_eq!(questions.len(), 1);
@@ -502,9 +609,18 @@ d. Error
 
     #[test]
     fn test_parse_correct_answer_not_a() {
-        let input = r#"## Question
+        let input = r#"# Question 1
 
 Which is a prime number?
+
+## Solution
+
+**Correct Answer Explanation:** 7 is the only prime number in this list.
+
+**Distractor Analysis:**
+- 4 is divisible by 2
+- 6 is divisible by 2 and 3
+- 8 is divisible by 2 and 4
 
 ## Choices
 
@@ -526,9 +642,19 @@ d. 8
 
     #[test]
     fn test_parse_five_choices() {
-        let input = r#"## Question
+        let input = r#"# Question 1
 
 Select the correct statement.
+
+## Solution
+
+**Correct Answer Explanation:** Option d is the correct statement.
+
+**Distractor Analysis:**
+- Option a: Incorrect assumption
+- Option b: Wrong reasoning
+- Option c: Misunderstands concept
+- Option e: Confused with different topic
 
 ## Choices
 
