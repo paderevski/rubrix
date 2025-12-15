@@ -83,7 +83,7 @@ pub async fn generate(
             "version": MODEL_VERSION,
             "input": {
                 "prompt": prompt,
-                "max_tokens": 4096,
+                "max_tokens": 8192,
                 "temperature": 0.7
             }
         }))

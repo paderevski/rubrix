@@ -447,8 +447,11 @@ fn parse_single_question(text: &str) -> Option<Question> {
         })
         .unwrap_or(text.len());
 
-    // Extract the correct answer letter from metadata
-    let correct_re = Regex::new(r"\*?\*?Correct Answer:?\*?\*?\s*([a-eA-E])").unwrap();
+    // Extract the correct answer letter from the final metadata block
+    // IMPORTANT: The colon must be REQUIRED, otherwise "Correct Answer Explanation"
+    // will match and capture the "E" from "Explanation"!
+    // Also match the "---" separator to ensure we get the metadata block, not the explanation.
+    let correct_re = Regex::new(r"---\s*\n\*\*Correct Answer:\*\*\s*([a-eA-E])").unwrap();
     let correct_letter = correct_re
         .captures(&text)
         .and_then(|c| c.get(1))
