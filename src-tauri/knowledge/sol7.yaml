@@ -2,13 +2,15 @@ test_metadata:
   title: "Grade 7 Reading Released Test"
   year: "Spring 2015"
   authority: "Virginia Department of Education"
-  [cite_start]source_citation: "[cite: 1, 3, 5]"
+  [cite_start]source_citation: "[cite: 1-10]"
 
 samples:
   - id: "Sample A"
     title: "Mia's Art"
     text: |
-      [cite_start]Mia rushed home and threw open the front door. Her mother whirled around, surprised... "I won first place in the art contest!" she said with pride. Though Mia had been working eagerly on her art submission for weeks... Mia handed over her artwork. It was a portrait of her mother. [cite: 27-32]
+      1 Mia rushed home and threw open the front door. Her mother whirled around, surprised that Mia was home from school so early. "I won first place in the art contest!" she said with pride.
+      2 Though Mia had been working eagerly on her art submission for weeks, her mother wasn't sure what the project involved. "That's wonderful, Mia! What was the subject of your art project?" her mother asked.
+      [cite_start]3 Grinning from ear to ear, Mia handed over her artwork. It was a portrait of her mother. [cite: 27-32]
     questions:
       - id: "Sample A"
         prompt: "This story is mostly about Mia -"
@@ -17,23 +19,34 @@ samples:
           B: "choosing a new art project"
           C: "winning an art contest"
           D: "completing a painting"
-        [cite_start]correct_answer: "C" # [cite: 37]
+        [cite_start]correct_answer: "C" [cite: 797]
 
   - id: "Sample B"
     type: "Vocabulary"
     prompt: "Which two words from these sentences help the reader understand the meaning of misplaced? 'Michael was almost ready to leave when he realized that he had misplaced his keys. After searching for ten minutes, he found the keys in his backpack.'"
-    [cite_start]correct_answer: ["searching", "found"] # [cite: 42-44]
+    [cite_start]correct_answer: ["searching", "found"] [cite: 42-44]
 
 sections:
   - section_id: 1
     title: "All in the Stars"
     type: "Fiction"
     content: |
-      "Jared," said Mrs. Parker, "did you bring your permission slip for this morning's field trip?" Jared, who seemed to be hypnotized by the far edge of his desk, did not hear his teacher's voice.
-      ...
-      [Summary: Jared daydreams about his science fiction story during class and a field trip to the planetarium. During the star show, he gets inspiration for his character names from the astronomer's lecture.]
-      ...
-      [cite_start]Eventually, Sam caught his breath, Astrid resumed her lecture, and Jared started feeling a little less sleepy and pretty good about the names of his characters. [cite: 45-100]
+      1 "Jared," said Mrs. Parker, "did you bring your permission slip for this morning's field trip?" Jared, who seemed to be hypnotized by the far edge of his desk, did not hear his teacher's voice.
+      2 Suddenly, he felt a firm thump against the leg of his desk. It was his friend Sam, sitting behind him in science class. "Jared," Sam whispered, "Mrs. Parker is talking to you." Startled into sitting up, Jared shook his head and literally woke up from a daydream.
+      3 "I'm sorry, Mrs. Parker. I didn't hear your question," he said, suddenly remembering where he was. Mrs. Parker, in a tone of voice that sounded a little too patient, repeated herself. Fumbling in his pockets, Jared found his permission slip, placed it on the rumpled stack of signed slips, and returned to his seat. He was not sure how he would keep himself awake all morning.
+      4 He had worked late on an English assignment the night before, writing a science-fiction story. So far, he liked the results. His characters were interesting, and most of his plot was creative and logical-maybe even exciting. But he had eventually fallen asleep thinking about names for his characters.
+      5 Had he been more awake, he would have been excited about the field trip too. His science class was going to the Virginia Living Museum and the Abbitt Planetarium. Soon after Mrs. Parker had collected all the permission slips, Jared was sleepwalking to the bus, climbing aboard, and sitting down next to Sam. "Are you all right, Jared?" Sam asked. "You're already in outer space, and the bus hasn't even left for the planetarium yet."
+      6 "Yeah, I'm fine," Jared yawned. "I just need a nap. I was up late working on my story, thinking about names for my characters. They're fictional, of course, but I want to name them after real places that nobody knows much about."
+      7 Settling comfortably in his seat, Sam turned to his friend. "If you're interested in names from galaxies far, far away," he suggested, "try to stay awake at the planetarium. The last time I went, they told us about some stars with really strange names like V335 and R Cygni."
+      8 "Is there a star out there named E-I-E-I-O?" Jared laughed. "I haven't been to the planetarium before, but if you hear any galactic names that don't have numbers in them and are easy enough to pronounce, let me know. I might use them in my story."
+      9 "You and your nameless characters are doing better than I am," Sam frowned. "It'll be a catastrophe if I don't get started writing, and I don't even remember when the assignment is due."
+      10 "One week from Tuesday," Jared answered. "It's not like you to be falling behind in class."
+      11 Sam grinned. "I suppose I enjoy science more than writing stories." He turned and looked out the window as the bus slowed to a stop.
+      12 Like Jared, most of the students had never been inside a planetarium. Entering the large theater, all were curious, and most were amazed. They were an unusual sight themselves, standing under the dome and craning their necks to view the expanse of white dome spread out over their heads.
+      13 A staff astronomer seated the students and introduced herself. "My name is Astrid," she began. Then she told the audience about the laser light machine and the images of planets and stars to be projected onto the ceiling. When she dimmed the lights, the students reclined in their chairs and looked up and around the room. Pinpoints of light appeared, grew, and gracefully shifted and faded across the ceiling. Astrid and the students were touring Virginia's night sky as though it were a movie. Jared was fascinated, he was comfortable, and he was getting sleepy again.
+      14 "... appears brighter than Mars...," Astrid was saying, but her voice was fading in and out of Jared's consciousness. More than once, Sam nudged his friend, trying to keep him awake, but every time Jared's eyes returned to the sky, his thoughts returned to characters in his story. "... each of Jupiter's moons...," Astrid said. "... Perseid meteor showers... beyond the Andromeda Galaxy..."
+      15 Suddenly, Astrid's voice and Sam's elbow aligned. Jared abruptly sat up and exclaimed, "Ouch! What happened to Zwicky and Triangulum?"
+      16 Astrid stopped talking, and snickers and hushing sounds swept across the planetarium. Every face turned toward Jared and Sam, who was laughing so hard he could hardly breathe. Jared had instantly slouched deep into his chair. [cite_start]Eventually, Sam caught his breath, Astrid resumed her lecture, and Jared started feeling a little less sleepy and pretty good about the names of his characters. [cite: 45-100]
     questions:
       - id: 1
         prompt: "In paragraph 4, the author includes the detail of Mrs. Parker sounding 'a little too patient' to suggest that"
@@ -42,7 +55,7 @@ sections:
           B: "she is trying hard to be tolerant"
           C: "students usually find her voice soothing"
           D: "students rarely misbehave in her class"
-        [cite_start]correct_answer: "B" # [cite: 797]
+        [cite_start]correct_answer: "B" [cite: 797]
       - id: 2
         prompt: "In which word does the suffix -al have the same meaning as it does in fictional?"
         options:
@@ -50,7 +63,7 @@ sections:
           B: "metal"
           C: "journal"
           D: "regional"
-        [cite_start]correct_answer: "D" # [cite: 797]
+        [cite_start]correct_answer: "D" [cite: 797]
       - id: 3
         prompt: "Which word in paragraph 17 conveys Jared's embarrassment?"
         options:
@@ -58,7 +71,7 @@ sections:
           B: "hushing"
           C: "slouched"
           D: "caught"
-        [cite_start]correct_answer: "C" # [cite: 797]
+        [cite_start]correct_answer: "C" [cite: 797]
       - id: 4
         type: "TEI (Web Diagram)"
         prompt: "Complete this web: [Jared daydreams in science class] -> [?] -> [Jared daydreams while Astrid lectures]."
@@ -67,7 +80,7 @@ sections:
           - "Jared's imagination wanders long enough to find names for his characters."
           - "Jared's interest in science increases during a field trip to a planetarium."
           - "Jared's frustration causes him to spend too much time visiting with Sam."
-        correct_answer: "Jared's imagination wanders long enough to find names for his characters." [cite_start]# [cite: 797]
+        [cite_start]correct_answer: "Jared's imagination wanders long enough to find names for his characters." [cite: 797]
       - id: 5
         prompt: "In this story, Jared's main conflict can be described as"
         options:
@@ -76,7 +89,7 @@ sections:
           - "individual vs. society"
           - "individual vs. technology"
           - "individual vs. supernatural"
-        [cite_start]correct_answer: "individual vs. self" # [cite: 802]
+        [cite_start]correct_answer: "individual vs. self" [cite: 802]
       - id: 6
         prompt: "In a summary of this story, the most important detail to include is how Jared"
         options:
@@ -85,7 +98,7 @@ sections:
           - "tells Sam when the writing assignment is due"
           - "stares at the unusual ceiling in the planetarium"
           - "hears Astrid talking about features of outer space"
-        [cite_start]correct_answer: "hears Astrid talking about features of outer space" # [cite: 805]
+        [cite_start]correct_answer: "hears Astrid talking about features of outer space" [cite: 805]
       - id: 7
         prompt: "By the end of the story, readers can best predict that Jared will"
         options:
@@ -93,16 +106,27 @@ sections:
           B: "apologize to Astrid after the presentation"
           C: "help Sam with his story assignment"
           D: "visit the planetarium again soon"
-        [cite_start]correct_answer: "A" # [cite: 805]
+        [cite_start]correct_answer: "A" [cite: 805]
 
   - section_id: 2
     title: "The Royal Cat"
     type: "Non-Fiction"
     content: |
-      Her ears perk up as she waits patiently for her owner to place the decorative dish filled with a delicious feast in front of her...
-      [Summary: The article discusses the history of cats in Ancient Egypt, their domestication, and worship. It then describes the Egyptian Mau breed, its characteristics, and its current status as a nuisance in Egypt despite its popularity elsewhere.]
-      ...
-      [cite_start]Regardless of cats' origins, they are a mysterious blend of quirks and habits that can both entertain and frustrate people. [cite: 176-226]
+      1 Her ears perk up as she waits patiently for her owner to place the decorative dish filled with a delicious feast in front of her. After eating, she peacefully licks her whiskers, puts her nose and tail into the air, and casually walks into the shade of a nearby tree. Purring loudly, the feline sits majestically, taking in her surroundings as if they were her own private kingdom.
+
+      Ancient Egypt
+      2 Cats first appeared in recorded history approximately 5,000 years ago in ancient Egypt. Related to small wildcats, felines were probably first domesticated for pest control. Snakes and rodents were a common problem in ancient Egypt. Being natural hunters, cats were welcomed near people's homes. By about 1500 B.C., they were a part of the household.
+      3 As a result, cats became more than household exterminators. There are pictures in tombs that show cats as a part of families. Cats were trained for catching fish or fetching downed prey for their owners. Household items and jewelry were often decorated with images of cats. It became common for children, both boys and girls, to be given a version of the word "cat" as a name. Entire families would mourn the deaths of their cats.
+      4 Soon people gave the cats so much reverence that they were worshipped as gods. Temples were dedicated to them, and there were people whose only job was to care for and serve the temple cats. These cats were given the high honor of being mummified and placed in their own tombs, complete with milk and rodents. There is even one legend that the Egyptian army refused to fight when their enemy released hundreds of cats onto the battlefield. The Egyptians did not wish to harm the animals.
+
+      Egyptian Maus
+      5 Today the Egyptian Mau ("mau" is the Egyptian word for cat and rhymes with "cow") is believed to be a direct descendant of cats from ancient Egypt. Maus are medium-sized, weighing 8-12 pounds. Their short hair is usually one of five colors: smoke, silver, bronze, black, or blue. Purebred Egyptian Maus are known for their spotted coats; these naturally occurring spots make them unique among domestic cats.
+      6 Maus are considered friendly, playful cats. They are loyal to and protective of both their feline and human families. When happy, they sing a chuckling, snorting sound and wiggle their tails quickly. Their eyes are a distinct gooseberry green, which is a light lime green. Many people are attracted by the slightly worried look of the adult Maus.
+
+      Maus Today
+      7 In the United States and parts of Europe, Maus are a popular breed because of their personality and their beauty. Many websites are devoted to breeding and showing this magnificent breed in contests. There are organizations dedicated to the preservation and health of this particular breed. Unfortunately, this is not necessarily the case in Egypt. There, Maus have become so numerous that they are considered a nuisance.
+      8 It is ironic that the very people whose ancestors worked to domesticate this animal no longer see its value, but there are other people dedicated to changing this situation. The Egyptian Mau Rescue Organization (EMRO) works to assure the continued existence of the Mau through pet adoptions, both local and overseas. The EMRO also works to create awareness for the historic value of this animal and hopes that one day Maus will again be an Egyptian treasure.
+      9 Regardless of cats' origins, they are a mysterious blend of quirks and habits that can both entertain and frustrate people. They will spend one moment on your lap, being petted and purring peacefully, and the next moment act as if they have never seen you before. Cats will spend hours sleeping, only to rise suddenly and start chasing imaginary shadows. There are different breeds of cats, and they all have different personalities. All have one characteristic in common: the ability to strut through a room as if they own it. [cite_start]This trait must have come from their regal Egyptian ancestors. [cite: 176-226]
     questions:
       - id: 8
         prompt: "Why does the author include paragraph 1?"
@@ -111,7 +135,7 @@ sections:
           B: "To establish an image of common cat behavior"
           C: "To create a link between the cat and the Mau"
           D: "To compare the personality of the cat to the Mau"
-        [cite_start]correct_answer: "B" # [cite: 805]
+        [cite_start]correct_answer: "B" [cite: 805]
       - id: 9
         prompt: "What does domesticated mean in paragraph 2?"
         options:
@@ -119,7 +143,7 @@ sections:
           B: "captured"
           C: "tamed"
           D: "produced"
-        [cite_start]correct_answer: "C" # [cite: 805]
+        [cite_start]correct_answer: "C" [cite: 805]
       - id: 10
         prompt: "In paragraph 4, reverence means"
         options:
@@ -127,7 +151,7 @@ sections:
           B: "kind rewards"
           C: "great power"
           D: "deep respect"
-        [cite_start]correct_answer: "D" # [cite: 805]
+        [cite_start]correct_answer: "D" [cite: 805]
       - id: 11
         prompt: "Why does the author include the detail 'The Egyptians did not wish to harm the animals'?"
         options:
@@ -135,7 +159,7 @@ sections:
           B: "To offer a reason for releasing the cats"
           C: "To show that Egyptians are reasonable"
           D: "To demonstrate the high standing of cats"
-        [cite_start]correct_answer: "D" # [cite: 805]
+        [cite_start]correct_answer: "D" [cite: 805]
       - id: 12
         prompt: "Which statement best summarizes paragraph 5?"
         options:
@@ -143,7 +167,7 @@ sections:
           B: "Known for their spotted coats, Egyptian Maus can be one of five colors."
           C: "Descended from cats in Egypt, medium-sized Maus have short, spotted fur."
           D: "Purebred Egyptian Maus are a blue, black, silver, or smoke color."
-        [cite_start]correct_answer: "C" # [cite: 805]
+        [cite_start]correct_answer: "C" [cite: 805]
       - id: 13
         prompt: "Which word from paragraph 7 best shows how Maus are viewed in Egypt today?"
         options:
@@ -151,7 +175,7 @@ sections:
           B: "magnificent"
           C: "numerous"
           D: "nuisance"
-        [cite_start]correct_answer: "D" # [cite: 805]
+        [cite_start]correct_answer: "D" [cite: 805]
       - id: 14
         prompt: "According to the article, cats started gaining acceptance in Egypt when"
         options:
@@ -159,7 +183,7 @@ sections:
           B: "images of cats appeared on jewelry"
           C: "children received cat names"
           D: "they aided armies in battle"
-        [cite_start]correct_answer: "A" # [cite: 808]
+        [cite_start]correct_answer: "A" [cite: 808]
       - id: 15
         prompt: "What problem do Maus currently experience in Egypt?"
         options:
@@ -167,7 +191,7 @@ sections:
           B: "Increased popularity"
           C: "Neglect"
           D: "Poor health"
-        [cite_start]correct_answer: "A" # [cite: 808]
+        [cite_start]correct_answer: "A" [cite: 808]
       - id: 16
         prompt: "Which paragraph from the article offers the most useful information for a report about how groups help animals?"
         options:
@@ -175,7 +199,7 @@ sections:
           B: "5"
           C: "8"
           D: "9"
-        [cite_start]correct_answer: "C" # [cite: 808]
+        [cite_start]correct_answer: "C" [cite: 808]
       - id: 17
         prompt: "Which idea from the article offers the best support for a presentation about the effect pets can have on owners?"
         options:
@@ -183,17 +207,41 @@ sections:
           B: "Families mourn the death of their cats."
           C: "Cats can have different personalities."
           D: "People work in organizations to save cats."
-        [cite_start]correct_answer: "B" # [cite: 808]
+        [cite_start]correct_answer: "B" [cite: 808]
 
   - section_id: 3
     title: "The Wind, the Oak, and the Pine"
     type: "Poetry"
     content: |
-      One day between late summer and first snow, I harshly through an oak and pine did blow.
-      ...
-      [Summary: The Wind observes an argument between an arrogant Oak (proud of its leaves) and a Pine. When winter comes and the Oak loses its leaves, the Wind softens, and the trees reconcile, with the Pine wishing the Oak a good winter rest.]
-      ...
-      [cite_start]They'll go their ways 'til days again grow long, And flocks return to wake this town with song. [cite: 327-340]
+      One day between late summer and first snow,
+      I harshly through an oak and pine did blow.
+      Oak branches spoke in loud, unhappy heaves,
+      Crackling a scolding through the falling leaves.
+
+      5 "Dreary old pine! I tire of evergreen,
+      Superior are oak boughs, both strong and clean."
+      Pine bristled, "Be ashamed, arrogant oak.
+      Colorless, bare, you wear no winter cloak."
+
+      It saddened me to think the trees would part
+      10 With unkind words. I lifted up my heart
+      And blew my gentler breezes through the oak.
+      With soothing murmurs, softly now oak spoke:
+
+      "Peace, my green-needled friend. It's good you stay
+      To cheer our city's children at their play.
+      15 Shelter the birds that linger; keep them warm
+      And safe through every blustery winter storm."
+
+      "Your gold leaves drop in beauty to the ground,"
+      Whispered the pine. "I wish you slumber sound.
+      May snow like a soft, white woolen blanket bring
+      20 You winter's rest until we meet in spring."
+
+      I rustled through a breezy fond farewell
+      To better friends, as far as I can tell.
+      They'll go their ways 'til days again grow long
+      [cite_start]And flocks return to wake this town with song. [cite: 327-340]
     questions:
       - id: 18
         prompt: "The pine thinks the oak should be ashamed because the oak"
@@ -202,7 +250,7 @@ sections:
           B: "hides behind its leaves"
           C: "lets its leaves turn yellow"
           D: "makes its leaves speak to others"
-        [cite_start]correct_answer: "A" # [cite: 808]
+        [cite_start]correct_answer: "A" [cite: 808]
       - id: 19
         prompt: "Based on the details in this poem, the oak tree and pine tree are most likely located"
         options:
@@ -210,7 +258,7 @@ sections:
           B: "in the deepest woods"
           C: "in a neighborhood park"
           D: "next to a garden"
-        [cite_start]correct_answer: "C" # [cite: 808]
+        [cite_start]correct_answer: "C" [cite: 808]
       - id: 20
         prompt: "Who is the narrator in this poem?"
         options:
@@ -218,7 +266,7 @@ sections:
           B: "An oak tree"
           C: "The snow"
           D: "The wind"
-        [cite_start]correct_answer: "D" # [cite: 808]
+        [cite_start]correct_answer: "D" [cite: 808]
       - id: 21
         prompt: "Based on the end of the poem, what will most likely happen in the future?"
         options:
@@ -226,7 +274,7 @@ sections:
           B: "The trees will be more understanding of each other."
           C: "The oak tree will drop fewer leaves during the winter."
           D: "The pine tree will work harder to make children cheerful."
-        [cite_start]correct_answer: "B" # [cite: 808]
+        [cite_start]correct_answer: "B" [cite: 808]
       - id: 22
         prompt: "The trees speaking to each other is an example of"
         options:
@@ -234,7 +282,7 @@ sections:
           B: "foreshadowing"
           C: "alliteration"
           D: "personification"
-        [cite_start]correct_answer: "D" # [cite: 811]
+        [cite_start]correct_answer: "D" [cite: 811]
       - id: 23
         prompt: "Which of these is a theme of this poem?"
         options:
@@ -242,7 +290,7 @@ sections:
           B: "Words have the power to hurt or heal."
           C: "Overconfidence has few advantages."
           D: "Misfortune is the test of true friendship."
-        [cite_start]correct_answer: "B" # [cite: 811]
+        [cite_start]correct_answer: "B" [cite: 811]
 
   - section_id: "Standalone"
     questions:
@@ -254,16 +302,23 @@ sections:
           - "Expressing curiosity in a new situation"
           - "Showing kindness toward a family member"
           - "Feeling concerned when a stranger struggles"
-        [cite_start]correct_answer: "Feeling concerned when a stranger struggles" # [cite: 811]
+        [cite_start]correct_answer: "Feeling concerned when a stranger struggles" [cite: 811]
 
   - section_id: 4
     title: "Vincent van Gogh"
     type: "Biography"
     content: |
-      "A good picture is equivalent to a good deed." Vincent van Gogh... made this observation many years ago.
-      [Summary: A biography detailing Van Gogh's early failures, his self-taught journey, his unique impasto style (thick brush strokes), his masterpiece 'The Starry Night', and his posthumous fame.]
-      ...
-      [cite_start]His artwork can be found in museums all over the world and is valued in the millions of dollars, a testament to Vincent van Gogh's talent. [cite: 408-445]
+      1 "A good picture is equivalent to a good deed." Vincent van Gogh, one of the most famous artists in the world, made this observation many years ago. Van Gogh should know best; his artwork qualifies as a good deed. The beauty and style of his paintings have inspired people for more than a hundred years.
+
+      2 Born in the Netherlands in 1853, van Gogh led a simple life in a small town until the age of 16. He then left school and joined a firm of art dealers in the larger city of The Hague. During the next seven years, van Gogh bought and sold paintings in the Netherlands, London, and Paris. He eventually realized that dealing with others' artwork was not his calling. Van Gogh soon discovered that his true passion was to become an artist himself.
+
+      3 He dedicated much of his time to learning the fundamentals of drawing. Van Gogh believed that to become a great painter, one must first master the ability to draw. It was only after he was comfortable in this area that he began to use oil paints. That is when he developed a style and flair for color that made him one of the most respected artists of all time.
+
+      4 Van Gogh's paintings are amazing representations of his view of the world. The colors leap off the canvas, not only because of their boldness but also because of the brush strokes. Van Gogh avoided light, feathery strokes, which would portray typical subjects. Instead, he used his brush and oils to make layers that built the painting until it was almost three-dimensional. This quality makes people want to reach out and touch the painting to feel the thick, coarse brush strokes. In fact, van Gogh's paintings are usually barricaded from the public to avoid this situation; the natural oil on human skin would damage the paintings.
+
+      5 Perhaps one of the most memorable examples of van Gogh's use of color and brush style is his painting The Starry Night. The sky swirls across the canvas, while the stars glow with unearthly brightness. Each distinct brush stroke creates the illusion of movement and radiance. Under the sky rests a village painted with smaller strokes and finer detail, giving the impression of peace and prosperity. A large tree in the foreground suggests that the view is enjoyed from the top of a hill, which offers a glimpse of the awesome majesty of the night sky. The Starry Night displays the genius of van Gogh's ability to create a powerful image with simple subjects.
+
+      6 Van Gogh spent only the last ten years of his life painting. He is believed to have sold only one of the 900 paintings he created during those years. Yet van Gogh today is considered one of the greatest artists of all time. His influence is evident; many painters mimic his style and use of color and texture. [cite_start]His artwork can be found in museums all over the world and is valued in the millions of dollars, a testament to Vincent van Gogh's talent. [cite: 408-445]
     questions:
       - id: 25
         prompt: "The author organizes the information in paragraph 3 by"
@@ -272,7 +327,7 @@ sections:
           B: "comparing van Gogh's earlier skills to his later skills"
           C: "explaining van Gogh's reasons for creating art"
           D: "defining the principles that guided van Gogh's life"
-        [cite_start]correct_answer: "A" # [cite: 811]
+        [cite_start]correct_answer: "A" [cite: 811]
       - id: 26
         prompt: "Which word is a synonym for mimic?"
         options:
@@ -280,7 +335,7 @@ sections:
           B: "praise"
           C: "acknowledge"
           D: "alter"
-        [cite_start]correct_answer: "A" # [cite: 811]
+        [cite_start]correct_answer: "A" [cite: 811]
       - id: 27
         prompt: "Which of these does the author seem to admire most about van Gogh's paintings?"
         options:
@@ -288,7 +343,7 @@ sections:
           B: "The mood"
           C: "The brushwork"
           D: "The themes"
-        [cite_start]correct_answer: "C" # [cite: 811]
+        [cite_start]correct_answer: "C" [cite: 811]
       - id: 28
         prompt: "Based on the article, van Gogh learned how to paint by"
         options:
@@ -296,7 +351,7 @@ sections:
           B: "closely observing the world around him"
           C: "carefully studying the works of great artists"
           D: "familiarizing himself with basic techniques"
-        [cite_start]correct_answer: "D" # [cite: 814]
+        [cite_start]correct_answer: "D" [cite: 814]
       - id: 29
         prompt: "The author includes a photograph of The Starry Night in order to"
         options:
@@ -304,11 +359,11 @@ sections:
           B: "show van Gogh's style of painting"
           C: "display van Gogh's respect for nature"
           D: "indicate van Gogh's feelings about his art"
-        [cite_start]correct_answer: "B" # [cite: 814]
+        [cite_start]correct_answer: "B" [cite: 814]
       - id: 30
         type: "TEI (Highlight)"
         prompt: "Which word does the author use to show a contrast? 'Yet van Gogh today is considered one of the greatest artists of all time.'"
-        [cite_start]correct_answer: "Yet" # [cite: 814]
+        [cite_start]correct_answer: "Yet" [cite: 814]
       - id: 31
         prompt: "Which paragraph would be most useful for writing a report titled 'A Detailed Look at van Gogh's Most Famous Works'?"
         options:
@@ -316,16 +371,83 @@ sections:
           B: "3"
           C: "4"
           D: "5"
-        [cite_start]correct_answer: "D" # [cite: 814]
+        [cite_start]correct_answer: "D" [cite: 814]
 
   - section_id: 5
     title: "School Spirit Is in the Bag!"
     type: "Flier/Functional"
     content: |
-      Now you can design your own Taft Tiger bags and backpacks...
-      [Content includes a pricing table for Backpacks ($20), Duffle bags ($15), and Tote bags ($10), a satisfaction guarantee, and ordering instructions.]
-      ...
-      Complete the form. [cite_start]Extra forms are also available in the school office. [cite: 515-542]
+      School Spirit Is in the Bag!
+      Now you can design your own Taft Tiger bags and backpacks.
+
+      What's in your bag?
+      School books, homework, and gym clothes are just a few of the many items that successful students at Taft Middle School carry around every day. The right bag or backpack can help you get organized. Carry your school gear with style and show your Tiger Pride with one of these sturdy SCHOOL SPIRIT TO GO bags.
+
+      Which bag do you need?
+      [Backpack - $20]
+      • Made with durable materials and zippers
+      • Comfortable, padded shoulder straps
+      • Two large compartments for books and notebooks
+      • Small zippered pouch for pens, pencils, calculators and more
+
+      [Duffle bag - $15]
+      • Perfect for holding gym clothes, shoes, and towels
+      • Large enough to hold up to three basketballs
+      • Comes with removable shoulder straps and short handles
+
+      [Tote bag - $10]
+      • Ideal for light loads
+      • Use it to carry a sweater and snacks for a field trip
+      • Take it to the library to carry books and research materials
+
+      Satisfaction guaranteed
+      There is no reason to hesitate! These premium bags are a great bargain and a super way to show school spirit! SCHOOL SPIRIT TO GO guarantees 100% quality; however, manufacturing errors can occur. If the bag has a defect, simply return it within 30 days of receipt for an exchange of equal value or a full refund. Complete satisfaction is our number one priority!
+
+      How to order your bag
+      All orders must be placed in person and during the week of September 26-30 only.
+      1. Visit the SCHOOL SPIRIT TO GO representatives in the cafeteria September 26-30 to see samples of Taft Tiger bags.
+      2. Complete the order form. Be sure to include your first-period teacher's name on the form.
+      3. Submit your payment with the order form to the representatives.
+      The bags will be delivered to the school in three weeks. First-period teachers will distribute the bags to students who placed orders.
+
+      Do you have questions?
+      Visit the SCHOOL SPIRIT TO GO table during the week of September 26-30. If you would like to see pictures of bags made for other schools, visit www.schoolspirittogo.com.
+
+      Order Form
+      Name: ________________
+      Grade: ________________
+      First-period teacher: ________________
+      E-mail address: ________________
+      Phone number: ________________
+      (E-mail address and phone number will be used only if there is a question about your order.)
+
+      Select your bag
+      Check one box:
+      [ ] Backpack $20
+      [ ] Duffle bag $15
+      [ ] Tote bag $10
+      Optional: Personalization $5 [ ] Name: ________________
+      Total amount due: $________
+      [ ] Cash [ ] Check
+
+      Design your bag
+      Check one box in each category (color scheme, text, mascot) below:
+      Choose a color scheme:
+      [ ] Solid orange with black trim
+      [ ] Solid black with orange trim
+      [ ] Orange/black tiger print with black trim
+
+      Choose text:
+      [ ] Go Tigers!
+      [ ] Taft Tigers
+      [ ] Taft Middle School
+
+      Choose a school mascot:
+      [ ] Official Taft Tiger mascot
+      [ ] Taft Tiger sports mascot
+      [ ] Taft Tiger music mascot
+      [ ] Taft Tiger art mascot
+      [cite_start][ ] Taft Tiger drama mascot [cite: 515-593]
     questions:
       - id: 32
         prompt: "The author's word choice in the section 'What's in your bag?' is best described as"
@@ -334,7 +456,7 @@ sections:
           B: "insistent"
           C: "persuasive"
           D: "formal"
-        [cite_start]correct_answer: "C" # [cite: 814]
+        [cite_start]correct_answer: "C" [cite: 814]
       - id: 33
         prompt: "Which organizational pattern is used in the section 'Satisfaction guaranteed'?"
         options:
@@ -342,7 +464,7 @@ sections:
           B: "Problem-solution"
           C: "Enumeration or listing"
           D: "Comparison/contrast"
-        [cite_start]correct_answer: "B" # [cite: 814]
+        [cite_start]correct_answer: "B" [cite: 814]
       - id: 34
         prompt: "In which section of the flier will students learn when to pay for their purchase?"
         options:
@@ -350,7 +472,7 @@ sections:
           B: "Satisfaction guaranteed"
           C: "How to order your bag"
           D: "Do you have questions?"
-        [cite_start]correct_answer: "C" # [cite: 814]
+        [cite_start]correct_answer: "C" [cite: 814]
       - id: 35
         prompt: "The author best explains the features of the merchandise by"
         options:
@@ -358,7 +480,7 @@ sections:
           B: "inserting a chart with images and descriptions"
           C: "describing the different uses for the school bags"
           D: "including a paragraph about quality and guarantees"
-        [cite_start]correct_answer: "B" # [cite: 814]
+        [cite_start]correct_answer: "B" [cite: 814]
       - id: 36
         prompt: "Students who want to order more than one bag would most likely"
         options:
@@ -366,7 +488,7 @@ sections:
           B: "order an additional bag from the website"
           C: "ask a teacher to approve the purchase of another bag"
           D: "wait additional weeks for the bag to be delivered"
-        [cite_start]correct_answer: "A" # [cite: 817]
+        [cite_start]correct_answer: "A" [cite: 817]
       - id: 37
         prompt: "Which of these shows that the student misunderstood information about the bags?"
         options:
@@ -374,16 +496,25 @@ sections:
           B: "Take three months to arrive"
           C: "Can be used for field trips"
           D: "Have a quality guarantee"
-        [cite_start]correct_answer: "B" # [cite: 817]
+        [cite_start]correct_answer: "B" [cite: 817]
 
   - section_id: 6
     title: "The Cover Photo"
     type: "Fiction"
     content: |
-      Helen was optimistic. She was sure that she would win the photography contest...
-      [Summary: Helen loses a photo contest and joins the school club to improve. She leads the club to a restaurant deck to photograph bats under a bridge. The club wins the next contest with their bat photo.]
-      ...
-      [cite_start]Apparently Helen knew the right places to go to make things happen. [cite: 663-718]
+      1 Helen was optimistic. She was sure that she would win the photography contest. Ever since the newspaper had published a statewide announcement calling for pictures of different Texas localities at sunset, Helen had planned to capture the view from the top of Central Library at nightfall. She had arrived at 5:00 P.M., set up the camera, and snapped some pictures. Sorting through the photos, she looked carefully at one in which a hawk was gliding through the air against the setting sun, and she felt confident that she would claim first prize.
+      2 Three weeks later, when the winners were published, Helen could not believe it; she did not even place. "What's the matter with these people?" she complained angrily as she read the names of the winners. However, when she saw their photographs splashed across the front page of Sunday's newspaper, her anger shifted inward. She realized that she had overestimated her talent. There was only one thing to do: perfect her skill.
+      3 At school the next morning, Helen approached Mr. James, her science teacher, about joining the school photography club. As faculty sponsor of the club, he had taken all the animal photos displayed in his classroom. Helen knew he understood cameras and the equipment that could help her improve her skills.
+      4 "Of course you can join!" Mr. James assured her. "We welcome new members anytime of the year. The only provision is that you contribute ideas for our photo shoots. It's a requirement for all members and helps develop creativity."
+      5 "Thanks, Mr. James," Helen responded gratefully. "I promise I won't disappoint you or the club members."
+      6 For the next several days, Helen thought about ideas for her first meeting. She even read the newspaper on Saturday morning, and that's when she saw a notice for another contest: best photo of city wildlife. The grand prize was a group camping trip to a state park. Helen decided that this would be the perfect contest for the photography club to enter, and the members could share the prize together if one of them won.
+      7 Helen knew immediately where she wanted the club to go and called her aunt who worked in a restaurant downtown. It had a small deck that jutted out over the river with a great view of the sunset-and Janson Bridge. Helen knew about something unique under that bridge that held the key to the photography club's ability to win this contest. She submitted the idea to Mr. James early Monday morning. He said he would add it to the other ideas he had received.
+      8 At the next club meeting, Mr. James introduced Helen to the other students and began the meeting. "I reviewed your suggestions for our next photo shoot, and our next activity will be a trip to a restaurant downtown." The small group of budding photographers gathered in Mr. James' classroom looked a little confused; the neighborhood park had been their usual background for photography. "This is Helen's idea, and I'm sure she's eager to share what she knows," Mr. James said.
+      9 On that next Saturday evening, the photography club stood on the back deck of Helen's favorite restaurant, cameras and equipment positioned toward the bridge. Helen knew what to expect but was not sure if anyone else did. The ledge under Janson Bridge housed one of the largest bat colonies in North America.
+      10 As the sun began to set, a spectacular sight appeared in the sky. "There they are!" shouted Helen. "Mexican free-tailed bats!" As they did each night, hundreds of bats flew out from under the bridge to feed on moths, and the deck of the restaurant was directly under their flight path. There was no better place in the city to get a close-up view of the bats.
+      11 The students scrambled to take pictures and stared in amazement. Bats flew over the water and formed a cloud that drifted toward the banks and over the deck. Some hovered in the air, flapping their wings frantically and flying in circles while the club members snapped dozens of pictures of the swarming colony.
+      12 Two months later the caption under the cover photo in the newspaper read "Unbelievable!" One of the club's photographs had won the contest, and the photography club was featured in the newspaper. "The city's animal lovers can't wait to see what the Stevenson Middle School Photography Club will capture next," the reporter wrote in the article.
+      13 "That gives me an idea for that camping trip we won," Helen said to herself after reading the article. She talked to Mr. James, and then she called the state park and spoke with a guide. Just as she expected, the guide had stories to tell. He knew where the birds built their nests and where the animals preferred to hunt. Helen made arrangements for the entire club to go on the trip. "It'll be a trip full of surprises," she said at the next club meeting. No one doubted her words. [cite_start]Apparently Helen knew the right places to go to make things happen. [cite: 663-718]
     questions:
       - id: 38
         prompt: "In paragraph 1, what does the word localities mean?"
@@ -392,7 +523,7 @@ sections:
           B: "varieties"
           C: "activities"
           D: "monuments"
-        [cite_start]correct_answer: "A" # [cite: 817]
+        [cite_start]correct_answer: "A" [cite: 817]
       - id: 39
         prompt: "Which word is a synonym for provision in paragraph 4?"
         options:
@@ -400,7 +531,7 @@ sections:
           B: "condition"
           C: "guarantee"
           D: "occasion"
-        [cite_start]correct_answer: "B" # [cite: 817]
+        [cite_start]correct_answer: "B" [cite: 817]
       - id: 40
         prompt: "In paragraph 8, the description of the students as a 'small group of budding photographers' suggests they are"
         options:
@@ -408,7 +539,7 @@ sections:
           B: "unsure of their abilities"
           C: "inexperienced but promising"
           D: "clear about their purpose"
-        [cite_start]correct_answer: "C" # [cite: 817]
+        [cite_start]correct_answer: "C" [cite: 817]
       - id: 41
         prompt: "In paragraph 8, the other students in Mr. James' classroom are confused because they"
         options:
@@ -416,7 +547,7 @@ sections:
           B: "are unclear about the directions"
           C: "disagree with the new club member"
           D: "expect to be photographing nature"
-        [cite_start]correct_answer: "D" # [cite: 817]
+        [cite_start]correct_answer: "D" [cite: 817]
       - id: 42
         prompt: "The word 'scrambled' suggests that the students were"
         options:
@@ -424,7 +555,7 @@ sections:
           B: "helping one another"
           C: "crowded together"
           D: "hurrying for position"
-        [cite_start]correct_answer: "D" # [cite: 817]
+        [cite_start]correct_answer: "D" [cite: 817]
       - id: 43
         prompt: "Based on Helen's actions, which of these will most likely occur in the future?"
         options:
@@ -432,7 +563,7 @@ sections:
           B: "Her ideas will influence the club."
           C: "She will continue to learn about bats."
           D: "She will teach others to take photographs."
-        [cite_start]correct_answer: "B" # [cite: 817]
+        [cite_start]correct_answer: "B" [cite: 817]
       - id: 44
         prompt: "Helen is pleased that the club will go on a camping trip because the experience will"
         options:
@@ -440,7 +571,7 @@ sections:
           B: "bring her closer to the other photographers"
           C: "help her gain respect from professional photographers"
           D: "allow her to find new places for interesting photographs"
-        [cite_start]correct_answer: "D" # [cite: 817]
+        [cite_start]correct_answer: "D" [cite: 817]
       - id: 45
         prompt: "Which detail about the bats should be included in a summary of the story?"
         options:
@@ -448,4 +579,4 @@ sections:
           B: "They appear gradually in the sky."
           C: "They fly each night after sunset."
           D: "They sometimes hover in the air."
-        [cite_start]correct_answer: "C" # [cite: 817]
+        [cite_start]correct_answer: "C" [cite: 817]
