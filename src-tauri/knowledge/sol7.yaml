@@ -1,0 +1,451 @@
+test_metadata:
+  title: "Grade 7 Reading Released Test"
+  year: "Spring 2015"
+  authority: "Virginia Department of Education"
+  [cite_start]source_citation: "[cite: 1, 3, 5]"
+
+samples:
+  - id: "Sample A"
+    title: "Mia's Art"
+    text: |
+      [cite_start]Mia rushed home and threw open the front door. Her mother whirled around, surprised... "I won first place in the art contest!" she said with pride. Though Mia had been working eagerly on her art submission for weeks... Mia handed over her artwork. It was a portrait of her mother. [cite: 27-32]
+    questions:
+      - id: "Sample A"
+        prompt: "This story is mostly about Mia -"
+        options:
+          A: "working on a project at home"
+          B: "choosing a new art project"
+          C: "winning an art contest"
+          D: "completing a painting"
+        [cite_start]correct_answer: "C" # [cite: 37]
+
+  - id: "Sample B"
+    type: "Vocabulary"
+    prompt: "Which two words from these sentences help the reader understand the meaning of misplaced? 'Michael was almost ready to leave when he realized that he had misplaced his keys. After searching for ten minutes, he found the keys in his backpack.'"
+    [cite_start]correct_answer: ["searching", "found"] # [cite: 42-44]
+
+sections:
+  - section_id: 1
+    title: "All in the Stars"
+    type: "Fiction"
+    content: |
+      "Jared," said Mrs. Parker, "did you bring your permission slip for this morning's field trip?" Jared, who seemed to be hypnotized by the far edge of his desk, did not hear his teacher's voice.
+      ...
+      [Summary: Jared daydreams about his science fiction story during class and a field trip to the planetarium. During the star show, he gets inspiration for his character names from the astronomer's lecture.]
+      ...
+      [cite_start]Eventually, Sam caught his breath, Astrid resumed her lecture, and Jared started feeling a little less sleepy and pretty good about the names of his characters. [cite: 45-100]
+    questions:
+      - id: 1
+        prompt: "In paragraph 4, the author includes the detail of Mrs. Parker sounding 'a little too patient' to suggest that"
+        options:
+          A: "she is known as a tough teacher"
+          B: "she is trying hard to be tolerant"
+          C: "students usually find her voice soothing"
+          D: "students rarely misbehave in her class"
+        [cite_start]correct_answer: "B" # [cite: 797]
+      - id: 2
+        prompt: "In which word does the suffix -al have the same meaning as it does in fictional?"
+        options:
+          A: "casual"
+          B: "metal"
+          C: "journal"
+          D: "regional"
+        [cite_start]correct_answer: "D" # [cite: 797]
+      - id: 3
+        prompt: "Which word in paragraph 17 conveys Jared's embarrassment?"
+        options:
+          A: "snickers"
+          B: "hushing"
+          C: "slouched"
+          D: "caught"
+        [cite_start]correct_answer: "C" # [cite: 797]
+      - id: 4
+        type: "TEI (Web Diagram)"
+        prompt: "Complete this web: [Jared daydreams in science class] -> [?] -> [Jared daydreams while Astrid lectures]."
+        options:
+          - "Jared's friendship with Sam helps them become better science students."
+          - "Jared's imagination wanders long enough to find names for his characters."
+          - "Jared's interest in science increases during a field trip to a planetarium."
+          - "Jared's frustration causes him to spend too much time visiting with Sam."
+        correct_answer: "Jared's imagination wanders long enough to find names for his characters." [cite_start]# [cite: 797]
+      - id: 5
+        prompt: "In this story, Jared's main conflict can be described as"
+        options:
+          - "individual vs. self"
+          - "individual vs. nature"
+          - "individual vs. society"
+          - "individual vs. technology"
+          - "individual vs. supernatural"
+        [cite_start]correct_answer: "individual vs. self" # [cite: 802]
+      - id: 6
+        prompt: "In a summary of this story, the most important detail to include is how Jared"
+        options:
+          - "takes his permission slip to the front of the classroom"
+          - "learns that some stars have numbers in their names"
+          - "tells Sam when the writing assignment is due"
+          - "stares at the unusual ceiling in the planetarium"
+          - "hears Astrid talking about features of outer space"
+        [cite_start]correct_answer: "hears Astrid talking about features of outer space" # [cite: 805]
+      - id: 7
+        prompt: "By the end of the story, readers can best predict that Jared will"
+        options:
+          A: "finish his science-fiction story after school"
+          B: "apologize to Astrid after the presentation"
+          C: "help Sam with his story assignment"
+          D: "visit the planetarium again soon"
+        [cite_start]correct_answer: "A" # [cite: 805]
+
+  - section_id: 2
+    title: "The Royal Cat"
+    type: "Non-Fiction"
+    content: |
+      Her ears perk up as she waits patiently for her owner to place the decorative dish filled with a delicious feast in front of her...
+      [Summary: The article discusses the history of cats in Ancient Egypt, their domestication, and worship. It then describes the Egyptian Mau breed, its characteristics, and its current status as a nuisance in Egypt despite its popularity elsewhere.]
+      ...
+      [cite_start]Regardless of cats' origins, they are a mysterious blend of quirks and habits that can both entertain and frustrate people. [cite: 176-226]
+    questions:
+      - id: 8
+        prompt: "Why does the author include paragraph 1?"
+        options:
+          A: "To show how cats have changed over the years"
+          B: "To establish an image of common cat behavior"
+          C: "To create a link between the cat and the Mau"
+          D: "To compare the personality of the cat to the Mau"
+        [cite_start]correct_answer: "B" # [cite: 805]
+      - id: 9
+        prompt: "What does domesticated mean in paragraph 2?"
+        options:
+          A: "moved"
+          B: "captured"
+          C: "tamed"
+          D: "produced"
+        [cite_start]correct_answer: "C" # [cite: 805]
+      - id: 10
+        prompt: "In paragraph 4, reverence means"
+        options:
+          A: "excellent care"
+          B: "kind rewards"
+          C: "great power"
+          D: "deep respect"
+        [cite_start]correct_answer: "D" # [cite: 805]
+      - id: 11
+        prompt: "Why does the author include the detail 'The Egyptians did not wish to harm the animals'?"
+        options:
+          A: "To show that Egyptians are kind"
+          B: "To offer a reason for releasing the cats"
+          C: "To show that Egyptians are reasonable"
+          D: "To demonstrate the high standing of cats"
+        [cite_start]correct_answer: "D" # [cite: 805]
+      - id: 12
+        prompt: "Which statement best summarizes paragraph 5?"
+        options:
+          A: "Weighing 8-12 pounds, Egyptian Maus have short hair."
+          B: "Known for their spotted coats, Egyptian Maus can be one of five colors."
+          C: "Descended from cats in Egypt, medium-sized Maus have short, spotted fur."
+          D: "Purebred Egyptian Maus are a blue, black, silver, or smoke color."
+        [cite_start]correct_answer: "C" # [cite: 805]
+      - id: 13
+        prompt: "Which word from paragraph 7 best shows how Maus are viewed in Egypt today?"
+        options:
+          A: "devoted"
+          B: "magnificent"
+          C: "numerous"
+          D: "nuisance"
+        [cite_start]correct_answer: "D" # [cite: 805]
+      - id: 14
+        prompt: "According to the article, cats started gaining acceptance in Egypt when"
+        options:
+          A: "they kept homes free from pests"
+          B: "images of cats appeared on jewelry"
+          C: "children received cat names"
+          D: "they aided armies in battle"
+        [cite_start]correct_answer: "A" # [cite: 808]
+      - id: 15
+        prompt: "What problem do Maus currently experience in Egypt?"
+        options:
+          A: "Overpopulation"
+          B: "Increased popularity"
+          C: "Neglect"
+          D: "Poor health"
+        [cite_start]correct_answer: "A" # [cite: 808]
+      - id: 16
+        prompt: "Which paragraph from the article offers the most useful information for a report about how groups help animals?"
+        options:
+          A: "3"
+          B: "5"
+          C: "8"
+          D: "9"
+        [cite_start]correct_answer: "C" # [cite: 808]
+      - id: 17
+        prompt: "Which idea from the article offers the best support for a presentation about the effect pets can have on owners?"
+        options:
+          A: "Cats spend hours playing and sleeping."
+          B: "Families mourn the death of their cats."
+          C: "Cats can have different personalities."
+          D: "People work in organizations to save cats."
+        [cite_start]correct_answer: "B" # [cite: 808]
+
+  - section_id: 3
+    title: "The Wind, the Oak, and the Pine"
+    type: "Poetry"
+    content: |
+      One day between late summer and first snow, I harshly through an oak and pine did blow.
+      ...
+      [Summary: The Wind observes an argument between an arrogant Oak (proud of its leaves) and a Pine. When winter comes and the Oak loses its leaves, the Wind softens, and the trees reconcile, with the Pine wishing the Oak a good winter rest.]
+      ...
+      [cite_start]They'll go their ways 'til days again grow long, And flocks return to wake this town with song. [cite: 327-340]
+    questions:
+      - id: 18
+        prompt: "The pine thinks the oak should be ashamed because the oak"
+        options:
+          A: "sheds its leaves"
+          B: "hides behind its leaves"
+          C: "lets its leaves turn yellow"
+          D: "makes its leaves speak to others"
+        [cite_start]correct_answer: "A" # [cite: 808]
+      - id: 19
+        prompt: "Based on the details in this poem, the oak tree and pine tree are most likely located"
+        options:
+          A: "at a plant nursery"
+          B: "in the deepest woods"
+          C: "in a neighborhood park"
+          D: "next to a garden"
+        [cite_start]correct_answer: "C" # [cite: 808]
+      - id: 20
+        prompt: "Who is the narrator in this poem?"
+        options:
+          A: "A pine tree"
+          B: "An oak tree"
+          C: "The snow"
+          D: "The wind"
+        [cite_start]correct_answer: "D" # [cite: 808]
+      - id: 21
+        prompt: "Based on the end of the poem, what will most likely happen in the future?"
+        options:
+          A: "The wind will be less harsh in the wintertime."
+          B: "The trees will be more understanding of each other."
+          C: "The oak tree will drop fewer leaves during the winter."
+          D: "The pine tree will work harder to make children cheerful."
+        [cite_start]correct_answer: "B" # [cite: 808]
+      - id: 22
+        prompt: "The trees speaking to each other is an example of"
+        options:
+          A: "simile"
+          B: "foreshadowing"
+          C: "alliteration"
+          D: "personification"
+        [cite_start]correct_answer: "D" # [cite: 811]
+      - id: 23
+        prompt: "Which of these is a theme of this poem?"
+        options:
+          A: "There is strength in unity."
+          B: "Words have the power to hurt or heal."
+          C: "Overconfidence has few advantages."
+          D: "Misfortune is the test of true friendship."
+        [cite_start]correct_answer: "B" # [cite: 811]
+
+  - section_id: "Standalone"
+    questions:
+      - id: 24
+        type: "Root Word Analysis"
+        prompt: "The word sympathy comes from Greek roots that mean 'similar emotion.' Based on the Greek roots, which is the best example of sympathy?"
+        options:
+          - "Thinking about a distant loved one"
+          - "Expressing curiosity in a new situation"
+          - "Showing kindness toward a family member"
+          - "Feeling concerned when a stranger struggles"
+        [cite_start]correct_answer: "Feeling concerned when a stranger struggles" # [cite: 811]
+
+  - section_id: 4
+    title: "Vincent van Gogh"
+    type: "Biography"
+    content: |
+      "A good picture is equivalent to a good deed." Vincent van Gogh... made this observation many years ago.
+      [Summary: A biography detailing Van Gogh's early failures, his self-taught journey, his unique impasto style (thick brush strokes), his masterpiece 'The Starry Night', and his posthumous fame.]
+      ...
+      [cite_start]His artwork can be found in museums all over the world and is valued in the millions of dollars, a testament to Vincent van Gogh's talent. [cite: 408-445]
+    questions:
+      - id: 25
+        prompt: "The author organizes the information in paragraph 3 by"
+        options:
+          A: "outlining van Gogh's process of artistic development"
+          B: "comparing van Gogh's earlier skills to his later skills"
+          C: "explaining van Gogh's reasons for creating art"
+          D: "defining the principles that guided van Gogh's life"
+        [cite_start]correct_answer: "A" # [cite: 811]
+      - id: 26
+        prompt: "Which word is a synonym for mimic?"
+        options:
+          A: "copy"
+          B: "praise"
+          C: "acknowledge"
+          D: "alter"
+        [cite_start]correct_answer: "A" # [cite: 811]
+      - id: 27
+        prompt: "Which of these does the author seem to admire most about van Gogh's paintings?"
+        options:
+          A: "The images"
+          B: "The mood"
+          C: "The brushwork"
+          D: "The themes"
+        [cite_start]correct_answer: "C" # [cite: 811]
+      - id: 28
+        prompt: "Based on the article, van Gogh learned how to paint by"
+        options:
+          A: "reading numerous books about art"
+          B: "closely observing the world around him"
+          C: "carefully studying the works of great artists"
+          D: "familiarizing himself with basic techniques"
+        [cite_start]correct_answer: "D" # [cite: 814]
+      - id: 29
+        prompt: "The author includes a photograph of The Starry Night in order to"
+        options:
+          A: "compliment van Gogh's ability"
+          B: "show van Gogh's style of painting"
+          C: "display van Gogh's respect for nature"
+          D: "indicate van Gogh's feelings about his art"
+        [cite_start]correct_answer: "B" # [cite: 814]
+      - id: 30
+        type: "TEI (Highlight)"
+        prompt: "Which word does the author use to show a contrast? 'Yet van Gogh today is considered one of the greatest artists of all time.'"
+        [cite_start]correct_answer: "Yet" # [cite: 814]
+      - id: 31
+        prompt: "Which paragraph would be most useful for writing a report titled 'A Detailed Look at van Gogh's Most Famous Works'?"
+        options:
+          A: "1"
+          B: "3"
+          C: "4"
+          D: "5"
+        [cite_start]correct_answer: "D" # [cite: 814]
+
+  - section_id: 5
+    title: "School Spirit Is in the Bag!"
+    type: "Flier/Functional"
+    content: |
+      Now you can design your own Taft Tiger bags and backpacks...
+      [Content includes a pricing table for Backpacks ($20), Duffle bags ($15), and Tote bags ($10), a satisfaction guarantee, and ordering instructions.]
+      ...
+      Complete the form. [cite_start]Extra forms are also available in the school office. [cite: 515-542]
+    questions:
+      - id: 32
+        prompt: "The author's word choice in the section 'What's in your bag?' is best described as"
+        options:
+          A: "urgent"
+          B: "insistent"
+          C: "persuasive"
+          D: "formal"
+        [cite_start]correct_answer: "C" # [cite: 814]
+      - id: 33
+        prompt: "Which organizational pattern is used in the section 'Satisfaction guaranteed'?"
+        options:
+          A: "Concept/definition"
+          B: "Problem-solution"
+          C: "Enumeration or listing"
+          D: "Comparison/contrast"
+        [cite_start]correct_answer: "B" # [cite: 814]
+      - id: 34
+        prompt: "In which section of the flier will students learn when to pay for their purchase?"
+        options:
+          A: "Which bag do you need?"
+          B: "Satisfaction guaranteed"
+          C: "How to order your bag"
+          D: "Do you have questions?"
+        [cite_start]correct_answer: "C" # [cite: 814]
+      - id: 35
+        prompt: "The author best explains the features of the merchandise by"
+        options:
+          A: "listing the options that are available"
+          B: "inserting a chart with images and descriptions"
+          C: "describing the different uses for the school bags"
+          D: "including a paragraph about quality and guarantees"
+        [cite_start]correct_answer: "B" # [cite: 814]
+      - id: 36
+        prompt: "Students who want to order more than one bag would most likely"
+        options:
+          A: "use separate order forms per bag"
+          B: "order an additional bag from the website"
+          C: "ask a teacher to approve the purchase of another bag"
+          D: "wait additional weeks for the bag to be delivered"
+        [cite_start]correct_answer: "A" # [cite: 817]
+      - id: 37
+        prompt: "Which of these shows that the student misunderstood information about the bags?"
+        options:
+          A: "Come in different sizes and shapes"
+          B: "Take three months to arrive"
+          C: "Can be used for field trips"
+          D: "Have a quality guarantee"
+        [cite_start]correct_answer: "B" # [cite: 817]
+
+  - section_id: 6
+    title: "The Cover Photo"
+    type: "Fiction"
+    content: |
+      Helen was optimistic. She was sure that she would win the photography contest...
+      [Summary: Helen loses a photo contest and joins the school club to improve. She leads the club to a restaurant deck to photograph bats under a bridge. The club wins the next contest with their bat photo.]
+      ...
+      [cite_start]Apparently Helen knew the right places to go to make things happen. [cite: 663-718]
+    questions:
+      - id: 38
+        prompt: "In paragraph 1, what does the word localities mean?"
+        options:
+          A: "areas"
+          B: "varieties"
+          C: "activities"
+          D: "monuments"
+        [cite_start]correct_answer: "A" # [cite: 817]
+      - id: 39
+        prompt: "Which word is a synonym for provision in paragraph 4?"
+        options:
+          A: "reward"
+          B: "condition"
+          C: "guarantee"
+          D: "occasion"
+        [cite_start]correct_answer: "B" # [cite: 817]
+      - id: 40
+        prompt: "In paragraph 8, the description of the students as a 'small group of budding photographers' suggests they are"
+        options:
+          A: "usually successful"
+          B: "unsure of their abilities"
+          C: "inexperienced but promising"
+          D: "clear about their purpose"
+        [cite_start]correct_answer: "C" # [cite: 817]
+      - id: 41
+        prompt: "In paragraph 8, the other students in Mr. James' classroom are confused because they"
+        options:
+          A: "want to start another activity"
+          B: "are unclear about the directions"
+          C: "disagree with the new club member"
+          D: "expect to be photographing nature"
+        [cite_start]correct_answer: "D" # [cite: 817]
+      - id: 42
+        prompt: "The word 'scrambled' suggests that the students were"
+        options:
+          A: "ready to quit"
+          B: "helping one another"
+          C: "crowded together"
+          D: "hurrying for position"
+        [cite_start]correct_answer: "D" # [cite: 817]
+      - id: 43
+        prompt: "Based on Helen's actions, which of these will most likely occur in the future?"
+        options:
+          A: "Her photographs will win prizes."
+          B: "Her ideas will influence the club."
+          C: "She will continue to learn about bats."
+          D: "She will teach others to take photographs."
+        [cite_start]correct_answer: "B" # [cite: 817]
+      - id: 44
+        prompt: "Helen is pleased that the club will go on a camping trip because the experience will"
+        options:
+          A: "give her an opportunity to share her photographs"
+          B: "bring her closer to the other photographers"
+          C: "help her gain respect from professional photographers"
+          D: "allow her to find new places for interesting photographs"
+        [cite_start]correct_answer: "D" # [cite: 817]
+      - id: 45
+        prompt: "Which detail about the bats should be included in a summary of the story?"
+        options:
+          A: "They feed on moths by the bridge."
+          B: "They appear gradually in the sky."
+          C: "They fly each night after sunset."
+          D: "They sometimes hover in the air."
+        [cite_start]correct_answer: "C" # [cite: 817]
