@@ -100,14 +100,14 @@ export default function Sidebar({
           <input
             type="range"
             min="1"
-            max="20"
+            max="8"
             value={questionCount}
             onChange={(e) => onQuestionCountChange(parseInt(e.target.value))}
             className="w-full accent-primary"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>1</span>
-            <span>20</span>
+            <span>8</span>
           </div>
         </div>
 
@@ -137,7 +137,7 @@ export default function Sidebar({
               <div>
                 <span className="text-sm font-medium">Add to existing</span>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {appendMode 
+                  {appendMode
                     ? `Will add ${questionCount} to your ${existingCount} questions`
                     : `Will replace your ${existingCount} questions`
                   }
