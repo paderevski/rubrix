@@ -20,6 +20,7 @@ htmlescape = "0.3"
 rust-embed = "8"
 once_cell = "1"
 dotenvy = "0.15.7"
+chrono = "0.4.42"
 
 [features]
 default = ["custom-protocol"]

@@ -5,9 +5,22 @@ mod llm;
 mod prompts;
 mod qti;
 
+use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::State;
+
+fn de_opt_string_or_json<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let opt = Option::<serde_json::Value>::deserialize(deserializer)?;
+    Ok(opt.and_then(|v| match v {
+        serde_json::Value::Null => None,
+        serde_json::Value::String(s) => Some(s),
+        other => Some(serde_json::to_string_pretty(&other).unwrap_or_else(|_| other.to_string())),
+    }))
+}
 
 // ============================================================================
 // Types
@@ -22,10 +35,11 @@ pub struct Question {
     pub stem: String, // Question text (markdown supported)
     #[serde(default)]
     pub code: Option<String>, // Code snippet if applicable (markdown code block)
+    #[serde(alias = "options")]
     pub answers: Vec<Answer>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "de_opt_string_or_json")]
     pub explanation: Option<String>, // Correct answer explanation
-    #[serde(default)]
+    #[serde(default, deserialize_with = "de_opt_string_or_json")]
     pub distractors: Option<String>, // Why wrong answers are tempting
     // Legacy field for backward compatibility during migration
     #[serde(default)]
@@ -36,7 +50,7 @@ pub struct Question {
 pub struct Answer {
     pub text: String,
     pub is_correct: bool,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "de_opt_string_or_json")]
     pub explanation: Option<String>, // Why this answer is correct/incorrect
 }
 

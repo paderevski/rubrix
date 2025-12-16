@@ -250,7 +250,7 @@ mod tests {
         let questions = vec![Question {
             id: "1".to_string(),
             content: "What is 2+2?".to_string(),
-            stem: Some("What is 2+2?".to_string()),
+            stem: "What is 2+2?".to_string(),
             code: None,
             explanation: None,
             distractors: None,

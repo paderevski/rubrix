@@ -2,14 +2,25 @@
 
 use crate::{GenerationRequest, Question, QuestionBankEntry};
 
-/// Build the prompt for generating multiple questions using JSON examples
-pub fn build_generation_prompt(
-    request: &GenerationRequest,
-    examples: &[QuestionBankEntry],
-) -> String {
-    let topics_str = request.topics.join(", ");
+/// Configuration for prompt building
+pub struct PromptConfig<'a> {
+    pub topics: String,
+    pub difficulty: &'a str,
+    pub count: usize,
+    pub examples: &'a [QuestionBankEntry],
+    pub user_instructions: Option<&'a str>,
+    pub regenerate_context: Option<RegenerateContext<'a>>,
+}
 
-    let difficulty_desc = match request.difficulty.as_str() {
+/// Context for regeneration requests
+pub struct RegenerateContext<'a> {
+    pub current_question: &'a Question,
+    pub other_questions: Vec<String>,
+}
+
+/// Build the core prompt (used for both generate and regenerate)
+fn build_core_prompt(config: &PromptConfig) -> String {
+    let difficulty_desc = match config.difficulty {
         "easy" => "D1 (Easy) - Basic recall or simple application, 1-2 steps",
         "medium" => "D2 (Medium) - Requires analysis or multi-step reasoning, 3-5 steps",
         "hard" => "D3 (Hard) - Complex analysis, synthesis of multiple concepts, 5+ steps",
@@ -17,10 +28,11 @@ pub fn build_generation_prompt(
     };
 
     // Format JSON examples with pedagogically useful fields
-    let examples_str = if examples.is_empty() {
+    let examples_str = if config.examples.is_empty() {
         String::from("(No examples available - generate based on AP CS A standards)")
     } else {
-        examples
+        config
+            .examples
             .iter()
             .enumerate()
             .map(|(i, e)| {
@@ -34,11 +46,46 @@ pub fn build_generation_prompt(
             .join("\n\n")
     };
 
-    let notes_str = match &request.notes {
+    // Build optional sections
+    let user_instructions_str = match config.user_instructions {
         Some(notes) if !notes.trim().is_empty() => {
-            format!("\n\n**Additional Instructions:**\n{}", notes)
+            format!("\n\n**Additional Instructions from User:**\n{}", notes)
         }
         _ => String::new(),
+    };
+
+    let regenerate_section = match &config.regenerate_context {
+        Some(ctx) => {
+            let other_questions_str = if ctx.other_questions.is_empty() {
+                String::new()
+            } else {
+                format!(
+                    "\n\n**Other questions in this set (avoid duplicating these):**\n{}",
+                    ctx.other_questions
+                        .iter()
+                        .map(|q| format!("- {}", q))
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                )
+            };
+            format!(
+                r#"
+
+---
+
+## REGENERATION REQUEST
+
+You are replacing an existing question. Generate a NEW question that is DIFFERENT but covers a similar topic and difficulty.
+
+**Question to replace:**
+{}
+{}
+
+Keep similar topic and difficulty but use DIFFERENT code/scenarios."#,
+                ctx.current_question.content, other_questions_str
+            )
+        }
+        None => String::new(),
     };
 
     format!(
@@ -59,7 +106,7 @@ If you discover an error while writing your explanation, DO NOT try to fix it mi
 **Target Topic(s):** {topics}
 **Target Difficulty:** {difficulty}
 **Number of Questions:** {count}
-
+{regenerate}
 ---
 
 ## Reference Examples (JSON format)
@@ -87,14 +134,14 @@ Generate {count} NEW question(s) that:
 
 For EACH question you write:
 
-**Step 1: Plan & Solve (Do this work mentally/on scratch paper - don't write it in your response)**
+**Step 1: Plan & Solve (Do this in the explanation section)**
 - Decide what concept you'll test
 - Write the code you'll use
 - TRACE through it step-by-step and calculate the CORRECT answer
 - Double-check your calculation - verify it's right
 - Think through common student errors for this type of problem
 
-**Step 2: Design Distractors (Still mental work)**
+**Step 2: Design Distractors (Also in the explanation section)**
 - Identify 3-4 specific misconceptions students have
 - For each misconception, calculate what wrong answer it would produce
 - Make sure each distractor comes from a real error pattern (off-by-one, wrong operator, pass-by-value confusion, loop bound errors, etc.)
@@ -114,14 +161,14 @@ Return your response as a JSON array containing {count} question object(s). Each
   {{
     "stem": "Question text here (you can use markdown for formatting like **bold** or `code`)",
     "code": "// Optional Java code block\npublic static void main(String[] args) {{\n    System.out.println(\"Hello\");\n}}",
+    "explanation": "Step-by-step walkthrough of how to arrive at the correct answer. Verify correct answer. Design distractors.",
+        "distractors": "Analysis of why each wrong answer is tempting and what misconception leads to it",
     "answers": [
       {{"text": "Answer text (use markdown like `42` for code)", "is_correct": false, "explanation": "Why this is wrong"}},
       {{"text": "Another answer", "is_correct": true, "explanation": "Why this is correct"}},
       {{"text": "Third answer", "is_correct": false, "explanation": "Common misconception"}},
       {{"text": "Fourth answer", "is_correct": false, "explanation": "Off-by-one error"}}
-    ],
-    "explanation": "Step-by-step walkthrough of how to arrive at the correct answer",
-    "distractors": "Analysis of why each wrong answer is tempting and what misconception leads to it"
+        ]
   }}
 ]
 ```
@@ -144,52 +191,72 @@ Return your response as a JSON array containing {count} question object(s). Each
 - ✓ Are all inline code references wrapped in backticks?
 - ✓ Is your explanation clear, accurate, and step-by-step?
 - ✓ Did you return ONLY the JSON array with no extra text?
-{notes}
+{user_instructions}
 
 Generate a JSON array with {count} question(s) now:"#,
-        topics = topics_str,
+        topics = config.topics,
         difficulty = difficulty_desc,
-        count = request.count,
+        count = config.count,
         examples = examples_str,
-        notes = notes_str,
+        regenerate = regenerate_section,
+        user_instructions = user_instructions_str,
     )
+}
+
+/// Build the prompt for generating multiple questions using JSON examples
+pub fn build_generation_prompt(
+    request: &GenerationRequest,
+    examples: &[QuestionBankEntry],
+) -> String {
+    let config = PromptConfig {
+        topics: request.topics.join(", "),
+        difficulty: &request.difficulty,
+        count: request.count as usize,
+        examples,
+        user_instructions: request.notes.as_deref(),
+        regenerate_context: None,
+    };
+    build_core_prompt(&config)
 }
 
 /// Format a question bank entry as JSON with only pedagogically useful fields
 fn format_example_as_json(q: &QuestionBankEntry) -> String {
     // Build a clean JSON representation with the useful fields
-    let options_json: Vec<String> = q
+    let answers_json: Vec<String> = q
         .options
         .iter()
         .map(|opt| {
+            // Use the current generation schema (`answers`) to reduce model confusion.
+            // We intentionally omit `id` and per-choice `explanation` because the bank doesn't store them.
             format!(
-                r#"    {{"id": "{}", "text": "{}", "is_correct": {}}}"#,
-                opt.id,
+                r#"    {{"text": "{}", "is_correct": {}}}"#,
                 escape_json_string(&opt.text),
                 opt.is_correct
             )
         })
         .collect();
 
-    let mistakes_json: Vec<String> = q
-        .distractors
-        .common_mistakes
-        .iter()
-        .map(|m| {
-            format!(
-                r#"      {{"option_id": "{}", "misconception": "{}"}}"#,
-                m.option_id,
-                escape_json_string(&m.misconception)
-            )
-        })
-        .collect();
+    // Emit distractors as a string (matches the app's Question schema), but still preserve
+    // the pedagogy signal from the bank examples.
+    let distractors_text = {
+        let mut lines: Vec<String> = Vec::new();
 
-    let errors_json: Vec<String> = q
-        .distractors
-        .common_errors
-        .iter()
-        .map(|e| format!(r#""{}""#, e))
-        .collect();
+        if !q.distractors.common_mistakes.is_empty() {
+            lines.push("Common mistakes:".to_string());
+            for m in &q.distractors.common_mistakes {
+                lines.push(format!("- {}: {}", m.option_id, m.misconception));
+            }
+        }
+
+        if !q.distractors.common_errors.is_empty() {
+            lines.push(format!(
+                "Common errors: {}",
+                q.distractors.common_errors.join(", ")
+            ));
+        }
+
+        lines.join("\n")
+    };
 
     let skills_json: Vec<String> = q.skills.iter().map(|s| format!(r#""{}""#, s)).collect();
 
@@ -202,19 +269,14 @@ fn format_example_as_json(q: &QuestionBankEntry) -> String {
         r#"{{
   "stem": "{stem}",
 {code}
-  "options": [
-{options}
+    "answers": [
+{answers}
   ],
   "explanation": "{explanation}",
   "difficulty": "{difficulty}",
   "cognitive_level": "{cognitive_level}",
   "skills": [{skills}],
-  "distractors": {{
-    "common_mistakes": [
-{mistakes}
-    ],
-    "common_errors": [{errors}]
-  }}
+    "distractors": "{distractors}"
 }}"#,
         stem = escape_json_string(&q.stem),
         code = if code_field.is_empty() {
@@ -222,13 +284,12 @@ fn format_example_as_json(q: &QuestionBankEntry) -> String {
         } else {
             format!("{}\n", code_field)
         },
-        options = options_json.join(",\n"),
+        answers = answers_json.join(",\n"),
         explanation = escape_json_string(&q.explanation),
         difficulty = q.difficulty,
         cognitive_level = q.cognitive_level,
         skills = skills_json.join(", "),
-        mistakes = mistakes_json.join(",\n"),
-        errors = errors_json.join(", "),
+        distractors = escape_json_string(&distractors_text),
     )
 }
 
@@ -247,112 +308,95 @@ pub fn build_regenerate_prompt(
     context: &[Question],
     examples: &[QuestionBankEntry],
 ) -> String {
-    let context_str: Vec<String> = context
+    // Extract topics from current question content (simple heuristic)
+    let topics = "similar topic as original".to_string();
+
+    // Build context of other questions to avoid duplication
+    let other_questions: Vec<String> = context
         .iter()
         .filter(|q| q.id != current.id)
         .take(3)
-        .map(|q| format!("- {}", truncate(&q.content, 50)))
+        .map(|q| truncate(&q.content, 50))
         .collect();
 
-    let context_section = if context_str.is_empty() {
-        String::new()
-    } else {
-        format!(
-            "\n\n**Other questions in this set (avoid duplicating):**\n{}",
-            context_str.join("\n")
-        )
+    let config = PromptConfig {
+        topics,
+        difficulty: "medium", // Could be inferred from the question in future
+        count: 1,
+        examples: &examples[..examples.len().min(1)], // Use at most 1 example for regeneration
+        user_instructions: None,                      // Reserved for future use
+        regenerate_context: Some(RegenerateContext {
+            current_question: current,
+            other_questions,
+        }),
     };
-
-    // Include one example if available
-    let example_section = if let Some(ex) = examples.first() {
-        format!(
-            "\n\n**Reference example for quality/style:**\n```json\n{}\n```",
-            format_example_as_json(ex)
-        )
-    } else {
-        String::new()
-    };
-
-    format!(
-        r#"You are an expert AP Computer Science A question writer with strong analytical skills.
-
-**CRITICAL: Calculate your answer completely before writing the question.**
-
-Generate a NEW multiple choice question to replace this one:
-
-**Current question to replace:**
-{current}
-{context}{example}
-
-**WORKFLOW (DO THIS IN ORDER):**
-
-**Step 1: Solve First (Mental work - don't write this in your response)**
-- Decide on the concept to test (keep similar topic/difficulty)
-- Create the code or scenario
-- TRACE through completely and calculate the CORRECT answer
-- Double-check your math
-- Identify 3-4 student misconceptions that would lead to wrong answers
-
-**Step 2: Write the Question (Now output JSON)**
-- Write stem and code
-- Write ALL answer choices (correct + distractors) with explanations
-- Write the step-by-step explanation
-- Write the distractors analysis
-
-**Requirements:**
-- Keep similar topic and difficulty but make it DIFFERENT from the original
-- Exactly 4 answer choices
-- Each wrong answer must exploit a specific student misconception
-- Include code if appropriate
-- VERIFY your calculations are correct before committing to an answer
-- If you discover an error while writing, start that question over with different code
-
-**Output format (JSON):**
-
-Return a JSON array with ONE question object:
-
-```json
-[
-  {{
-    "stem": "New question text (markdown supported)",
-    "code": "// Optional Java code (plain text, no ```java``` wrapper)",
-    "answers": [
-      {{"text": "Answer 1", "is_correct": false, "explanation": "Why wrong"}},
-      {{"text": "Answer 2", "is_correct": true, "explanation": "Why correct"}},
-      {{"text": "Answer 3", "is_correct": false, "explanation": "Common error"}},
-      {{"text": "Answer 4", "is_correct": false, "explanation": "Misconception"}}
-    ],
-    "explanation": "Step-by-step solution",
-    "distractors": "Analysis of why wrong answers are tempting"
-  }}
-]
-```
-
-Return ONLY the JSON array, no additional text. Generate the replacement question:"#,
-        current = current.content,
-        context = context_section,
-        example = example_section,
-    )
+    build_core_prompt(&config)
 }
 
 /// Parse LLM response into Question objects
 pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
-    eprintln!("DEBUG: Parsing LLM response, length = {}", response.len());
-
-    // Try to parse as JSON first
     let trimmed = response.trim();
 
-    // Find JSON array boundaries
-    let json_start = trimmed.find('[').ok_or("No JSON array found in response")?;
-    let json_end = trimmed
-        .rfind(']')
-        .ok_or("No closing bracket found in JSON")?;
-    let json_str = &trimmed[json_start..=json_end];
+    // Extract the first *complete* JSON array. This is robust against:
+    // - leading/trailing prose
+    // - ```json fences
+    // - models that accidentally output multiple arrays
+    fn extract_first_json_array(s: &str) -> Option<String> {
+        let bytes = s.as_bytes();
 
-    eprintln!("DEBUG: Extracted JSON string, length = {}", json_str.len());
+        // Find first '['
+        let mut start = None;
+        for i in 0..bytes.len() {
+            if bytes[i] == b'[' {
+                start = Some(i);
+                break;
+            }
+        }
+        let start = start?;
 
-    // Parse JSON
-    let questions: Vec<Question> = serde_json::from_str(json_str).map_err(|e| {
+        let mut depth: i32 = 0;
+        let mut in_string = false;
+        let mut escape = false;
+
+        for i in start..bytes.len() {
+            let b = bytes[i];
+
+            if in_string {
+                if escape {
+                    escape = false;
+                    continue;
+                }
+                if b == b'\\' {
+                    escape = true;
+                    continue;
+                }
+                if b == b'"' {
+                    in_string = false;
+                }
+                continue;
+            }
+
+            if b == b'"' {
+                in_string = true;
+                continue;
+            }
+
+            if b == b'[' {
+                depth += 1;
+            } else if b == b']' {
+                depth -= 1;
+                if depth == 0 {
+                    return Some(s[start..=i].to_string());
+                }
+            }
+        }
+
+        None
+    }
+
+    let json_str = extract_first_json_array(trimmed).ok_or("No JSON array found in response")?;
+
+    let questions: Vec<Question> = serde_json::from_str(&json_str).map_err(|e| {
         format!(
             "Failed to parse JSON response: {}. JSON: {}",
             e,
@@ -364,10 +408,10 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
         return Err("No questions found in JSON response".to_string());
     }
 
-    eprintln!(
-        "DEBUG: Successfully parsed {} questions from JSON",
-        questions.len()
-    );
+    // eprintln!(
+    //    "DEBUG: Successfully parsed {} questions from JSON",
+    //    questions.len()
+    // );
 
     // Assign IDs and ensure backward compatibility by populating content field
     let mut result = Vec::new();
@@ -452,5 +496,62 @@ mod tests {
         assert_eq!(questions.len(), 2);
         assert_eq!(questions[0].id, "q1");
         assert_eq!(questions[1].id, "q2");
+    }
+
+    #[test]
+    fn test_parse_first_json_array_when_multiple_present() {
+        // Models sometimes emit multiple JSON blocks (e.g., "starting over"), and we should
+        // parse the first complete JSON array only.
+        let input = r#"Here you go:
+
+```json
+[
+    {
+        "stem": "First array question",
+        "answers": [
+            {"text": "A", "is_correct": true}
+        ]
+    }
+]
+```
+
+Some extra commentary.
+
+```json
+[
+    {
+        "stem": "Second array question",
+        "answers": [
+            {"text": "B", "is_correct": true}
+        ]
+    }
+]
+```
+"#;
+
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert_eq!(questions[0].stem, "First array question");
+    }
+
+    #[test]
+    fn test_parse_accepts_legacy_options_field() {
+        // Older prompts/examples (and some models) emit `options` instead of `answers`.
+        // We alias that field to keep parsing resilient.
+        let input = r#"[
+    {
+        "stem": "Legacy options question",
+        "options": [
+            {"text": "A", "is_correct": true},
+            {"text": "B", "is_correct": false}
+        ]
+    }
+]"#;
+
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert_eq!(questions[0].stem, "Legacy options question");
+        assert_eq!(questions[0].answers.len(), 2);
+        assert!(questions[0].answers[0].is_correct);
     }
 }

@@ -2,11 +2,57 @@
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use std::fs::OpenOptions;
+use std::io::Write;
 use std::time::Duration;
 use tauri::Manager;
 
 // Replicate API configuration
-const MODEL_VERSION: &str = "anthropic/claude-4.5-sonnet";
+// const MODEL_VERSION: &str = "anthropic/claude-4.5-sonnet";
+const MODEL_VERSION: &str = "deepseek-ai/deepseek-v3";
+
+/// Log prompt and response to a file (appends each time)
+fn log_llm_interaction(prompt: &str, response: &str) {
+    // Write to parent directory (rubrix/) to avoid triggering Tauri's file watcher
+    let log_path = std::path::Path::new("../llm_log.txt");
+
+    let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+
+    // Unescape the response for readability (LLM returns escaped JSON)
+    let response_unescaped = response
+        .replace("\\n", "\n")
+        .replace("\\t", "\t")
+        .replace("\\\"", "\"");
+
+    // Format as readable text sections
+    let formatted = format!(
+        r#"================================================================================
+TIMESTAMP: {}
+================================================================================
+
+--- PROMPT ---
+
+{}
+
+--- RESPONSE ---
+
+{}
+
+"#,
+        timestamp, prompt, response_unescaped
+    );
+
+    // Append to log file
+    match OpenOptions::new().create(true).append(true).open(log_path) {
+        Ok(mut file) => {
+            let _ = write!(file, "{}", formatted);
+            eprintln!("DEBUG: Logged LLM interaction to llm_log.txt");
+        }
+        Err(e) => {
+            eprintln!("DEBUG: Failed to write log: {}", e);
+        }
+    }
+}
 
 #[derive(Debug, Serialize)]
 struct ReplicateRequest {
@@ -84,7 +130,7 @@ pub async fn generate(
             "input": {
                 "prompt": prompt,
                 "max_tokens": 8192,
-                "temperature": 3.0
+                "temperature": 1.0
             }
         }))
         .timeout(Duration::from_secs(30))
@@ -97,11 +143,11 @@ pub async fn generate(
     let response_text = create_response.text().await.unwrap_or_default();
 
     // DEBUG: Uncomment to see raw API response
-    eprintln!(
-        "DEBUG [{}]: {}",
-        status.as_u16(),
-        &response_text[..response_text.len()].replace("\\n", "\n")
-    );
+    // eprintln!(
+    //     "DEBUG [{}]: {}",
+    //     status.as_u16(),
+    //     &response_text[..response_text.len()].replace("\\n", "\n")
+    // );
 
     if !status.is_success() {
         // Try to parse as error response
@@ -173,11 +219,13 @@ pub async fn generate(
                 if let Some(output) = status.output {
                     let final_text = output_to_string(&output);
                     emit_stream(&app_handle, &final_text, true);
-                    eprintln!(
-                        "DEBUG response [{}]: {}",
-                        http_status.as_u16(),
-                        &status_text[..status_text.len()]
-                    );
+                    // eprintln!(
+                    //     "DEBUG response [{}]: {}",
+                    //     http_status.as_u16(),
+                    //     &status_text[..status_text.len()]
+                    // );
+                    // Log the interaction
+                    log_llm_interaction(prompt, &final_text);
                     return Ok(final_text);
                 }
                 return Err("No output from model".to_string());

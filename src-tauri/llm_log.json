@@ -1,0 +1,557 @@
+{
+  "timestamp": "2025-12-16 09:55:37",
+  "prompt": "You are an expert AP Computer Science A question writer with strong analytical and debugging skills.
+
+**CRITICAL RULE: Calculate the correct answer BEFORE writing the question.**
+
+When generating questions with code or calculations:
+1. First, decide on the concept you'll test
+2. Write the code mentally or on scratch paper
+3. TRACE through the code step-by-step and calculate the correct answer
+4. Verify your calculation is correct - double-check your math
+5. Create wrong answers based on specific misconceptions
+6. ONLY THEN start writing in the output format below
+
+If you discover an error while writing your explanation, DO NOT try to fix it mid-stream. Instead, silently start that question over with different code.
+
+**Target Topic(s):** boolean
+**Target Difficulty:** D2 (Medium) - Requires analysis or multi-step reasoning,
+  3-5 steps
+**Number of Questions:** 1
+
+---
+
+## Reference Examples (JSON format)
+
+Study these examples carefully. Pay special attention to:
+- How the `distractors` field shows WHY each wrong answer is tempting
+- The `common_errors` that students make
+- The relationship between `difficulty` and `cognitive_level`
+- The precision and accuracy of the explanations
+
+### Example 1
+```json
+{
+  "
+stem": "
+Consider the incomplete function printEmptyBoxes given below. printEmptyBoxes should print the box numbers of all of the boxes that do not contain mail. Which of the following could be used to replace the missing expression?",
+  "
+code": "
+public void printEmptyBoxes (PostOffice p [])\
+{\
+    for (int k = 0; k < p.length - 1 ; k++)\
+    {\
+        for (int x = 0; x < p[k
+        ].getNumBoxes( ) - 1 ; x++)\
+        {\
+            // missing expression\
+        }\
+      }\
+    }",
+
+  "
+options": [
+      {"
+id": "
+a", "
+text": "
+if (p[k
+        ].getBox(x).isAssigned( ) && !p[k
+        ].getBox(x).hasMail( ) ) { System.out.println(p[k
+          ].getBox(x).getBoxNumber( )) ;
+        }", "
+is_correct": true
+      },
+      {"
+id": "
+b", "
+text": "
+if (p[x
+        ].getBox(k).isAssigned ( ) && !p[x
+        ].getBox(k).hasMail( )) { System.out.println(p[x
+          ].getBox(k).getBoxNumber( ));
+        }", "
+is_correct": false
+      },
+      {"
+id": "
+c", "
+text": "
+if (p[k
+        ].getBox(x).isAssigned( ) && !p[k
+        ].getBox(x).hasMail( )) { System.out.println (p[k
+          ].getBoxNumber (x));
+        }", "
+is_correct": false
+      },
+      {"
+id": "
+d", "
+text": "
+if (p[x
+        ].getBox(k).isAssigned( ) && !p[x
+        ].getBox (k).hasMail( )) { System.out.println(p[x
+          ].getBoxNumber(k));
+        }", "
+is_correct": false
+      },
+      {"
+id": "
+e", "
+text": "
+if (p[x
+        ].getBox(k).isAssigned( ) && p[x
+        ].getBox(k).getMail( ) == 0) { System.out.println(k);
+        }", "
+is_correct": false
+      }
+    ],
+  "
+explanation": "
+Loops use k for post offices and x for boxes. Correct condition: p[k
+    ].getBox(x).isAssigned() && !p[k
+    ].getBox(x).hasMail(). Correct print: p[k
+    ].getBox(x).getBoxNumber().",
+  "
+difficulty": "
+D2",
+  "
+cognitive_level": "
+B3",
+  "
+skills": ["
+SK006", "
+SK009"
+    ],
+  "
+distractors": {
+    "
+common_mistakes": [
+        {"
+option_id": "
+b", "
+misconception": "
+Swapped array indices"
+        },
+        {"
+option_id": "
+c", "
+misconception": "
+Wrong method signature"
+        },
+        {"
+option_id": "
+d", "
+misconception": "
+Multiple index errors"
+        }
+      ],
+    "
+common_errors": ["
+E009"
+      ]
+    }
+  }
+```
+
+### Example 2
+```json
+{
+  "
+stem": "
+Assume that a and b are Boolean variables that have been initialized. Consider the following code segment. a = a && b; b = a || b; Which of the following statements is true?",
+
+  "
+options": [
+      {"
+id": "
+a", "
+text": "
+I only (The final value of a is the same as the initial value of a.)", "
+is_correct": false
+      },
+      {"
+id": "
+b", "
+text": "
+II only (The final value of b is the same as the initial value of b.)", "
+is_correct": true
+      },
+      {"
+id": "
+c", "
+text": "
+III only (The final value of a is the same as the initial value of b.)", "
+is_correct": false
+      },
+      {"
+id": "
+d", "
+text": "
+I and II only", "
+is_correct": false
+      },
+      {"
+id": "
+e", "
+text": "
+II and III only", "
+is_correct": false
+      }
+    ],
+  "
+explanation": "
+Analysis: (1) a_new = a_old && b_old (not always equal to a_old). (2) b_new = (a_old && b_old) || b_old = b_old (absorption law - always true). (3) a_new ≠ b_old unless special conditions. Only II is always true.",
+  "
+difficulty": "
+D2",
+  "
+cognitive_level": "
+B4",
+  "
+skills": ["
+SK009", "
+SK020"
+    ],
+  "
+distractors": {
+    "
+common_mistakes": [
+        {"
+option_id": "
+a", "
+misconception": "
+Doesn't trace values systematically"
+        },
+        {"
+option_id": "
+c", "
+misconception": "
+Only checks one case"
+        },
+        {"
+option_id": "
+d", "
+misconception": "
+Assumes a doesn't change"
+        }
+      ],
+    "
+common_errors": ["
+E008"
+      ]
+    }
+  }
+```
+
+### Example 3
+```json
+{
+  "
+stem": "
+Consider the following code segment. For what values of x will \\"
+Yes\\"
+ be printed?",
+  "
+code": "
+int x;\
+if (x % 2 == 0 && x / 3 == 1) System.out.print(\\"
+Yes\\"
+);",
+
+  "
+options": [
+      {"
+id": "
+a", "
+text": "0", "
+is_correct": false
+      },
+      {"
+id": "
+b", "
+text": "4", "
+is_correct": true
+      },
+      {"
+id": "
+c", "
+text": "
+Whenever x is even and x is not divisible by 3", "
+is_correct": false
+      },
+      {"
+id": "
+d", "
+text": "
+Whenever x is odd and x is divisible by 3", "
+is_correct": false
+      },
+      {"
+id": "
+e", "
+text": "
+Whenever x is even and x is divisible by 3", "
+is_correct": false
+      }
+    ],
+  "
+explanation": "
+x%2==0: x is even. x/3==1: x in [
+      3,
+      5
+    ] (integer division). Both: x in [
+      3,
+      5
+    ] AND even = x==4.",
+  "
+difficulty": "
+D2",
+  "
+cognitive_level": "
+B3",
+  "
+skills": ["
+SK009", "
+SK020"
+    ],
+  "
+distractors": {
+    "
+common_mistakes": [
+        {"
+option_id": "
+a", "
+misconception": "
+Tests specific value"
+        },
+        {"
+option_id": "
+c", "
+misconception": "
+Wrong second condition"
+        },
+        {"
+option_id": "
+e", "
+misconception": "
+Wrong divisibility"
+        }
+      ],
+    "
+common_errors": ["
+E011"
+      ]
+    }
+  }
+```
+
+---
+
+## Your Task
+
+Generate 1 NEW question(s) that:
+1. Test the specified topic(s) at the target difficulty
+2. Use DIFFERENT code and scenarios than the examples
+3. Each wrong answer must exploit a specific student misconception
+4. Match the quality and style shown in the examples
+5. Have internally consistent, mathematically correct answers that you've verified
+
+**WORKFLOW (FOLLOW THIS ORDER):**
+
+For EACH question you write:
+
+**Step 1: Plan & Solve (Do this work mentally/on scratch paper - don't write it in your response)**
+- Decide what concept you'll test
+- Write the code you'll use
+- TRACE through it step-by-step and calculate the CORRECT answer
+- Double-check your calculation - verify it's right
+- Think through common student errors for this type of problem
+
+**Step 2: Design Distractors (Still mental work)**
+- Identify 3-4 specific misconceptions students have
+- For each misconception, calculate what wrong answer it would produce
+- Make sure each distractor comes from a real error pattern (off-by-one, wrong operator, pass-by-value confusion, loop bound errors, etc.)
+
+**Step 3: Write the Question (Now you can start writing JSON)**
+- Only NOW should you write the stem and code
+- Write ALL answer choices (correct + distractors) with their explanations
+- Write the explanation showing the step-by-step solution
+- Write the distractors analysis explaining the error patterns
+
+**Output Format (JSON Array):**
+
+Return your response as a JSON array containing 1 question object(s). Each question should follow this structure:
+
+```json
+[
+    {
+    "
+stem": "
+Question text here (you can use markdown for formatting like **bold** or `code`)",
+    "
+code": "
+      // Optional Java code block\
+public static void main(String[] args) {\
+    System.out.println(\\"
+Hello\\"
+);\
+      }",
+    "
+answers": [
+        {"
+text": "
+Answer text (use markdown like `42` for code)", "
+is_correct": false, "
+explanation": "
+Why this is wrong"
+        },
+        {"
+text": "
+Another answer", "
+is_correct": true, "
+explanation": "
+Why this is correct"
+        },
+        {"
+text": "
+Third answer", "
+is_correct": false, "
+explanation": "
+Common misconception"
+        },
+        {"
+text": "
+Fourth answer", "
+is_correct": false, "
+explanation": "
+Off-by-one error"
+        }
+      ],
+    "
+explanation": "
+Step-by-step walkthrough of how to arrive at the correct answer",
+    "
+distractors": "
+Analysis of why each wrong answer is tempting and what misconception leads to it"
+    }
+  ]
+```
+
+**Field Guidelines:**
+- `stem`: The question text (markdown supported for formatting)
+- `code`: Optional Java code snippet (plain text, not wrapped in ```java```)
+- `answers`: Array of 4-5 answer choices with explanations
+  - `text`: Answer text (use backticks for code like `42`)
+  - `is_correct`: Boolean indicating if this is the correct answer
+  - `explanation`: Brief explanation of why this answer is correct/incorrect
+- `explanation`: Detailed walkthrough showing how to solve the problem
+- `distractors`: Analysis of common student errors that lead to wrong answers
+
+**Quality Checklist (verify before submitting):**
+- ✓ Did you work out the correct answer BEFORE writing anything?
+- ✓ Does your explanation match the answer you marked as correct?
+- ✓ Does each distractor represent a real student error pattern?
+- ✓ Is your code syntactically correct Java?
+- ✓ Are all inline code references wrapped in backticks?
+- ✓ Is your explanation clear, accurate, and step-by-step?
+- ✓ Did you return ONLY the JSON array with no extra text?
+
+
+Generate a JSON array with 1 question(s) now:","response": "```json[
+    {
+    "
+stem": "
+Consider the following code segment. What is printed as a result of executing this code?",
+    "
+code": "
+boolean p = true;\
+boolean q = false;\
+boolean r = true;\
+\
+if (p || q && r)\
+{\
+    System.out.print(\\"
+A\\"
+);\
+      }\
+if (!p && !q || r)\
+{\
+    System.out.print(\\"
+B\\"
+);\
+      }\
+if (!(p && q) && r)\
+{\
+    System.out.print(\\"
+C\\"
+);\
+      }",
+    "
+answers": [
+        {"
+text": "
+`ABC`", "
+is_correct": true, "
+explanation": "
+All three conditions evaluate to true: (1) true || false = true, (2) false || true = true, (3) true && true = true"
+        },
+        {"
+text": "
+`AB`", "
+is_correct": false, "
+explanation": "
+This results from incorrectly evaluating the third condition as false, likely by misapplying DeMorgan's Law"
+        },
+        {"
+text": "
+`AC`", "
+is_correct": false, "
+explanation": "
+This results from incorrectly evaluating the second condition as false, likely by not recognizing that || has lower precedence than &&"
+        },
+        {"
+text": "
+`BC`", "
+is_correct": false, "
+explanation": "
+This results from incorrectly evaluating the first condition as false, likely by evaluating left-to-right without considering operator precedence"
+        },
+        {"
+text": "
+`A`", "
+is_correct": false, "
+explanation": "
+This results from incorrectly evaluating both the second and third conditions as false"
+        }
+      ],
+    "
+explanation": "
+We evaluate each condition step-by-step using operator precedence (! > && > ||):\
+\
+**First if:** `p || q && r` = `true || (false && true)` = `true || false` = `true` → prints \\"
+A\\"
+\
+\
+**Second if:** `!p && !q || r` = `(false && true) || true` = `false || true` = `true` → prints \\"
+B\\"
+\
+\
+**Third if:** `!(p && q) && r` = `!(true && false) && true` = `!false && true` = `true && true` = `true` → prints \\"
+C\\"
+\
+\
+All three conditions are true, so the output is `ABC`.",
+    "
+distractors": "
+**Option `AB`**: Students who select this incorrectly apply DeMorgan's Law to the third condition, thinking `!(p && q)` with p=true and q=false somehow results in false, or they incorrectly negate the entire expression.\
+\
+**Option `AC`**: Students who select this fail to apply operator precedence correctly in the second condition. They might evaluate `!p && !q || r` as `!p && (!q || r)` instead of `(!p && !q) || r`, leading to `false && true` = `false`.\
+\
+**Option `BC`**: Students who select this ignore operator precedence in the first condition and evaluate left-to-right: `(p || q) && r` = `true && true` = `true` is correct, but they might evaluate `p || q && r` as just `p || q` = `true || false` and then mistakenly think this doesn't satisfy the condition, or they evaluate it as `(true || false) && true` incorrectly.\
+\
+**Option `A`**: Students who select this make multiple errors, likely combining the misconceptions from options AB and AC, incorrectly evaluating both the second and third conditions as false."
+    }
+  ]
+```"
+}
