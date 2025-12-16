@@ -26,3 +26,4 @@ npm-debug.log*
 
 # Tauri
 src-tauri/WixTools/
+llm_log.txt
