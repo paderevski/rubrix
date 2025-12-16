@@ -96,84 +96,95 @@ const CHOICE_TEMPLATE: &str = r#"                        <response_label ident="
 /// Export questions to our intermediate .txt format
 pub fn export_txt(title: &str, questions: &[Question]) -> Result<String, String> {
     let mut output = format!("Title: {}\n\n", title);
-    
+
     for (i, q) in questions.iter().enumerate() {
-        // Question number and content
-        output.push_str(&format!("{}. {}\n\n", i + 1, q.content));
-        
+        // Question number and stem
+        let stem = if !q.stem.is_empty() {
+            &q.stem
+        } else {
+            &q.content
+        };
+        output.push_str(&format!("{}. {}\n\n", i + 1, stem));
+
+        // Code if present
+        if let Some(code) = &q.code {
+            output.push_str(&format!("```java\n{}\n```\n\n", code));
+        }
+
         // Answers - correct one first
-        let correct_first: Vec<_> = q.answers.iter()
+        let correct_first: Vec<_> = q
+            .answers
+            .iter()
             .filter(|a| a.is_correct)
             .chain(q.answers.iter().filter(|a| !a.is_correct))
             .collect();
-        
+
         for answer in correct_first {
             output.push_str(&format!("a. {}\n", answer.text));
         }
-        
+
         output.push_str("\n\n");
     }
-    
+
     Ok(output)
 }
 
 /// Export questions to QTI ZIP format (ready for Schoology)
 pub fn export_qti_zip(title: &str, questions: &[Question]) -> Result<Vec<u8>, String> {
     let xml_filename = format!("{}.xml", sanitize_filename(title));
-    
+
     // Generate QTI XML
     let qti_xml = generate_qti_xml(title, questions);
-    
+
     // Generate manifest
     let manifest = MANIFEST_TEMPLATE
         .replace("{TITLE}", title)
         .replace("{XML_FILE_NAME}", &xml_filename);
-    
+
     // Create ZIP in memory
     let mut buffer = Vec::new();
     {
         let mut zip = ZipWriter::new(std::io::Cursor::new(&mut buffer));
-        let options = FileOptions::default()
-            .compression_method(zip::CompressionMethod::Deflated);
-        
+        let options = FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+
         // Add QTI XML
         zip.start_file(&xml_filename, options)
             .map_err(|e| format!("Failed to add XML: {}", e))?;
         zip.write_all(qti_xml.as_bytes())
             .map_err(|e| format!("Failed to write XML: {}", e))?;
-        
+
         // Add manifest
         zip.start_file("imsmanifest.xml", options)
             .map_err(|e| format!("Failed to add manifest: {}", e))?;
         zip.write_all(manifest.as_bytes())
             .map_err(|e| format!("Failed to write manifest: {}", e))?;
-        
+
         zip.finish()
             .map_err(|e| format!("Failed to finalize ZIP: {}", e))?;
     }
-    
+
     Ok(buffer)
 }
 
 /// Generate the QTI XML content
-fn generate_qti_xml(title: &str, questions: &[Question]) -> String {
+fn generate_qti_xml(_title: &str, questions: &[Question]) -> String {
     let mut items = Vec::new();
-    
+
     for (i, q) in questions.iter().enumerate() {
         let item_id = format!("{}", i + 1);
         let question_html = convert_to_html(q);
-        
+
         // Generate choices
         let mut choices = Vec::new();
         let mut correct_id = String::from("1");
-        
+
         // Put correct answer first, track its ID
         let mut choice_num = 1;
         for answer in &q.answers {
             if answer.is_correct {
                 correct_id = choice_num.to_string();
             }
-            
+
             let answer_html = convert_inline_code(&htmlescape::encode_minimal(&answer.text));
             let choice = CHOICE_TEMPLATE
                 .replace("{choice_id}", &choice_num.to_string())
@@ -181,64 +192,40 @@ fn generate_qti_xml(title: &str, questions: &[Question]) -> String {
             choices.push(choice);
             choice_num += 1;
         }
-        
+
         let item = QTI_ITEM_TEMPLATE
             .replace("{item_id}", &item_id)
             .replace("{question_html}", &question_html)
             .replace("{choices}", &choices.join("\n"))
             .replace("{correct_id}", &correct_id);
-        
+
         items.push(item);
     }
-    
+
     format!("{}\n{}\n{}", QTI_HEADER, items.join("\n"), QTI_FOOTER)
 }
 
 /// Convert a question to HTML format
 fn convert_to_html(q: &Question) -> String {
-    // Convert markdown-style code blocks to HTML
-    let code_re = Regex::new(r"(?s)```(\w+)?\n(.*?)```").unwrap();
-    let mut html = q.content.clone();
-    
-    // Replace code blocks with <pre> tags
-    html = code_re.replace_all(&html, |caps: &regex::Captures| {
-        let code = caps.get(2).map_or("", |m| m.as_str());
-        format!("<pre>{}</pre>", htmlescape::encode_minimal(code.trim()))
-    }).to_string();
-    
-    // Escape remaining HTML and convert inline code
-    let parts: Vec<&str> = html.split("<pre>").collect();
-    let mut result = String::new();
-    
-    for (i, part) in parts.iter().enumerate() {
-        if i == 0 {
-            // First part - escape and convert inline code
-            let escaped = htmlescape::encode_minimal(part);
-            result.push_str(&convert_inline_code(&escaped));
-        } else {
-            // Part after <pre> - find the </pre> and handle accordingly
-            if let Some(pre_end) = part.find("</pre>") {
-                // Code block content (already escaped above)
-                result.push_str("<pre>");
-                result.push_str(&part[..pre_end]);
-                result.push_str("</pre>");
-                // Text after code block
-                let after = &part[pre_end + 6..];
-                let escaped = htmlescape::encode_minimal(after);
-                result.push_str(&convert_inline_code(&escaped));
-            } else {
-                result.push_str("<pre>");
-                result.push_str(part);
-            }
-        }
+    let mut html = String::new();
+
+    // Use stem or fall back to content
+    let stem = if !q.stem.is_empty() {
+        &q.stem
+    } else {
+        &q.content
+    };
+    html.push_str(&convert_inline_code(&htmlescape::encode_minimal(stem)));
+
+    // Add code block if present
+    if let Some(code) = &q.code {
+        html.push_str(&format!(
+            "<pre>{}</pre>",
+            htmlescape::encode_minimal(code.trim())
+        ));
     }
-    
-    // Wrap in paragraph if not already structured
-    if !result.contains("<pre>") && !result.contains("<table>") {
-        result = format!("<p>{}</p>", result);
-    }
-    
-    result
+
+    html
 }
 
 /// Convert backticks to <code> tags
@@ -260,17 +247,27 @@ mod tests {
 
     #[test]
     fn test_export_txt() {
-        let questions = vec![
-            Question {
-                id: "1".to_string(),
-                content: "What is 2+2?".to_string(),
-                answers: vec![
-                    Answer { text: "4".to_string(), is_correct: true },
-                    Answer { text: "3".to_string(), is_correct: false },
-                ],
-            },
-        ];
-        
+        let questions = vec![Question {
+            id: "1".to_string(),
+            content: "What is 2+2?".to_string(),
+            stem: Some("What is 2+2?".to_string()),
+            code: None,
+            explanation: None,
+            distractors: None,
+            answers: vec![
+                Answer {
+                    text: "4".to_string(),
+                    is_correct: true,
+                    explanation: None,
+                },
+                Answer {
+                    text: "3".to_string(),
+                    is_correct: false,
+                    explanation: None,
+                },
+            ],
+        }];
+
         let result = export_txt("Test", &questions).unwrap();
         assert!(result.contains("Title: Test"));
         assert!(result.contains("1. What is 2+2?"));

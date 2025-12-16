@@ -16,15 +16,28 @@ use tauri::State;
 /// Question as displayed/edited in the UI
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Question {
+    #[serde(default)]
     pub id: String,
-    pub content: String,  // Full markdown content
+    #[serde(default)]
+    pub stem: String, // Question text (markdown supported)
+    #[serde(default)]
+    pub code: Option<String>, // Code snippet if applicable (markdown code block)
     pub answers: Vec<Answer>,
+    #[serde(default)]
+    pub explanation: Option<String>, // Correct answer explanation
+    #[serde(default)]
+    pub distractors: Option<String>, // Why wrong answers are tempting
+    // Legacy field for backward compatibility during migration
+    #[serde(default)]
+    pub content: String, // Full markdown content (deprecated, use stem + code)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Answer {
     pub text: String,
     pub is_correct: bool,
+    #[serde(default)]
+    pub explanation: Option<String>, // Why this answer is correct/incorrect
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,7 +55,7 @@ pub struct GenerationRequest {
     pub count: u32,
     pub notes: Option<String>,
     #[serde(default)]
-    pub append: bool,  // If true, append to existing questions
+    pub append: bool, // If true, append to existing questions
 }
 
 // ============================================================================
@@ -111,21 +124,21 @@ async fn generate_questions(
     let bank_examples = state.knowledge.get_bank_examples(
         &request.topics,
         Some(&request.difficulty),
-        3,  // Get up to 3 examples
+        3, // Get up to 3 examples
     );
-    
+
     // Build prompt with JSON examples
     let prompt = prompts::build_generation_prompt(&request, &bank_examples);
-    
+
     // Call LLM with streaming
     let response = llm::generate(&prompt, Some(app_handle)).await?;
-    
+
     // Parse response into questions
     let mut new_questions = prompts::parse_llm_response(&response)?;
-    
+
     // Store in state (append or replace)
     let mut stored = state.questions.lock().unwrap();
-    
+
     if request.append {
         // Renumber IDs to continue from existing
         let start_id = stored.len();
@@ -136,7 +149,7 @@ async fn generate_questions(
     } else {
         *stored = new_questions.clone();
     }
-    
+
     // Return all questions (for frontend to display)
     Ok(stored.clone())
 }
@@ -148,52 +161,48 @@ async fn regenerate_question(
     app_handle: tauri::AppHandle,
 ) -> Result<Question, String> {
     let current_questions = state.questions.lock().unwrap().clone();
-    
+
     if index >= current_questions.len() {
         return Err("Invalid question index".to_string());
     }
-    
+
     let current = &current_questions[index];
-    
+
     // Get one example for reference
     let bank_examples = state.knowledge.get_bank_examples(
         &["recursion".to_string()], // Default topic
         None,
         1,
     );
-    
+
     // Build prompt for single question regeneration
     let prompt = prompts::build_regenerate_prompt(current, &current_questions, &bank_examples);
     let response = llm::generate(&prompt, Some(app_handle)).await?;
-    
+
     // Parse the single question
     let mut new_questions = prompts::parse_llm_response(&response)?;
     if new_questions.is_empty() {
         return Err("Failed to generate replacement question".to_string());
     }
-    
+
     let mut new_question = new_questions.remove(0);
     new_question.id = current.id.clone();
-    
+
     // Update in state
     let mut stored = state.questions.lock().unwrap();
     stored[index] = new_question.clone();
-    
+
     Ok(new_question)
 }
 
 #[tauri::command]
-fn update_question(
-    index: usize,
-    question: Question,
-    state: State<AppState>,
-) -> Result<(), String> {
+fn update_question(index: usize, question: Question, state: State<AppState>) -> Result<(), String> {
     let mut stored = state.questions.lock().unwrap();
-    
+
     if index >= stored.len() {
         return Err("Invalid question index".to_string());
     }
-    
+
     stored[index] = question;
     Ok(())
 }
@@ -201,18 +210,38 @@ fn update_question(
 #[tauri::command]
 fn add_question(state: State<AppState>) -> Question {
     let mut stored = state.questions.lock().unwrap();
-    
+
     let new_question = Question {
         id: format!("q{}", stored.len() + 1),
         content: "New question".to_string(),
+        stem: "New question".to_string(),
+        code: None,
+        explanation: None,
+        distractors: None,
         answers: vec![
-            Answer { text: "Correct answer".to_string(), is_correct: true },
-            Answer { text: "Wrong answer".to_string(), is_correct: false },
-            Answer { text: "Wrong answer".to_string(), is_correct: false },
-            Answer { text: "Wrong answer".to_string(), is_correct: false },
+            Answer {
+                text: "Correct answer".to_string(),
+                is_correct: true,
+                explanation: None,
+            },
+            Answer {
+                text: "Wrong answer".to_string(),
+                is_correct: false,
+                explanation: None,
+            },
+            Answer {
+                text: "Wrong answer".to_string(),
+                is_correct: false,
+                explanation: None,
+            },
+            Answer {
+                text: "Wrong answer".to_string(),
+                is_correct: false,
+                explanation: None,
+            },
         ],
     };
-    
+
     stored.push(new_question.clone());
     new_question
 }
@@ -220,11 +249,11 @@ fn add_question(state: State<AppState>) -> Question {
 #[tauri::command]
 fn delete_question(index: usize, state: State<AppState>) -> Result<(), String> {
     let mut stored = state.questions.lock().unwrap();
-    
+
     if index >= stored.len() {
         return Err("Invalid question index".to_string());
     }
-    
+
     stored.remove(index);
     Ok(())
 }
@@ -252,10 +281,13 @@ fn export_to_qti(title: String, state: State<AppState>) -> Result<Vec<u8>, Strin
 
 fn main() {
     let knowledge = knowledge::KnowledgeBase::load();
-    
+
     println!("Loaded {} topics", knowledge.topics.len());
-    println!("Loaded {} question bank entries", knowledge.bank_entries.len());
-    
+    println!(
+        "Loaded {} question bank entries",
+        knowledge.bank_entries.len()
+    );
+
     let state = AppState {
         questions: Mutex::new(Vec::new()),
         knowledge,

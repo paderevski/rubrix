@@ -84,7 +84,7 @@ pub async fn generate(
             "input": {
                 "prompt": prompt,
                 "max_tokens": 8192,
-                "temperature": 0.7
+                "temperature": 3.0
             }
         }))
         .timeout(Duration::from_secs(30))
@@ -97,7 +97,11 @@ pub async fn generate(
     let response_text = create_response.text().await.unwrap_or_default();
 
     // DEBUG: Uncomment to see raw API response
-    // eprintln!("DEBUG [{}]: {}", status.as_u16(), &response_text[..response_text.len().min(500)]);
+    eprintln!(
+        "DEBUG [{}]: {}",
+        status.as_u16(),
+        &response_text[..response_text.len()].replace("\\n", "\n")
+    );
 
     if !status.is_success() {
         // Try to parse as error response
@@ -323,7 +327,7 @@ d. `-1`
     let chars: Vec<char> = response.chars().collect();
     let mut accumulated = String::new();
 
-    for (i, chunk) in chars.chunks(20).enumerate() {
+    for chunk in chars.chunks(20) {
         accumulated.extend(chunk);
         emit_stream(&app_handle, &accumulated, false);
 

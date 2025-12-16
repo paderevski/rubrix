@@ -1,78 +1,56 @@
 Title: AP CS Questions
 
-1. Consider the following method that is intended to return `true` if a string contains at least one vowel (a, e, i, o, u) and `false` otherwise.
+1. Consider the following code segment. What is printed as a result of executing the code segment?
 
 ```java
-public static boolean hasVowel(String word) {
-    char[] letters = word.toCharArray();
-    for (int i = 0; i < letters.length; i++) {
-        String ch = "" + letters[i];
-        if (ch.equals("a") || ch.equals("e") || ch.equals("i") || 
-            ch.equals("o") || ch.equals("u")) {
-            return true;
-        }
-    }
-    return false;
+int sum = 0;
+for (int i = 1; i <= 5; i++)
+{
+    sum = sum + i;
+}
+System.out.print(sum);
+```
+
+a. `15`
+a. `10`
+a. `20`
+a. `5`
+a. `0`
+
+
+2. Consider the following code segment. What is the value of `count` after the code segment executes?
+
+```java
+int count = 0;
+for (int j = 10; j > 5; j--)
+{
+    count++;
 }
 ```
 
-Which of the following method calls will return `true`?
-
-I. `hasVowel("AEIOU")`
-II. `hasVowel("rhythm")`
-III. `hasVowel("Apple")`
-
-a. III only
-a. I only
-a. I and III only
-a. II and III only
+a. `5`
+a. `4`
+a. `6`
+a. `10`
+a. `0`
 
 
-2. Consider the following code segment:
+3. Consider the following code segment. How many times is `"Hello"` printed?
 
 ```java
-String str1 = "computer";
-String str2 = "science";
-String str3 = "science";
-
-int result1 = str1.compareTo(str2);
-int result2 = str2.compareTo(str1);
-int result3 = str2.compareTo(str3);
-```
-
-What are the values of `result1`, `result2`, and `result3` after the code executes?
-
-a. `result1 < 0`, `result2 > 0`, `result3 == 0`
-a. `result1 > 0`, `result2 < 0`, `result3 == 0`
-a. `result1 == 0`, `result2 == 0`, `result3 == 0`
-a. `result1 < 0`, `result2 < 0`, `result3 == 0`
-
-
-3. Consider the following method that is intended to return the number of elements in an integer array that are strictly greater than all elements that come after them.
-
-```java
-public static int countGreaterThanRest(int[] nums) {
-    int count = 0;
-    for (int i = 0; i < nums.length; i++) {
-        boolean isGreater = true;
-        for (int j = i + 1; j < nums.length; j++) {
-            if (nums[i] <= nums[j]) {
-                isGreater = false;
-            }
-        }
-        if (isGreater) {
-            count++;
-        }
+for (int k = 0; k < 3; k++)
+{
+    for (int m = 0; m < 4; m++)
+    {
+        System.out.print("Hello");
     }
-    return count;
 }
 ```
 
-What value is returned by the call `countGreaterThanRest(new int[] {5, 3, 4, 2, 1})`?
-
-a. 3
-a. 1
-a. 2
-a. 4
+a. `12`
+a. `7`
+a. `3`
+a. `4`
+a. `16`
 
 

@@ -1,7 +1,6 @@
 //! Prompt templates and response parsing for LLM interactions
 
-use crate::{Answer, GenerationRequest, Question, QuestionBankEntry};
-use regex::Regex;
+use crate::{GenerationRequest, Question, QuestionBankEntry};
 
 /// Build the prompt for generating multiple questions using JSON examples
 pub fn build_generation_prompt(
@@ -84,60 +83,70 @@ Generate {count} NEW question(s) that:
 4. Match the quality and style shown in the examples
 5. Have internally consistent, mathematically correct answers that you've verified
 
-**Output Format (Markdown):**
+**WORKFLOW (FOLLOW THIS ORDER):**
 
-For each question, use this exact format:
+For EACH question you write:
 
----
+**Step 1: Plan & Solve (Do this work mentally/on scratch paper - don't write it in your response)**
+- Decide what concept you'll test
+- Write the code you'll use
+- TRACE through it step-by-step and calculate the CORRECT answer
+- Double-check your calculation - verify it's right
+- Think through common student errors for this type of problem
 
-# Question [number]
+**Step 2: Design Distractors (Still mental work)**
+- Identify 3-4 specific misconceptions students have
+- For each misconception, calculate what wrong answer it would produce
+- Make sure each distractor comes from a real error pattern (off-by-one, wrong operator, pass-by-value confusion, loop bound errors, etc.)
 
-[Question stem - what are you asking?]
+**Step 3: Write the Question (Now you can start writing JSON)**
+- Only NOW should you write the stem and code
+- Write ALL answer choices (correct + distractors) with their explanations
+- Write the explanation showing the step-by-step solution
+- Write the distractors analysis explaining the error patterns
 
-```java
-// Include code if appropriate for the question type
-// Keep code concise (under 15 lines)
+**Output Format (JSON Array):**
+
+Return your response as a JSON array containing {count} question object(s). Each question should follow this structure:
+
+```json
+[
+  {{
+    "stem": "Question text here (you can use markdown for formatting like **bold** or `code`)",
+    "code": "// Optional Java code block\npublic static void main(String[] args) {{\n    System.out.println(\"Hello\");\n}}",
+    "answers": [
+      {{"text": "Answer text (use markdown like `42` for code)", "is_correct": false, "explanation": "Why this is wrong"}},
+      {{"text": "Another answer", "is_correct": true, "explanation": "Why this is correct"}},
+      {{"text": "Third answer", "is_correct": false, "explanation": "Common misconception"}},
+      {{"text": "Fourth answer", "is_correct": false, "explanation": "Off-by-one error"}}
+    ],
+    "explanation": "Step-by-step walkthrough of how to arrive at the correct answer",
+    "distractors": "Analysis of why each wrong answer is tempting and what misconception leads to it"
+  }}
+]
 ```
 
-## Solution
+**Field Guidelines:**
+- `stem`: The question text (markdown supported for formatting)
+- `code`: Optional Java code snippet (plain text, not wrapped in ```java```)
+- `answers`: Array of 4-5 answer choices with explanations
+  - `text`: Answer text (use backticks for code like `42`)
+  - `is_correct`: Boolean indicating if this is the correct answer
+  - `explanation`: Brief explanation of why this answer is correct/incorrect
+- `explanation`: Detailed walkthrough showing how to solve the problem
+- `distractors`: Analysis of common student errors that lead to wrong answers
 
-**Correct Answer Explanation:** [Work through the problem step-by-step. Trace code execution, show calculations. Arrive at the CORRECT ANSWER VALUE at the end of this section.]
-
-**Distractor Analysis:**
-Now create 3-4 wrong answers based on these common student errors:
-- [Describe misconception 1]: This leads to answer [wrong value]
-- [Describe misconception 2]: This leads to answer [wrong value]
-- [Describe misconception 3]: This leads to answer [wrong value]
-- [Describe misconception 4, if needed]: This leads to answer [wrong value]
-
-## Choices
-
-Now format the correct answer and distractors as multiple choice options. Put them in random order (correct answer should NOT always be 'a'):
-
-a. [One answer - could be correct or distractor]
-b. [One answer - could be correct or distractor]
-c. [One answer - could be correct or distractor]
-d. [One answer - could be correct or distractor]
-e. [One answer - could be correct or distractor, if 5 choices needed]
-
----
-**Correct Answer:** [letter corresponding to the correct value you calculated above]
-
----
-
-(Repeat for Question 2, Question 3, etc. if count > 1)
-
-**Important Rules:**
-- Work out the correct answer completely BEFORE writing the question
-- Verify your explanation matches the answer letter you chose
-- Use standard answer labels: a. b. c. d. e.
-- Each distractor must come from a real student error pattern (off-by-one, pass-by-value confusion, wrong loop bounds, etc.)
-- Code must be syntactically correct Java
-- Use backticks for inline code in answers like `42` or `"hello"`
-- Your explanation must be clear, accurate, and consistent with the correct answer
+**Quality Checklist (verify before submitting):**
+- ✓ Did you work out the correct answer BEFORE writing anything?
+- ✓ Does your explanation match the answer you marked as correct?
+- ✓ Does each distractor represent a real student error pattern?
+- ✓ Is your code syntactically correct Java?
+- ✓ Are all inline code references wrapped in backticks?
+- ✓ Is your explanation clear, accurate, and step-by-step?
+- ✓ Did you return ONLY the JSON array with no extra text?
 {notes}
 
-Generate {count} question(s) now:"#,
+Generate a JSON array with {count} question(s) now:"#,
         topics = topics_str,
         difficulty = difficulty_desc,
         count = request.count,
@@ -275,45 +284,51 @@ Generate a NEW multiple choice question to replace this one:
 {current}
 {context}{example}
 
+**WORKFLOW (DO THIS IN ORDER):**
+
+**Step 1: Solve First (Mental work - don't write this in your response)**
+- Decide on the concept to test (keep similar topic/difficulty)
+- Create the code or scenario
+- TRACE through completely and calculate the CORRECT answer
+- Double-check your math
+- Identify 3-4 student misconceptions that would lead to wrong answers
+
+**Step 2: Write the Question (Now output JSON)**
+- Write stem and code
+- Write ALL answer choices (correct + distractors) with explanations
+- Write the step-by-step explanation
+- Write the distractors analysis
+
 **Requirements:**
-- Keep similar topic and difficulty but make it DIFFERENT
-- Exactly 4 answer choices (a, b, c, d)
-- Each wrong answer should exploit a specific student misconception
+- Keep similar topic and difficulty but make it DIFFERENT from the original
+- Exactly 4 answer choices
+- Each wrong answer must exploit a specific student misconception
 - Include code if appropriate
 - VERIFY your calculations are correct before committing to an answer
-- If you make an error, start over with different code
+- If you discover an error while writing, start that question over with different code
 
-**Output format:**
+**Output format (JSON):**
 
-# Question 1
+Return a JSON array with ONE question object:
 
-[New question stem]
-
-```java
-// code if needed
+```json
+[
+  {{
+    "stem": "New question text (markdown supported)",
+    "code": "// Optional Java code (plain text, no ```java``` wrapper)",
+    "answers": [
+      {{"text": "Answer 1", "is_correct": false, "explanation": "Why wrong"}},
+      {{"text": "Answer 2", "is_correct": true, "explanation": "Why correct"}},
+      {{"text": "Answer 3", "is_correct": false, "explanation": "Common error"}},
+      {{"text": "Answer 4", "is_correct": false, "explanation": "Misconception"}}
+    ],
+    "explanation": "Step-by-step solution",
+    "distractors": "Analysis of why wrong answers are tempting"
+  }}
+]
 ```
 
-## Solution
-
-**Correct Answer Explanation:** [Work through the problem step-by-step to find the correct answer]
-
-**Distractor Analysis:**
-Create 3 wrong answers based on common errors:
-- [Misconception 1]: Leads to answer [wrong value]
-- [Misconception 2]: Leads to answer [wrong value]
-- [Misconception 3]: Leads to answer [wrong value]
-
-## Choices
-
-a. [One answer]
-b. [One answer]
-c. [One answer]
-d. [One answer]
-
----
-**Correct Answer:** [letter]
-
-Generate the replacement question:"#,
+Return ONLY the JSON array, no additional text. Generate the replacement question:"#,
         current = current.content,
         context = context_section,
         example = example_section,
@@ -322,223 +337,58 @@ Generate the replacement question:"#,
 
 /// Parse LLM response into Question objects
 pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
-    let mut questions = Vec::new();
+    eprintln!("DEBUG: Parsing LLM response, length = {}", response.len());
 
-    // Prepend newline to handle first question uniformly
-    let content = format!("\n{}", response.trim());
+    // Try to parse as JSON first
+    let trimmed = response.trim();
 
-    // Split by numbered question markers - "# Question 1", "# Question 2", etc. or legacy "1."
-    // Don't split on "## Question" which is a subsection header
-    let question_start_re = Regex::new(r"\n(?:#\s*Question\s+\d+|\d+\.)\s*").unwrap();
-    let mut blocks: Vec<String> = Vec::new();
-    let mut last_end = 0;
+    // Find JSON array boundaries
+    let json_start = trimmed.find('[').ok_or("No JSON array found in response")?;
+    let json_end = trimmed
+        .rfind(']')
+        .ok_or("No closing bracket found in JSON")?;
+    let json_str = &trimmed[json_start..=json_end];
 
-    for mat in question_start_re.find_iter(&content) {
-        if last_end > 0 && last_end < mat.start() {
-            let block = &content[last_end..mat.start()];
-            if !block.trim().is_empty() {
-                eprintln!("DEBUG: Found question block (length: {})", block.len());
-                blocks.push(block.trim().to_string());
-            }
-        }
-        last_end = mat.end();
-    }
+    eprintln!("DEBUG: Extracted JSON string, length = {}", json_str.len());
 
-    // Don't forget the last block
-    if last_end < content.len() {
-        let block = &content[last_end..];
-        if !block.trim().is_empty() {
-            eprintln!(
-                "DEBUG: Found final question block (length: {})",
-                block.len()
-            );
-            blocks.push(block.trim().to_string());
-        }
-    }
-
-    eprintln!("DEBUG: Total question blocks found: {}", blocks.len());
-
-    for block in &blocks {
-        let block = block.trim();
-        if block.is_empty() {
-            continue;
-        }
-
-        if let Some(q) = parse_single_question(block) {
-            questions.push(q);
-        }
-    }
+    // Parse JSON
+    let questions: Vec<Question> = serde_json::from_str(json_str).map_err(|e| {
+        format!(
+            "Failed to parse JSON response: {}. JSON: {}",
+            e,
+            &json_str[..json_str.len().min(500)]
+        )
+    })?;
 
     if questions.is_empty() {
-        // Try parsing as a single question if no split found
-        if let Some(q) = parse_single_question(response.trim()) {
-            questions.push(q);
-        }
+        return Err("No questions found in JSON response".to_string());
     }
 
-    if questions.is_empty() {
-        return Err("Failed to parse any questions from LLM response".to_string());
-    }
+    eprintln!(
+        "DEBUG: Successfully parsed {} questions from JSON",
+        questions.len()
+    );
 
-    // Assign IDs
-    for (i, q) in questions.iter_mut().enumerate() {
+    // Assign IDs and ensure backward compatibility by populating content field
+    let mut result = Vec::new();
+    for (i, mut q) in questions.into_iter().enumerate() {
         q.id = format!("q{}", i + 1);
-    }
 
-    Ok(questions)
-}
-
-/// Parse a single question block
-fn parse_single_question(text: &str) -> Option<Question> {
-    eprintln!("DEBUG parse_single_question: Input length = {}", text.len());
-    eprintln!(
-        "DEBUG parse_single_question: First 100 chars = {}",
-        &text.chars().take(100).collect::<String>()
-    );
-
-    // Remove any leading question marker - "# Question 1", "## Question", or "1."
-    let num_re = Regex::new(r"^(?:#\s*Question\s+\d+|#{1,2}\s*Question|\d+\.)\s*").unwrap();
-    let text = num_re.replace(text, "").to_string();
-
-    // Find where answers start - look for "## Choices" or "# Choices" or fallback to "a. "
-    let choices_marker = Regex::new(r"\n#{1,2}\s*Choices\s*\n").unwrap();
-    let solution_marker = Regex::new(r"\n#{1,2}\s*Solution\s*\n").unwrap();
-    let answer_re = Regex::new(r"\n\s*a\.\s+").unwrap();
-
-    let answer_start = if let Some(m) = choices_marker.find(&text) {
-        eprintln!("DEBUG: Found ## Choices marker at position {}", m.start());
-        // If we have "## Choices", answers start after it
-        m.end()
-    } else if let Some(m) = answer_re.find(&text) {
-        eprintln!(
-            "DEBUG: Found a. marker at position {} (fallback)",
-            m.start()
-        );
-        // Fallback to old format
-        m.start()
-    } else {
-        eprintln!("DEBUG: No answer markers found!");
-        return None;
-    };
-
-    // Content is everything before "## Solution" or "## Choices" (whichever comes first)
-    let content_end = if let Some(m) = solution_marker.find(&text) {
-        eprintln!("DEBUG: Found ## Solution marker at position {}", m.start());
-        m.start()
-    } else if let Some(m) = choices_marker.find(&text) {
-        eprintln!(
-            "DEBUG: Found ## Choices marker at position {} (for content_end)",
-            m.start()
-        );
-        m.start()
-    } else {
-        answer_start
-    };
-    let content = text[..content_end].trim().to_string();
-    eprintln!("DEBUG: Content extracted, length = {}", content.len());
-
-    // Find where distractor analysis starts (to exclude from answers)
-    let analysis_re = Regex::new(r"\n---\s*\n\*?\*?Correct Answer").unwrap();
-    let answers_end = analysis_re
-        .find(&text)
-        .map(|m| {
-            eprintln!("DEBUG: Found --- Correct Answer at position {}", m.start());
-            m.start()
-        })
-        .unwrap_or(text.len());
-
-    // Extract the correct answer letter from the final metadata block
-    // IMPORTANT: The colon must be REQUIRED, otherwise "Correct Answer Explanation"
-    // will match and capture the "E" from "Explanation"!
-    // Also match the "---" separator to ensure we get the metadata block, not the explanation.
-    let correct_re = Regex::new(r"---\s*\n\*\*Correct Answer:\*\*\s*([a-eA-E])").unwrap();
-    let correct_letter = correct_re
-        .captures(&text)
-        .and_then(|c| c.get(1))
-        .map(|m| {
-            let letter = m.as_str().to_lowercase();
-            eprintln!("DEBUG: Correct answer letter = {}", letter);
-            letter
-        })
-        .unwrap_or_else(|| {
-            eprintln!("DEBUG: No correct answer found, defaulting to 'a'");
-            "a".to_string()
-        });
-
-    // Extract answers section (between answer_start and analysis)
-    let answers_section = &text[answer_start..answers_end];
-    eprintln!("DEBUG: Answers section length = {}", answers_section.len());
-    eprintln!(
-        "DEBUG: Answers section preview: {}",
-        &answers_section.chars().take(200).collect::<String>()
-    );
-
-    let answers = parse_answers(answers_section, &correct_letter);
-    eprintln!("DEBUG: Parsed {} answers", answers.len());
-
-    if answers.is_empty() {
-        eprintln!("DEBUG: No answers parsed, returning None");
-        return None;
-    }
-
-    Some(Question {
-        id: String::new(),
-        content,
-        answers,
-    })
-}
-
-/// Parse answer choices from text
-fn parse_answers(text: &str, correct_letter: &str) -> Vec<Answer> {
-    let mut answers = Vec::new();
-    let mut current_letter: Option<String> = None;
-    let mut current_text: Option<String> = None;
-
-    eprintln!(
-        "DEBUG parse_answers: Looking for correct_letter = '{}'",
-        correct_letter
-    );
-
-    // Match a. b. c. d. e. or A. B. C. D. E.
-    let answer_marker = Regex::new(r"(?m)^([a-eA-E])\.\s+(.*)$").unwrap();
-
-    for cap in answer_marker.captures_iter(text) {
-        // Save previous answer if exists
-        if let (Some(letter), Some(txt)) = (&current_letter, &current_text) {
-            let is_correct = letter.to_lowercase() == correct_letter;
-            eprintln!(
-                "DEBUG parse_answers: Letter '{}' -> is_correct={}",
-                letter, is_correct
-            );
-            answers.push(Answer {
-                text: txt.trim().to_string(),
-                is_correct,
-            });
+        // Populate legacy content field for backward compatibility
+        if q.content.is_empty() {
+            let mut content = q.stem.clone();
+            if let Some(code) = &q.code {
+                content.push_str("\n\n```java\n");
+                content.push_str(code);
+                content.push_str("\n```");
+            }
+            q.content = content;
         }
 
-        // Start new answer
-        current_letter = Some(cap[1].to_string());
-        current_text = Some(cap[2].to_string());
+        result.push(q);
     }
 
-    // Don't forget the last answer
-    if let (Some(letter), Some(txt)) = (current_letter, current_text) {
-        let is_correct = letter.to_lowercase() == correct_letter;
-        eprintln!(
-            "DEBUG parse_answers: Letter '{}' (last) -> is_correct={}",
-            letter, is_correct
-        );
-        answers.push(Answer {
-            text: txt.trim().to_string(),
-            is_correct,
-        });
-    }
-
-    eprintln!(
-        "DEBUG parse_answers: Total {} answers created",
-        answers.len()
-    );
-    answers
+    Ok(result)
 }
 
 /// Truncate string to max length
@@ -555,124 +405,52 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_new_format() {
-        let input = r#"# Question 1
-
-What is returned by this code?
-
-```java
-return 5 + 3;
-```
-
-## Solution
-
-**Correct Answer Explanation:** Simple addition of 5 + 3 equals 8.
-
-**Distractor Analysis:**
-- String concatenation: Would give `"53"`
-- Compilation error: Incorrect syntax assumption
-
-## Choices
-
-a. `8`
-b. `53`
-c. `"53"`
-d. Error
-
----
-**Correct Answer:** a"#;
+    fn test_parse_json_format() {
+        let input = r#"[
+  {
+    "stem": "What is returned by this code?",
+    "code": "return 5 + 3;",
+    "answers": [
+      {"text": "`8`", "is_correct": true, "explanation": "Correct addition"},
+      {"text": "`53`", "is_correct": false, "explanation": "String concatenation error"},
+      {"text": "`\"53\"`", "is_correct": false, "explanation": "Wrong type"},
+      {"text": "Error", "is_correct": false, "explanation": "Compiles fine"}
+    ],
+    "explanation": "Simple addition of 5 + 3 equals 8.",
+    "distractors": "String concatenation vs addition confusion"
+  }
+]"#;
 
         let questions = parse_llm_response(input).unwrap();
         assert_eq!(questions.len(), 1);
         assert_eq!(questions[0].answers.len(), 4);
         assert!(questions[0].answers[0].is_correct);
+        assert_eq!(questions[0].stem, "What is returned by this code?");
+        assert_eq!(questions[0].code, Some("return 5 + 3;".to_string()));
     }
 
     #[test]
-    fn test_parse_legacy_format() {
-        let input = r#"1. What is returned by this code?
-
-```java
-return 5 + 3;
-```
-
-a. `8`
-b. `53`
-c. `"53"`
-d. Error
-
----
-**Correct Answer:** a
-**Explanation:** Simple addition returns 8."#;
-
-        let questions = parse_llm_response(input).unwrap();
-        assert_eq!(questions.len(), 1);
-        assert!(questions[0].content.contains("```java"));
-    }
-
-    #[test]
-    fn test_parse_correct_answer_not_a() {
-        let input = r#"# Question 1
-
-Which is a prime number?
-
-## Solution
-
-**Correct Answer Explanation:** 7 is the only prime number in this list.
-
-**Distractor Analysis:**
-- 4 is divisible by 2
-- 6 is divisible by 2 and 3
-- 8 is divisible by 2 and 4
-
-## Choices
-
-a. 4
-b. 6
-c. 7
-d. 8
-
----
-**Correct Answer:** c"#;
+    fn test_parse_multiple_questions() {
+        let input = r#"[
+  {
+    "stem": "Question 1",
+    "answers": [
+      {"text": "A", "is_correct": true},
+      {"text": "B", "is_correct": false}
+    ]
+  },
+  {
+    "stem": "Question 2",
+    "answers": [
+      {"text": "C", "is_correct": false},
+      {"text": "D", "is_correct": true}
+    ]
+  }
+]"#;
 
         let questions = parse_llm_response(input).unwrap();
-        assert_eq!(questions.len(), 1);
-        assert!(!questions[0].answers[0].is_correct); // a is not correct
-        assert!(!questions[0].answers[1].is_correct); // b is not correct
-        assert!(questions[0].answers[2].is_correct); // c IS correct
-        assert!(!questions[0].answers[3].is_correct); // d is not correct
-    }
-
-    #[test]
-    fn test_parse_five_choices() {
-        let input = r#"# Question 1
-
-Select the correct statement.
-
-## Solution
-
-**Correct Answer Explanation:** Option d is the correct statement.
-
-**Distractor Analysis:**
-- Option a: Incorrect assumption
-- Option b: Wrong reasoning
-- Option c: Misunderstands concept
-- Option e: Confused with different topic
-
-## Choices
-
-a. Wrong 1
-b. Wrong 2
-c. Wrong 3
-d. Correct answer
-e. Wrong 4
-
----
-**Correct Answer:** d"#;
-
-        let questions = parse_llm_response(input).unwrap();
-        assert_eq!(questions.len(), 1);
-        assert_eq!(questions[0].answers.len(), 5);
-        assert!(questions[0].answers[3].is_correct); // d is correct
+        assert_eq!(questions.len(), 2);
+        assert_eq!(questions[0].id, "q1");
+        assert_eq!(questions[1].id, "q2");
     }
 }

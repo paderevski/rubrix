@@ -54,57 +54,17 @@ export default function QuestionCard({
 
       {/* Content */}
       <div className="p-4">
-        {/* Question Content (Markdown) */}
+        {/* Question Stem (Markdown) */}
         <div className="prose prose-sm max-w-none mb-4">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              // Syntax highlighted code blocks
-              code({ node, className, children, ...props }) {
-                const match = /language-(\w+)/.exec(className || "");
-                const isInline = !match && !className;
-
-                return isInline ? (
-                  <code
-                    className="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded text-sm font-mono"
-                    {...props}
-                  >
+              // Inline code
+              code({ children }) {
+                return (
+                  <code className="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded text-sm font-mono">
                     {children}
                   </code>
-                ) : (
-                  <SyntaxHighlighter
-                    style={prism}
-                    language={match?.[1] || "java"}
-                    PreTag="div"
-                    customStyle={{ margin: "1rem 0", borderRadius: "0.5rem" }}
-                  >
-                    {String(children).replace(/\n$/, "")}
-                  </SyntaxHighlighter>
-                );
-              },
-              // Table styling
-              table({ children }) {
-                return (
-                  <table className="border-collapse border border-slate-300 my-3">
-                    {children}
-                  </table>
-                );
-              },
-              thead({ children }) {
-                return <thead className="bg-slate-100">{children}</thead>;
-              },
-              th({ children }) {
-                return (
-                  <th className="border border-slate-300 px-3 py-1.5 text-left font-medium">
-                    {children}
-                  </th>
-                );
-              },
-              td({ children }) {
-                return (
-                  <td className="border border-slate-300 px-3 py-1.5">
-                    {children}
-                  </td>
                 );
               },
               // Remove extra margins from paragraphs
@@ -113,9 +73,23 @@ export default function QuestionCard({
               },
             }}
           >
-            {question.content}
+            {question.stem || question.content}
           </ReactMarkdown>
         </div>
+
+        {/* Code Block (if present) */}
+        {question.code && (
+          <div className="mb-4">
+            <SyntaxHighlighter
+              style={prism}
+              language="java"
+              PreTag="div"
+              customStyle={{ margin: 0, borderRadius: "0.5rem" }}
+            >
+              {question.code}
+            </SyntaxHighlighter>
+          </div>
+        )}
 
         {/* Answers */}
         <div className="space-y-2">
