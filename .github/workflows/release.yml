@@ -38,10 +38,15 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
 
+      - name: Create .env file
+        working-directory: src-tauri
+        run: echo "REPLICATE_API_TOKEN=${{ secrets.REPLICATE_API_TOKEN }}" > .env
+
       - name: Build the app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
         with:
           tagName: v__VERSION__
           releaseName: "Rubrix v__VERSION__"
