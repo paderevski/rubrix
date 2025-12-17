@@ -104,7 +104,7 @@ function App() {
     }
   };
 
-  const handleRegenerate = async (index: number) => {
+  const handleRegenerate = async (index: number, instructions?: string) => {
     setStatus(`Regenerating question ${index + 1}...`);
     setStreamingText("");
     setStreamingComplete(false);
@@ -113,6 +113,7 @@ function App() {
     try {
       const newQuestion = await invoke<Question>("regenerate_question", {
         index,
+        instructions: instructions || null,
       });
       setQuestions((prev) => {
         const updated = [...prev];

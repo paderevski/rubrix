@@ -1,5 +1,6 @@
 import { Question } from "../types";
-import { RefreshCw, Pencil, Trash2, Check } from "lucide-react";
+import { RefreshCw, Pencil, Trash2, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -8,7 +9,7 @@ import { prism } from "react-syntax-highlighter/dist/esm/styles/prism";
 interface QuestionCardProps {
   question: Question;
   index: number;
-  onRegenerate: () => void;
+  onRegenerate: (instructions?: string) => void;
   onEdit: () => void;
   onDelete: () => void;
 }
@@ -20,6 +21,19 @@ export default function QuestionCard({
   onEdit,
   onDelete,
 }: QuestionCardProps) {
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [instructions, setInstructions] = useState("");
+
+  const handleRegenerate = () => {
+    if (showInstructions && instructions.trim()) {
+      onRegenerate(instructions.trim());
+      setInstructions("");
+      setShowInstructions(false);
+    } else {
+      onRegenerate();
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
       {/* Header */}
@@ -29,7 +43,22 @@ export default function QuestionCard({
         </span>
         <div className="flex items-center gap-1">
           <button
-            onClick={onRegenerate}
+            onClick={() => setShowInstructions(!showInstructions)}
+            className={`p-1.5 rounded hover:bg-secondary transition-colors ${
+              showInstructions
+                ? "text-primary bg-secondary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            title="Add regeneration instructions"
+          >
+            {showInstructions ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </button>
+          <button
+            onClick={handleRegenerate}
             className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
             title="Regenerate"
           >
@@ -51,6 +80,25 @@ export default function QuestionCard({
           </button>
         </div>
       </div>
+
+      {/* Collapsible Instructions Panel */}
+      {showInstructions && (
+        <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Custom instructions for regeneration:
+          </label>
+          <textarea
+            value={instructions}
+            onChange={(e) => setInstructions(e.target.value)}
+            placeholder="e.g., Make it easier, focus on arrays instead of loops, add more steps in explanation..."
+            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+            rows={3}
+          />
+          <p className="text-xs text-slate-600 mt-1">
+            These instructions will be included when regenerating this question.
+          </p>
+        </div>
+      )}
 
       {/* Content */}
       <div className="p-4">

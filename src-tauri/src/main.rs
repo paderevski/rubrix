@@ -171,6 +171,7 @@ async fn generate_questions(
 #[tauri::command]
 async fn regenerate_question(
     index: usize,
+    instructions: Option<String>,
     state: State<'_, AppState>,
     app_handle: tauri::AppHandle,
 ) -> Result<Question, String> {
@@ -190,7 +191,12 @@ async fn regenerate_question(
     );
 
     // Build prompt for single question regeneration
-    let prompt = prompts::build_regenerate_prompt(current, &current_questions, &bank_examples);
+    let prompt = prompts::build_regenerate_prompt(
+        current,
+        &current_questions,
+        &bank_examples,
+        instructions.as_deref(),
+    );
     let response = llm::generate(&prompt, Some(app_handle)).await?;
 
     // Parse the single question

@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 
 interface QuestionListProps {
   questions: Question[];
-  onRegenerate: (index: number) => void;
+  onRegenerate: (index: number, instructions?: string) => void;
   onEdit: (index: number) => void;
   onDelete: (index: number) => void;
   onAdd: () => void;
@@ -24,7 +24,7 @@ export default function QuestionList({
           key={question.id}
           question={question}
           index={index}
-          onRegenerate={() => onRegenerate(index)}
+          onRegenerate={(instructions) => onRegenerate(index, instructions)}
           onEdit={() => onEdit(index)}
           onDelete={() => onDelete(index)}
         />

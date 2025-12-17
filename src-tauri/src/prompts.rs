@@ -307,6 +307,7 @@ pub fn build_regenerate_prompt(
     current: &Question,
     context: &[Question],
     examples: &[QuestionBankEntry],
+    user_instructions: Option<&str>,
 ) -> String {
     // Extract topics from current question content (simple heuristic)
     let topics = "similar topic as original".to_string();
@@ -324,7 +325,7 @@ pub fn build_regenerate_prompt(
         difficulty: "medium", // Could be inferred from the question in future
         count: 1,
         examples: &examples[..examples.len().min(1)], // Use at most 1 example for regeneration
-        user_instructions: None,                      // Reserved for future use
+        user_instructions,
         regenerate_context: Some(RegenerateContext {
             current_question: current,
             other_questions,
