@@ -103,11 +103,23 @@ pub async fn generate(
 ) -> Result<String, String> {
     let client = Client::new();
 
-    // Load .env file (ignore error if already loaded or not present)
-    let _ = dotenvy::dotenv();
-    use std::env;
-    let api_token = env::var("REPLICATE_API_TOKEN")
-        .unwrap_or_else(|_| "YOUR_REPLICATE_API_TOKEN_HERE".to_string());
+    // Get API token from compile-time environment variable
+    // This is set during build from REPLICATE_API_TOKEN env var
+    let api_token = option_env!("REPLICATE_API_TOKEN")
+        .unwrap_or("YOUR_REPLICATE_API_TOKEN_HERE")
+        .to_string();
+
+    // Log API token status (without revealing the actual key)
+    eprintln!(
+        "API token status: {}",
+        if api_token == "YOUR_REPLICATE_API_TOKEN_HERE" {
+            "NOT SET - using mock data"
+        } else if api_token.is_empty() {
+            "EMPTY"
+        } else {
+            "SET (using real API)"
+        }
+    );
 
     // DEBUG: Uncomment to see the prompt being sent
     // eprintln!("DEBUG prompt ({} chars):\n{}", prompt.len(), &prompt[..prompt.len().min(1000)]);
@@ -219,11 +231,13 @@ pub async fn generate(
                 if let Some(output) = status.output {
                     let final_text = output_to_string(&output);
                     emit_stream(&app_handle, &final_text, true);
-                    // eprintln!(
-                    //     "DEBUG response [{}]: {}",
-                    //     http_status.as_u16(),
-                    //     &status_text[..status_text.len()]
-                    // );
+
+                    eprintln!("LLM response received ({} chars)", final_text.len());
+                    eprintln!(
+                        "First 300 chars: {}",
+                        &final_text[..final_text.len().min(300)]
+                    );
+
                     // Log the interaction
                     log_llm_interaction(prompt, &final_text);
                     return Ok(final_text);

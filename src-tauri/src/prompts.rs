@@ -338,6 +338,9 @@ pub fn build_regenerate_prompt(
 pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
     let trimmed = response.trim();
 
+    eprintln!("Parsing LLM response ({} chars)", trimmed.len());
+    eprintln!("First 200 chars: {}", &trimmed[..trimmed.len().min(200)]);
+
     // Extract the first *complete* JSON array. This is robust against:
     // - leading/trailing prose
     // - ```json fences
@@ -395,9 +398,17 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
         None
     }
 
-    let json_str = extract_first_json_array(trimmed).ok_or("No JSON array found in response")?;
+    let json_str = extract_first_json_array(trimmed).ok_or_else(|| {
+        eprintln!("ERROR: No JSON array found in response");
+        eprintln!("Response text: {}", &trimmed[..trimmed.len().min(1000)]);
+        "No JSON array found in response".to_string()
+    })?;
+
+    eprintln!("Extracted JSON array ({} chars)", json_str.len());
 
     let questions: Vec<Question> = serde_json::from_str(&json_str).map_err(|e| {
+        eprintln!("ERROR: Failed to parse JSON: {}", e);
+        eprintln!("JSON string: {}", &json_str[..json_str.len().min(500)]);
         format!(
             "Failed to parse JSON response: {}. JSON: {}",
             e,
@@ -406,13 +417,12 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
     })?;
 
     if questions.is_empty() {
+        eprintln!("ERROR: Parsed JSON array is empty");
+        eprintln!("JSON was: {}", &json_str[..json_str.len().min(500)]);
         return Err("No questions found in JSON response".to_string());
     }
 
-    // eprintln!(
-    //    "DEBUG: Successfully parsed {} questions from JSON",
-    //    questions.len()
-    // );
+    eprintln!("Successfully parsed {} question(s)", questions.len());
 
     // Assign IDs and ensure backward compatibility by populating content field
     let mut result = Vec::new();
