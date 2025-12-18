@@ -1,0 +1,599 @@
+{
+  "schema_version": "1.0.0",
+  "description": "Controlled vocabularies for AP Calculus AB/BC pedagogy metadata",
+  "last_updated": "2025-12-18",
+  "source": "AP Calculus AB/BC Curriculum Framework",
+
+  "ap_calc_units": {
+    "description": "Official AP Calculus curriculum units",
+    "items": [
+      {
+        "id": "U1",
+        "name": "unit_1",
+        "display": "Unit 1: Limits and Continuity",
+        "exam_weight": "10-12%",
+        "course": "AB/BC"
+      },
+      {
+        "id": "U2",
+        "name": "unit_2",
+        "display": "Unit 2: Differentiation: Definition and Fundamental Properties",
+        "exam_weight": "10-12%",
+        "course": "AB/BC"
+      },
+      {
+        "id": "U3",
+        "name": "unit_3",
+        "display": "Unit 3: Differentiation: Composite, Implicit, and Inverse Functions",
+        "exam_weight": "9-13%",
+        "course": "AB/BC"
+      },
+      {
+        "id": "U4",
+        "name": "unit_4",
+        "display": "Unit 4: Contextual Applications of Differentiation",
+        "exam_weight": "10-15%",
+        "course": "AB/BC"
+      },
+      {
+        "id": "U5",
+        "name": "unit_5",
+        "display": "Unit 5: Analytical Applications of Differentiation",
+        "exam_weight": "15-18%",
+        "course": "AB/BC"
+      },
+      {
+        "id": "U6",
+        "name": "unit_6",
+        "display": "Unit 6: Integration and Accumulation of Change",
+        "exam_weight": "17-20%",
+        "course": "AB/BC"
+      },
+      {
+        "id": "U7",
+        "name": "unit_7",
+        "display": "Unit 7: Differential Equations",
+        "exam_weight": "6-12%",
+        "course": "AB/BC"
+      },
+      {
+        "id": "U8",
+        "name": "unit_8",
+        "display": "Unit 8: Applications of Integration",
+        "exam_weight": "10-15%",
+        "course": "AB/BC"
+      },
+      {
+        "id": "U9",
+        "name": "unit_9",
+        "display": "Unit 9: Parametric Equations, Polar Coordinates, and Vector-Valued Functions",
+        "exam_weight": "11-12%",
+        "course": "BC only"
+      },
+      {
+        "id": "U10",
+        "name": "unit_10",
+        "display": "Unit 10: Infinite Sequences and Series",
+        "exam_weight": "17-18%",
+        "course": "BC only"
+      }
+    ]
+  },
+
+  "topics": {
+    "description": "AP Calculus topics for question generation",
+    "items": [
+      {
+        "comment": "--- LIMITS AND CONTINUITY ---"
+      },
+      {
+        "id": "T001",
+        "name": "limits_intro",
+        "display": "Introduction to Limits",
+        "unit": "U1",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T002",
+        "name": "limits_properties",
+        "display": "Limit Properties and Algebra",
+        "unit": "U1",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T003",
+        "name": "limits_infinity",
+        "display": "Limits at Infinity",
+        "unit": "U1",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T004",
+        "name": "continuity",
+        "display": "Continuity",
+        "unit": "U1",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T005",
+        "name": "ivt",
+        "display": "Intermediate Value Theorem",
+        "unit": "U1",
+        "course": "AB/BC"
+      },
+
+      {
+        "comment": "--- DIFFERENTIATION BASICS ---"
+      },
+      {
+        "id": "T006",
+        "name": "derivative_definition",
+        "display": "Definition of the Derivative",
+        "unit": "U2",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T007",
+        "name": "derivative_function",
+        "display": "The Derivative as a Function",
+        "unit": "U2",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T008",
+        "name": "power_rule",
+        "display": "Power Rule",
+        "unit": "U2",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T009",
+        "name": "product_quotient_rules",
+        "display": "Product and Quotient Rules",
+        "unit": "U2",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T010",
+        "name": "trig_derivatives",
+        "display": "Derivatives of Trigonometric Functions",
+        "unit": "U2",
+        "course": "AB/BC"
+      },
+
+      {
+        "comment": "--- ADVANCED DIFFERENTIATION ---"
+      },
+      {
+        "id": "T011",
+        "name": "chain_rule",
+        "display": "Chain Rule",
+        "unit": "U3",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T012",
+        "name": "implicit_differentiation",
+        "display": "Implicit Differentiation",
+        "unit": "U3",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T013",
+        "name": "inverse_functions",
+        "display": "Derivatives of Inverse Functions",
+        "unit": "U3",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T014",
+        "name": "exponential_derivatives",
+        "display": "Derivatives of Exponential Functions",
+        "unit": "U3",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T015",
+        "name": "logarithmic_derivatives",
+        "display": "Derivatives of Logarithmic Functions",
+        "unit": "U3",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T016",
+        "name": "inverse_trig_derivatives",
+        "display": "Derivatives of Inverse Trigonometric Functions",
+        "unit": "U3",
+        "course": "AB/BC"
+      },
+
+      {
+        "comment": "--- CONTEXTUAL APPLICATIONS OF DIFFERENTIATION ---"
+      },
+      {
+        "id": "T017",
+        "name": "related_rates",
+        "display": "Related Rates",
+        "unit": "U4",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T018",
+        "name": "position_velocity_acceleration",
+        "display": "Position, Velocity, and Acceleration",
+        "unit": "U4",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T019",
+        "name": "linearization",
+        "display": "Linear Approximation and Differentials",
+        "unit": "U4",
+        "course": "AB/BC"
+      },
+
+      {
+        "comment": "--- ANALYTICAL APPLICATIONS OF DIFFERENTIATION ---"
+      },
+      {
+        "id": "T020",
+        "name": "mean_value_theorem",
+        "display": "Mean Value Theorem",
+        "unit": "U5",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T021",
+        "name": "extrema",
+        "display": "Extreme Values and Critical Points",
+        "unit": "U5",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T022",
+        "name": "increasing_decreasing",
+        "display": "Increasing and Decreasing Functions",
+        "unit": "U5",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T023",
+        "name": "concavity",
+        "display": "Concavity and Inflection Points",
+        "unit": "U5",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T024",
+        "name": "optimization",
+        "display": "Optimization Problems",
+        "unit": "U5",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T025",
+        "name": "curve_sketching",
+        "display": "Curve Sketching",
+        "unit": "U5",
+        "course": "AB/BC"
+      },
+
+      {
+        "comment": "--- INTEGRATION BASICS ---"
+      },
+      {
+        "id": "T026",
+        "name": "antiderivatives",
+        "display": "Antiderivatives and Indefinite Integrals",
+        "unit": "U6",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T027",
+        "name": "riemann_sums",
+        "display": "Riemann Sums",
+        "unit": "U6",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T028",
+        "name": "definite_integral",
+        "display": "The Definite Integral",
+        "unit": "U6",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T029",
+        "name": "ftc_part1",
+        "display": "Fundamental Theorem of Calculus Part 1",
+        "unit": "U6",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T030",
+        "name": "ftc_part2",
+        "display": "Fundamental Theorem of Calculus Part 2",
+        "unit": "U6",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T031",
+        "name": "u_substitution",
+        "display": "Integration by Substitution",
+        "unit": "U6",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T032",
+        "name": "integration_by_parts",
+        "display": "Integration by Parts",
+        "unit": "U6",
+        "course": "BC only"
+      },
+
+      {
+        "comment": "--- DIFFERENTIAL EQUATIONS ---"
+      },
+      {
+        "id": "T033",
+        "name": "slope_fields",
+        "display": "Slope Fields",
+        "unit": "U7",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T034",
+        "name": "separable_differential_equations",
+        "display": "Separable Differential Equations",
+        "unit": "U7",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T035",
+        "name": "exponential_growth_decay",
+        "display": "Exponential Growth and Decay Models",
+        "unit": "U7",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T036",
+        "name": "eulers_method",
+        "display": "Euler's Method",
+        "unit": "U7",
+        "course": "BC only"
+      },
+      {
+        "id": "T037",
+        "name": "logistic_growth",
+        "display": "Logistic Growth Models",
+        "unit": "U7",
+        "course": "BC only"
+      },
+
+      {
+        "comment": "--- APPLICATIONS OF INTEGRATION ---"
+      },
+      {
+        "id": "T038",
+        "name": "area_between_curves",
+        "display": "Area Between Curves",
+        "unit": "U8",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T039",
+        "name": "volumes_cross_sections",
+        "display": "Volumes with Cross Sections",
+        "unit": "U8",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T040",
+        "name": "volumes_revolution",
+        "display": "Volumes of Revolution (Disk/Washer)",
+        "unit": "U8",
+        "course": "AB/BC"
+      },
+      {
+        "id": "T041",
+        "name": "arc_length",
+        "display": "Arc Length",
+        "unit": "U8",
+        "course": "BC only"
+      },
+
+      {
+        "comment": "--- PARAMETRIC AND POLAR (BC ONLY) ---"
+      },
+      {
+        "id": "T042",
+        "name": "parametric_equations",
+        "display": "Parametric Equations",
+        "unit": "U9",
+        "course": "BC only"
+      },
+      {
+        "id": "T043",
+        "name": "parametric_calculus",
+        "display": "Calculus with Parametric Equations",
+        "unit": "U9",
+        "course": "BC only"
+      },
+      {
+        "id": "T044",
+        "name": "vector_functions",
+        "display": "Vector-Valued Functions",
+        "unit": "U9",
+        "course": "BC only"
+      },
+      {
+        "id": "T045",
+        "name": "polar_coordinates",
+        "display": "Polar Coordinates",
+        "unit": "U9",
+        "course": "BC only"
+      },
+      {
+        "id": "T046",
+        "name": "polar_calculus",
+        "display": "Calculus with Polar Coordinates",
+        "unit": "U9",
+        "course": "BC only"
+      },
+
+      {
+        "comment": "--- SEQUENCES AND SERIES (BC ONLY) ---"
+      },
+      {
+        "id": "T047",
+        "name": "sequences",
+        "display": "Sequences",
+        "unit": "U10",
+        "course": "BC only"
+      },
+      {
+        "id": "T048",
+        "name": "series_intro",
+        "display": "Introduction to Series",
+        "unit": "U10",
+        "course": "BC only"
+      },
+      {
+        "id": "T049",
+        "name": "geometric_series",
+        "display": "Geometric Series",
+        "unit": "U10",
+        "course": "BC only"
+      },
+      {
+        "id": "T050",
+        "name": "convergence_tests",
+        "display": "Convergence Tests",
+        "unit": "U10",
+        "course": "BC only"
+      },
+      {
+        "id": "T051",
+        "name": "integral_test",
+        "display": "Integral Test",
+        "unit": "U10",
+        "course": "BC only"
+      },
+      {
+        "id": "T052",
+        "name": "comparison_tests",
+        "display": "Comparison Tests",
+        "unit": "U10",
+        "course": "BC only"
+      },
+      {
+        "id": "T053",
+        "name": "alternating_series",
+        "display": "Alternating Series",
+        "unit": "U10",
+        "course": "BC only"
+      },
+      {
+        "id": "T054",
+        "name": "ratio_root_tests",
+        "display": "Ratio and Root Tests",
+        "unit": "U10",
+        "course": "BC only"
+      },
+      {
+        "id": "T055",
+        "name": "power_series",
+        "display": "Power Series",
+        "unit": "U10",
+        "course": "BC only"
+      },
+      {
+        "id": "T056",
+        "name": "taylor_series",
+        "display": "Taylor and Maclaurin Series",
+        "unit": "U10",
+        "course": "BC only"
+      },
+      {
+        "id": "T057",
+        "name": "taylor_polynomials",
+        "display": "Taylor Polynomial Approximations",
+        "unit": "U10",
+        "course": "BC only"
+      }
+    ]
+  },
+
+  "difficulty_levels": {
+    "description": "Question difficulty classification",
+    "items": [
+      {
+        "id": "easy",
+        "display": "Easy",
+        "description": "Basic concept application"
+      },
+      {
+        "id": "medium",
+        "display": "Medium",
+        "description": "Multi-step problem solving"
+      },
+      {
+        "id": "hard",
+        "display": "Hard",
+        "description": "Complex analysis or synthesis"
+      }
+    ]
+  },
+
+  "cognitive_levels": {
+    "description": "Bloom's taxonomy levels for calculus",
+    "items": [
+      {
+        "id": "knowledge",
+        "display": "Knowledge",
+        "description": "Recall definitions and formulas"
+      },
+      {
+        "id": "comprehension",
+        "display": "Comprehension",
+        "description": "Explain concepts"
+      },
+      {
+        "id": "application",
+        "display": "Application",
+        "description": "Apply techniques to solve problems"
+      },
+      {
+        "id": "analysis",
+        "display": "Analysis",
+        "description": "Analyze functions and their properties"
+      },
+      {
+        "id": "synthesis",
+        "display": "Synthesis",
+        "description": "Combine multiple concepts"
+      },
+      {
+        "id": "evaluation",
+        "display": "Evaluation",
+        "description": "Justify and critique solutions"
+      }
+    ]
+  },
+
+  "skills": {
+    "description": "Mathematical practices for calculus",
+    "items": [
+      { "id": "algebraic_manipulation", "display": "Algebraic Manipulation" },
+      { "id": "graphical_reasoning", "display": "Graphical Reasoning" },
+      { "id": "numerical_approximation", "display": "Numerical Approximation" },
+      { "id": "symbolic_computation", "display": "Symbolic Computation" },
+      {
+        "id": "verbal_interpretation",
+        "display": "Verbal/Written Interpretation"
+      },
+      { "id": "problem_solving", "display": "Problem Solving Strategy" },
+      { "id": "justification", "display": "Mathematical Justification" }
+    ]
+  }
+}

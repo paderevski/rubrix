@@ -54,27 +54,6 @@ TIMESTAMP: {}
     }
 }
 
-#[derive(Debug, Serialize)]
-struct ReplicateRequest {
-    version: String,
-    input: ReplicateInput,
-}
-
-#[derive(Debug, Serialize)]
-struct ReplicateInput {
-    prompt: String,
-    max_tokens: u32,
-    temperature: f32,
-}
-
-#[derive(Debug, Deserialize)]
-struct ReplicateResponse {
-    id: String,
-    status: String,
-    output: Option<Vec<String>>,
-    error: Option<String>,
-}
-
 #[derive(Debug, Deserialize)]
 struct ReplicatePrediction {
     id: String,

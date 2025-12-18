@@ -1,10 +1,8 @@
 //! Knowledge base management - loads example questions for few-shot prompting
 
 use crate::{
-    Answer, CommonMistake, DistractorInfo, Question, QuestionBankEntry, QuestionBankOption,
-    SubjectInfo, TopicInfo,
+    CommonMistake, DistractorInfo, QuestionBankEntry, QuestionBankOption, SubjectInfo, TopicInfo,
 };
-use regex::Regex;
 use rust_embed::RustEmbed;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -32,8 +30,6 @@ struct TopicSchemaItem {
     name: String,
     #[serde(default)]
     display: String,
-    #[serde(default)]
-    comment: String,
 }
 
 /// Full question bank JSON structure
@@ -72,8 +68,6 @@ struct OptionJson {
 struct Pedagogy {
     topics: Vec<String>,
     skills: Vec<String>,
-    #[serde(default)]
-    ap_cs_topics: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -86,15 +80,11 @@ struct DistractorsJson {
 struct CommonMistakeJson {
     option_id: String,
     misconception: String,
-    #[serde(default)]
-    reasoning: Option<String>,
 }
 
 pub struct KnowledgeBase {
     /// Topics organized by subject
     pub subjects: HashMap<String, Vec<TopicInfo>>,
-    /// Legacy text-based questions by subject/topic path
-    pub text_questions: HashMap<String, Vec<Question>>,
     /// Rich JSON questions from question-bank.json (organized by subject)
     pub bank_entries: HashMap<String, Vec<QuestionBankEntry>>,
 }
@@ -103,7 +93,6 @@ impl KnowledgeBase {
     /// Load knowledge base from embedded files, organized by subject folders
     pub fn load() -> Self {
         let mut subjects: HashMap<String, Vec<TopicInfo>> = HashMap::new();
-        let mut text_questions: HashMap<String, Vec<Question>> = HashMap::new();
         let mut bank_entries: HashMap<String, Vec<QuestionBankEntry>> = HashMap::new();
 
         // List of subjects to scan (can be expanded)
@@ -212,11 +201,6 @@ impl KnowledgeBase {
             bank_entries.insert(subject_name.to_string(), subject_bank_entries.clone());
 
             for (name, display, _desc, topic_codes) in topic_definitions {
-                let question_key = format!("{}/{}", subject_name, name);
-
-                // Note: We no longer load .txt files - only using question-bank.json
-                text_questions.insert(question_key.clone(), Vec::new());
-
                 // Count examples for this topic from question bank
                 let json_count = subject_bank_entries
                     .iter()
@@ -250,7 +234,6 @@ impl KnowledgeBase {
 
         KnowledgeBase {
             subjects,
-            text_questions,
             bank_entries,
         }
     }
@@ -270,26 +253,6 @@ impl KnowledgeBase {
     /// Get all available topics for a specific subject
     pub fn get_topics(&self, subject: &str) -> Vec<TopicInfo> {
         self.subjects.get(subject).cloned().unwrap_or_else(Vec::new)
-    }
-
-    /// Get example questions for specified topics (legacy format for compatibility)
-    pub fn get_examples(
-        &self,
-        subject: &str,
-        topic_ids: &[String],
-        max_per_topic: usize,
-    ) -> Vec<Question> {
-        let mut examples = Vec::new();
-
-        for topic_id in topic_ids {
-            let question_key = format!("{}/{}", subject, topic_id);
-            if let Some(topic_questions) = self.text_questions.get(&question_key) {
-                let take_count = max_per_topic.min(topic_questions.len());
-                examples.extend(topic_questions.iter().take(take_count).cloned());
-            }
-        }
-
-        examples
     }
 
     /// Get rich question bank entries for specified topics
@@ -379,122 +342,4 @@ impl KnowledgeBase {
         results.truncate(max_total);
         results
     }
-}
-
-/// Parse a legacy text-format question bank file
-fn parse_text_question_bank(content: &str) -> Vec<Question> {
-    let mut questions = Vec::new();
-
-    // Skip title line if present
-    let content = if content.trim_start().starts_with("Title:") {
-        let lines: Vec<&str> = content.lines().collect();
-        let start = lines
-            .iter()
-            .position(|l| l.trim().starts_with("Title:"))
-            .unwrap_or(0);
-        lines[start + 1..].join("\n")
-    } else {
-        content.to_string()
-    };
-
-    let content = format!("\n{}", content.trim());
-
-    // Split by question numbers
-    let question_re = Regex::new(r"\n(\d+\.\s+)").unwrap();
-    let mut last_end = 0;
-    let mut blocks = Vec::new();
-
-    for mat in question_re.find_iter(&content) {
-        if last_end > 0 {
-            let block = &content[last_end..mat.start()];
-            if !block.trim().is_empty() {
-                blocks.push(block.trim().to_string());
-            }
-        }
-        last_end = mat.start() + 1;
-    }
-
-    if last_end < content.len() {
-        let block = &content[last_end..];
-        if !block.trim().is_empty() {
-            blocks.push(block.trim().to_string());
-        }
-    }
-
-    let num_re = Regex::new(r"^\d+\.\s+").unwrap();
-
-    for (i, block) in blocks.iter().enumerate() {
-        if !num_re.is_match(block) {
-            continue;
-        }
-
-        if let Some(q) = parse_text_question(block, i + 1) {
-            questions.push(q);
-        }
-    }
-
-    questions
-}
-
-/// Parse a single question from legacy text format
-fn parse_text_question(text: &str, index: usize) -> Option<Question> {
-    let num_re = Regex::new(r"^\d+\.\s+").unwrap();
-    let text = num_re.replace(text, "").to_string();
-
-    let answer_re = Regex::new(r"\n\s*a\.\s+").unwrap();
-    let answer_start = answer_re.find(&text)?;
-
-    let content = text[..answer_start.start()].trim().to_string();
-    let answers_section = &text[answer_start.start()..];
-    let answers = parse_text_answers(answers_section);
-
-    if answers.is_empty() {
-        return None;
-    }
-
-    Some(Question {
-        id: format!("ex{}", index),
-        content: content.clone(),
-        stem: content,
-        code: None,
-        explanation: None,
-        distractors: None,
-        answers,
-    })
-}
-
-/// Parse answer choices from legacy text format
-fn parse_text_answers(text: &str) -> Vec<Answer> {
-    let mut answers = Vec::new();
-    let mut current: Option<String> = None;
-
-    for line in text.lines() {
-        let trimmed = line.trim();
-
-        if trimmed.starts_with("a.") {
-            if let Some(text) = current.take() {
-                answers.push(Answer {
-                    text,
-                    is_correct: answers.is_empty(),
-                    explanation: None,
-                });
-            }
-            current = Some(trimmed[2..].trim().to_string());
-        } else if let Some(ref mut text) = current {
-            if !trimmed.is_empty() {
-                text.push('\n');
-                text.push_str(trimmed);
-            }
-        }
-    }
-
-    if let Some(text) = current {
-        answers.push(Answer {
-            text,
-            is_correct: answers.is_empty(),
-            explanation: None,
-        });
-    }
-
-    answers
 }
