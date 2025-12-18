@@ -185,7 +185,9 @@ fn generate_qti_xml(_title: &str, questions: &[Question]) -> String {
                 correct_id = choice_num.to_string();
             }
 
-            let answer_html = convert_inline_code(&htmlescape::encode_minimal(&answer.text));
+            // Convert LaTeX first, then inline code for answer text
+            let processed = convert_latex(&answer.text);
+            let answer_html = convert_inline_code(&processed);
             let choice = CHOICE_TEMPLATE
                 .replace("{choice_id}", &choice_num.to_string())
                 .replace("{choice_text}", &answer_html);
@@ -215,7 +217,11 @@ fn convert_to_html(q: &Question) -> String {
     } else {
         &q.content
     };
-    html.push_str(&convert_inline_code(&htmlescape::encode_minimal(stem)));
+
+    // Convert LaTeX first, then inline code, then HTML escape
+    let processed = convert_latex(stem);
+    let processed = convert_inline_code(&processed);
+    html.push_str(&processed);
 
     // Add code block if present
     if let Some(code) = &q.code {
@@ -226,6 +232,31 @@ fn convert_to_html(q: &Question) -> String {
     }
 
     html
+}
+
+/// Convert LaTeX blocks to img tags with learn.lcps.org API
+fn convert_latex(text: &str) -> String {
+    // First handle display math ($$...$$)
+    let display_re = Regex::new(r"\$\$([^\$]+)\$\$").unwrap();
+    let text = display_re.replace_all(text, |caps: &regex::Captures| {
+        let formula = caps.get(1).unwrap().as_str().trim();
+        let encoded = urlencoding::encode(formula);
+        format!(
+            r#"<img src="https://learn.lcps.org/svc/latex/latex-to-svg?latex={}" alt="{}" formula="{}" class="mathquill-formula" />"#,
+            encoded, formula, formula
+        )
+    });
+
+    // Then handle inline math ($...$)
+    let inline_re = Regex::new(r"\$([^\$]+)\$").unwrap();
+    inline_re.replace_all(&text, |caps: &regex::Captures| {
+        let formula = caps.get(1).unwrap().as_str().trim();
+        let encoded = urlencoding::encode(formula);
+        format!(
+            r#"<img src="https://learn.lcps.org/svc/latex/latex-to-svg?latex={}" alt="{}" formula="{}" class="mathquill-formula" />"#,
+            encoded, formula, formula
+        )
+    }).to_string()
 }
 
 /// Convert backticks to <code> tags
@@ -272,5 +303,35 @@ mod tests {
         assert!(result.contains("Title: Test"));
         assert!(result.contains("1. What is 2+2?"));
         assert!(result.contains("a. 4"));
+    }
+
+    #[test]
+    fn test_convert_latex_inline() {
+        let input = "What is $3x-sin\\left(x\\right)+\\sqrt{x}$ equal to?";
+        let result = convert_latex(input);
+        assert!(result.contains("https://learn.lcps.org/svc/latex/latex-to-svg?latex="));
+        assert!(result.contains(r#"alt="3x-sin\left(x\right)+\sqrt{x}""#));
+        assert!(result.contains(r#"formula="3x-sin\left(x\right)+\sqrt{x}""#));
+        assert!(result.contains("class=\"mathquill-formula\""));
+    }
+
+    #[test]
+    fn test_convert_latex_display() {
+        let input = "An equation: $$\\large 3x-sin\\left(x\\right)+\\sqrt{x}$$";
+        let result = convert_latex(input);
+        assert!(result.contains("https://learn.lcps.org/svc/latex/latex-to-svg?latex="));
+        assert!(result.contains(r#"alt="\large 3x-sin\left(x\right)+\sqrt{x}""#));
+        assert!(result.contains("class=\"mathquill-formula\""));
+    }
+
+    #[test]
+    fn test_convert_latex_url_encoding() {
+        let input = "Test $\\large 3x-sin\\left(x\\right)+\\sqrt{x}$ formula";
+        let result = convert_latex(input);
+        // Check that special characters are URL encoded
+        assert!(result.contains("%5C")); // backslash
+        assert!(result.contains("%2B")); // plus sign
+        assert!(result.contains("%7B")); // {
+        assert!(result.contains("%7D")); // }
     }
 }
