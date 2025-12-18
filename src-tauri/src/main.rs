@@ -63,7 +63,15 @@ pub struct TopicInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubjectInfo {
+    pub id: String,
+    pub name: String,
+    pub topic_count: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerationRequest {
+    pub subject: String,
     pub topics: Vec<String>,
     pub difficulty: String,
     pub count: u32,
@@ -124,8 +132,13 @@ pub struct AppState {
 // ============================================================================
 
 #[tauri::command]
-fn get_topics(state: State<AppState>) -> Vec<TopicInfo> {
-    state.knowledge.get_topics()
+fn get_subjects(state: State<AppState>) -> Vec<SubjectInfo> {
+    state.knowledge.get_subjects()
+}
+
+#[tauri::command]
+fn get_topics(subject: String, state: State<AppState>) -> Vec<TopicInfo> {
+    state.knowledge.get_topics(&subject)
 }
 
 #[tauri::command]
@@ -136,6 +149,7 @@ async fn generate_questions(
 ) -> Result<Vec<Question>, String> {
     // Get rich examples from question bank (prefer these for better distractors)
     let bank_examples = state.knowledge.get_bank_examples(
+        &request.subject,
         &request.topics,
         Some(&request.difficulty),
         3, // Get up to 3 examples
@@ -185,6 +199,7 @@ async fn regenerate_question(
 
     // Get one example for reference
     let bank_examples = state.knowledge.get_bank_examples(
+        "Computer Science",         // Default subject
         &["recursion".to_string()], // Default topic
         None,
         1,
@@ -302,12 +317,6 @@ fn export_to_qti(title: String, state: State<AppState>) -> Result<Vec<u8>, Strin
 fn main() {
     let knowledge = knowledge::KnowledgeBase::load();
 
-    println!("Loaded {} topics", knowledge.topics.len());
-    println!(
-        "Loaded {} question bank entries",
-        knowledge.bank_entries.len()
-    );
-
     let state = AppState {
         questions: Mutex::new(Vec::new()),
         knowledge,
@@ -316,6 +325,7 @@ fn main() {
     tauri::Builder::default()
         .manage(state)
         .invoke_handler(tauri::generate_handler![
+            get_subjects,
             get_topics,
             generate_questions,
             regenerate_question,

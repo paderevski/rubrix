@@ -22,7 +22,14 @@ export interface TopicInfo {
   example_count: number;
 }
 
+export interface SubjectInfo {
+  id: string;
+  name: string;
+  topic_count: number;
+}
+
 export interface GenerationRequest {
+  subject: string;
   topics: string[];
   difficulty: string;
   count: number;
