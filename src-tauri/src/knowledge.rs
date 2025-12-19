@@ -51,8 +51,7 @@ struct QuestionBankJsonEntry {
 
 #[derive(Debug, Deserialize)]
 struct QuestionContent {
-    stem: String,
-    code: Option<String>,
+    text: String,
     options: Vec<OptionJson>,
     explanation: String,
 }
@@ -87,6 +86,8 @@ pub struct KnowledgeBase {
     pub subjects: HashMap<String, Vec<TopicInfo>>,
     /// Rich JSON questions from question-bank.json (organized by subject)
     pub bank_entries: HashMap<String, Vec<QuestionBankEntry>>,
+    /// Mapping of topic_id -> topic_codes for each subject
+    pub topic_code_mappings: HashMap<String, HashMap<String, Vec<String>>>,
 }
 
 impl KnowledgeBase {
@@ -94,6 +95,7 @@ impl KnowledgeBase {
     pub fn load() -> Self {
         let mut subjects: HashMap<String, Vec<TopicInfo>> = HashMap::new();
         let mut bank_entries: HashMap<String, Vec<QuestionBankEntry>> = HashMap::new();
+        let mut topic_code_mappings: HashMap<String, HashMap<String, Vec<String>>> = HashMap::new();
 
         // List of subjects to scan (can be expanded)
         let subject_names = vec!["Computer Science", "Calculus", "English 7"];
@@ -154,8 +156,7 @@ impl KnowledgeBase {
                         .into_iter()
                         .map(|q| QuestionBankEntry {
                             id: q.id,
-                            stem: q.content.stem,
-                            code: q.content.code,
+                            text: q.content.text,
                             options: q
                                 .content
                                 .options
@@ -200,7 +201,13 @@ impl KnowledgeBase {
             // Store bank entries for this subject
             bank_entries.insert(subject_name.to_string(), subject_bank_entries.clone());
 
+            // Build topic code mapping for this subject
+            let mut subject_topic_codes: HashMap<String, Vec<String>> = HashMap::new();
+
             for (name, display, _desc, topic_codes) in topic_definitions {
+                // Store the mapping from topic name to topic codes
+                subject_topic_codes.insert(name.clone(), topic_codes.clone());
+
                 // Count examples for this topic from question bank
                 let json_count = subject_bank_entries
                     .iter()
@@ -224,6 +231,7 @@ impl KnowledgeBase {
 
             if !subject_topics.is_empty() {
                 subjects.insert(subject_name.to_string(), subject_topics);
+                topic_code_mappings.insert(subject_name.to_string(), subject_topic_codes);
             }
         }
 
@@ -235,6 +243,7 @@ impl KnowledgeBase {
         KnowledgeBase {
             subjects,
             bank_entries,
+            topic_code_mappings,
         }
     }
 
@@ -263,21 +272,8 @@ impl KnowledgeBase {
         difficulty: Option<&str>,
         max_total: usize,
     ) -> Vec<QuestionBankEntry> {
-        // Map topic IDs to topic codes
-        let topic_code_map: HashMap<&str, Vec<&str>> = [
-            ("recursion", vec!["T009"]),
-            ("arrays", vec!["T006"]),
-            ("arraylist", vec!["T007"]),
-            ("2darrays", vec!["T008"]),
-            ("strings", vec!["T013"]),
-            ("classes", vec!["T005"]),
-            ("inheritance", vec!["T016", "T017"]),
-            ("sorting", vec!["T010", "T011"]),
-            ("iteration", vec!["T004"]),
-            ("boolean", vec!["T003"]),
-        ]
-        .into_iter()
-        .collect();
+        // Get topic code mapping for this subject
+        let topic_code_map = self.topic_code_mappings.get(subject);
 
         let difficulty_code = match difficulty {
             Some("easy") => Some("D1"),
@@ -293,15 +289,17 @@ impl KnowledgeBase {
             .iter()
             .filter(|entry| {
                 // Check topic match
-                let topic_match = topic_ids.iter().any(|tid| {
-                    if let Some(codes) = topic_code_map.get(tid.as_str()) {
-                        codes
-                            .iter()
-                            .any(|code| entry.topics.contains(&code.to_string()))
-                    } else {
-                        false
-                    }
-                });
+                let topic_match = if let Some(map) = topic_code_map {
+                    topic_ids.iter().any(|tid| {
+                        if let Some(codes) = map.get(tid) {
+                            codes.iter().any(|code| entry.topics.contains(code))
+                        } else {
+                            false
+                        }
+                    })
+                } else {
+                    false
+                };
 
                 // Check difficulty match (if specified)
                 let diff_match = difficulty_code
@@ -318,15 +316,17 @@ impl KnowledgeBase {
             let additional: Vec<QuestionBankEntry> = subject_entries
                 .iter()
                 .filter(|entry| {
-                    let topic_match = topic_ids.iter().any(|tid| {
-                        if let Some(codes) = topic_code_map.get(tid.as_str()) {
-                            codes
-                                .iter()
-                                .any(|code| entry.topics.contains(&code.to_string()))
-                        } else {
-                            false
-                        }
-                    });
+                    let topic_match = if let Some(map) = topic_code_map {
+                        topic_ids.iter().any(|tid| {
+                            if let Some(codes) = map.get(tid) {
+                                codes.iter().any(|code| entry.topics.contains(code))
+                            } else {
+                                false
+                            }
+                        })
+                    } else {
+                        false
+                    };
 
                     // Not already included
                     let not_included = !results.iter().any(|r| r.id == entry.id);

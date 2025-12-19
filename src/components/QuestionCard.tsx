@@ -102,15 +102,25 @@ export default function QuestionCard({
 
       {/* Content */}
       <div className="p-4">
-        {/* Question Stem (Markdown) */}
+        {/* Question Text (Markdown with code blocks) */}
         <div className="prose prose-sm max-w-none mb-4">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              // Inline code
-              code({ children }) {
-                return (
-                  <code className="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded text-sm font-mono">
+              // Code blocks
+              code({ node, inline, className, children, ...props }) {
+                const match = /language-(\w+)/.exec(className || "");
+                return !inline && match ? (
+                  <SyntaxHighlighter
+                    style={prism}
+                    language={match[1]}
+                    PreTag="div"
+                    customStyle={{ margin: 0, borderRadius: "0.5rem" }}
+                  >
+                    {String(children).replace(/\n$/, "")}
+                  </SyntaxHighlighter>
+                ) : (
+                  <code className="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded text-sm font-mono" {...props}>
                     {children}
                   </code>
                 );
@@ -121,23 +131,9 @@ export default function QuestionCard({
               },
             }}
           >
-            {question.stem || question.content}
+            {question.text}
           </ReactMarkdown>
         </div>
-
-        {/* Code Block (if present) */}
-        {question.code && (
-          <div className="mb-4">
-            <SyntaxHighlighter
-              style={prism}
-              language="java"
-              PreTag="div"
-              customStyle={{ margin: 0, borderRadius: "0.5rem" }}
-            >
-              {question.code}
-            </SyntaxHighlighter>
-          </div>
-        )}
 
         {/* Answers */}
         <div className="space-y-2">

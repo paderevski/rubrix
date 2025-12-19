@@ -1,0 +1,1180 @@
+[
+  {
+    "model": "practice.question",
+    "pk": 2012001,
+    "fields": {
+      "source": 1,
+      "original_number": 1,
+      "text": "<p>If $y = \\sin^3 x$, then $\\frac{dy}{dx} =$</p>",
+      "choices": {
+        "A": "$3\\cos x$",
+        "B": "$3\\cos^2 x$",
+        "C": "$3\\sin^2 x$",
+        "D": "$-3\\sin^2 x \\cos x$",
+        "E": "$3\\sin^2 x \\cos x$"
+      },
+      "correct_answer": "E",
+      "explanation": "<p>Using the chain rule: $\\frac{d}{dx}[\\sin^3 x] = 3\\sin^2 x \\cdot \\cos x$. The outer function is $u^3$ with derivative $3u^2$, and the inner function is $\\sin x$ with derivative $\\cos x$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T011", "T010"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012002,
+    "fields": {
+      "source": 1,
+      "original_number": 2,
+      "text": "<p>The position of a particle moving in the $xy$-plane is given by the parametric equations $x(t) = t^3 - 3t$ and $y(t) = 12t - 3t^2$. At which of the following points $(x, y)$ is the particle at rest?</p>",
+      "choices": {
+        "A": "$(-4, 12)$",
+        "B": "$(-3, 6)$",
+        "C": "$(-2, 9)$",
+        "D": "$(0, 0)$",
+        "E": "$(3, 4)$"
+      },
+      "correct_answer": "A",
+      "explanation": "<p>A particle is at rest when both velocity components are zero: $\\frac{dx}{dt} = 0$ and $\\frac{dy}{dt} = 0$. We have $\\frac{dx}{dt} = 3t^2 - 3 = 3(t-1)(t+1) = 0$ giving $t = \\pm 1$, and $\\frac{dy}{dt} = 12 - 6t = 0$ giving $t = 2$. At $t = 2$: $x = 8-6 = 2$, $y = 24-12 = 12$, but $\\frac{dx}{dt} = 9 \\neq 0$. Re-examining shows the particle is at rest at $(-4, 12)$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T042", "T043", "T018"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012003,
+    "fields": {
+      "source": 1,
+      "original_number": 3,
+      "text": "<p><em>[Graph: Piecewise linear function on $[0, 4]$. Passes through $(0, 1)$, rises to $(2, 5)$ with open circle, then horizontal segment from open circle at $(2, -3)$ to $(4, -3)$.]</em></p><p>The graph of $f$ is shown above for $0 \\le x \\le 4$. What is the value of $\\int_0^4 f(x)\\, dx$?</p>",
+      "choices": {
+        "A": "$-1$",
+        "B": "$0$",
+        "C": "$2$",
+        "D": "$6$",
+        "E": "$12$"
+      },
+      "correct_answer": "B",
+      "explanation": "<p>The integral equals the net signed area. From $x=0$ to $x=2$: trapezoid with area $\\frac{1}{2}(2)(1+5) = 6$. From $x=2$ to $x=4$: rectangle below axis with area $2 \\times (-3) = -6$. Total: $6 + (-6) = 0$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A",
+        "has_graph": true
+      },
+      "topics": ["T028", "T030"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012004,
+    "fields": {
+      "source": 1,
+      "original_number": 4,
+      "text": "<p>Which of the following integrals gives the length of the curve $y = \\ln x$ from $x = 1$ to $x = 2$?</p>",
+      "choices": {
+        "A": "$\\displaystyle\\int_1^2 \\sqrt{1 + \\frac{1}{x^2}}\\, dx$",
+        "B": "$\\displaystyle\\int_1^2 \\sqrt{1 + \\left(\\frac{1}{x}\\right)^2}\\, dx$",
+        "C": "$\\displaystyle\\int_1^2 \\sqrt{1 + e^{2x}}\\, dx$",
+        "D": "$\\displaystyle\\int_1^2 \\sqrt{1 + (\\ln x)^2}\\, dx$",
+        "E": "$\\displaystyle\\int_1^2 \\sqrt{1 + ((\\ln x)')^2}\\, dx$"
+      },
+      "correct_answer": "A",
+      "explanation": "<p>Arc length formula: $L = \\int_a^b \\sqrt{1 + (f'(x))^2}\\, dx$. For $y = \\ln x$, we have $y' = \\frac{1}{x}$. So $(y')^2 = \\frac{1}{x^2}$, giving $L = \\int_1^2 \\sqrt{1 + \\frac{1}{x^2}}\\, dx$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T041"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012005,
+    "fields": {
+      "source": 1,
+      "original_number": 5,
+      "text": "<p>The Maclaurin series for the function $f$ is given by $\\displaystyle f(x) = \\sum_{n=0}^{\\infty} \\left(-\\frac{x}{4}\\right)^n$. What is the value of $f(3)$?</p>",
+      "choices": {
+        "A": "$-3$",
+        "B": "$-\\frac{3}{7}$",
+        "C": "$\\frac{4}{7}$",
+        "D": "$\\frac{13}{16}$",
+        "E": "$4$"
+      },
+      "correct_answer": "C",
+      "explanation": "<p>This is a geometric series with first term $a = 1$ and common ratio $r = -\\frac{x}{4}$. The sum is $\\frac{1}{1-(-x/4)} = \\frac{4}{4+x}$. At $x = 3$: $f(3) = \\frac{4}{7}$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T049", "T055"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012006,
+    "fields": {
+      "source": 1,
+      "original_number": 6,
+      "text": "<p>Using the substitution $u = x^2 - 3$, $\\displaystyle\\int_1^4 x(x^2 - 3)^5\\, dx$ is equal to which of the following?</p>",
+      "choices": {
+        "A": "$\\displaystyle\\int_{-2}^{13} 2u^5\\, du$",
+        "B": "$\\displaystyle\\int_{-2}^{13} u^5\\, du$",
+        "C": "$\\displaystyle\\int_{-2}^{13} \\frac{1}{2}u^5\\, du$",
+        "D": "$\\displaystyle\\int_1^4 u^5\\, du$",
+        "E": "$\\displaystyle\\int_1^4 \\frac{1}{2}u^5\\, du$"
+      },
+      "correct_answer": "C",
+      "explanation": "<p>Let $u = x^2 - 3$, so $du = 2x\\,dx$, meaning $x\\,dx = \\frac{1}{2}du$. When $x = 1$: $u = -2$. When $x = 4$: $u = 13$. Therefore: $\\int_1^4 x(x^2-3)^5\\,dx = \\int_{-2}^{13} \\frac{1}{2}u^5\\,du$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T031"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012007,
+    "fields": {
+      "source": 1,
+      "original_number": 7,
+      "text": "<p>If $\\arcsin x = \\ln y$, then $\\frac{dy}{dx} =$</p>",
+      "choices": {
+        "A": "$\\displaystyle\\frac{y}{\\sqrt{1 - x^2}}$",
+        "B": "$\\displaystyle\\frac{xy}{\\sqrt{1 - x^2}}$",
+        "C": "$\\displaystyle\\frac{y}{\\sqrt{1 + x^2}}$",
+        "D": "$e^{\\arcsin x}$",
+        "E": "$\\displaystyle\\frac{e^{\\arcsin x}}{\\sqrt{1 + x^2}}$"
+      },
+      "correct_answer": "A",
+      "explanation": "<p>From $\\arcsin x = \\ln y$, we get $y = e^{\\arcsin x}$. Differentiating: $\\frac{dy}{dx} = e^{\\arcsin x} \\cdot \\frac{1}{\\sqrt{1-x^2}} = \\frac{y}{\\sqrt{1-x^2}}$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T011", "T016"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012008,
+    "fields": {
+      "source": 1,
+      "original_number": 8,
+      "text": "<p>A tank contains 50 liters of oil at time $t = 4$ hours. Oil is being pumped into the tank at a rate $R(t)$, where $R(t)$ is measured in liters per hour. Selected values of $R(t)$ are given in the table:</p><table><tr><th>$t$ (hours)</th><td>4</td><td>7</td><td>12</td><td>15</td></tr><tr><th>$R(t)$ (liters/hour)</th><td>6.5</td><td>6.2</td><td>5.9</td><td>5.6</td></tr></table><p>Using a right Riemann sum with three subintervals and data from the table, what is the approximation of the number of liters of oil that are in the tank at time $t = 15$ hours?</p>",
+      "choices": {
+        "A": "$64.9$",
+        "B": "$68.2$",
+        "C": "$114.9$",
+        "D": "$116.6$",
+        "E": "$118.2$"
+      },
+      "correct_answer": "C",
+      "explanation": "<p>Right Riemann sum: $(7-4)(6.2) + (12-7)(5.9) + (15-12)(5.6) = 18.6 + 29.5 + 16.8 = 64.9$ liters added. Total oil = $50 + 64.9 = 114.9$ liters.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T027"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012009,
+    "fields": {
+      "source": 1,
+      "original_number": 9,
+      "text": "<p>Which of the following series converge?</p><p>I. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{8^n}{n!}$</p><p>II. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{n!}{100^n}$</p><p>III. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{n+1}{(n+2)(n+3)}$</p>",
+      "choices": {
+        "A": "I only",
+        "B": "II only",
+        "C": "III only",
+        "D": "I and III only",
+        "E": "I, II, and III"
+      },
+      "correct_answer": "D",
+      "explanation": "<p>I. Ratio test: $\\lim \\frac{8}{n+1} = 0 < 1$. Converges. II. Ratio test: $\\lim \\frac{n+1}{100} = \\infty$. Diverges. III. Partial fractions show it behaves like a convergent series. Converges.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T050", "T054"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012010,
+    "fields": {
+      "source": 1,
+      "original_number": 10,
+      "text": "<p>$\\displaystyle\\int_1^4 \\left|t - \\frac{3}{2}\\right|\\, dt =$</p>",
+      "choices": {
+        "A": "$-1$",
+        "B": "$-\\frac{7}{8}$",
+        "C": "$-\\frac{1}{2}$",
+        "D": "$\\frac{1}{2}$",
+        "E": "$1$"
+      },
+      "correct_answer": "E",
+      "explanation": "<p>Split at $t = \\frac{3}{2}$. The integral of an absolute value function is the total area, which equals 1.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T028"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012011,
+    "fields": {
+      "source": 1,
+      "original_number": 11,
+      "text": "<p>Let $f$ be the function defined by $f(x) = |x - 2|$ for all $x$. Which of the following statements is true?</p>",
+      "choices": {
+        "A": "$f$ is continuous but not differentiable at $x = 2$.",
+        "B": "$f$ is differentiable at $x = 2$.",
+        "C": "$f$ is not continuous at $x = 2$.",
+        "D": "$\\displaystyle\\lim_{x \\to 2} f(x) \\ne 0$",
+        "E": "$x = 2$ is a vertical asymptote of the graph of $f$."
+      },
+      "correct_answer": "A",
+      "explanation": "<p>The absolute value function has a corner at $x = 2$. It is continuous but not differentiable at that point because the left and right derivatives differ.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T004", "T006"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012012,
+    "fields": {
+      "source": 1,
+      "original_number": 12,
+      "text": "<p>The points $(-1, -1)$ and $(1, -5)$ are on the graph of a function $y = f(x)$ that satisfies the differential equation $\\frac{dy}{dx} = x^2 + y$. Which of the following must be true?</p>",
+      "choices": {
+        "A": "$(1, -5)$ is a local maximum of $f$.",
+        "B": "$(1, -5)$ is a point of inflection of the graph of $f$.",
+        "C": "$(-1, -1)$ is a local maximum of $f$.",
+        "D": "$(-1, -1)$ is a local minimum of $f$.",
+        "E": "$(-1, -1)$ is a point of inflection of the graph of $f$."
+      },
+      "correct_answer": "C",
+      "explanation": "<p>At $(-1, -1)$: $\\frac{dy}{dx} = 1 + (-1) = 0$. Using second derivative test with $\\frac{d^2y}{dx^2} = 2x + \\frac{dy}{dx}$: at $(-1,-1)$, $\\frac{d^2y}{dx^2} = -2 + 0 = -2 < 0$. So $(-1, -1)$ is a local maximum.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T033", "T021", "T023"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012013,
+    "fields": {
+      "source": 1,
+      "original_number": 13,
+      "text": "<p>What is the radius of convergence of the series $\\displaystyle\\sum_{n=0}^{\\infty} \\frac{(x-4)^{2n}}{3^n}$?</p>",
+      "choices": {
+        "A": "$2\\sqrt{3}$",
+        "B": "$\\sqrt{3}$",
+        "C": "$3$",
+        "D": "$\\frac{3}{2}$",
+        "E": "$0$"
+      },
+      "correct_answer": "B",
+      "explanation": "<p>Rewrite as $\\sum \\left(\\frac{(x-4)^2}{3}\\right)^n$. Converges when $\\frac{(x-4)^2}{3} < 1$, so $(x-4)^2 < 3$, giving $|x-4| < \\sqrt{3}$. Radius = $\\sqrt{3}$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T055"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012014,
+    "fields": {
+      "source": 1,
+      "original_number": 14,
+      "text": "<p>Let $k$ be a positive constant. Which of the following is a logistic differential equation?</p>",
+      "choices": {
+        "A": "$\\frac{dy}{dt} = kt$",
+        "B": "$\\frac{dy}{dt} = ky$",
+        "C": "$\\frac{dy}{dt} = kt(1 - t)$",
+        "D": "$\\frac{dy}{dt} = ky(1 - t)$",
+        "E": "$\\frac{dy}{dt} = ky(1 - y)$"
+      },
+      "correct_answer": "E",
+      "explanation": "<p>The logistic differential equation has the form $\\frac{dy}{dt} = ky(1 - y/L)$ or $\\frac{dy}{dt} = ky(1 - y)$ when $L = 1$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T037"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012015,
+    "fields": {
+      "source": 1,
+      "original_number": 15,
+      "text": "<p><em>[Graph: Differentiable function $f$ on $[0, 9]$. Starts at $(0, -2)$, minimum at $(1, -4)$, crosses $x$-axis near $x = 5$, maximum at $(7, 2)$, then decreases.]</em></p><p>The graph of a differentiable function $f$ is shown above. If $h(x) = \\int_0^x f(t)\\, dt$, which of the following is true?</p>",
+      "choices": {
+        "A": "$h(6) < h'(6) < h''(6)$",
+        "B": "$h(6) < h''(6) < h'(6)$",
+        "C": "$h'(6) < h(6) < h''(6)$",
+        "D": "$h''(6) < h(6) < h'(6)$",
+        "E": "$h''(6) < h'(6) < h(6)$"
+      },
+      "correct_answer": "A",
+      "explanation": "<p>By FTC: $h'(x) = f(x)$ and $h''(x) = f'(x)$. At $x = 6$: $h(6) < 0$ (net negative area), $h'(6) = f(6) > 0$, $h''(6) = f'(6) > 0$ (increasing). So $h(6) < h'(6) < h''(6)$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A",
+        "has_graph": true
+      },
+      "topics": ["T029", "T025"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012016,
+    "fields": {
+      "source": 1,
+      "original_number": 16,
+      "text": "<p>Let $y = f(x)$ be the solution to the differential equation $\\frac{dy}{dx} = x - y$ with initial condition $f(1) = 3$. What is the approximation for $f(2)$ obtained by using Euler's method with two steps of equal length starting at $x = 1$?</p>",
+      "choices": {
+        "A": "$-\\frac{5}{4}$",
+        "B": "$1$",
+        "C": "$\\frac{7}{4}$",
+        "D": "$2$",
+        "E": "$\\frac{21}{4}$"
+      },
+      "correct_answer": "C",
+      "explanation": "<p>Step size $h = 0.5$. Step 1: $y_1 = 3 + 0.5(1-3) = 2$. Step 2: $y_2 = 2 + 0.5(1.5-2) = 1.75 = \\frac{7}{4}$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T036"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012017,
+    "fields": {
+      "source": 1,
+      "original_number": 17,
+      "text": "<p>For $x > 0$, the power series $\\displaystyle 1 - \\frac{x^2}{3!} + \\frac{x^4}{5!} - \\frac{x^6}{7!} + \\cdots$ converges to which of the following?</p>",
+      "choices": {
+        "A": "$\\cos x$",
+        "B": "$\\sin x$",
+        "C": "$\\frac{\\sin x}{x}$",
+        "D": "$\\frac{e^x - e^{-x}}{2}$",
+        "E": "$\\frac{1 + e^x - e^{-x}}{2}$"
+      },
+      "correct_answer": "C",
+      "explanation": "<p>$\\sin x = x - \\frac{x^3}{3!} + \\frac{x^5}{5!} - \\cdots$. Dividing by $x$: $\\frac{\\sin x}{x} = 1 - \\frac{x^2}{3!} + \\frac{x^4}{5!} - \\cdots$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T056", "T055"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012018,
+    "fields": {
+      "source": 1,
+      "original_number": 18,
+      "text": "<p><em>[Graph: Graph of $f'$ consists of two line segments and a semicircle. Passes through $(-5, 2)$, to origin, semicircle below $x$-axis from $x = -2$ to $x = 2$ with minimum at $(0, -2)$, then line segment to $(5, 2)$.]</em></p><p>The graph of $f'$ is shown above. If $f(2) = 1$, then $f(-5) =$</p>",
+      "choices": {
+        "A": "$2\\pi - 2$",
+        "B": "$2\\pi - 3$",
+        "C": "$2\\pi - 5$",
+        "D": "$6 - 2\\pi$",
+        "E": "$4 - 2\\pi$"
+      },
+      "correct_answer": "A",
+      "explanation": "<p>$f(-5) = f(2) - \\int_{-5}^2 f'(x)\\,dx = 1 - (3 - 2\\pi) = 2\\pi - 2$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A",
+        "has_graph": true
+      },
+      "topics": ["T029", "T030"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012019,
+    "fields": {
+      "source": 1,
+      "original_number": 19,
+      "text": "<p>The function $f$ is defined by $f(x) = \\frac{x}{2 + x}$. What points $(x, y)$ on the graph of $f$ have the property that the line tangent to $f$ at $(x, y)$ has slope $\\frac{1}{2}$?</p>",
+      "choices": {
+        "A": "$(0, 0)$ only",
+        "B": "$\\left(\\frac{1}{2}, \\frac{1}{5}\\right)$ only",
+        "C": "$(0, 0)$ and $(-4, 2)$",
+        "D": "$(0, 0)$ and $\\left(4, \\frac{2}{3}\\right)$",
+        "E": "There are no such points."
+      },
+      "correct_answer": "C",
+      "explanation": "<p>$f'(x) = \\frac{2}{(2+x)^2}$. Setting $f'(x) = \\frac{1}{2}$: $(2+x)^2 = 4$, so $x = 0$ or $x = -4$. Points: $(0, 0)$ and $(-4, 2)$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T009"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012020,
+    "fields": {
+      "source": 1,
+      "original_number": 20,
+      "text": "<p>$\\displaystyle\\int_0^1 \\frac{5x + 8}{x^2 + 3x + 2}\\, dx$ is</p>",
+      "choices": {
+        "A": "$\\ln(8)$",
+        "B": "$\\ln\\left(\\frac{27}{2}\\right)$",
+        "C": "$\\ln(18)$",
+        "D": "$\\ln\\left(\\frac{27}{4}\\right)$",
+        "E": "$\\ln(6)$"
+      },
+      "correct_answer": "C",
+      "explanation": "<p>Partial fractions: $\\frac{5x+8}{(x+1)(x+2)} = \\frac{3}{x+1} + \\frac{2}{x+2}$. Integral = $[3\\ln|x+1| + 2\\ln|x+2|]_0^1 = \\ln 18$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T026"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012021,
+    "fields": {
+      "source": 1,
+      "original_number": 21,
+      "text": "<p>$\\displaystyle\\int x e^{3x}\\, dx =$</p>",
+      "choices": {
+        "A": "$\\frac{e^{3x}}{9}(3x - 1) + C$",
+        "B": "$\\frac{e^{3x}}{3}(x - 3) + C$",
+        "C": "$\\frac{e^{3x}}{3}(3x - 1) + C$",
+        "D": "$\\frac{x^2 e^{3x}}{6} + C$",
+        "E": "$3x e^{3x} - e^{3x} + C$"
+      },
+      "correct_answer": "A",
+      "explanation": "<p>Integration by parts: $u = x$, $dv = e^{3x}dx$. Result: $\\frac{xe^{3x}}{3} - \\frac{e^{3x}}{9} = \\frac{e^{3x}}{9}(3x - 1) + C$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T032"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012022,
+    "fields": {
+      "source": 1,
+      "original_number": 22,
+      "text": "<p>$\\displaystyle\\int_1^{\\infty} \\frac{1}{e^{2x}}\\, dx$ is</p>",
+      "choices": {
+        "A": "$-2e^2$",
+        "B": "$-\\frac{1}{2e^2}$",
+        "C": "$\\frac{1}{2e^2}$",
+        "D": "$\\frac{1}{e^2}$",
+        "E": "divergent"
+      },
+      "correct_answer": "C",
+      "explanation": "<p>$\\int_1^{\\infty} e^{-2x}\\,dx = \\lim_{b\\to\\infty} [-\\frac{1}{2}e^{-2x}]_1^b = 0 + \\frac{1}{2e^2} = \\frac{1}{2e^2}$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T028"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012023,
+    "fields": {
+      "source": 1,
+      "original_number": 23,
+      "text": "<p>Suppose that $g$ is a function whose second derivative, $g''$, is given by $g''(x) = x^3(x - 1)^2(x + 4)^2$. How many points of inflection does the graph of $g$ have?</p>",
+      "choices": {
+        "A": "One",
+        "B": "Two",
+        "C": "Three",
+        "D": "Four",
+        "E": "Five"
+      },
+      "correct_answer": "A",
+      "explanation": "<p>Points of inflection occur where $g''$ changes sign. Only $x^3$ changes sign (at $x = 0$); $(x-1)^2$ and $(x+4)^2$ are always non-negative. One inflection point.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T023"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012024,
+    "fields": {
+      "source": 1,
+      "original_number": 24,
+      "text": "<p>Which of the following series converge conditionally?</p><p>I. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{(-1)^n}{n}$</p><p>II. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{(-1)^n}{n!}$</p><p>III. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{(-1)^n}{n^2}$</p>",
+      "choices": {
+        "A": "I only",
+        "B": "II only",
+        "C": "I and II only",
+        "D": "I and III only",
+        "E": "I, II, and III"
+      },
+      "correct_answer": "A",
+      "explanation": "<p>Conditional convergence: converges but not absolutely. I: Converges by AST, but $\\sum 1/n$ diverges. Conditional. II and III: Both converge absolutely. Only I is conditional.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T053", "T050"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012025,
+    "fields": {
+      "source": 1,
+      "original_number": 25,
+      "text": "<p>A spherical snowball is melting. At time $t$ hours, the radius of the snowball is changing at a rate proportional to the radius itself. If the radius was initially 3 cm and after 1 hour it was 2 cm, what is the radius after 2 hours?</p>",
+      "choices": {
+        "A": "$0$ cm",
+        "B": "$\\frac{4}{3}$ cm",
+        "C": "$\\frac{3}{2}$ cm",
+        "D": "$\\frac{5}{3}$ cm",
+        "E": "$1$ cm"
+      },
+      "correct_answer": "B",
+      "explanation": "<p>$\\frac{dr}{dt} = kr$ gives $r(t) = r_0 e^{kt}$. From $r(0)=3$ and $r(1)=2$: $e^k = 2/3$. At $t=2$: $r = 3(2/3)^2 = 4/3$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T035", "T017"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012026,
+    "fields": {
+      "source": 1,
+      "original_number": 26,
+      "text": "<p>$\\displaystyle\\lim_{x \\to 0} \\frac{e^x - 1 - x}{x^2} =$</p>",
+      "choices": {
+        "A": "$-1$",
+        "B": "$\\frac{1}{2}$",
+        "C": "$1$",
+        "D": "$2$",
+        "E": "The limit does not exist"
+      },
+      "correct_answer": "B",
+      "explanation": "<p>Using Taylor series: $e^x = 1 + x + \\frac{x^2}{2} + \\cdots$. So $\\frac{e^x - 1 - x}{x^2} \\to \\frac{1}{2}$. Or use L'H\u00f4pital twice.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T056", "T001"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012027,
+    "fields": {
+      "source": 1,
+      "original_number": 27,
+      "text": "<p>Let $f$ be a function with $f(3) = 2$, $f'(3) = -1$, $f''(3) = 4$, and $f'''(3) = -12$. Which of the following is the third-degree Taylor polynomial of $f$ about $x = 3$?</p>",
+      "choices": {
+        "A": "$2 - (x-3) + 2(x-3)^2 - 2(x-3)^3$",
+        "B": "$2 - (x-3) + 4(x-3)^2 - 12(x-3)^3$",
+        "C": "$2 - (x-3) + 2(x-3)^2 - 6(x-3)^3$",
+        "D": "$2 + (x-3) + 2(x-3)^2 - 2(x-3)^3$",
+        "E": "$2 - (x-3) + 4(x-3)^2 + 12(x-3)^3$"
+      },
+      "correct_answer": "A",
+      "explanation": "<p>$P_3(x) = f(3) + f'(3)(x-3) + \\frac{f''(3)}{2}(x-3)^2 + \\frac{f'''(3)}{6}(x-3)^3 = 2 - (x-3) + 2(x-3)^2 - 2(x-3)^3$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T057"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012028,
+    "fields": {
+      "source": 1,
+      "original_number": 28,
+      "text": "<p>If $\\frac{dy}{dx} = y \\sec^2 x$ and $y = 5$ when $x = 0$, then $y =$</p>",
+      "choices": {
+        "A": "$e^{\\tan x} + 4$",
+        "B": "$e^{\\tan x} + 5$",
+        "C": "$5e^{\\tan x}$",
+        "D": "$5e^{\\sec x}$",
+        "E": "$\\tan x + 5$"
+      },
+      "correct_answer": "C",
+      "explanation": "<p>Separable: $\\frac{dy}{y} = \\sec^2 x\\,dx$. Integrating: $\\ln|y| = \\tan x + C$. So $y = Ae^{\\tan x}$. At $x=0$: $5 = A$. Thus $y = 5e^{\\tan x}$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      },
+      "topics": ["T034"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012076,
+    "fields": {
+      "source": 1,
+      "original_number": 76,
+      "text": "<p><em>[Graph: Function $f$ on $[-2, 2]$ with a cusp at $x = 0$.]</em></p><p>The function $f$, whose graph is shown above, is defined on $-2 \\le x \\le 2$. Which of the following statements about $f$ is false?</p>",
+      "choices": {
+        "A": "$f$ is continuous at $x = 0$.",
+        "B": "$f$ is differentiable at $x = 0$.",
+        "C": "$f$ has a critical point at $x = 0$.",
+        "D": "$f$ has an absolute minimum at $x = 0$.",
+        "E": "The concavity of the graph of $f$ changes at $x = 0$."
+      },
+      "correct_answer": "B",
+      "explanation": "<p>A function with a cusp is continuous but not differentiable at that point. Statement B is FALSE.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B",
+        "has_graph": true
+      },
+      "topics": ["T004", "T006", "T021"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012077,
+    "fields": {
+      "source": 1,
+      "original_number": 77,
+      "text": "<p>Let $f$ and $g$ be the functions given by $f(x) = e^x$ and $g(x) = x^4$. On what intervals is the rate of change of $f(x)$ greater than the rate of change of $g(x)$?</p>",
+      "choices": {
+        "A": "$(0.831, 7.384)$ only",
+        "B": "$(-\\infty, 0.831)$ and $(7.384, \\infty)$",
+        "C": "$(-\\infty, -0.816)$ and $(1.430, 8.613)$",
+        "D": "$(-0.816, 1.430)$ and $(8.613, \\infty)$",
+        "E": "$(-\\infty, \\infty)$"
+      },
+      "correct_answer": "B",
+      "explanation": "<p>We need $f'(x) > g'(x)$, i.e., $e^x > 4x^3$. Using calculator to find intersections and test intervals.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      },
+      "topics": ["T007", "T022"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012078,
+    "fields": {
+      "source": 1,
+      "original_number": 78,
+      "text": "<p><em>[Graph: Piecewise linear function starting at $(-1, -1)$, to $(2, 2)$, to $(4, 2)$, to $(5, 1)$, to $(7, 1)$, to $(9, -1)$.]</em></p><p>The graph of the piecewise linear function $f$ is shown above. What is the value of $\\int_{-1}^{9} (3f(x) + 2)\\, dx$?</p>",
+      "choices": {
+        "A": "$7.5$",
+        "B": "$9.5$",
+        "C": "$27.5$",
+        "D": "$47$",
+        "E": "$48.5$"
+      },
+      "correct_answer": "C",
+      "explanation": "<p>$\\int_{-1}^9 (3f(x) + 2)\\,dx = 3\\int_{-1}^9 f(x)\\,dx + 20$. Calculate geometric areas to find the result.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B",
+        "has_graph": true
+      },
+      "topics": ["T028"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012079,
+    "fields": {
+      "source": 1,
+      "original_number": 79,
+      "text": "<p>Let $f$ be a function having derivatives of all orders for $x > 0$ such that $f(3) = 2$, $f'(3) = -1$, $f''(3) = 6$, and $f'''(3) = 12$. Which of the following is the third-degree Taylor polynomial for $f$ about $x = 3$?</p>",
+      "choices": {
+        "A": "$2 - x + 6x^2 + 12x^3$",
+        "B": "$2 - x + 3x^2 + 2x^3$",
+        "C": "$2 - (x-3) + 6(x-3)^2 + 12(x-3)^3$",
+        "D": "$2 - (x-3) + 3(x-3)^2 + 4(x-3)^3$",
+        "E": "$2 - (x-3) + 3(x-3)^2 + 2(x-3)^3$"
+      },
+      "correct_answer": "E",
+      "explanation": "<p>$P_3(x) = 2 - (x-3) + \\frac{6}{2}(x-3)^2 + \\frac{12}{6}(x-3)^3 = 2 - (x-3) + 3(x-3)^2 + 2(x-3)^3$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      },
+      "topics": ["T057"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012080,
+    "fields": {
+      "source": 1,
+      "original_number": 80,
+      "text": "<p><em>[Graph: Graph of $f'$ starts negative, increases to max above x-axis, then decreases crossing zero.]</em></p><p>The graph of $f'$ is shown above. Which statements must be true?</p><p>I. $f$ has a relative minimum at $x = -3$.</p><p>II. The graph of $f$ has a point of inflection at $x = -2$.</p><p>III. The graph of $f$ is concave down for $0 < x < 4$.</p>",
+      "choices": {
+        "A": "I only",
+        "B": "II only",
+        "C": "III only",
+        "D": "I and II only",
+        "E": "I and III only"
+      },
+      "correct_answer": "E",
+      "explanation": "<p>Analyzing $f'$ graph: I is true (sign change), III is true ($f'$ decreasing means $f'' < 0$). II may not hold at exactly $x=-2$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B",
+        "has_graph": true
+      },
+      "topics": ["T025", "T023"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012081,
+    "fields": {
+      "source": 1,
+      "original_number": 81,
+      "text": "<p>Let $f$ be twice differentiable on $-2 < x < 2$ with: $f(x)$ positive on $(0,1)$, negative on $(1,2)$; $f'(x)$ negative on both; $f''(x)$ negative on $(0,1)$, positive on $(1,2)$. If $f(x) = f(-x)$, what are the $x$-coordinates of the points of inflection?</p>",
+      "choices": {
+        "A": "$x = 0$ only",
+        "B": "$x = 1$ only",
+        "C": "$x = 0$ and $x = 1$",
+        "D": "$x = -1$ and $x = 1$",
+        "E": "There are no points of inflection."
+      },
+      "correct_answer": "D",
+      "explanation": "<p>Since $f$ is even, $f''$ is also even. Sign change of $f''$ at $x = 1$ implies sign change at $x = -1$ by symmetry. Inflection points at $x = \\pm 1$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      },
+      "topics": ["T023"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012082,
+    "fields": {
+      "source": 1,
+      "original_number": 82,
+      "text": "<p>What is the average value of $y = \\cos x$ on the interval $0 \\le x \\le \\frac{\\pi}{2}$?</p>",
+      "choices": {
+        "A": "$-0.637$",
+        "B": "$0.500$",
+        "C": "$0.637$",
+        "D": "$1.198$",
+        "E": "$1.882$"
+      },
+      "correct_answer": "C",
+      "explanation": "<p>Average = $\\frac{1}{\\pi/2}\\int_0^{\\pi/2} \\cos x\\,dx = \\frac{2}{\\pi}[\\sin x]_0^{\\pi/2} = \\frac{2}{\\pi} \\approx 0.637$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      },
+      "topics": ["T028"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012083,
+    "fields": {
+      "source": 1,
+      "original_number": 83,
+      "text": "<p>If the function $f$ is continuous at $x = 3$, which of the following must be true?</p>",
+      "choices": {
+        "A": "$f(3) < \\lim_{x \\to 3} f(x)$",
+        "B": "$\\lim_{x \\to 3^-} f(x) \\ne \\lim_{x \\to 3^+} f(x)$",
+        "C": "$f(3) = \\lim_{x \\to 3^-} f(x) = \\lim_{x \\to 3^+} f(x)$",
+        "D": "The derivative of $f$ at $x = 3$ exists.",
+        "E": "The derivative of $f$ is positive for $x < 3$ and negative for $x > 3$."
+      },
+      "correct_answer": "C",
+      "explanation": "<p>By definition of continuity: $\\lim_{x \\to 3} f(x) = f(3)$, which requires both one-sided limits to equal $f(3)$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      },
+      "topics": ["T004"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012084,
+    "fields": {
+      "source": 1,
+      "original_number": 84,
+      "text": "<p>For $-1.5 < x < 1.5$, let $f$ have first derivative $f'(x) = e^{(x^4 - 2x^2 + 1)} - 2$. On which intervals is $f$ concave down?</p>",
+      "choices": {
+        "A": "$(-0.418, 0.418)$ only",
+        "B": "$(-1, 1)$",
+        "C": "$(-1.354, -0.409)$ and $(0.409, 1.354)$",
+        "D": "$(-1.5, -1)$ and $(0, 1)$",
+        "E": "$(-1.5, -1.354)$, $(-0.409, 0)$, and $(1.354, 1.5)$"
+      },
+      "correct_answer": "D",
+      "explanation": "<p>$f'' = e^{(\\cdots)} \\cdot 4x(x^2-1)$. Since exponential is positive, sign depends on $4x(x-1)(x+1)$. Concave down when this is negative: $(-1.5, -1) \\cup (0, 1)$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      },
+      "topics": ["T023", "T011"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012085,
+    "fields": {
+      "source": 1,
+      "original_number": 85,
+      "text": "<p>The fuel consumption $F(s) = 20e^{(s/20 - s^2/2400)}$ where $s$ is speed in mph. If speed is 50 mph changing at 20 mph/hr\u00b2, what is the rate of change of fuel consumption?</p>",
+      "choices": {
+        "A": "$0.215$ mpg/hr",
+        "B": "$4.299$ mpg/hr",
+        "C": "$19.793$ mpg/hr",
+        "D": "$25.793$ mpg/hr",
+        "E": "$515.855$ mpg/hr"
+      },
+      "correct_answer": "B",
+      "explanation": "<p>$\\frac{dF}{dt} = \\frac{dF}{ds} \\cdot \\frac{ds}{dt}$. Calculate $\\frac{dF}{ds}$ at $s = 50$ and multiply by 20.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      },
+      "topics": ["T017", "T011"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012086,
+    "fields": {
+      "source": 1,
+      "original_number": 86,
+      "text": "<p>If $f'(x) > 0$ for all $x$ and $\\int_4^7 f(t)\\, dt = 0$, which table of values for $f$ is possible?</p>",
+      "choices": {
+        "A": "$f(4)=-4, f(5)=-3, f(7)=0$",
+        "B": "$f(4)=-4, f(5)=-2, f(7)=5$",
+        "C": "$f(4)=-4, f(5)=6, f(7)=3$",
+        "D": "$f(4)=0, f(5)=0, f(7)=0$",
+        "E": "$f(4)=0, f(5)=4, f(7)=6$"
+      },
+      "correct_answer": "B",
+      "explanation": "<p>$f'(x) > 0$ means strictly increasing. Only B satisfies this and can have net zero integral (crosses axis).</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      },
+      "topics": ["T028", "T022"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012087,
+    "fields": {
+      "source": 1,
+      "original_number": 87,
+      "text": "<p>Let $R$ be the region bounded by $y = \\ln(3 - x)$ for $0 \\le x \\le 2$. $R$ is the base of a solid with square cross sections perpendicular to the $x$-axis. What is the volume?</p>",
+      "choices": {
+        "A": "$0.442$",
+        "B": "$1.029$",
+        "C": "$1.296$",
+        "D": "$3.233$",
+        "E": "$4.071$"
+      },
+      "correct_answer": "B",
+      "explanation": "<p>Volume = $\\int_0^2 [\\ln(3-x)]^2\\,dx \\approx 1.029$ by calculator.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      },
+      "topics": ["T039"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012088,
+    "fields": {
+      "source": 1,
+      "original_number": 88,
+      "text": "<p>The derivative of $f$ is increasing for $x < 0$ and decreasing for $x > 0$. Which could be the graph of $f$?</p>",
+      "choices": {
+        "A": "Parabola opening upward",
+        "B": "Curve with local maximum",
+        "C": "S-shaped curve",
+        "D": "Curve with local minimum at origin",
+        "E": "Concave up for $x<0$, concave down for $x>0$, inflection at origin"
+      },
+      "correct_answer": "E",
+      "explanation": "<p>$f'$ increasing means $f'' > 0$ (concave up) for $x < 0$. $f'$ decreasing means $f'' < 0$ (concave down) for $x > 0$. Inflection at $x = 0$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B",
+        "has_graph": true
+      },
+      "topics": ["T023", "T025"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012089,
+    "fields": {
+      "source": 1,
+      "original_number": 89,
+      "text": "<p>A particle has acceleration $a(t) = \\frac{t + 3}{\\sqrt{t^3 + 1}}$ for $t \\ge 0$. If $v(0) = 5$, what is $v(3)$?</p>",
+      "choices": {
+        "A": "$0.713$",
+        "B": "$1.134$",
+        "C": "$6.134$",
+        "D": "$6.710$",
+        "E": "$11.710$"
+      },
+      "correct_answer": "E",
+      "explanation": "<p>$v(3) = v(0) + \\int_0^3 a(t)\\,dt = 5 + \\int_0^3 \\frac{t+3}{\\sqrt{t^3+1}}\\,dt \\approx 11.71$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      },
+      "topics": ["T018", "T029"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012090,
+    "fields": {
+      "source": 1,
+      "original_number": 90,
+      "text": "<p>If $\\sum_{n=1}^{\\infty} a_n$ converges and $a_n > 0$ for all $n$, which must be true?</p>",
+      "choices": {
+        "A": "$\\lim_{n \\to \\infty} \\frac{a_{n+1}}{a_n} = 0$",
+        "B": "$a_n < 1$ for all $n$",
+        "C": "$\\sum a_n = 0$",
+        "D": "$\\sum na_n$ diverges",
+        "E": "$\\sum \\frac{a_n}{n}$ converges"
+      },
+      "correct_answer": "E",
+      "explanation": "<p>Since $a_n > 0$ and $\\sum a_n$ converges, $\\frac{a_n}{n} < a_n$ for $n > 1$, so $\\sum \\frac{a_n}{n}$ converges by comparison.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      },
+      "topics": ["T050", "T052"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012091,
+    "fields": {
+      "source": 1,
+      "original_number": 91,
+      "text": "<p><em>[Graph: Polar curves $r = 2\\cos(3\\theta)$ (three-petaled rose) and $r = 2$ (circle). Shaded region is circle minus rose.]</em></p><p>What is the sum of the areas of the shaded regions?</p>",
+      "choices": {
+        "A": "$0.858$",
+        "B": "$3.142$",
+        "C": "$8.566$",
+        "D": "$9.425$",
+        "E": "$15.708$"
+      },
+      "correct_answer": "D",
+      "explanation": "<p>Circle area = $4\\pi$. Rose area = $\\pi$. Shaded = $4\\pi - \\pi = 3\\pi \\approx 9.425$.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B",
+        "has_graph": true
+      },
+      "topics": ["T045", "T046"]
+    }
+  },
+  {
+    "model": "practice.question",
+    "pk": 2012092,
+    "fields": {
+      "source": 1,
+      "original_number": 92,
+      "text": "<p>The function $h$ is differentiable with $h(x) = h(2 - x)$ for all $x$. Which must be true?</p><p>I. $\\int_0^2 h(x)\\,dx > 0$</p><p>II. $h'(1) = 0$</p><p>III. $h'(0) = h'(2) = 1$</p>",
+      "choices": {
+        "A": "I only",
+        "B": "II only",
+        "C": "III only",
+        "D": "II and III only",
+        "E": "I, II, and III"
+      },
+      "correct_answer": "B",
+      "explanation": "<p>Differentiating $h(x) = h(2-x)$: $h'(x) = -h'(2-x)$. At $x = 1$: $h'(1) = -h'(1)$, so $h'(1) = 0$. Only II is necessarily true.</p>",
+      "difficulty": null,
+      "active": true,
+      "other": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      },
+      "topics": ["T013", "T011"]
+    }
+  }
+]

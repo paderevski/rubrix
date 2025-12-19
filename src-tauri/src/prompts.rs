@@ -82,7 +82,7 @@ You are replacing an existing question. Generate a NEW question that is DIFFEREN
 {}
 
 Keep similar topic and difficulty but use DIFFERENT code/scenarios."#,
-                ctx.current_question.content, other_questions_str
+                ctx.current_question.text, other_questions_str
             )
         }
         None => String::new(),
@@ -159,8 +159,7 @@ Return your response as a JSON array containing {count} question object(s). Each
 ```json
 [
   {{
-    "stem": "Question text here (you can use markdown for formatting like **bold** or `code`)",
-    "code": "// Optional Java code block\npublic static void main(String[] args) {{\n    System.out.println(\"Hello\");\n}}",
+    "text": "Question text here with markdown formatting like **bold** or `code`. Can include code blocks:\n\n```java\nSystem.out.println(\"Hello\");\n```",
     "explanation": "Step-by-step walkthrough of how to arrive at the correct answer. Verify correct answer. Design distractors.",
         "distractors": "Analysis of why each wrong answer is tempting and what misconception leads to it",
     "answers": [
@@ -174,8 +173,7 @@ Return your response as a JSON array containing {count} question object(s). Each
 ```
 
 **Field Guidelines:**
-- `stem`: The question text (markdown supported for formatting)
-- `code`: Optional Java code snippet (plain text, not wrapped in ```java```)
+- `text`: Complete question text in markdown format (can include code blocks with ```java```)
 - `answers`: Array of 4-5 answer choices with explanations
   - `text`: Answer text (use backticks for code like `42`)
   - `is_correct`: Boolean indicating if this is the correct answer
@@ -260,16 +258,10 @@ fn format_example_as_json(q: &QuestionBankEntry) -> String {
 
     let skills_json: Vec<String> = q.skills.iter().map(|s| format!(r#""{}""#, s)).collect();
 
-    let code_field = match &q.code {
-        Some(code) => format!(r#"  "code": "{}","#, escape_json_string(code)),
-        None => String::new(),
-    };
-
     format!(
         r#"{{
-  "stem": "{stem}",
-{code}
-    "answers": [
+  "text": "{text}",
+  "answers": [
 {answers}
   ],
   "explanation": "{explanation}",
@@ -278,12 +270,7 @@ fn format_example_as_json(q: &QuestionBankEntry) -> String {
   "skills": [{skills}],
     "distractors": "{distractors}"
 }}"#,
-        stem = escape_json_string(&q.stem),
-        code = if code_field.is_empty() {
-            String::new()
-        } else {
-            format!("{}\n", code_field)
-        },
+        text = escape_json_string(&q.text),
         answers = answers_json.join(",\n"),
         explanation = escape_json_string(&q.explanation),
         difficulty = q.difficulty,
@@ -317,7 +304,7 @@ pub fn build_regenerate_prompt(
         .iter()
         .filter(|q| q.id != current.id)
         .take(3)
-        .map(|q| truncate(&q.content, 50))
+        .map(|q| truncate(&q.text, 50))
         .collect();
 
     let config = PromptConfig {
@@ -414,22 +401,10 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
     //    questions.len()
     // );
 
-    // Assign IDs and ensure backward compatibility by populating content field
+    // Assign IDs
     let mut result = Vec::new();
     for (i, mut q) in questions.into_iter().enumerate() {
         q.id = format!("q{}", i + 1);
-
-        // Populate legacy content field for backward compatibility
-        if q.content.is_empty() {
-            let mut content = q.stem.clone();
-            if let Some(code) = &q.code {
-                content.push_str("\n\n```java\n");
-                content.push_str(code);
-                content.push_str("\n```");
-            }
-            q.content = content;
-        }
-
         result.push(q);
     }
 
@@ -453,8 +428,7 @@ mod tests {
     fn test_parse_json_format() {
         let input = r#"[
   {
-    "stem": "What is returned by this code?",
-    "code": "return 5 + 3;",
+    "text": "What is returned by this code?\n\n```java\nreturn 5 + 3;\n```",
     "answers": [
       {"text": "`8`", "is_correct": true, "explanation": "Correct addition"},
       {"text": "`53`", "is_correct": false, "explanation": "String concatenation error"},
@@ -470,22 +444,24 @@ mod tests {
         assert_eq!(questions.len(), 1);
         assert_eq!(questions[0].answers.len(), 4);
         assert!(questions[0].answers[0].is_correct);
-        assert_eq!(questions[0].stem, "What is returned by this code?");
-        assert_eq!(questions[0].code, Some("return 5 + 3;".to_string()));
+        assert_eq!(
+            questions[0].text,
+            "What is returned by this code?\n\n```java\nreturn 5 + 3;\n```"
+        );
     }
 
     #[test]
     fn test_parse_multiple_questions() {
         let input = r#"[
   {
-    "stem": "Question 1",
+    "text": "Question 1",
     "answers": [
       {"text": "A", "is_correct": true},
       {"text": "B", "is_correct": false}
     ]
   },
   {
-    "stem": "Question 2",
+    "text": "Question 2",
     "answers": [
       {"text": "C", "is_correct": false},
       {"text": "D", "is_correct": true}
@@ -508,7 +484,7 @@ mod tests {
 ```json
 [
     {
-        "stem": "First array question",
+        "text": "First array question",
         "answers": [
             {"text": "A", "is_correct": true}
         ]
@@ -521,7 +497,7 @@ Some extra commentary.
 ```json
 [
     {
-        "stem": "Second array question",
+        "text": "Second array question",
         "answers": [
             {"text": "B", "is_correct": true}
         ]
@@ -532,7 +508,7 @@ Some extra commentary.
 
         let questions = parse_llm_response(input).unwrap();
         assert_eq!(questions.len(), 1);
-        assert_eq!(questions[0].stem, "First array question");
+        assert_eq!(questions[0].text, "First array question");
     }
 
     #[test]
@@ -541,7 +517,7 @@ Some extra commentary.
         // We alias that field to keep parsing resilient.
         let input = r#"[
     {
-        "stem": "Legacy options question",
+        "text": "Legacy options question",
         "options": [
             {"text": "A", "is_correct": true},
             {"text": "B", "is_correct": false}
@@ -551,7 +527,7 @@ Some extra commentary.
 
         let questions = parse_llm_response(input).unwrap();
         assert_eq!(questions.len(), 1);
-        assert_eq!(questions[0].stem, "Legacy options question");
+        assert_eq!(questions[0].text, "Legacy options question");
         assert_eq!(questions[0].answers.len(), 2);
         assert!(questions[0].answers[0].is_correct);
     }

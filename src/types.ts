@@ -1,12 +1,9 @@
 export interface Question {
   id: string;
-  stem: string; // Question text (markdown supported)
-  code?: string; // Code snippet if applicable
+  text: string; // Question text in markdown format (may include code blocks)
   answers: Answer[];
   explanation?: string; // Correct answer explanation
   distractors?: string; // Why wrong answers are tempting
-  // Legacy field for backward compatibility
-  content?: string; // Deprecated, use stem + code
 }
 
 export interface Answer {

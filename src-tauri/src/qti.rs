@@ -98,18 +98,8 @@ pub fn export_txt(title: &str, questions: &[Question]) -> Result<String, String>
     let mut output = format!("Title: {}\n\n", title);
 
     for (i, q) in questions.iter().enumerate() {
-        // Question number and stem
-        let stem = if !q.stem.is_empty() {
-            &q.stem
-        } else {
-            &q.content
-        };
-        output.push_str(&format!("{}. {}\n\n", i + 1, stem));
-
-        // Code if present
-        if let Some(code) = &q.code {
-            output.push_str(&format!("```java\n{}\n```\n\n", code));
-        }
+        // Question number and text (markdown format)
+        output.push_str(&format!("{}. {}\n\n", i + 1, q.text));
 
         // Answers - correct one first
         let correct_first: Vec<_> = q
@@ -211,24 +201,49 @@ fn generate_qti_xml(_title: &str, questions: &[Question]) -> String {
 fn convert_to_html(q: &Question) -> String {
     let mut html = String::new();
 
-    // Use stem or fall back to content
-    let stem = if !q.stem.is_empty() {
-        &q.stem
-    } else {
-        &q.content
+    // Parse markdown: extract code blocks and convert rest
+    let code_block_re = Regex::new(r"```(?:java)?\n([^`]+)\n```").unwrap();
+
+    // Split text into parts with and without code blocks
+    let mut last_end = 0;
+    let parts: Vec<(&str, Option<&str>)> = {
+        let mut result = Vec::new();
+        for cap in code_block_re.captures_iter(&q.text) {
+            let match_start = cap.get(0).unwrap().start();
+            let match_end = cap.get(0).unwrap().end();
+
+            // Add text before code block
+            if last_end < match_start {
+                result.push((&q.text[last_end..match_start], None));
+            }
+
+            // Add code block
+            result.push(("", Some(cap.get(1).unwrap().as_str())));
+            last_end = match_end;
+        }
+
+        // Add remaining text after last code block
+        if last_end < q.text.len() {
+            result.push((&q.text[last_end..], None));
+        }
+
+        result
     };
 
-    // Convert LaTeX first, then inline code, then HTML escape
-    let processed = convert_latex(stem);
-    let processed = convert_inline_code(&processed);
-    html.push_str(&processed);
-
-    // Add code block if present
-    if let Some(code) = &q.code {
-        html.push_str(&format!(
-            "<pre>{}</pre>",
-            htmlescape::encode_minimal(code.trim())
-        ));
+    // Convert each part
+    for (text_part, code_part) in parts {
+        if let Some(code) = code_part {
+            // Code block
+            html.push_str(&format!(
+                "<pre>{}</pre>",
+                htmlescape::encode_minimal(code.trim())
+            ));
+        } else if !text_part.is_empty() {
+            // Regular text with LaTeX and inline code
+            let processed = convert_latex(text_part);
+            let processed = convert_inline_code(&processed);
+            html.push_str(&processed);
+        }
     }
 
     html
@@ -280,9 +295,7 @@ mod tests {
     fn test_export_txt() {
         let questions = vec![Question {
             id: "1".to_string(),
-            content: "What is 2+2?".to_string(),
-            stem: "What is 2+2?".to_string(),
-            code: None,
+            text: "What is 2+2?".to_string(),
             explanation: None,
             distractors: None,
             answers: vec![
