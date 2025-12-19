@@ -10,6 +10,7 @@ pub struct PromptConfig<'a> {
     pub examples: &'a [QuestionBankEntry],
     pub user_instructions: Option<&'a str>,
     pub regenerate_context: Option<RegenerateContext<'a>>,
+    pub prompt_template: Option<&'a str>,
 }
 
 /// Context for regeneration requests
@@ -20,6 +21,12 @@ pub struct RegenerateContext<'a> {
 
 /// Build the core prompt (used for both generate and regenerate)
 fn build_core_prompt(config: &PromptConfig) -> String {
+    // Use custom prompt template if provided, otherwise use default
+    if let Some(template) = config.prompt_template {
+        return format_custom_prompt(template, config);
+    }
+
+    // Default prompt (original AP CS A prompt)
     let difficulty_desc = match config.difficulty {
         "easy" => "D1 (Easy) - Basic recall or simple application, 1-2 steps",
         "medium" => "D2 (Medium) - Requires analysis or multi-step reasoning, 3-5 steps",
@@ -201,10 +208,77 @@ Generate a JSON array with {count} question(s) now:"#,
     )
 }
 
+/// Format a custom prompt template with config values
+fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
+    let difficulty_desc = match config.difficulty {
+        "easy" => "D1 (Easy) - Basic recall or simple application, 1-2 steps",
+        "medium" => "D2 (Medium) - Requires analysis or multi-step reasoning, 3-5 steps",
+        "hard" => "D3 (Hard) - Complex analysis, synthesis of multiple concepts, 5+ steps",
+        _ => "D2 (Medium) - Requires analysis or multi-step reasoning",
+    };
+
+    let examples_str = if config.examples.is_empty() {
+        String::from("(No examples available)")
+    } else {
+        config
+            .examples
+            .iter()
+            .enumerate()
+            .map(|(i, e)| {
+                format!(
+                    "### Example {}\n```json\n{}\n```",
+                    i + 1,
+                    format_example_as_json(e)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n\n")
+    };
+
+    let user_instructions_str = match config.user_instructions {
+        Some(notes) if !notes.trim().is_empty() => {
+            format!("\n\n**Additional Instructions from User:**\n{}", notes)
+        }
+        _ => String::new(),
+    };
+
+    let regenerate_section = match &config.regenerate_context {
+        Some(ctx) => {
+            let other_questions_str = if ctx.other_questions.is_empty() {
+                String::new()
+            } else {
+                format!(
+                    "\n\n**Other questions in this set (avoid duplicating these):**\n{}",
+                    ctx.other_questions
+                        .iter()
+                        .map(|q| format!("- {}", q))
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                )
+            };
+            format!(
+                "\n\n**Question to replace:**\n{}\n{}",
+                ctx.current_question.text, other_questions_str
+            )
+        }
+        None => String::new(),
+    };
+
+    // Replace placeholders in template
+    template
+        .replace("{topics}", &config.topics)
+        .replace("{difficulty}", difficulty_desc)
+        .replace("{count}", &config.count.to_string())
+        .replace("{examples}", &examples_str)
+        .replace("{user_instructions}", &user_instructions_str)
+        .replace("{regenerate}", &regenerate_section)
+}
+
 /// Build the prompt for generating multiple questions using JSON examples
 pub fn build_generation_prompt(
     request: &GenerationRequest,
     examples: &[QuestionBankEntry],
+    prompt_template: Option<&str>,
 ) -> String {
     let config = PromptConfig {
         topics: request.topics.join(", "),
@@ -213,6 +287,7 @@ pub fn build_generation_prompt(
         examples,
         user_instructions: request.notes.as_deref(),
         regenerate_context: None,
+        prompt_template,
     };
     build_core_prompt(&config)
 }
@@ -295,6 +370,7 @@ pub fn build_regenerate_prompt(
     context: &[Question],
     examples: &[QuestionBankEntry],
     user_instructions: Option<&str>,
+    prompt_template: Option<&str>,
 ) -> String {
     // Extract topics from current question content (simple heuristic)
     let topics = "similar topic as original".to_string();
@@ -317,6 +393,7 @@ pub fn build_regenerate_prompt(
             current_question: current,
             other_questions,
         }),
+        prompt_template,
     };
     build_core_prompt(&config)
 }

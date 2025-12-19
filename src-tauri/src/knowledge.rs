@@ -88,12 +88,15 @@ pub struct KnowledgeBase {
     pub bank_entries: HashMap<String, Vec<QuestionBankEntry>>,
     /// Mapping of topic_id -> topic_codes for each subject
     pub topic_code_mappings: HashMap<String, HashMap<String, Vec<String>>>,
+    /// Prompt templates for each subject
+    pub prompts: HashMap<String, String>,
 }
 
 impl KnowledgeBase {
     /// Load knowledge base from embedded files, organized by subject folders
     pub fn load() -> Self {
         let mut subjects: HashMap<String, Vec<TopicInfo>> = HashMap::new();
+        let mut prompts: HashMap<String, String> = HashMap::new();
         let mut bank_entries: HashMap<String, Vec<QuestionBankEntry>> = HashMap::new();
         let mut topic_code_mappings: HashMap<String, HashMap<String, Vec<String>>> = HashMap::new();
 
@@ -233,6 +236,18 @@ impl KnowledgeBase {
                 subjects.insert(subject_name.to_string(), subject_topics);
                 topic_code_mappings.insert(subject_name.to_string(), subject_topic_codes);
             }
+
+            // Load prompt template for this subject
+            let prompt_filename = format!("{}/prompt.txt", subject_name);
+            if let Some(file) = KnowledgeAssets::get(&prompt_filename) {
+                let content = String::from_utf8_lossy(&file.data).to_string();
+                prompts.insert(subject_name.to_string(), content);
+            } else {
+                eprintln!(
+                    "Warning: No prompt.txt found for {}, will use default",
+                    subject_name
+                );
+            }
         }
 
         println!("Loaded {} subjects", subjects.len());
@@ -244,6 +259,7 @@ impl KnowledgeBase {
             subjects,
             bank_entries,
             topic_code_mappings,
+            prompts,
         }
     }
 
@@ -341,5 +357,10 @@ impl KnowledgeBase {
 
         results.truncate(max_total);
         results
+    }
+
+    /// Get prompt template for a subject, or return default
+    pub fn get_prompt(&self, subject: &str) -> Option<&str> {
+        self.prompts.get(subject).map(|s| s.as_str())
     }
 }

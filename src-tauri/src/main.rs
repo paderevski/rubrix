@@ -134,7 +134,6 @@ fn get_subjects(state: State<AppState>) -> Vec<SubjectInfo> {
     state.knowledge.get_subjects()
 }
 
-
 #[tauri::command]
 fn get_topics(subject: String, state: State<AppState>) -> Vec<TopicInfo> {
     state.knowledge.get_topics(&subject)
@@ -154,8 +153,11 @@ async fn generate_questions(
         3, // Get up to 3 examples
     );
 
+    // Get prompt template for this subject
+    let prompt_template = state.knowledge.get_prompt(&request.subject);
+
     // Build prompt with JSON examples
-    let prompt = prompts::build_generation_prompt(&request, &bank_examples);
+    let prompt = prompts::build_generation_prompt(&request, &bank_examples, prompt_template);
 
     // Call LLM with streaming
     let response = llm::generate(&prompt, Some(app_handle)).await?;
@@ -215,12 +217,16 @@ async fn regenerate_question(
         static DEFAULT_TOPICS: [&str; 1] = ["recursion"];
         // Convert static array to Vec<String> and store in a static once cell
         use once_cell::sync::Lazy;
-        static DEFAULT_TOPICS_VEC: Lazy<Vec<String>> = Lazy::new(|| DEFAULT_TOPICS.iter().map(|s| s.to_string()).collect());
+        static DEFAULT_TOPICS_VEC: Lazy<Vec<String>> =
+            Lazy::new(|| DEFAULT_TOPICS.iter().map(|s| s.to_string()).collect());
         &DEFAULT_TOPICS_VEC
     };
 
     // Get one example for reference
     let bank_examples = state.knowledge.get_bank_examples(subject, topics, None, 1);
+
+    // Get prompt template for this subject
+    let prompt_template = state.knowledge.get_prompt(subject);
 
     // Build prompt for single question regeneration
     let prompt = prompts::build_regenerate_prompt(
@@ -228,6 +234,7 @@ async fn regenerate_question(
         &current_questions,
         &bank_examples,
         instructions.as_deref(),
+        prompt_template,
     );
     let response = llm::generate(&prompt, Some(app_handle)).await?;
 
