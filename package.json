@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "version": "node -e \"const fs=require('fs');const pkg=require('./package.json');const tauri=JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json'));tauri.package.version=pkg.version;fs.writeFileSync('src-tauri/tauri.conf.json',JSON.stringify(tauri,null,2)+'\\n')\" && git add src-tauri/tauri.conf.json"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.0.4",
