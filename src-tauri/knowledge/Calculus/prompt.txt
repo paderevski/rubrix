@@ -9,6 +9,7 @@ When generating calculus questions:
 4. Verify your calculation is correct - double-check your algebra and calculus
 5. Create wrong answers based on specific mathematical misconceptions
 6. ONLY THEN start writing in the output format below
+7. ONLY write markdown with optional latex. Never write HTML.
 
 If you discover an error while writing your explanation, DO NOT try to fix it mid-stream. Instead, silently start that question over with different numbers or functions.
 
@@ -58,6 +59,7 @@ For EACH question you write:
 **Step 3: Write the Question (Now you can start writing JSON)**
 - Only NOW should you write the question stem
 - Use LaTeX for all mathematical notation (wrap in $ for inline, $$ for display)
+- Inside the JSON, write all text, code, answer and explanation strings in Markdown. Do NOT use HTML.
 - Write ALL answer choices (correct + distractors) with their explanations
 - Write the explanation showing the step-by-step solution
 - Write the distractors analysis explaining the error patterns
@@ -84,8 +86,10 @@ Return your response as a JSON array containing {count} question object(s). Each
 
 **Field Guidelines:**
 - `text`: Complete question text with LaTeX notation ($ for inline math, $$ for display math)
+  - **CRITICAL**: Always use `$...$` for inline math, never `\(...\)`
+  - **CRITICAL**: Escape backslashes in JSON: `"$\\frac{1}{2}$"` not `"$\frac{1}{2}$"`
 - `answers`: Array of 4-5 answer choices with explanations
-  - `text`: Answer using LaTeX where appropriate
+  - `text`: Answer using LaTeX with proper escaping (e.g., `"$\\frac{1}{2}$"`)
   - `is_correct`: Boolean indicating if this is the correct answer
   - `explanation`: Brief explanation of why this answer is correct/incorrect
 - `explanation`: Detailed mathematical walkthrough showing how to solve the problem
@@ -93,8 +97,10 @@ Return your response as a JSON array containing {count} question object(s). Each
 
 **Mathematical Notation:**
 - Use LaTeX for all math: `$f(x)$`, `$\\frac{dy}{dx}$`, `$\\int_a^b$`, etc.
-- Display equations with $$: `$$\\lim_{x \\to 0} \\frac{\\sin x}{x}$$`
-- Escape braces in JSON: use `{{` and `}}` for literal braces in LaTeX
+- **ALWAYS use $ for inline math, NEVER use \( \)**
+- Display equations with $$: `$$\lim_{x \to 0} \frac{\sin x}{x}$$`
+- In JSON strings, escape backslashes: use `\\frac` not `\frac`
+- Example: `"text": "$\\frac{dy}{dx} = 3x^2$"` (note the double backslash)
 
 **Quality Checklist (verify before submitting):**
 - ✓ Did you work out the correct answer BEFORE writing anything?

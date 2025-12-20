@@ -9,7 +9,7 @@ use tauri::Manager;
 
 // Replicate API configuration
 // const MODEL_VERSION: &str = "anthropic/claude-4.5-sonnet";
-const MODEL_VERSION: &str = "deepseek-ai/deepseek-v3";
+const MODEL_VERSION: &str = "openai/gpt-5-mini";
 
 /// Log prompt and response to a file (appends each time)
 fn log_llm_interaction(prompt: &str, response: &str) {

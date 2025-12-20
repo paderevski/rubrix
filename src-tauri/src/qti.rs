@@ -90,6 +90,163 @@ const CHOICE_TEMPLATE: &str = r#"                        <response_label ident="
                         </response_label>"#;
 
 // ============================================================================
+// Text Processing Functions
+// ============================================================================
+
+/// Clean up encoding artifacts and special characters
+fn clean_special_characters(text: &str) -> String {
+    text
+        // Encoding artifacts
+        .replace("Â", "") // Common UTF-8 artifact
+        .replace("\u{00a0}", " ") // Non-breaking space
+        .replace("\u{feff}", "") // BOM
+        // Curly quotes to straight quotes
+        .replace("\u{201c}", "\"") // Left double quote
+        .replace("\u{201d}", "\"") // Right double quote
+        .replace("\u{2018}", "'") // Left single quote
+        .replace("\u{2019}", "'") // Right single quote
+        .replace("\u{201e}", "\"") // Double low-9 quote
+        .replace("\u{201f}", "\"") // Double high-reversed-9 quote
+        // Dashes
+        .replace("\u{2013}", "-") // En dash
+        .replace("\u{2014}", "-") // Em dash
+        // Other common issues
+        .replace("\u{2026}", "...") // Ellipsis
+        .replace("\t", "    ") // Tab to spaces
+}
+
+/// Convert markdown table to HTML table
+fn convert_markdown_table(markdown: &str) -> String {
+    let lines: Vec<&str> = markdown.trim().lines().collect();
+
+    if lines.len() < 2 {
+        return markdown.to_string();
+    }
+
+    let mut html = String::from("<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\">\n");
+
+    // Parse header row
+    let header_cells: Vec<&str> = lines[0]
+        .split('|')
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .collect();
+
+    if !header_cells.is_empty() {
+        html.push_str("<thead><tr>\n");
+        for cell in header_cells {
+            let cell_html = convert_inline_code(&htmlescape::encode_minimal(cell));
+            html.push_str(&format!("<th>{}</th>\n", cell_html));
+        }
+        html.push_str("</tr></thead>\n");
+    }
+
+    // Skip separator line (lines[1])
+
+    // Parse data rows
+    if lines.len() > 2 {
+        html.push_str("<tbody>\n");
+        for row in &lines[2..] {
+            let cells: Vec<&str> = row
+                .split('|')
+                .map(|s| s.trim())
+                .filter(|s| !s.is_empty())
+                .collect();
+
+            if !cells.is_empty() {
+                html.push_str("<tr>\n");
+                for cell in cells {
+                    let cell_html = convert_inline_code(&htmlescape::encode_minimal(cell));
+                    html.push_str(&format!("<td>{}</td>\n", cell_html));
+                }
+                html.push_str("</tr>\n");
+            }
+        }
+        html.push_str("</tbody>\n");
+    }
+
+    html.push_str("</table>");
+    html
+}
+
+/// Convert answer text to HTML with proper escaping and line break preservation
+fn convert_answer_to_html(answer: &str) -> String {
+    let display_latex_re = Regex::new(r"\$\$([^\$]+)\$\$").unwrap();
+    let inline_latex_re = Regex::new(r"\$([^\$]+)\$").unwrap();
+
+    let lines: Vec<&str> = answer.lines().collect();
+    let mut html_lines = Vec::new();
+
+    for line in lines {
+        let mut processed = String::new();
+        let mut last_end = 0;
+        let mut latex_blocks: Vec<(usize, usize, String)> = Vec::new();
+
+        // Collect display LaTeX ($$...$$)
+        for cap in display_latex_re.captures_iter(line) {
+            let start = cap.get(0).unwrap().start();
+            let end = cap.get(0).unwrap().end();
+            let formula = cap.get(1).unwrap().as_str().trim();
+            let encoded = urlencoding::encode(formula);
+            let html = format!(
+                r#"<img src="https://learn.lcps.org/svc/latex/latex-to-svg?latex={}" alt="{}" formula="{}" class="mathquill-formula" />"#,
+                encoded, formula, formula
+            );
+            latex_blocks.push((start, end, html));
+        }
+
+        // Collect inline LaTeX ($...$)
+        for cap in inline_latex_re.captures_iter(line) {
+            let start = cap.get(0).unwrap().start();
+            let end = cap.get(0).unwrap().end();
+
+            // Skip if already part of display LaTeX
+            let is_inside_block = latex_blocks
+                .iter()
+                .any(|(block_start, block_end, _)| start >= *block_start && end <= *block_end);
+
+            if !is_inside_block {
+                let formula = cap.get(1).unwrap().as_str().trim();
+                let encoded = urlencoding::encode(formula);
+                let html = format!(
+                    r#"<img src="https://learn.lcps.org/svc/latex/latex-to-svg?latex={}" alt="{}" formula="{}" class="mathquill-formula" />"#,
+                    encoded, formula, formula
+                );
+                latex_blocks.push((start, end, html));
+            }
+        }
+
+        // Sort by position
+        latex_blocks.sort_by_key(|&(start, _, _)| start);
+
+        // Build the line with LaTeX and escaped text
+        for (start, end, html) in latex_blocks {
+            if last_end < start {
+                let text_part = &line[last_end..start];
+                let escaped = htmlescape::encode_minimal(text_part);
+                let with_code = convert_inline_code(&escaped);
+                processed.push_str(&with_code);
+            }
+            processed.push_str(&html);
+            last_end = end;
+        }
+
+        // Add remaining text
+        if last_end < line.len() {
+            let text_part = &line[last_end..];
+            let escaped = htmlescape::encode_minimal(text_part);
+            let with_code = convert_inline_code(&escaped);
+            processed.push_str(&with_code);
+        }
+
+        html_lines.push(processed);
+    }
+
+    // Join with <br /> for line breaks
+    html_lines.join("<br />")
+}
+
+// ============================================================================
 // Export Functions
 // ============================================================================
 
@@ -175,9 +332,10 @@ fn generate_qti_xml(_title: &str, questions: &[Question]) -> String {
                 correct_id = choice_num.to_string();
             }
 
-            // Convert LaTeX first, then inline code for answer text
-            let processed = convert_latex(&answer.text);
-            let answer_html = convert_inline_code(&processed);
+            // Clean special characters, convert LaTeX, then convert to HTML with proper escaping
+            let cleaned = clean_special_characters(&answer.text);
+            let processed = convert_latex(&cleaned);
+            let answer_html = convert_answer_to_html(&processed);
             let choice = CHOICE_TEMPLATE
                 .replace("{choice_id}", &choice_num.to_string())
                 .replace("{choice_text}", &answer_html);
@@ -199,54 +357,138 @@ fn generate_qti_xml(_title: &str, questions: &[Question]) -> String {
 
 /// Convert a question to HTML format
 fn convert_to_html(q: &Question) -> String {
-    let mut html = String::new();
+    // Clean special characters first
+    let text = clean_special_characters(&q.text);
 
-    // Parse markdown: extract code blocks and convert rest
+    // Parse markdown: extract code blocks, tables, LaTeX, and convert rest
     let code_block_re = Regex::new(r"```(?:java)?\n([^`]+)\n```").unwrap();
+    let table_re = Regex::new(r"(\|[^\n]+\|\n)(\|[-:\s|]+\|\n)((?:\|[^\n]+\|\n?)+)").unwrap();
+    let display_latex_re = Regex::new(r"\$\$([^\$]+)\$\$").unwrap();
+    let inline_latex_re = Regex::new(r"\$([^\$]+)\$").unwrap();
 
-    // Split text into parts with and without code blocks
-    let mut last_end = 0;
-    let parts: Vec<(&str, Option<&str>)> = {
-        let mut result = Vec::new();
-        for cap in code_block_re.captures_iter(&q.text) {
-            let match_start = cap.get(0).unwrap().start();
-            let match_end = cap.get(0).unwrap().end();
+    #[derive(Debug)]
+    enum Block {
+        BlockLevel(usize, usize, String), // start, end, html
+        Inline(usize, usize, String),     // start, end, html
+    }
 
-            // Add text before code block
-            if last_end < match_start {
-                result.push((&q.text[last_end..match_start], None));
-            }
+    let mut blocks: Vec<Block> = Vec::new();
 
-            // Add code block
-            result.push(("", Some(cap.get(1).unwrap().as_str())));
-            last_end = match_end;
-        }
+    // Collect code blocks (block-level)
+    for cap in code_block_re.captures_iter(&text) {
+        let start = cap.get(0).unwrap().start();
+        let end = cap.get(0).unwrap().end();
+        let code = cap.get(1).unwrap().as_str();
+        let html = format!("<pre>{}</pre>", htmlescape::encode_minimal(code.trim()));
+        blocks.push(Block::BlockLevel(start, end, html));
+    }
 
-        // Add remaining text after last code block
-        if last_end < q.text.len() {
-            result.push((&q.text[last_end..], None));
-        }
+    // Collect tables (block-level)
+    for cap in table_re.captures_iter(&text) {
+        let start = cap.get(0).unwrap().start();
+        let end = cap.get(0).unwrap().end();
+        let table_md = cap.get(0).unwrap().as_str();
+        let html = convert_markdown_table(table_md);
+        blocks.push(Block::BlockLevel(start, end, html));
+    }
 
-        result
-    };
+    // Collect display LaTeX (block-level) - do this before inline to avoid conflicts
+    for cap in display_latex_re.captures_iter(&text) {
+        let start = cap.get(0).unwrap().start();
+        let end = cap.get(0).unwrap().end();
+        let formula = cap.get(1).unwrap().as_str().trim();
+        let encoded = urlencoding::encode(formula);
+        let html = format!(
+            r#"<img src="https://learn.lcps.org/svc/latex/latex-to-svg?latex={}" alt="{}" formula="{}" class="mathquill-formula" />"#,
+            encoded, formula, formula
+        );
+        blocks.push(Block::BlockLevel(start, end, html));
+    }
 
-    // Convert each part
-    for (text_part, code_part) in parts {
-        if let Some(code) = code_part {
-            // Code block
-            html.push_str(&format!(
-                "<pre>{}</pre>",
-                htmlescape::encode_minimal(code.trim())
-            ));
-        } else if !text_part.is_empty() {
-            // Regular text with LaTeX and inline code
-            let processed = convert_latex(text_part);
-            let processed = convert_inline_code(&processed);
-            html.push_str(&processed);
+    // Collect inline LaTeX (inline)
+    for cap in inline_latex_re.captures_iter(&text) {
+        let start = cap.get(0).unwrap().start();
+        let end = cap.get(0).unwrap().end();
+
+        // Skip if this LaTeX is already part of another block
+        let is_inside_block = blocks.iter().any(|block| {
+            let (block_start, block_end) = match block {
+                Block::BlockLevel(s, e, _) => (s, e),
+                Block::Inline(s, e, _) => (s, e),
+            };
+            start >= *block_start && end <= *block_end
+        });
+
+        if !is_inside_block {
+            let formula = cap.get(1).unwrap().as_str().trim();
+            let encoded = urlencoding::encode(formula);
+            let html = format!(
+                r#"<img src="https://learn.lcps.org/svc/latex/latex-to-svg?latex={}" alt="{}" formula="{}" class="mathquill-formula" />"#,
+                encoded, formula, formula
+            );
+            blocks.push(Block::Inline(start, end, html));
         }
     }
 
-    html
+    // Sort by position
+    blocks.sort_by_key(|block| match block {
+        Block::BlockLevel(start, _, _) => *start,
+        Block::Inline(start, _, _) => *start,
+    });
+
+    // Build HTML, grouping inline content into paragraphs
+    let mut result = Vec::new();
+    let mut last_end = 0;
+    let mut paragraph_parts: Vec<String> = Vec::new();
+
+    for block in blocks {
+        let (start, end, html, is_block_level) = match block {
+            Block::BlockLevel(s, e, h) => (s, e, h, true),
+            Block::Inline(s, e, h) => (s, e, h, false),
+        };
+
+        // Add text before this block
+        if last_end < start {
+            let text_part = &text[last_end..start];
+            if !text_part.trim().is_empty() {
+                let escaped = htmlescape::encode_minimal(text_part.trim());
+                let processed = convert_inline_code(&escaped);
+                paragraph_parts.push(processed);
+            }
+        }
+
+        if is_block_level {
+            // Flush any accumulated paragraph content
+            if !paragraph_parts.is_empty() {
+                result.push(format!("<p>{}</p>", paragraph_parts.join(" ")));
+                paragraph_parts.clear();
+            }
+            // Add the block-level element directly
+            result.push(html);
+        } else {
+            // Add inline element to current paragraph
+            paragraph_parts.push(html);
+        }
+
+        last_end = end;
+    }
+
+    // Add remaining text after last block
+    if last_end < text.len() {
+        let text_part = &text[last_end..];
+        if !text_part.trim().is_empty() {
+            let escaped = htmlescape::encode_minimal(text_part.trim());
+            let processed = convert_inline_code(&escaped);
+            paragraph_parts.push(processed);
+        }
+    }
+
+    // Flush any remaining paragraph content
+    if !paragraph_parts.is_empty() {
+        result.push(format!("<p>{}</p>", paragraph_parts.join(" ")));
+    }
+
+    result.join("\n")
 }
 
 /// Convert LaTeX blocks to img tags with learn.lcps.org API
@@ -298,6 +540,8 @@ mod tests {
             text: "What is 2+2?".to_string(),
             explanation: None,
             distractors: None,
+            subject: "Test".to_string(),
+            topics: vec!["Math".to_string()],
             answers: vec![
                 Answer {
                     text: "4".to_string(),
@@ -346,5 +590,126 @@ mod tests {
         assert!(result.contains("%2B")); // plus sign
         assert!(result.contains("%7B")); // {
         assert!(result.contains("%7D")); // }
+    }
+
+    #[test]
+    fn test_latex_with_primes_not_html_encoded() {
+        // Test that primes (apostrophes) in LaTeX are NOT HTML encoded
+        let q = Question {
+            id: "1".to_string(),
+            text: "Find $F'(x)$ and $g''(t)$".to_string(),
+            explanation: None,
+            distractors: None,
+            subject: "Calculus".to_string(),
+            topics: vec!["Derivatives".to_string()],
+            answers: vec![],
+        };
+
+        let result = convert_to_html(&q);
+
+        // The LaTeX should contain F'(x) in the URL, not F&apos;(x) or F&#39;(x)
+        // %27 is URL-encoded apostrophe, %28 is (, %29 is )
+        assert!(result.contains("F%27%28x%29"));
+        assert!(result.contains("g%27%27%28t%29")); // double prime
+
+        // Should NOT contain HTML entities
+        assert!(!result.contains("&apos;"));
+        assert!(!result.contains("&#39;"));
+
+        // The alt and formula attributes should contain the raw LaTeX (not HTML encoded)
+        assert!(result.contains(r#"alt="F'(x)""#));
+        assert!(result.contains(r#"formula="F'(x)""#));
+    }
+
+    #[test]
+    fn test_answer_latex_with_primes() {
+        // Test that answer LaTeX also preserves primes correctly
+        let cleaned_answer = "$f'(x) = 2x$";
+        let result = convert_answer_to_html(cleaned_answer);
+
+        // Should contain URL-encoded prime (and other chars)
+        assert!(result.contains("f%27%28x%29")); // %27 is URL-encoded apostrophe
+
+        // Should NOT contain HTML entities
+        assert!(!result.contains("&apos;"));
+        assert!(!result.contains("&#39;"));
+
+        // The alt and formula attributes should contain the raw LaTeX
+        assert!(result.contains(r#"alt="f'(x) = 2x""#));
+    }
+
+    #[test]
+    fn test_inline_latex_grouped_in_paragraph() {
+        // Test that inline LaTeX stays within the same paragraph as surrounding text
+        let q = Question {
+            id: "1".to_string(),
+            text: "Find $F'(x)$ here".to_string(),
+            explanation: None,
+            distractors: None,
+            subject: "Calculus".to_string(),
+            topics: vec!["Derivatives".to_string()],
+            answers: vec![],
+        };
+
+        let result = convert_to_html(&q);
+
+        // The entire content should be in ONE paragraph
+        let paragraph_count = result.matches("<p>").count();
+        assert_eq!(
+            paragraph_count, 1,
+            "Should have exactly one paragraph, got: {}",
+            result
+        );
+
+        // Should NOT have separate paragraphs for text before/after LaTeX
+        assert!(
+            !result.contains("<p>Find</p>"),
+            "Text before LaTeX should not be in separate paragraph"
+        );
+        assert!(
+            !result.contains("<p>here</p>"),
+            "Text after LaTeX should not be in separate paragraph"
+        );
+
+        // Should have all content in one paragraph
+        assert!(
+            result.contains("<p>Find"),
+            "Should start paragraph with 'Find'"
+        );
+        assert!(
+            result.contains("here</p>"),
+            "Should end paragraph with 'here'"
+        );
+    }
+
+    #[test]
+    fn test_block_latex_creates_new_paragraph() {
+        // Test that display LaTeX ($$...$$) breaks paragraphs
+        let q = Question {
+            id: "1".to_string(),
+            text: "Here is an equation: $$F'(x) = 2x$$ and more text".to_string(),
+            explanation: None,
+            distractors: None,
+            subject: "Calculus".to_string(),
+            topics: vec!["Derivatives".to_string()],
+            answers: vec![],
+        };
+
+        let result = convert_to_html(&q);
+
+        // Should have separate paragraphs before and after the display math
+        assert!(
+            result.contains("<p>Here is an equation:</p>"),
+            "Should have paragraph before display math"
+        );
+        assert!(
+            result.contains("<p>and more text</p>"),
+            "Should have paragraph after display math"
+        );
+
+        // Display math should be its own element
+        assert!(
+            result.contains(r#"<img src="https://learn.lcps.org/svc/latex/latex-to-svg?latex="#)
+        );
     }
 }
