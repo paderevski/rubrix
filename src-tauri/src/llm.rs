@@ -191,6 +191,10 @@ pub async fn generate(
         // Emit partial output as it streams in
         if let Some(ref output) = status.output {
             let partial_text = output_to_string(output);
+            if cfg!(debug_assertions) {
+                eprint!("{}", partial_text);
+                std::io::Write::flush(&mut std::io::stderr()).ok();
+            }
             emit_stream(&app_handle, &partial_text, false);
         }
 
@@ -198,6 +202,9 @@ pub async fn generate(
             "succeeded" => {
                 if let Some(output) = status.output {
                     let final_text = output_to_string(&output);
+                    if cfg!(debug_assertions) {
+                        eprintln!("\n[stream-complete]\n");
+                    }
                     emit_stream(&app_handle, &final_text, true);
                     // eprintln!(
                     //     "DEBUG response [{}]: {}",

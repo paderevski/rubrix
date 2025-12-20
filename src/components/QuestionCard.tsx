@@ -39,14 +39,25 @@ const questionMarkdownComponents = {
   },
 };
 
+function normalizeMathDelimiters(content: string) {
+  if (!content) return "";
+  return content
+    .replace(/\\\(/g, "$")
+    .replace(/\\\)/g, "$")
+    .replace(/\\\[/g, "$$")
+    .replace(/\\\]/g, "$$")
+    .replace(/\\n/g, "\n");
+}
+
 function RichMarkdown({ content }: { content: string }) {
+  const normalized = normalizeMathDelimiters(content);
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath]}
       rehypePlugins={[rehypeRaw, rehypeKatex]}
       components={questionMarkdownComponents}
     >
-      {content}
+      {normalized}
     </ReactMarkdown>
   );
 }
@@ -198,7 +209,7 @@ export default function QuestionCard({
                     },
                   }}
                 >
-                  {answer.text}
+                  {normalizeMathDelimiters(answer.text)}
                 </ReactMarkdown>
               </span>
               {answer.is_correct && (
