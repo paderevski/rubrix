@@ -4,6 +4,8 @@ export interface Question {
   answers: Answer[];
   explanation?: string; // Correct answer explanation
   distractors?: string; // Why wrong answers are tempting
+  subject?: string;
+  topics?: string[];
 }
 
 export interface Answer {

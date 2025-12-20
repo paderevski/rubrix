@@ -320,6 +320,13 @@ fn delete_question(index: usize, state: State<AppState>) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn set_questions(new_questions: Vec<Question>, state: State<AppState>) -> Result<(), String> {
+    let mut stored = state.questions.lock().unwrap();
+    *stored = new_questions;
+    Ok(())
+}
+
+#[tauri::command]
 fn get_questions(state: State<AppState>) -> Vec<Question> {
     state.questions.lock().unwrap().clone()
 }
@@ -358,6 +365,7 @@ fn main() {
             update_question,
             add_question,
             delete_question,
+            set_questions,
             get_questions,
             export_to_txt,
             export_to_qti,
