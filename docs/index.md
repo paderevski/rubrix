@@ -44,7 +44,7 @@ Rubrix is a desktop application that helps teachers create multiple-choice quest
 
 ## Quick Start
 
-1. **[Download Rubrix](https://github.com/pewhite/rubrix/releases/latest)** for your platform
+1. **[Download Rubrix](https://github.com/paderevski/rubrix/releases/latest)** for your platform
 2. **Install** - Run the installer (Mac, Windows, or Linux)
 3. **Generate** - Select topics, set difficulty, and click Generate
 4. **Export** - Save questions and import to your LMS
@@ -76,4 +76,4 @@ Rubrix is **free and open source**. You'll need a Replicate API key for AI gener
 
 ---
 
-<small>Built by teachers, for teachers. Questions or feedback? [Open an issue](https://github.com/pewhite/rubrix/issues) on GitHub.</small>
+<small>Built by teachers, for teachers. Questions or feedback? [Open an issue](https://github.com/paderevski/rubrix/issues) on GitHub.</small>

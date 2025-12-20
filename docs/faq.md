@@ -101,7 +101,7 @@ Yes! Advanced users can add questions to the knowledge base:
 2. Edit `question-bank.json` for your subject
 3. Follow the JSON format for existing questions
 
-More details in the [technical README](https://github.com/pewhite/rubrix#adding-knowledge-base-questions).
+More details in the [technical README](https://github.com/paderevski/rubrix#adding-knowledge-base-questions).
 
 ---
 
@@ -187,13 +187,13 @@ If you have permission to install software, yes! However:
 ### Can I contribute to Rubrix?
 
 Absolutely! Rubrix is open source:
-- Report bugs: [GitHub Issues](https://github.com/pewhite/rubrix/issues)
-- Request features: [GitHub Discussions](https://github.com/pewhite/rubrix/discussions)
-- Contribute code: [Pull Requests](https://github.com/pewhite/rubrix/pulls)
+- Report bugs: [GitHub Issues](https://github.com/paderevski/rubrix/issues)
+- Request features: [GitHub Discussions](https://github.com/paderevski/rubrix/discussions)
+- Contribute code: [Pull Requests](https://github.com/paderevski/rubrix/pulls)
 
 ### How do I update Rubrix?
 
-Currently, download and install the latest version from [GitHub Releases](https://github.com/pewhite/rubrix/releases). Auto-update is planned for future releases.
+Currently, download and install the latest version from [GitHub Releases](https://github.com/paderevski/rubrix/releases). Auto-update is planned for future releases.
 
 ---
 
@@ -242,7 +242,7 @@ Possibly! Priority subjects for future versions:
 - Physics
 - Biology
 
-Request subjects in [GitHub Discussions](https://github.com/pewhite/rubrix/discussions).
+Request subjects in [GitHub Discussions](https://github.com/paderevski/rubrix/discussions).
 
 ### Can you add [feature]?
 
@@ -254,15 +254,15 @@ We're actively developing! Planned features:
 - Bulk editing
 - Question templates
 
-Request features via [GitHub Issues](https://github.com/pewhite/rubrix/issues).
+Request features via [GitHub Issues](https://github.com/paderevski/rubrix/issues).
 
 ---
 
 ## Still Have Questions?
 
 - 📖 [Read the User Guide](user-guide.md)
-- 💬 [Join GitHub Discussions](https://github.com/pewhite/rubrix/discussions)
-- 🐛 [Report Issues](https://github.com/pewhite/rubrix/issues)
+- 💬 [Join GitHub Discussions](https://github.com/paderevski/rubrix/discussions)
+- 🐛 [Report Issues](https://github.com/paderevski/rubrix/issues)
 - 📧 Email: [Open an issue instead - we respond faster!]
 
 ---

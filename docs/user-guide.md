@@ -275,8 +275,8 @@ Click **Export QTI** to save in LMS-compatible format.
 ## Need Help?
 
 - [Check the FAQ](faq.md) for common questions
-- [Open an issue](https://github.com/pewhite/rubrix/issues) on GitHub
-- [Join discussions](https://github.com/pewhite/rubrix/discussions) with other users
+- [Open an issue](https://github.com/paderevski/rubrix/issues) on GitHub
+- [Join discussions](https://github.com/paderevski/rubrix/discussions) with other users
 
 ---
 

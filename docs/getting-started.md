@@ -9,21 +9,21 @@ title: Getting Started
 
 ### macOS
 
-1. Download `Rubrix.dmg` from the [latest release](https://github.com/pewhite/rubrix/releases/latest)
+1. Download `Rubrix.dmg` from the [latest release](https://github.com/paderevski/rubrix/releases/latest)
 2. Open the DMG file
 3. Drag Rubrix to your Applications folder
 4. Right-click Rubrix and select "Open" (first time only, due to macOS security)
 
 ### Windows
 
-1. Download `Rubrix-setup.exe` from the [latest release](https://github.com/pewhite/rubrix/releases/latest)
+1. Download `Rubrix-setup.exe` from the [latest release](https://github.com/paderevski/rubrix/releases/latest)
 2. Run the installer
 3. Follow the installation wizard
 4. Launch Rubrix from your Start Menu
 
 ### Linux
 
-1. Download the `.AppImage` or `.deb` file from the [latest release](https://github.com/pewhite/rubrix/releases/latest)
+1. Download the `.AppImage` or `.deb` file from the [latest release](https://github.com/paderevski/rubrix/releases/latest)
 2. For AppImage:
    ```bash
    chmod +x Rubrix.AppImage
@@ -63,7 +63,7 @@ Rubrix uses the Replicate API to generate questions with AI. You'll need an API 
    }
    ```
 
-**OR** build from source with your key (see [README](https://github.com/pewhite/rubrix#configuration))
+**OR** build from source with your key (see [README](https://github.com/paderevski/rubrix#configuration))
 
 > **Coming Soon**: API key input in the app UI!
 
@@ -138,7 +138,7 @@ Watch as questions stream in real-time. This typically takes 30-60 seconds.
 
 - [Learn how to edit and export questions →](user-guide.md)
 - [Read frequently asked questions →](faq.md)
-- [Report issues or request features](https://github.com/pewhite/rubrix/issues)
+- [Report issues or request features](https://github.com/paderevski/rubrix/issues)
 
 ---
 
