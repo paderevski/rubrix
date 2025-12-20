@@ -9,7 +9,7 @@ use tauri::Manager;
 
 // Replicate API configuration
 // const MODEL_VERSION: &str = "anthropic/claude-4.5-sonnet";
-const MODEL_VERSION: &str = "deepseek-ai/deepseek-v3";
+const MODEL_VERSION: &str = "openai/gpt-5-mini";
 
 /// Log prompt and response to a file (appends each time)
 fn log_llm_interaction(prompt: &str, response: &str) {
@@ -52,27 +52,6 @@ TIMESTAMP: {}
             eprintln!("DEBUG: Failed to write log: {}", e);
         }
     }
-}
-
-#[derive(Debug, Serialize)]
-struct ReplicateRequest {
-    version: String,
-    input: ReplicateInput,
-}
-
-#[derive(Debug, Serialize)]
-struct ReplicateInput {
-    prompt: String,
-    max_tokens: u32,
-    temperature: f32,
-}
-
-#[derive(Debug, Deserialize)]
-struct ReplicateResponse {
-    id: String,
-    status: String,
-    output: Option<Vec<String>>,
-    error: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

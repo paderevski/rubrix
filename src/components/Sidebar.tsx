@@ -1,7 +1,10 @@
 import { Loader2, Sparkles, Plus } from "lucide-react";
-import { TopicInfo } from "../types";
+import { TopicInfo, SubjectInfo } from "../types";
 
 interface SidebarProps {
+  subjects: SubjectInfo[];
+  selectedSubject: string;
+  onSubjectChange: (subject: string) => void;
   topics: TopicInfo[];
   selectedTopics: string[];
   onTopicsChange: (topics: string[]) => void;
@@ -19,6 +22,9 @@ interface SidebarProps {
 }
 
 export default function Sidebar({
+  subjects,
+  selectedSubject,
+  onSubjectChange,
   topics,
   selectedTopics,
   onTopicsChange,
@@ -46,6 +52,24 @@ export default function Sidebar({
     <aside className="w-80 border-r bg-card flex flex-col">
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        {/* Subject Selection */}
+        <div>
+          <label className="text-sm font-medium text-foreground mb-2 block">
+            Subject
+          </label>
+          <select
+            value={selectedSubject}
+            onChange={(e) => onSubjectChange(e.target.value)}
+            className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+          >
+            {subjects.map((subject) => (
+              <option key={subject.id} value={subject.id}>
+                {subject.name} ({subject.topic_count} topics)
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Topics */}
         <div>
           <h3 className="text-sm font-medium text-foreground mb-3">Topics</h3>

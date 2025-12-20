@@ -1,6 +1,4 @@
 import { useEffect, useRef, useMemo } from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { prism } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Loader2 } from "lucide-react";
 
 interface StreamingPreviewProps {
@@ -9,8 +7,7 @@ interface StreamingPreviewProps {
 }
 
 interface PartialQuestion {
-  stem?: string;
-  code?: string;
+  text?: string;
   answers?: Array<{ text?: string; is_correct?: boolean; explanation?: string }>;
   explanation?: string;
   distractors?: string;
@@ -194,15 +191,14 @@ export default function StreamingPreview({ text, isComplete }: StreamingPreviewP
       const isLast = qIdx === questionStrings.length - 1;
       const question: PartialQuestion = {};
 
-      question.stem = extractFieldValue(questionText, 'stem');
-      question.code = extractFieldValue(questionText, 'code');
+      question.text = extractFieldValue(questionText, 'text');
       question.explanation = extractFieldValue(questionText, 'explanation');
       question.distractors = extractFieldValue(questionText, 'distractors');
       question.answers = extractAnswers(questionText);
       question.isStreaming = isLast && hasIncomplete && !isComplete;
 
-      // Add if we have at least a stem (even partial)
-      if (question.stem) {
+      // Add if we have at least some text (even partial)
+      if (question.text) {
         questions.push(question);
       }
     }
@@ -237,23 +233,9 @@ export default function StreamingPreview({ text, isComplete }: StreamingPreviewP
                   {q.isStreaming && <span className="ml-2 text-xs text-blue-600 animate-pulse">● streaming</span>}
                 </div>
 
-                {/* Stem */}
-                {q.stem && (
-                  <div className="text-sm mb-3 whitespace-pre-wrap">{q.stem}</div>
-                )}
-
-                {/* Code */}
-                {q.code && (
-                  <div className="mb-3">
-                    <SyntaxHighlighter
-                      style={prism}
-                      language="java"
-                      PreTag="div"
-                      customStyle={{ fontSize: "0.85rem", margin: 0, borderRadius: "0.375rem" }}
-                    >
-                      {q.code}
-                    </SyntaxHighlighter>
-                  </div>
+                {/* Question Text (may include code blocks) */}
+                {q.text && (
+                  <div className="text-sm mb-3 whitespace-pre-wrap font-mono text-xs">{q.text}</div>
                 )}
 
                 {/* Answers */}

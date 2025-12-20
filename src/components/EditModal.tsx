@@ -9,7 +9,7 @@ interface EditModalProps {
 }
 
 export default function EditModal({ question, onSave, onClose }: EditModalProps) {
-  const [content, setContent] = useState(question.content);
+  const [content, setContent] = useState(question.text);
   const [answers, setAnswers] = useState<Answer[]>(question.answers);
 
   const handleAnswerChange = (index: number, newText: string) => {
@@ -30,14 +30,14 @@ export default function EditModal({ question, onSave, onClose }: EditModalProps)
 
   const handleRemoveAnswer = (index: number) => {
     if (answers.length <= 2) return;
-    
+
     const wasCorrect = answers[index].is_correct;
     const newAnswers = answers.filter((_, i) => i !== index);
-    
+
     if (wasCorrect && newAnswers.length > 0) {
       newAnswers[0].is_correct = true;
     }
-    
+
     setAnswers(newAnswers);
   };
 
@@ -49,7 +49,7 @@ export default function EditModal({ question, onSave, onClose }: EditModalProps)
 
     onSave({
       ...question,
-      content,
+      text: content,
       answers: finalAnswers,
     });
   };

@@ -32,18 +32,17 @@ pub struct Question {
     #[serde(default)]
     pub id: String,
     #[serde(default)]
-    pub stem: String, // Question text (markdown supported)
-    #[serde(default)]
-    pub code: Option<String>, // Code snippet if applicable (markdown code block)
+    pub text: String, // Question text in markdown format (may include code blocks)
     #[serde(alias = "options")]
     pub answers: Vec<Answer>,
     #[serde(default, deserialize_with = "de_opt_string_or_json")]
     pub explanation: Option<String>, // Correct answer explanation
     #[serde(default, deserialize_with = "de_opt_string_or_json")]
     pub distractors: Option<String>, // Why wrong answers are tempting
-    // Legacy field for backward compatibility during migration
     #[serde(default)]
-    pub content: String, // Full markdown content (deprecated, use stem + code)
+    pub subject: String,
+    #[serde(default)]
+    pub topics: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -63,7 +62,15 @@ pub struct TopicInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubjectInfo {
+    pub id: String,
+    pub name: String,
+    pub topic_count: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerationRequest {
+    pub subject: String,
     pub topics: Vec<String>,
     pub difficulty: String,
     pub count: u32,
@@ -80,8 +87,7 @@ pub struct GenerationRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QuestionBankEntry {
     pub id: String,
-    pub stem: String,
-    pub code: Option<String>,
+    pub text: String,
     pub options: Vec<QuestionBankOption>,
     pub explanation: String,
     pub difficulty: String,
@@ -124,8 +130,13 @@ pub struct AppState {
 // ============================================================================
 
 #[tauri::command]
-fn get_topics(state: State<AppState>) -> Vec<TopicInfo> {
-    state.knowledge.get_topics()
+fn get_subjects(state: State<AppState>) -> Vec<SubjectInfo> {
+    state.knowledge.get_subjects()
+}
+
+#[tauri::command]
+fn get_topics(subject: String, state: State<AppState>) -> Vec<TopicInfo> {
+    state.knowledge.get_topics(&subject)
 }
 
 #[tauri::command]
@@ -136,19 +147,29 @@ async fn generate_questions(
 ) -> Result<Vec<Question>, String> {
     // Get rich examples from question bank (prefer these for better distractors)
     let bank_examples = state.knowledge.get_bank_examples(
+        &request.subject,
         &request.topics,
         Some(&request.difficulty),
         3, // Get up to 3 examples
     );
 
+    // Get prompt template for this subject
+    let prompt_template = state.knowledge.get_prompt(&request.subject);
+
     // Build prompt with JSON examples
-    let prompt = prompts::build_generation_prompt(&request, &bank_examples);
+    let prompt = prompts::build_generation_prompt(&request, &bank_examples, prompt_template);
 
     // Call LLM with streaming
     let response = llm::generate(&prompt, Some(app_handle)).await?;
 
     // Parse response into questions
     let mut new_questions = prompts::parse_llm_response(&response)?;
+
+    // Set subject and topics on each generated question
+    for question in &mut new_questions {
+        question.subject = request.subject.clone();
+        question.topics = request.topics.clone();
+    }
 
     // Store in state (append or replace)
     let mut stored = state.questions.lock().unwrap();
@@ -183,12 +204,29 @@ async fn regenerate_question(
 
     let current = &current_questions[index];
 
+    // Use the question's subject and topics, or fall back to defaults
+    let subject = if !current.subject.is_empty() {
+        &current.subject
+    } else {
+        "Computer Science"
+    };
+    let topics: &Vec<String> = if !current.topics.is_empty() {
+        &current.topics
+    } else {
+        // Use a temporary Vec so the type matches
+        static DEFAULT_TOPICS: [&str; 1] = ["recursion"];
+        // Convert static array to Vec<String> and store in a static once cell
+        use once_cell::sync::Lazy;
+        static DEFAULT_TOPICS_VEC: Lazy<Vec<String>> =
+            Lazy::new(|| DEFAULT_TOPICS.iter().map(|s| s.to_string()).collect());
+        &DEFAULT_TOPICS_VEC
+    };
+
     // Get one example for reference
-    let bank_examples = state.knowledge.get_bank_examples(
-        &["recursion".to_string()], // Default topic
-        None,
-        1,
-    );
+    let bank_examples = state.knowledge.get_bank_examples(subject, topics, None, 1);
+
+    // Get prompt template for this subject
+    let prompt_template = state.knowledge.get_prompt(subject);
 
     // Build prompt for single question regeneration
     let prompt = prompts::build_regenerate_prompt(
@@ -196,6 +234,7 @@ async fn regenerate_question(
         &current_questions,
         &bank_examples,
         instructions.as_deref(),
+        prompt_template,
     );
     let response = llm::generate(&prompt, Some(app_handle)).await?;
 
@@ -207,6 +246,8 @@ async fn regenerate_question(
 
     let mut new_question = new_questions.remove(0);
     new_question.id = current.id.clone();
+    new_question.subject = current.subject.clone();
+    new_question.topics = current.topics.clone();
 
     // Update in state
     let mut stored = state.questions.lock().unwrap();
@@ -233,11 +274,11 @@ fn add_question(state: State<AppState>) -> Question {
 
     let new_question = Question {
         id: format!("q{}", stored.len() + 1),
-        content: "New question".to_string(),
-        stem: "New question".to_string(),
-        code: None,
+        text: "New question".to_string(),
         explanation: None,
         distractors: None,
+        subject: String::new(),
+        topics: Vec::new(),
         answers: vec![
             Answer {
                 text: "Correct answer".to_string(),
@@ -302,12 +343,6 @@ fn export_to_qti(title: String, state: State<AppState>) -> Result<Vec<u8>, Strin
 fn main() {
     let knowledge = knowledge::KnowledgeBase::load();
 
-    println!("Loaded {} topics", knowledge.topics.len());
-    println!(
-        "Loaded {} question bank entries",
-        knowledge.bank_entries.len()
-    );
-
     let state = AppState {
         questions: Mutex::new(Vec::new()),
         knowledge,
@@ -316,6 +351,7 @@ fn main() {
     tauri::Builder::default()
         .manage(state)
         .invoke_handler(tauri::generate_handler![
+            get_subjects,
             get_topics,
             generate_questions,
             regenerate_question,

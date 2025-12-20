@@ -7,7 +7,7 @@ import Sidebar from "./components/Sidebar";
 import QuestionList from "./components/QuestionList";
 import EditModal from "./components/EditModal";
 import StreamingPreview from "./components/StreamingPreview";
-import { Question, TopicInfo, GenerationRequest } from "./types";
+import { Question, TopicInfo, SubjectInfo, GenerationRequest } from "./types";
 import { FileDown, FileText, Loader2, Eye, EyeOff } from "lucide-react";
 import AlertModal from "./components/AlertModal";
 
@@ -19,6 +19,8 @@ interface StreamEvent {
 
 function App() {
   // State
+  const [subjects, setSubjects] = useState<SubjectInfo[]>([]);
+  const [selectedSubject, setSelectedSubject] = useState("");
   const [topics, setTopics] = useState<TopicInfo[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [difficulty, setDifficulty] = useState("medium");
@@ -39,10 +41,17 @@ function App() {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
-  // Load topics on mount
+  // Load subjects on mount
   useEffect(() => {
-    loadTopics();
+    loadSubjects();
   }, []);
+
+  // Load topics when subject changes
+  useEffect(() => {
+    if (selectedSubject) {
+      loadTopics(selectedSubject);
+    }
+  }, [selectedSubject]);
 
   // Listen for streaming events from backend
   useEffect(() => {
@@ -56,10 +65,23 @@ function App() {
     };
   }, []);
 
-  const loadTopics = async () => {
+  const loadSubjects = async () => {
     try {
-      const topicList = await invoke<TopicInfo[]>("get_topics");
+      const subjectList = await invoke<SubjectInfo[]>("get_subjects");
+      setSubjects(subjectList);
+      if (subjectList.length > 0) {
+        setSelectedSubject(subjectList[0].id);
+      }
+    } catch (err) {
+      console.error("Failed to load subjects:", err);
+    }
+  };
+
+  const loadTopics = async (subject: string) => {
+    try {
+      const topicList = await invoke<TopicInfo[]>("get_topics", { subject });
       setTopics(topicList);
+      setSelectedTopics([]); // Clear selected topics when subject changes
     } catch (err) {
       console.error("Failed to load topics:", err);
     }
@@ -79,6 +101,7 @@ function App() {
 
     try {
       const request: GenerationRequest = {
+        subject: selectedSubject,
         topics: selectedTopics,
         difficulty,
         count: questionCount,
@@ -227,6 +250,9 @@ function App() {
       />
       {/* Sidebar */}
       <Sidebar
+        subjects={subjects}
+        selectedSubject={selectedSubject}
+        onSubjectChange={setSelectedSubject}
         topics={topics}
         selectedTopics={selectedTopics}
         onTopicsChange={setSelectedTopics}

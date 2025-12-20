@@ -3,8 +3,12 @@ import { RefreshCw, Pencil, Trash2, Check, ChevronDown, ChevronUp } from "lucide
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import rehypeRaw from "rehype-raw";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { prism } from "react-syntax-highlighter/dist/esm/styles/prism";
+import "katex/dist/katex.min.css";
 
 interface QuestionCardProps {
   question: Question;
@@ -102,42 +106,36 @@ export default function QuestionCard({
 
       {/* Content */}
       <div className="p-4">
-        {/* Question Stem (Markdown) */}
-        <div className="prose prose-sm max-w-none mb-4">
+        {/* Question Text (with HTML, Markdown, LaTeX, and code blocks) */}
+        <div className="mb-4 prose prose-sm max-w-none">
           <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
+            remarkPlugins={[remarkGfm, remarkMath]}
+            rehypePlugins={[rehypeRaw, rehypeKatex]}
             components={{
-              // Inline code
-              code({ children }) {
-                return (
-                  <code className="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded text-sm font-mono">
+              // Code blocks
+              code(props: any) {
+                const { node, inline, className, children, ...rest } = props;
+                const match = /language-(\w+)/.exec(className || "");
+                return !inline && match ? (
+                  <SyntaxHighlighter
+                    style={prism}
+                    language={match[1]}
+                    PreTag="div"
+                    customStyle={{ margin: 0, borderRadius: "0.5rem" }}
+                  >
+                    {String(children).replace(/\n$/, "")}
+                  </SyntaxHighlighter>
+                ) : (
+                  <code className="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded text-sm font-mono" {...rest}>
                     {children}
                   </code>
                 );
               },
-              // Remove extra margins from paragraphs
-              p({ children }) {
-                return <p className="my-2">{children}</p>;
-              },
             }}
           >
-            {question.stem || question.content}
+            {question.text}
           </ReactMarkdown>
         </div>
-
-        {/* Code Block (if present) */}
-        {question.code && (
-          <div className="mb-4">
-            <SyntaxHighlighter
-              style={prism}
-              language="java"
-              PreTag="div"
-              customStyle={{ margin: 0, borderRadius: "0.5rem" }}
-            >
-              {question.code}
-            </SyntaxHighlighter>
-          </div>
-        )}
 
         {/* Answers */}
         <div className="space-y-2">
@@ -155,12 +153,13 @@ export default function QuestionCard({
               </span>
               <span className="flex-1 text-sm">
                 <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
+                  remarkPlugins={[remarkGfm, remarkMath]}
+                  rehypePlugins={[rehypeRaw, rehypeKatex]}
                   components={{
-                    p({ children }) {
+                    p({ children }: any) {
                       return <>{children}</>;
                     },
-                    code({ children }) {
+                    code({ children }: any) {
                       return (
                         <code className="px-1 py-0.5 bg-slate-100 text-slate-800 rounded text-xs font-mono">
                           {children}

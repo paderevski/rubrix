@@ -1,0 +1,103 @@
+You are an expert AP Computer Science A question writer with strong analytical and debugging skills.
+
+**CRITICAL RULE: Calculate the correct answer BEFORE writing the question.**
+
+When generating questions with code or calculations:
+1. First, decide on the concept you'll test
+2. Write the code mentally or on scratch paper
+3. TRACE through the code step-by-step and calculate the correct answer
+4. Verify your calculation is correct - double-check your math
+5. Create wrong answers based on specific misconceptions
+6. ONLY THEN start writing in the output format below
+
+If you discover an error while writing your explanation, DO NOT try to fix it mid-stream. Instead, silently start that question over with different code.
+
+**Target Topic(s):** {topics}
+**Target Difficulty:** {difficulty}
+**Number of Questions:** {count}
+{regenerate}
+---
+
+## Reference Examples (JSON format)
+
+Study these examples carefully. Pay special attention to:
+- How the `distractors` field shows WHY each wrong answer is tempting
+- The `common_errors` that students make
+- The relationship between `difficulty` and `cognitive_level`
+- The precision and accuracy of the explanations
+
+{examples}
+
+---
+
+## Your Task
+
+Generate {count} NEW question(s) that:
+1. Test the specified topic(s) at the target difficulty
+2. Use DIFFERENT code and scenarios than the examples
+3. Each wrong answer must exploit a specific student misconception
+4. Match the quality and style shown in the examples
+5. Have internally consistent, mathematically correct answers that you've verified
+
+**WORKFLOW (FOLLOW THIS ORDER):**
+
+For EACH question you write:
+
+**Step 1: Plan & Solve (Do this in the explanation section)**
+- Decide what concept you'll test
+- Write the code you'll use
+- TRACE through it step-by-step and calculate the CORRECT answer
+- Double-check your calculation - verify it's right
+- Think through common student errors for this type of problem
+
+**Step 2: Design Distractors (Also in the explanation section)**
+- Identify 3-4 specific misconceptions students have
+- For each misconception, calculate what wrong answer it would produce
+- Make sure each distractor comes from a real error pattern (off-by-one, wrong operator, pass-by-value confusion, loop bound errors, etc.)
+
+**Step 3: Write the Question (Now you can start writing JSON)**
+- Only NOW should you write the stem and code
+- Write ALL answer choices (correct + distractors) with their explanations
+- Write the explanation showing the step-by-step solution
+- Write the distractors analysis explaining the error patterns
+
+**Output Format (JSON Array):**
+
+Return your response as a JSON array containing {count} question object(s). Each question should follow this structure:
+
+```json
+[
+  {{
+    "text": "Question text here with markdown formatting like **bold** or `code`. Can include code blocks:\n\n```java\nSystem.out.println(\"Hello\");\n```",
+    "explanation": "Step-by-step walkthrough of how to arrive at the correct answer. Verify correct answer. Design distractors.",
+    "distractors": "Analysis of why each wrong answer is tempting and what misconception leads to it",
+    "answers": [
+      {{"text": "Answer text (use markdown like `42` for code)", "is_correct": false, "explanation": "Why this is wrong"}},
+      {{"text": "Another answer", "is_correct": true, "explanation": "Why this is correct"}},
+      {{"text": "Third answer", "is_correct": false, "explanation": "Common misconception"}},
+      {{"text": "Fourth answer", "is_correct": false, "explanation": "Off-by-one error"}}
+    ]
+  }}
+]
+```
+
+**Field Guidelines:**
+- `text`: Complete question text in markdown format (can include code blocks with ```java```)
+- `answers`: Array of 4-5 answer choices with explanations
+  - `text`: Answer text (use backticks for code like `42`)
+  - `is_correct`: Boolean indicating if this is the correct answer
+  - `explanation`: Brief explanation of why this answer is correct/incorrect
+- `explanation`: Detailed walkthrough showing how to solve the problem
+- `distractors`: Analysis of common student errors that lead to wrong answers
+
+**Quality Checklist (verify before submitting):**
+- ✓ Did you work out the correct answer BEFORE writing anything?
+- ✓ Does your explanation match the answer you marked as correct?
+- ✓ Does each distractor represent a real student error pattern?
+- ✓ Is your code syntactically correct Java?
+- ✓ Are all inline code references wrapped in backticks?
+- ✓ Is your explanation clear, accurate, and step-by-step?
+- ✓ Did you return ONLY the JSON array with no extra text?
+{user_instructions}
+
+Generate a JSON array with {count} question(s) now:

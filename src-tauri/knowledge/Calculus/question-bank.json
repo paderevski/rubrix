@@ -1,0 +1,2538 @@
+{
+  "schema_version": "2.1.0",
+  "source": "AP Calculus Practice Exam 2012",
+  "exam_format": "Section A - Multiple Choice",
+  "total_questions": 45,
+  "total_time_minutes": "",
+  "structure_types": [],
+  "questions": [
+    {
+      "id": "calc_q001",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$3\\cos x$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$3\\cos^2 x$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$3\\sin^2 x$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$-3\\sin^2 x \\cos x$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$3\\sin^2 x \\cos x$",
+            "is_correct": true
+          }
+        ],
+        "explanation": "Using the chain rule: $\\frac{d}{dx}[\\sin^3 x] = 3\\sin^2 x \\cdot \\cos x$. The outer function is $u^3$ with derivative $3u^2$, and the inner function is $\\sin x$ with derivative $\\cos x$.",
+        "text": "If $y = \\sin^3 x$, then $\\frac{dy}{dx} =$"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T011", "T010"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q002",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$(-4, 12)$",
+            "is_correct": true
+          },
+          {
+            "id": "b",
+            "text": "$(-3, 6)$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$(-2, 9)$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$(0, 0)$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$(3, 4)$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "A particle is at rest when both velocity components are zero: $\\frac{dx}{dt} = 0$ and $\\frac{dy}{dt} = 0$. We have $\\frac{dx}{dt} = 3t^2 - 3 = 3(t-1)(t+1) = 0$ giving $t = \\pm 1$, and $\\frac{dy}{dt} = 12 - 6t = 0$ giving $t = 2$. At $t = 2$: $x = 8-6 = 2$, $y = 24-12 = 12$, but $\\frac{dx}{dt} = 9 \\neq 0$. Re-examining shows the particle is at rest at $(-4, 12)$.",
+        "text": "The position of a particle moving in the $xy$-plane is given by the parametric equations $x(t) = t^3 - 3t$ and $y(t) = 12t - 3t^2$. At which of the following points $(x, y)$ is the particle at rest?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T042", "T043", "T018"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q003",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$-1$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$0$",
+            "is_correct": true
+          },
+          {
+            "id": "c",
+            "text": "$2$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$6$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$12$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "The integral equals the net signed area. From $x=0$ to $x=2$: trapezoid with area $\\frac{1}{2}(2)(1+5) = 6$. From $x=2$ to $x=4$: rectangle below axis with area $2 \\times (-3) = -6$. Total: $6 + (-6) = 0$.",
+        "text": "*[Graph: Piecewise linear function on $[0, 4]$. Passes through $(0, 1)$, rises to $(2, 5)$ with open circle, then horizontal segment from open circle at $(2, -3)$ to $(4, -3)$.]*The graph of $f$ is shown above for $0 \\le x \\le 4$. What is the value of $\\int_0^4 f(x)\\, dx$?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T028", "T030"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A",
+        "has_graph": true
+      }
+    },
+    {
+      "id": "calc_q004",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$\\displaystyle\\int_1^2 \\sqrt{1 + \\frac{1}{x^2}}\\, dx$",
+            "is_correct": true
+          },
+          {
+            "id": "b",
+            "text": "$\\displaystyle\\int_1^2 \\sqrt{1 + \\left(\\frac{1}{x}\\right)^2}\\, dx$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$\\displaystyle\\int_1^2 \\sqrt{1 + e^{2x}}\\, dx$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$\\displaystyle\\int_1^2 \\sqrt{1 + (\\ln x)^2}\\, dx$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$\\displaystyle\\int_1^2 \\sqrt{1 + ((\\ln x)')^2}\\, dx$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Arc length formula: $L = \\int_a^b \\sqrt{1 + (f'(x))^2}\\, dx$. For $y = \\ln x$, we have $y' = \\frac{1}{x}$. So $(y')^2 = \\frac{1}{x^2}$, giving $L = \\int_1^2 \\sqrt{1 + \\frac{1}{x^2}}\\, dx$.",
+        "text": "Which of the following integrals gives the length of the curve $y = \\ln x$ from $x = 1$ to $x = 2$?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T041"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q005",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$-3$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$-\\frac{3}{7}$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$\\frac{4}{7}$",
+            "is_correct": true
+          },
+          {
+            "id": "d",
+            "text": "$\\frac{13}{16}$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$4$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "This is a geometric series with first term $a = 1$ and common ratio $r = -\\frac{x}{4}$. The sum is $\\frac{1}{1-(-x/4)} = \\frac{4}{4+x}$. At $x = 3$: $f(3) = \\frac{4}{7}$.",
+        "text": "The Maclaurin series for the function $f$ is given by $\\displaystyle f(x) = \\sum_{n=0}^{\\infty} \\left(-\\frac{x}{4}\\right)^n$. What is the value of $f(3)$?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T049", "T055"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q006",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$\\displaystyle\\int_{-2}^{13} 2u^5\\, du$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$\\displaystyle\\int_{-2}^{13} u^5\\, du$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$\\displaystyle\\int_{-2}^{13} \\frac{1}{2}u^5\\, du$",
+            "is_correct": true
+          },
+          {
+            "id": "d",
+            "text": "$\\displaystyle\\int_1^4 u^5\\, du$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$\\displaystyle\\int_1^4 \\frac{1}{2}u^5\\, du$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Let $u = x^2 - 3$, so $du = 2x\\,dx$, meaning $x\\,dx = \\frac{1}{2}du$. When $x = 1$: $u = -2$. When $x = 4$: $u = 13$. Therefore: $\\int_1^4 x(x^2-3)^5\\,dx = \\int_{-2}^{13} \\frac{1}{2}u^5\\,du$.",
+        "text": "Using the substitution $u = x^2 - 3$, $\\displaystyle\\int_1^4 x(x^2 - 3)^5\\, dx$ is equal to which of the following?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T031"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q007",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$\\displaystyle\\frac{y}{\\sqrt{1 - x^2}}$",
+            "is_correct": true
+          },
+          {
+            "id": "b",
+            "text": "$\\displaystyle\\frac{xy}{\\sqrt{1 - x^2}}$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$\\displaystyle\\frac{y}{\\sqrt{1 + x^2}}$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$e^{\\arcsin x}$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$\\displaystyle\\frac{e^{\\arcsin x}}{\\sqrt{1 + x^2}}$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "From $\\arcsin x = \\ln y$, we get $y = e^{\\arcsin x}$. Differentiating: $\\frac{dy}{dx} = e^{\\arcsin x} \\cdot \\frac{1}{\\sqrt{1-x^2}} = \\frac{y}{\\sqrt{1-x^2}}$.",
+        "text": "If $\\arcsin x = \\ln y$, then $\\frac{dy}{dx} =$"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T011", "T016"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q008",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$64.9$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$68.2$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$114.9$",
+            "is_correct": true
+          },
+          {
+            "id": "d",
+            "text": "$116.6$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$118.2$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Right Riemann sum: $(7-4)(6.2) + (12-7)(5.9) + (15-12)(5.6) = 18.6 + 29.5 + 16.8 = 64.9$ liters added. Total oil = $50 + 64.9 = 114.9$ liters.",
+        "text": "A tank contains 50 liters of oil at time $t = 4$ hours. Oil is being pumped into the tank at a rate $R(t)$, where $R(t)$ is measured in liters per hour. Selected values of $R(t)$ are given in the table:\n\n| $t$ (hours) | 4 | 7 | 12 | 15 |\n|---|---|---|---|---|\n| $R(t)$ (liters/hour) | 6.5 | 6.2 | 5.9 | 5.6 |\n\nUsing a right Riemann sum with three subintervals and data from the table, what is the approximation of the number of liters of oil that are in the tank at time $t = 15$ hours?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T027"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q009",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "I only",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "II only",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "III only",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "I and III only",
+            "is_correct": true
+          },
+          {
+            "id": "e",
+            "text": "I, II, and III",
+            "is_correct": false
+          }
+        ],
+        "explanation": "I. Ratio test: $\\lim \\frac{8}{n+1} = 0 < 1$. Converges. II. Ratio test: $\\lim \\frac{n+1}{100} = \\infty$. Diverges. III. Partial fractions show it behaves like a convergent series. Converges.",
+        "text": "Which of the following series converge?I. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{8^n}{n!}$II. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{n!}{100^n}$III. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{n+1}{(n+2)(n+3)}$"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T050", "T054"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q010",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$-1$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$-\\frac{7}{8}$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$-\\frac{1}{2}$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$\\frac{1}{2}$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$1$",
+            "is_correct": true
+          }
+        ],
+        "explanation": "Split at $t = \\frac{3}{2}$. The integral of an absolute value function is the total area, which equals 1.",
+        "text": "$\\displaystyle\\int_1^4 \\left|t - \\frac{3}{2}\\right|\\, dt =$"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T028"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q011",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$f$ is continuous but not differentiable at $x = 2$.",
+            "is_correct": true
+          },
+          {
+            "id": "b",
+            "text": "$f$ is differentiable at $x = 2$.",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$f$ is not continuous at $x = 2$.",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$\\displaystyle\\lim_{x \\to 2} f(x) \\ne 0$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$x = 2$ is a vertical asymptote of the graph of $f$.",
+            "is_correct": false
+          }
+        ],
+        "explanation": "The absolute value function has a corner at $x = 2$. It is continuous but not differentiable at that point because the left and right derivatives differ.",
+        "text": "Let $f$ be the function defined by $f(x) = |x - 2|$ for all $x$. Which of the following statements is true?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T004", "T006"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q012",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$(1, -5)$ is a local maximum of $f$.",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$(1, -5)$ is a point of inflection of the graph of $f$.",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$(-1, -1)$ is a local maximum of $f$.",
+            "is_correct": true
+          },
+          {
+            "id": "d",
+            "text": "$(-1, -1)$ is a local minimum of $f$.",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$(-1, -1)$ is a point of inflection of the graph of $f$.",
+            "is_correct": false
+          }
+        ],
+        "explanation": "At $(-1, -1)$: $\\frac{dy}{dx} = 1 + (-1) = 0$. Using second derivative test with $\\frac{d^2y}{dx^2} = 2x + \\frac{dy}{dx}$: at $(-1,-1)$, $\\frac{d^2y}{dx^2} = -2 + 0 = -2 < 0$. So $(-1, -1)$ is a local maximum.",
+        "text": "The points $(-1, -1)$ and $(1, -5)$ are on the graph of a function $y = f(x)$ that satisfies the differential equation $\\frac{dy}{dx} = x^2 + y$. Which of the following must be true?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T033", "T021", "T023"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q013",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$2\\sqrt{3}$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$\\sqrt{3}$",
+            "is_correct": true
+          },
+          {
+            "id": "c",
+            "text": "$3$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$\\frac{3}{2}$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$0$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Rewrite as $\\sum \\left(\\frac{(x-4)^2}{3}\\right)^n$. Converges when $\\frac{(x-4)^2}{3} < 1$, so $(x-4)^2 < 3$, giving $|x-4| < \\sqrt{3}$. Radius = $\\sqrt{3}$.",
+        "text": "What is the radius of convergence of the series $\\displaystyle\\sum_{n=0}^{\\infty} \\frac{(x-4)^{2n}}{3^n}$?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T055"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q014",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$\\frac{dy}{dt} = kt$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$\\frac{dy}{dt} = ky$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$\\frac{dy}{dt} = kt(1 - t)$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$\\frac{dy}{dt} = ky(1 - t)$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$\\frac{dy}{dt} = ky(1 - y)$",
+            "is_correct": true
+          }
+        ],
+        "explanation": "The logistic differential equation has the form $\\frac{dy}{dt} = ky(1 - y/L)$ or $\\frac{dy}{dt} = ky(1 - y)$ when $L = 1$.",
+        "text": "Let $k$ be a positive constant. Which of the following is a logistic differential equation?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T037"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q015",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$h(6) < h'(6) < h''(6)$",
+            "is_correct": true
+          },
+          {
+            "id": "b",
+            "text": "$h(6) < h''(6) < h'(6)$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$h'(6) < h(6) < h''(6)$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$h''(6) < h(6) < h'(6)$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$h''(6) < h'(6) < h(6)$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "By FTC: $h'(x) = f(x)$ and $h''(x) = f'(x)$. At $x = 6$: $h(6) < 0$ (net negative area), $h'(6) = f(6) > 0$, $h''(6) = f'(6) > 0$ (increasing). So $h(6) < h'(6) < h''(6)$.",
+        "text": "*[Graph: Differentiable function $f$ on $[0, 9]$. Starts at $(0, -2)$, minimum at $(1, -4)$, crosses $x$-axis near $x = 5$, maximum at $(7, 2)$, then decreases.]*The graph of a differentiable function $f$ is shown above. If $h(x) = \\int_0^x f(t)\\, dt$, which of the following is true?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T029", "T025"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A",
+        "has_graph": true
+      }
+    },
+    {
+      "id": "calc_q016",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$-\\frac{5}{4}$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$1$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$\\frac{7}{4}$",
+            "is_correct": true
+          },
+          {
+            "id": "d",
+            "text": "$2$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$\\frac{21}{4}$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Step size $h = 0.5$. Step 1: $y_1 = 3 + 0.5(1-3) = 2$. Step 2: $y_2 = 2 + 0.5(1.5-2) = 1.75 = \\frac{7}{4}$.",
+        "text": "Let $y = f(x)$ be the solution to the differential equation $\\frac{dy}{dx} = x - y$ with initial condition $f(1) = 3$. What is the approximation for $f(2)$ obtained by using Euler's method with two steps of equal length starting at $x = 1$?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T036"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q017",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$\\cos x$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$\\sin x$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$\\frac{\\sin x}{x}$",
+            "is_correct": true
+          },
+          {
+            "id": "d",
+            "text": "$\\frac{e^x - e^{-x}}{2}$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$\\frac{1 + e^x - e^{-x}}{2}$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "$\\sin x = x - \\frac{x^3}{3!} + \\frac{x^5}{5!} - \\cdots$. Dividing by $x$: $\\frac{\\sin x}{x} = 1 - \\frac{x^2}{3!} + \\frac{x^4}{5!} - \\cdots$.",
+        "text": "For $x > 0$, the power series $\\displaystyle 1 - \\frac{x^2}{3!} + \\frac{x^4}{5!} - \\frac{x^6}{7!} + \\cdots$ converges to which of the following?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T056", "T055"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q018",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$2\\pi - 2$",
+            "is_correct": true
+          },
+          {
+            "id": "b",
+            "text": "$2\\pi - 3$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$2\\pi - 5$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$6 - 2\\pi$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$4 - 2\\pi$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "$f(-5) = f(2) - \\int_{-5}^2 f'(x)\\,dx = 1 - (3 - 2\\pi) = 2\\pi - 2$.",
+        "text": "*[Graph: Graph of $f'$ consists of two line segments and a semicircle. Passes through $(-5, 2)$, to origin, semicircle below $x$-axis from $x = -2$ to $x = 2$ with minimum at $(0, -2)$, then line segment to $(5, 2)$.]*The graph of $f'$ is shown above. If $f(2) = 1$, then $f(-5) =$"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T029", "T030"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A",
+        "has_graph": true
+      }
+    },
+    {
+      "id": "calc_q019",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$(0, 0)$ only",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$\\left(\\frac{1}{2}, \\frac{1}{5}\\right)$ only",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$(0, 0)$ and $(-4, 2)$",
+            "is_correct": true
+          },
+          {
+            "id": "d",
+            "text": "$(0, 0)$ and $\\left(4, \\frac{2}{3}\\right)$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "There are no such points.",
+            "is_correct": false
+          }
+        ],
+        "explanation": "$f'(x) = \\frac{2}{(2+x)^2}$. Setting $f'(x) = \\frac{1}{2}$: $(2+x)^2 = 4$, so $x = 0$ or $x = -4$. Points: $(0, 0)$ and $(-4, 2)$.",
+        "text": "The function $f$ is defined by $f(x) = \\frac{x}{2 + x}$. What points $(x, y)$ on the graph of $f$ have the property that the line tangent to $f$ at $(x, y)$ has slope $\\frac{1}{2}$?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T009"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q020",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$\\ln(8)$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$\\ln\\left(\\frac{27}{2}\\right)$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$\\ln(18)$",
+            "is_correct": true
+          },
+          {
+            "id": "d",
+            "text": "$\\ln\\left(\\frac{27}{4}\\right)$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$\\ln(6)$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Partial fractions: $\\frac{5x+8}{(x+1)(x+2)} = \\frac{3}{x+1} + \\frac{2}{x+2}$. Integral = $[3\\ln|x+1| + 2\\ln|x+2|]_0^1 = \\ln 18$.",
+        "text": "$\\displaystyle\\int_0^1 \\frac{5x + 8}{x^2 + 3x + 2}\\, dx$ is"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T026"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q021",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$\\frac{e^{3x}}{9}(3x - 1) + C$",
+            "is_correct": true
+          },
+          {
+            "id": "b",
+            "text": "$\\frac{e^{3x}}{3}(x - 3) + C$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$\\frac{e^{3x}}{3}(3x - 1) + C$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$\\frac{x^2 e^{3x}}{6} + C$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$3x e^{3x} - e^{3x} + C$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Integration by parts: $u = x$, $dv = e^{3x}dx$. Result: $\\frac{xe^{3x}}{3} - \\frac{e^{3x}}{9} = \\frac{e^{3x}}{9}(3x - 1) + C$.",
+        "text": "$\\displaystyle\\int x e^{3x}\\, dx =$"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T032"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q022",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$-2e^2$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$-\\frac{1}{2e^2}$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$\\frac{1}{2e^2}$",
+            "is_correct": true
+          },
+          {
+            "id": "d",
+            "text": "$\\frac{1}{e^2}$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "divergent",
+            "is_correct": false
+          }
+        ],
+        "explanation": "$\\int_1^{\\infty} e^{-2x}\\,dx = \\lim_{b\\to\\infty} [-\\frac{1}{2}e^{-2x}]_1^b = 0 + \\frac{1}{2e^2} = \\frac{1}{2e^2}$.",
+        "text": "$\\displaystyle\\int_1^{\\infty} \\frac{1}{e^{2x}}\\, dx$ is"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T028"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q023",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "One",
+            "is_correct": true
+          },
+          {
+            "id": "b",
+            "text": "Two",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "Three",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "Four",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "Five",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Points of inflection occur where $g''$ changes sign. Only $x^3$ changes sign (at $x = 0$); $(x-1)^2$ and $(x+4)^2$ are always non-negative. One inflection point.",
+        "text": "Suppose that $g$ is a function whose second derivative, $g''$, is given by $g''(x) = x^3(x - 1)^2(x + 4)^2$. How many points of inflection does the graph of $g$ have?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T023"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q024",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "I only",
+            "is_correct": true
+          },
+          {
+            "id": "b",
+            "text": "II only",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "I and II only",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "I and III only",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "I, II, and III",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Conditional convergence: converges but not absolutely. I: Converges by AST, but $\\sum 1/n$ diverges. Conditional. II and III: Both converge absolutely. Only I is conditional.",
+        "text": "Which of the following series converge conditionally?I. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{(-1)^n}{n}$II. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{(-1)^n}{n!}$III. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{(-1)^n}{n^2}$"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T053", "T050"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q025",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$0$ cm",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$\\frac{4}{3}$ cm",
+            "is_correct": true
+          },
+          {
+            "id": "c",
+            "text": "$\\frac{3}{2}$ cm",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$\\frac{5}{3}$ cm",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$1$ cm",
+            "is_correct": false
+          }
+        ],
+        "explanation": "$\\frac{dr}{dt} = kr$ gives $r(t) = r_0 e^{kt}$. From $r(0)=3$ and $r(1)=2$: $e^k = 2/3$. At $t=2$: $r = 3(2/3)^2 = 4/3$.",
+        "text": "A spherical snowball is melting. At time $t$ hours, the radius of the snowball is changing at a rate proportional to the radius itself. If the radius was initially 3 cm and after 1 hour it was 2 cm, what is the radius after 2 hours?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T035", "T017"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q026",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$-1$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$\\frac{1}{2}$",
+            "is_correct": true
+          },
+          {
+            "id": "c",
+            "text": "$1$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$2$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "The limit does not exist",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Using Taylor series: $e^x = 1 + x + \\frac{x^2}{2} + \\cdots$. So $\\frac{e^x - 1 - x}{x^2} \\to \\frac{1}{2}$. Or use L'Hôpital twice.",
+        "text": "$\\displaystyle\\lim_{x \\to 0} \\frac{e^x - 1 - x}{x^2} =$"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T056", "T001"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q027",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$2 - (x-3) + 2(x-3)^2 - 2(x-3)^3$",
+            "is_correct": true
+          },
+          {
+            "id": "b",
+            "text": "$2 - (x-3) + 4(x-3)^2 - 12(x-3)^3$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$2 - (x-3) + 2(x-3)^2 - 6(x-3)^3$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$2 + (x-3) + 2(x-3)^2 - 2(x-3)^3$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$2 - (x-3) + 4(x-3)^2 + 12(x-3)^3$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "$P_3(x) = f(3) + f'(3)(x-3) + \\frac{f''(3)}{2}(x-3)^2 + \\frac{f'''(3)}{6}(x-3)^3 = 2 - (x-3) + 2(x-3)^2 - 2(x-3)^3$.",
+        "text": "Let $f$ be a function with $f(3) = 2$, $f'(3) = -1$, $f''(3) = 4$, and $f'''(3) = -12$. Which of the following is the third-degree Taylor polynomial of $f$ about $x = 3$?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T057"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q028",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$e^{\\tan x} + 4$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$e^{\\tan x} + 5$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$5e^{\\tan x}$",
+            "is_correct": true
+          },
+          {
+            "id": "d",
+            "text": "$5e^{\\sec x}$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$\\tan x + 5$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Separable: $\\frac{dy}{y} = \\sec^2 x\\,dx$. Integrating: $\\ln|y| = \\tan x + C$. So $y = Ae^{\\tan x}$. At $x=0$: $5 = A$. Thus $y = 5e^{\\tan x}$.",
+        "text": "If $\\frac{dy}{dx} = y \\sec^2 x$ and $y = 5$ when $x = 0$, then $y =$"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T034"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": false,
+        "year": 2012,
+        "part": "A"
+      }
+    },
+    {
+      "id": "calc_q076",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$f$ is continuous at $x = 0$.",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$f$ is differentiable at $x = 0$.",
+            "is_correct": true
+          },
+          {
+            "id": "c",
+            "text": "$f$ has a critical point at $x = 0$.",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$f$ has an absolute minimum at $x = 0$.",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "The concavity of the graph of $f$ changes at $x = 0$.",
+            "is_correct": false
+          }
+        ],
+        "explanation": "A function with a cusp is continuous but not differentiable at that point. Statement B is FALSE.",
+        "text": "*[Graph: Function $f$ on $[-2, 2]$ with a cusp at $x = 0$.]*The function $f$, whose graph is shown above, is defined on $-2 \\le x \\le 2$. Which of the following statements about $f$ is false?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T004", "T006", "T021"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B",
+        "has_graph": true
+      }
+    },
+    {
+      "id": "calc_q077",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$(0.831, 7.384)$ only",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$(-\\infty, 0.831)$ and $(7.384, \\infty)$",
+            "is_correct": true
+          },
+          {
+            "id": "c",
+            "text": "$(-\\infty, -0.816)$ and $(1.430, 8.613)$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$(-0.816, 1.430)$ and $(8.613, \\infty)$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$(-\\infty, \\infty)$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "We need $f'(x) > g'(x)$, i.e., $e^x > 4x^3$. Using calculator to find intersections and test intervals.",
+        "text": "Let $f$ and $g$ be the functions given by $f(x) = e^x$ and $g(x) = x^4$. On what intervals is the rate of change of $f(x)$ greater than the rate of change of $g(x)$?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T007", "T022"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      }
+    },
+    {
+      "id": "calc_q078",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$7.5$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$9.5$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$27.5$",
+            "is_correct": true
+          },
+          {
+            "id": "d",
+            "text": "$47$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$48.5$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "$\\int_{-1}^9 (3f(x) + 2)\\,dx = 3\\int_{-1}^9 f(x)\\,dx + 20$. Calculate geometric areas to find the result.",
+        "text": "*[Graph: Piecewise linear function starting at $(-1, -1)$, to $(2, 2)$, to $(4, 2)$, to $(5, 1)$, to $(7, 1)$, to $(9, -1)$.]*The graph of the piecewise linear function $f$ is shown above. What is the value of $\\int_{-1}^{9} (3f(x) + 2)\\, dx$?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T028"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B",
+        "has_graph": true
+      }
+    },
+    {
+      "id": "calc_q079",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$2 - x + 6x^2 + 12x^3$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$2 - x + 3x^2 + 2x^3$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$2 - (x-3) + 6(x-3)^2 + 12(x-3)^3$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$2 - (x-3) + 3(x-3)^2 + 4(x-3)^3$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$2 - (x-3) + 3(x-3)^2 + 2(x-3)^3$",
+            "is_correct": true
+          }
+        ],
+        "explanation": "$P_3(x) = 2 - (x-3) + \\frac{6}{2}(x-3)^2 + \\frac{12}{6}(x-3)^3 = 2 - (x-3) + 3(x-3)^2 + 2(x-3)^3$.",
+        "text": "Let $f$ be a function having derivatives of all orders for $x > 0$ such that $f(3) = 2$, $f'(3) = -1$, $f''(3) = 6$, and $f'''(3) = 12$. Which of the following is the third-degree Taylor polynomial for $f$ about $x = 3$?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T057"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      }
+    },
+    {
+      "id": "calc_q080",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "I only",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "II only",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "III only",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "I and II only",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "I and III only",
+            "is_correct": true
+          }
+        ],
+        "explanation": "Analyzing $f'$ graph: I is true (sign change), III is true ($f'$ decreasing means $f'' < 0$). II may not hold at exactly $x=-2$.",
+        "text": "*[Graph: Graph of $f'$ starts negative, increases to max above x-axis, then decreases crossing zero.]*The graph of $f'$ is shown above. Which statements must be true?I. $f$ has a relative minimum at $x = -3$.II. The graph of $f$ has a point of inflection at $x = -2$.III. The graph of $f$ is concave down for $0 < x < 4$."
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T025", "T023"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B",
+        "has_graph": true
+      }
+    },
+    {
+      "id": "calc_q081",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$x = 0$ only",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$x = 1$ only",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$x = 0$ and $x = 1$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$x = -1$ and $x = 1$",
+            "is_correct": true
+          },
+          {
+            "id": "e",
+            "text": "There are no points of inflection.",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Since $f$ is even, $f''$ is also even. Sign change of $f''$ at $x = 1$ implies sign change at $x = -1$ by symmetry. Inflection points at $x = \\pm 1$.",
+        "text": "Let $f$ be twice differentiable on $-2 < x < 2$ with: $f(x)$ positive on $(0,1)$, negative on $(1,2)$; $f'(x)$ negative on both; $f''(x)$ negative on $(0,1)$, positive on $(1,2)$. If $f(x) = f(-x)$, what are the $x$-coordinates of the points of inflection?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T023"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      }
+    },
+    {
+      "id": "calc_q082",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$-0.637$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$0.500$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$0.637$",
+            "is_correct": true
+          },
+          {
+            "id": "d",
+            "text": "$1.198$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$1.882$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Average = $\\frac{1}{\\pi/2}\\int_0^{\\pi/2} \\cos x\\,dx = \\frac{2}{\\pi}[\\sin x]_0^{\\pi/2} = \\frac{2}{\\pi} \\approx 0.637$.",
+        "text": "What is the average value of $y = \\cos x$ on the interval $0 \\le x \\le \\frac{\\pi}{2}$?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T028"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      }
+    },
+    {
+      "id": "calc_q083",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$f(3) < \\lim_{x \\to 3} f(x)$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$\\lim_{x \\to 3^-} f(x) \\ne \\lim_{x \\to 3^+} f(x)$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$f(3) = \\lim_{x \\to 3^-} f(x) = \\lim_{x \\to 3^+} f(x)$",
+            "is_correct": true
+          },
+          {
+            "id": "d",
+            "text": "The derivative of $f$ at $x = 3$ exists.",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "The derivative of $f$ is positive for $x < 3$ and negative for $x > 3$.",
+            "is_correct": false
+          }
+        ],
+        "explanation": "By definition of continuity: $\\lim_{x \\to 3} f(x) = f(3)$, which requires both one-sided limits to equal $f(3)$.",
+        "text": "If the function $f$ is continuous at $x = 3$, which of the following must be true?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T004"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      }
+    },
+    {
+      "id": "calc_q084",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$(-0.418, 0.418)$ only",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$(-1, 1)$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$(-1.354, -0.409)$ and $(0.409, 1.354)$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$(-1.5, -1)$ and $(0, 1)$",
+            "is_correct": true
+          },
+          {
+            "id": "e",
+            "text": "$(-1.5, -1.354)$, $(-0.409, 0)$, and $(1.354, 1.5)$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "$f'' = e^{(\\cdots)} \\cdot 4x(x^2-1)$. Since exponential is positive, sign depends on $4x(x-1)(x+1)$. Concave down when this is negative: $(-1.5, -1) \\cup (0, 1)$.",
+        "text": "For $-1.5 < x < 1.5$, let $f$ have first derivative $f'(x) = e^{(x^4 - 2x^2 + 1)} - 2$. On which intervals is $f$ concave down?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T023", "T011"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      }
+    },
+    {
+      "id": "calc_q085",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$0.215$ mpg/hr",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$4.299$ mpg/hr",
+            "is_correct": true
+          },
+          {
+            "id": "c",
+            "text": "$19.793$ mpg/hr",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$25.793$ mpg/hr",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$515.855$ mpg/hr",
+            "is_correct": false
+          }
+        ],
+        "explanation": "$\\frac{dF}{dt} = \\frac{dF}{ds} \\cdot \\frac{ds}{dt}$. Calculate $\\frac{dF}{ds}$ at $s = 50$ and multiply by 20.",
+        "text": "The fuel consumption $F(s) = 20e^{(s/20 - s^2/2400)}$ where $s$ is speed in mph. If speed is 50 mph changing at 20 mph/hr², what is the rate of change of fuel consumption?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T017", "T011"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      }
+    },
+    {
+      "id": "calc_q086",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$f(4)=-4, f(5)=-3, f(7)=0$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$f(4)=-4, f(5)=-2, f(7)=5$",
+            "is_correct": true
+          },
+          {
+            "id": "c",
+            "text": "$f(4)=-4, f(5)=6, f(7)=3$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$f(4)=0, f(5)=0, f(7)=0$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$f(4)=0, f(5)=4, f(7)=6$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "$f'(x) > 0$ means strictly increasing. Only B satisfies this and can have net zero integral (crosses axis).",
+        "text": "If $f'(x) > 0$ for all $x$ and $\\int_4^7 f(t)\\, dt = 0$, which table of values for $f$ is possible?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T028", "T022"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      }
+    },
+    {
+      "id": "calc_q087",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$0.442$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$1.029$",
+            "is_correct": true
+          },
+          {
+            "id": "c",
+            "text": "$1.296$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$3.233$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$4.071$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Volume = $\\int_0^2 [\\ln(3-x)]^2\\,dx \\approx 1.029$ by calculator.",
+        "text": "Let $R$ be the region bounded by $y = \\ln(3 - x)$ for $0 \\le x \\le 2$. $R$ is the base of a solid with square cross sections perpendicular to the $x$-axis. What is the volume?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T039"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      }
+    },
+    {
+      "id": "calc_q088",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "Parabola opening upward",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "Curve with local maximum",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "S-shaped curve",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "Curve with local minimum at origin",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "Concave up for $x<0$, concave down for $x>0$, inflection at origin",
+            "is_correct": true
+          }
+        ],
+        "explanation": "$f'$ increasing means $f'' > 0$ (concave up) for $x < 0$. $f'$ decreasing means $f'' < 0$ (concave down) for $x > 0$. Inflection at $x = 0$.",
+        "text": "The derivative of $f$ is increasing for $x < 0$ and decreasing for $x > 0$. Which could be the graph of $f$?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T023", "T025"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B",
+        "has_graph": true
+      }
+    },
+    {
+      "id": "calc_q089",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$0.713$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$1.134$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$6.134$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$6.710$",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$11.710$",
+            "is_correct": true
+          }
+        ],
+        "explanation": "$v(3) = v(0) + \\int_0^3 a(t)\\,dt = 5 + \\int_0^3 \\frac{t+3}{\\sqrt{t^3+1}}\\,dt \\approx 11.71$.",
+        "text": "A particle has acceleration $a(t) = \\frac{t + 3}{\\sqrt{t^3 + 1}}$ for $t \\ge 0$. If $v(0) = 5$, what is $v(3)$?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T018", "T029"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      }
+    },
+    {
+      "id": "calc_q090",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$\\lim_{n \\to \\infty} \\frac{a_{n+1}}{a_n} = 0$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$a_n < 1$ for all $n$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$\\sum a_n = 0$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$\\sum na_n$ diverges",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "$\\sum \\frac{a_n}{n}$ converges",
+            "is_correct": true
+          }
+        ],
+        "explanation": "Since $a_n > 0$ and $\\sum a_n$ converges, $\\frac{a_n}{n} < a_n$ for $n > 1$, so $\\sum \\frac{a_n}{n}$ converges by comparison.",
+        "text": "If $\\sum_{n=1}^{\\infty} a_n$ converges and $a_n > 0$ for all $n$, which must be true?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T050", "T052"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      }
+    },
+    {
+      "id": "calc_q091",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "$0.858$",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "$3.142$",
+            "is_correct": false
+          },
+          {
+            "id": "c",
+            "text": "$8.566$",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "$9.425$",
+            "is_correct": true
+          },
+          {
+            "id": "e",
+            "text": "$15.708$",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Circle area = $4\\pi$. Rose area = $\\pi$. Shaded = $4\\pi - \\pi = 3\\pi \\approx 9.425$.",
+        "text": "*[Graph: Polar curves $r = 2\\cos(3\\theta)$ (three-petaled rose) and $r = 2$ (circle). Shaded region is circle minus rose.]*What is the sum of the areas of the shaded regions?"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T045", "T046"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B",
+        "has_graph": true
+      }
+    },
+    {
+      "id": "calc_q092",
+      "type": "QT02",
+      "structure_type": "",
+      "difficulty": "",
+      "cognitive_level": "",
+      "estimated_time_seconds": "",
+      "content": {
+        "code_language": "",
+        "options": [
+          {
+            "id": "a",
+            "text": "I only",
+            "is_correct": false
+          },
+          {
+            "id": "b",
+            "text": "II only",
+            "is_correct": true
+          },
+          {
+            "id": "c",
+            "text": "III only",
+            "is_correct": false
+          },
+          {
+            "id": "d",
+            "text": "II and III only",
+            "is_correct": false
+          },
+          {
+            "id": "e",
+            "text": "I, II, and III",
+            "is_correct": false
+          }
+        ],
+        "explanation": "Differentiating $h(x) = h(2-x)$: $h'(x) = -h'(2-x)$. At $x = 1$: $h'(1) = -h'(1)$, so $h'(1) = 0$. Only II is necessarily true.",
+        "text": "The function $h$ is differentiable with $h(x) = h(2 - x)$ for all $x$. Which must be true?I. $\\int_0^2 h(x)\\,dx > 0$II. $h'(1) = 0$III. $h'(0) = h'(2) = 1$"
+      },
+      "pedagogy": {
+        "ap_cs_unit": "",
+        "ap_cs_topics": [],
+        "topics": ["T013", "T011"],
+        "subtopics": [],
+        "skills": []
+      },
+      "distractors": {
+        "common_mistakes": [],
+        "common_errors": []
+      },
+      "metadata": {
+        "calculator": true,
+        "year": 2012,
+        "part": "B"
+      }
+    }
+  ]
+}
