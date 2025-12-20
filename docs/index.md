@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Home
+title: Rubrix -- The Intelligent Question Writer
 ---
 
 # Rubrix
@@ -9,23 +9,24 @@ title: Home
 
 Rubrix is a desktop application that helps teachers create multiple-choice questions for AP Computer Science A and Calculus courses. Powered by advanced AI, it generates contextually appropriate questions with proper formatting, code blocks, and mathematical notation.
 
-![Rubrix Screenshot](assets/screenshot.png)
+![Rubrix Screenshot](./screenshot.png)
 
 ## Key Features
 
 ✨ **Multi-Subject Support**
-- AP Computer Science A (8 topics)
-- Calculus (41 topics)
+- AP Computer Science A
+- Calculus
+- More to come
 
 🎯 **Smart Question Generation**
 - Choose difficulty level (Easy, Medium, Hard)
-- Generate 1-20 questions at once
-- Add custom instructions for the AI
+- Generate 1-5 questions at once
+- Add custom instructions for the AI generator
 
 🔢 **Beautiful Math Rendering**
 - Full LaTeX support for mathematical notation
 - Properly formatted derivatives, integrals, and equations
-- Inline math like $f'(x)$ and display equations $$\int_0^1 x^2 dx$$
+- Inline math like $f'(x)$ and display equations $\int_0^1 x^2 dx$
 
 💻 **Code Block Support**
 - Syntax highlighting for Java code
