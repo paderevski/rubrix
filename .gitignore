@@ -24,6 +24,9 @@ npm-debug.log*
 .env.local
 .env.*.local
 
+# Tauri env
+src-tauri/.env
+
 # Tauri
 src-tauri/WixTools/
 llm_log.txt

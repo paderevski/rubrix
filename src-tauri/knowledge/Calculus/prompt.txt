@@ -50,6 +50,7 @@ For EACH question you write:
 - SOLVE the problem step-by-step and calculate the CORRECT answer
 - Double-check your mathematics - verify algebra, chain rule, product rule, etc.
 - Think through common student errors for this type of problem
+- Write the entire explanation section in well-structured Markdown with Latex
 
 **Step 2: Design Distractors (Also in the explanation section)**
 - Identify 3-4 specific misconceptions students have
@@ -61,7 +62,7 @@ For EACH question you write:
 - Use LaTeX for all mathematical notation (wrap in $ for inline, $$ for display)
 - Inside the JSON, write all text, code, answer and explanation strings in Markdown. Do NOT use HTML.
 - Write ALL answer choices (correct + distractors) with their explanations
-- Write the explanation showing the step-by-step solution
+- Write the explanation showing the step-by-step solution, in well-structured markdown with latex
 - Write the distractors analysis explaining the error patterns
 
 **Output Format (JSON Array):**

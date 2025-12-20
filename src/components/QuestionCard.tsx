@@ -1,6 +1,6 @@
 import { Question } from "../types";
 import { RefreshCw, Pencil, Trash2, Check, ChevronDown, ChevronUp } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -18,6 +18,49 @@ interface QuestionCardProps {
   onDelete: () => void;
 }
 
+const questionMarkdownComponents = {
+  code(props: any) {
+    const { inline, className, children, ...rest } = props;
+    const match = /language-(\w+)/.exec(className || "");
+    return !inline && match ? (
+      <SyntaxHighlighter
+        style={prism}
+        language={match[1]}
+        PreTag="div"
+        customStyle={{ margin: 0, borderRadius: "0.5rem" }}
+      >
+        {String(children).replace(/\n$/, "")}
+      </SyntaxHighlighter>
+    ) : (
+      <code className="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded text-sm font-mono" {...rest}>
+        {children}
+      </code>
+    );
+  },
+};
+
+function RichMarkdown({ content }: { content: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm, remarkMath]}
+      rehypePlugins={[rehypeRaw, rehypeKatex]}
+      components={questionMarkdownComponents}
+    >
+      {content}
+    </ReactMarkdown>
+  );
+}
+
+function formatExplanation(content: string) {
+  if (!content) return "";
+
+  return content.replace(/(^|\n)(Step\s+\d+):\s*/g, (_match, prefix, stepLabel) => {
+    const leadingNewline = prefix === "\n" ? "\n" : "";
+    const heading = `# ${stepLabel}`;
+    return `${leadingNewline}${heading}\n\n`;
+  });
+}
+
 export default function QuestionCard({
   question,
   index,
@@ -27,6 +70,17 @@ export default function QuestionCard({
 }: QuestionCardProps) {
   const [showInstructions, setShowInstructions] = useState(false);
   const [instructions, setInstructions] = useState("");
+  const [showExplanation, setShowExplanation] = useState(false);
+
+  const explanationContent = question.explanation?.trim() ?? "";
+  const formattedExplanation = formatExplanation(explanationContent);
+  const hasExplanation = Boolean(formattedExplanation);
+
+  useEffect(() => {
+    if (!question) return;
+    console.log("Debug:", question.explanation);
+    console.log("Formatted Explanation:", formattedExplanation);
+  }, [question, formattedExplanation]);
 
   const handleRegenerate = () => {
     if (showInstructions && instructions.trim()) {
@@ -108,33 +162,7 @@ export default function QuestionCard({
       <div className="p-4">
         {/* Question Text (with HTML, Markdown, LaTeX, and code blocks) */}
         <div className="mb-4 prose prose-sm max-w-none">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm, remarkMath]}
-            rehypePlugins={[rehypeRaw, rehypeKatex]}
-            components={{
-              // Code blocks
-              code(props: any) {
-                const { node, inline, className, children, ...rest } = props;
-                const match = /language-(\w+)/.exec(className || "");
-                return !inline && match ? (
-                  <SyntaxHighlighter
-                    style={prism}
-                    language={match[1]}
-                    PreTag="div"
-                    customStyle={{ margin: 0, borderRadius: "0.5rem" }}
-                  >
-                    {String(children).replace(/\n$/, "")}
-                  </SyntaxHighlighter>
-                ) : (
-                  <code className="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded text-sm font-mono" {...rest}>
-                    {children}
-                  </code>
-                );
-              },
-            }}
-          >
-            {question.text}
-          </ReactMarkdown>
+          <RichMarkdown content={question.text} />
         </div>
 
         {/* Answers */}
@@ -177,6 +205,28 @@ export default function QuestionCard({
             </div>
           ))}
         </div>
+
+        {hasExplanation && (
+          <div className="mt-4 border border-slate-200 rounded-lg">
+            <button
+              type="button"
+              onClick={() => setShowExplanation((prev) => !prev)}
+              className="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-foreground bg-secondary/50 hover:bg-secondary transition-colors"
+            >
+              <span>Explanation</span>
+              {showExplanation ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </button>
+            {showExplanation && (
+              <div className="px-4 py-3 border-t border-slate-200 bg-white prose prose-sm max-w-none">
+                <RichMarkdown content={formattedExplanation} />
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
