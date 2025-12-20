@@ -54,9 +54,11 @@ function RichMarkdown({ content }: { content: string }) {
 function formatExplanation(content: string) {
   if (!content) return "";
 
-  return content.replace(/(^|\n)(Step\s+\d+):\s*/g, (_match, prefix, stepLabel) => {
+  const stepPattern = /(^|\n)(Step\s+\d+(?:\s*[—-]\s*[^\n:]+)?):?\s*/g;
+
+  return content.replace(stepPattern, (_match, prefix, stepLabel) => {
     const leadingNewline = prefix === "\n" ? "\n" : "";
-    const heading = `# ${stepLabel}`;
+    const heading = `### ${stepLabel}`;
     return `${leadingNewline}${heading}\n\n`;
   });
 }
