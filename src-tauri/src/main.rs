@@ -8,7 +8,7 @@ mod qti;
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
-use tauri::State;
+use tauri::{CustomMenuItem, Manager, Menu, State, Submenu};
 
 fn de_opt_string_or_json<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
 where
@@ -412,8 +412,36 @@ fn main() {
         knowledge,
     };
 
+    let zoom_in = CustomMenuItem::new("zoom_in", "Zoom In").accelerator("CmdOrCtrl+=");
+    let zoom_out = CustomMenuItem::new("zoom_out", "Zoom Out").accelerator("CmdOrCtrl+-");
+    let zoom_reset = CustomMenuItem::new("zoom_reset", "Actual Size").accelerator("CmdOrCtrl+0");
+
+    let view_menu = Submenu::new(
+        "View",
+        Menu::new()
+            .add_item(zoom_in)
+            .add_item(zoom_out)
+            .add_item(zoom_reset),
+    );
+
+    let menu = Menu::new().add_submenu(view_menu);
+
     tauri::Builder::default()
         .manage(state)
+        .menu(menu)
+        .on_menu_event(|event| {
+            let id = event.menu_item_id();
+            let payload = match id {
+                "zoom_in" => Some("in"),
+                "zoom_out" => Some("out"),
+                "zoom_reset" => Some("reset"),
+                _ => None,
+            };
+
+            if let Some(p) = payload {
+                let _ = event.window().app_handle().emit_all("app-zoom", p);
+            }
+        })
         .invoke_handler(tauri::generate_handler![
             get_subjects,
             get_topics,

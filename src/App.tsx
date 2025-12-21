@@ -46,6 +46,16 @@ function App() {
   const [status, setStatus] = useState("Ready");
   const [appendMode, setAppendMode] = useState(false);
 
+  // Zoom state (driven by native menu events)
+  const [zoom, setZoom] = useState<number>(() => {
+    const saved = typeof localStorage !== "undefined" ? localStorage.getItem("appZoom") : null;
+    const parsed = saved ? parseFloat(saved) : 1;
+    if (Number.isFinite(parsed)) {
+      return Math.min(Math.max(parsed, 0.85), 1.3);
+    }
+    return 1;
+  });
+
   // Streaming state
   const [streamingText, setStreamingText] = useState("");
   const [streamingComplete, setStreamingComplete] = useState(false);
@@ -60,6 +70,14 @@ function App() {
     loadSubjects();
     loadExistingQuestions();
   }, []);
+
+  // Apply zoom on mount and when it changes
+  useEffect(() => {
+    document.documentElement.style.setProperty("--app-zoom", zoom.toString());
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("appZoom", zoom.toString());
+    }
+  }, [zoom]);
 
   // Load topics when subject changes
   useEffect(() => {
@@ -77,6 +95,28 @@ function App() {
 
     return () => {
       unlisten.then((f) => f());
+    };
+  }, []);
+
+  // Listen for zoom events from the native menu
+  useEffect(() => {
+    const clamp = (v: number) => Math.min(Math.max(v, 0.85), 1.3);
+    const step = 0.05;
+
+    const handler = (evt: { payload: string }) => {
+      if (evt.payload === "in") {
+        setZoom((z) => clamp(z + step));
+      } else if (evt.payload === "out") {
+        setZoom((z) => clamp(z - step));
+      } else if (evt.payload === "reset") {
+        setZoom(1);
+      }
+    };
+
+    const unlistenZoom = listen("app-zoom", handler);
+
+    return () => {
+      unlistenZoom.then((f) => f());
     };
   }, []);
 

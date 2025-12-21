@@ -21,10 +21,10 @@ fn log_llm_interaction(prompt: &str, response: &str) {
     let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
 
     // Unescape the response for readability (LLM returns escaped JSON)
-    let response_unescaped = response
-        .replace("\\n", "\n")
-        .replace("\\t", "\t")
-        .replace("\\\"", "\"");
+    let response_unescaped = response;
+    //    .replace("\\n", "\n")
+    //    .replace("\\t", "\t")
+    //    .replace("\\\"", "\"");
 
     // Format as readable text sections
     let formatted = format!(
