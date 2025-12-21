@@ -1,16 +1,17 @@
-//! Replicate API client for LLM inference
+//! Bedrock-backed LLM client with streaming SSE
 
+use futures_util::StreamExt;
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::fs::OpenOptions;
 use std::io::Write;
-use std::time::Duration;
 use tauri::Manager;
+use tokio::time::Duration;
 
-// Replicate API configuration
-// const MODEL_VERSION: &str = "anthropic/claude-4.5-sonnet";
-// const MODEL_VERSION: &str = "openai/gpt-5-mini";
-const MODEL_VERSION: &str = "openai/gpt-oss-120b";
+const BEDROCK_ENDPOINT: &str =
+    "https://bedrock-runtime.us-west-2.amazonaws.com/openai/v1/chat/completions";
+const MODEL_ID: &str = "openai.gpt-oss-120b-1:0";
 
 /// Log prompt and response to a file (appends each time)
 fn log_llm_interaction(prompt: &str, response: &str) {
@@ -55,18 +56,58 @@ TIMESTAMP: {}
     }
 }
 
-#[derive(Debug, Deserialize)]
-struct ReplicatePrediction {
-    id: String,
-    status: String,
-    output: Option<serde_json::Value>,
-    error: Option<String>,
+// Request structures
+#[derive(Serialize)]
+struct ChatRequest {
+    model: String,
+    messages: Vec<ChatMessage>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reasoning_effort: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    stream: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    stream_options: Option<StreamOptions>,
 }
 
-#[derive(Debug, Deserialize)]
-struct ReplicateError {
-    detail: Option<String>,
-    error: Option<String>,
+#[derive(Serialize, Deserialize, Debug)]
+struct ChatMessage {
+    role: String,
+    content: String,
+}
+
+#[derive(Serialize)]
+struct StreamOptions {
+    include_usage: bool,
+}
+
+// Streaming response structures
+#[derive(Deserialize, Debug)]
+struct StreamChunk {
+    choices: Vec<StreamChoice>,
+    #[serde(default)]
+    usage: Option<Usage>,
+}
+
+#[derive(Deserialize, Debug)]
+struct StreamChoice {
+    delta: Delta,
+    #[serde(default)]
+    finish_reason: Option<String>,
+}
+
+#[derive(Deserialize, Debug, Default)]
+struct Delta {
+    #[serde(default)]
+    content: Option<String>,
+    #[serde(default)]
+    role: Option<String>,
+}
+
+#[derive(Deserialize, Debug)]
+struct Usage {
+    prompt_tokens: u32,
+    completion_tokens: u32,
+    total_tokens: u32,
 }
 
 /// Streaming event payload
@@ -76,7 +117,7 @@ pub struct StreamEvent {
     pub done: bool,
 }
 
-/// Generate text using the Replicate API with streaming updates
+/// Generate text using the Bedrock API with streaming updates
 pub async fn generate(
     prompt: &str,
     app_handle: Option<tauri::AppHandle>,
@@ -86,164 +127,97 @@ pub async fn generate(
     // Load .env file (ignore error if already loaded or not present)
     let _ = dotenvy::dotenv();
     use std::env;
-    let api_token = env::var("REPLICATE_API_TOKEN")
-        .unwrap_or_else(|_| "YOUR_REPLICATE_API_TOKEN_HERE".to_string());
+    let api_token = env::var("AWS_BEARER_TOKEN_BEDROCK").unwrap_or_default();
 
-    // DEBUG: Uncomment to see the prompt being sent
-    // eprintln!("DEBUG prompt ({} chars):\n{}", prompt.len(), &prompt[..prompt.len().min(1000)]);
-
-    // For demo purposes, if no API key is set, return mock data
-    if api_token == "YOUR_REPLICATE_API_TOKEN_HERE" {
+    // For dev/demo purposes, if no API key is set, return mock data
+    if api_token.is_empty() {
         return Ok(generate_mock_response(prompt, app_handle).await);
     }
 
     // Emit starting event
     emit_stream(&app_handle, "", false);
 
-    // Create prediction
-    let create_response = client
-        .post("https://api.replicate.com/v1/predictions")
-        .header("Authorization", format!("Token {}", api_token))
-        .header("Content-Type", "application/json")
-        .json(&serde_json::json!({
-            "version": MODEL_VERSION,
-            "input": {
-                "prompt": prompt,
-                "max_tokens": 32000,
-                "temperature": 0.2
-            }
-        }))
-        .timeout(Duration::from_secs(30))
+    // Build headers
+    let mut headers = HeaderMap::new();
+    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    headers.insert(
+        AUTHORIZATION,
+        HeaderValue::from_str(&format!("Bearer {}", api_token))
+            .map_err(|e| format!("Invalid auth header: {}", e))?,
+    );
+
+    // Prepare request payload
+    let request = ChatRequest {
+        model: MODEL_ID.to_string(),
+        messages: vec![ChatMessage {
+            role: "user".to_string(),
+            content: prompt.to_string(),
+        }],
+        reasoning_effort: Some("high".to_string()),
+        stream: Some(true),
+        stream_options: Some(StreamOptions {
+            include_usage: true,
+        }),
+    };
+
+    // Send request
+    let response = client
+        .post(BEDROCK_ENDPOINT)
+        .headers(headers)
+        .json(&request)
         .send()
         .await
-        .map_err(|e| format!("Failed to create prediction: {}", e))?;
+        .map_err(|e| format!("Failed to send request: {}", e))?;
 
-    // Check HTTP status before parsing
-    let status = create_response.status();
-    let response_text = create_response.text().await.unwrap_or_default();
-
-    // DEBUG: Uncomment to see raw API response
-    // eprintln!(
-    //     "DEBUG [{}]: {}",
-    //     status.as_u16(),
-    //     &response_text[..response_text.len()].replace("\\n", "\n")
-    // );
-
+    let status = response.status();
     if !status.is_success() {
-        // Try to parse as error response
-        if let Ok(error_response) = serde_json::from_str::<ReplicateError>(&response_text) {
-            let detail = error_response
-                .detail
-                .or(error_response.error)
-                .unwrap_or_else(|| "Unknown error".to_string());
-            return Err(format!(
-                "Replicate API error ({}): {}",
-                status.as_u16(),
-                detail
-            ));
-        }
-
-        return Err(format!(
-            "Replicate API error ({}): {}",
-            status.as_u16(),
-            response_text
-        ));
+        let body = response.text().await.unwrap_or_default();
+        return Err(format!("Bedrock API error ({}): {}", status.as_u16(), body));
     }
 
-    let prediction: ReplicatePrediction = serde_json::from_str(&response_text)
-        .map_err(|e| format!("Failed to parse response: {}", e))?;
+    let mut stream = response.bytes_stream();
+    let mut buffer = String::new();
+    let mut accumulated = String::new();
 
-    if let Some(error) = prediction.error {
-        return Err(format!("Replicate error: {}", error));
-    }
+    while let Some(chunk) = stream.next().await {
+        let chunk = chunk.map_err(|e| format!("Stream error: {}", e))?;
+        let text = String::from_utf8_lossy(&chunk);
+        buffer.push_str(&text);
 
-    // Poll for completion
-    let prediction_url = format!("https://api.replicate.com/v1/predictions/{}", prediction.id);
+        // Process complete SSE lines
+        while let Some(line_end) = buffer.find('\n') {
+            let line = buffer[..line_end].trim().to_string();
+            buffer = buffer[line_end + 1..].to_string();
 
-    for _ in 0..120 {
-        tokio::time::sleep(Duration::from_secs(1)).await;
-
-        let status_response = client
-            .get(&prediction_url)
-            .header("Authorization", format!("Token {}", api_token))
-            .send()
-            .await
-            .map_err(|e| format!("Failed to check status: {}", e))?;
-
-        // Check HTTP status
-        let http_status = status_response.status();
-        let status_text = status_response.text().await.unwrap_or_default();
-
-        // DEBUG: Uncomment to see polling response
-        // eprintln!("DEBUG poll [{}]: {}", http_status.as_u16(), &status_text[..status_text.len().min(300)]);
-
-        if !http_status.is_success() {
-            return Err(format!(
-                "Replicate API error ({}): {}",
-                http_status.as_u16(),
-                status_text
-            ));
-        }
-
-        let status: ReplicatePrediction = serde_json::from_str(&status_text)
-            .map_err(|e| format!("Failed to parse status: {}", e))?;
-
-        // Emit partial output as it streams in
-        if let Some(ref output) = status.output {
-            let partial_text = output_to_string(output);
-            if cfg!(debug_assertions) {
-                eprint!("{}", partial_text);
-                std::io::Write::flush(&mut std::io::stderr()).ok();
+            // Skip empty lines and comments
+            if line.is_empty() || line.starts_with(':') {
+                continue;
             }
-            emit_stream(&app_handle, &partial_text, false);
-        }
 
-        match status.status.as_str() {
-            "succeeded" => {
-                if let Some(output) = status.output {
-                    let final_text = output_to_string(&output);
-                    if cfg!(debug_assertions) {
-                        eprintln!("\n[stream-complete]\n");
-                    }
-                    emit_stream(&app_handle, &final_text, true);
-                    // eprintln!(
-                    //     "DEBUG response [{}]: {}",
-                    //     http_status.as_u16(),
-                    //     &status_text[..status_text.len()]
-                    // );
-                    // Log the interaction
-                    log_llm_interaction(prompt, &final_text);
-                    return Ok(final_text);
+            // Parse SSE data lines
+            if let Some(data) = line.strip_prefix("data: ") {
+                if data == "[DONE]" {
+                    continue;
                 }
-                return Err("No output from model".to_string());
+
+                if let Ok(chunk) = serde_json::from_str::<StreamChunk>(data) {
+                    for choice in chunk.choices {
+                        if let Some(content) = choice.delta.content {
+                            let cleaned = content
+                                .replace("<reasoning>", "")
+                                .replace("</reasoning>", "");
+                            accumulated.push_str(&cleaned);
+                            emit_stream(&app_handle, &accumulated, false);
+                        }
+                    }
+                }
             }
-            "failed" => {
-                emit_stream(&app_handle, "", true);
-                return Err(format!("Prediction failed: {:?}", status.error));
-            }
-            "canceled" => {
-                emit_stream(&app_handle, "", true);
-                return Err("Prediction was canceled".to_string());
-            }
-            _ => continue, // Still processing
         }
     }
 
-    emit_stream(&app_handle, "", true);
-    Err("Timeout waiting for prediction".to_string())
-}
-
-/// Convert output Value to String
-fn output_to_string(output: &serde_json::Value) -> String {
-    match output {
-        serde_json::Value::String(s) => s.clone(),
-        serde_json::Value::Array(arr) => arr
-            .iter()
-            .filter_map(|v| v.as_str().map(|s| s.to_string()))
-            .collect::<Vec<_>>()
-            .join(""),
-        _ => output.to_string(),
-    }
+    emit_stream(&app_handle, &accumulated, true);
+    log_llm_interaction(prompt, &accumulated);
+    Ok(accumulated)
 }
 
 /// Emit a streaming event to the frontend
