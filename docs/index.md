@@ -52,6 +52,7 @@ Rubrix is a desktop application that helps teachers create multiple-choice quest
 
 [Get Started →](getting-started.md){: .btn}
 [View User Guide →](user-guide.md){: .btn}
+[Changelog →](changelog.md){: .btn}
 
 ## Why Rubrix?
 
