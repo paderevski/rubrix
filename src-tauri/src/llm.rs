@@ -153,7 +153,7 @@ pub async fn generate(
             role: "user".to_string(),
             content: prompt.to_string(),
         }],
-        reasoning_effort: Some("high".to_string()),
+        reasoning_effort: Some("medium".to_string()),
         stream: Some(true),
         stream_options: Some(StreamOptions {
             include_usage: true,

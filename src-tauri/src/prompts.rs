@@ -408,52 +408,70 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
     // - models that accidentally output multiple arrays
     fn extract_first_json_array(s: &str) -> Option<String> {
         let bytes = s.as_bytes();
-
-        // Find first '['
-        let mut start = None;
-        for i in 0..bytes.len() {
-            if bytes[i] == b'[' {
-                start = Some(i);
-                break;
-            }
-        }
-        let start = start?;
-
         let mut depth: i32 = 0;
+        let mut start: Option<usize> = None;
         let mut in_string = false;
         let mut escape = false;
 
-        for i in start..bytes.len() {
+        let mut i = 0;
+        while i < bytes.len() {
             let b = bytes[i];
 
             if in_string {
                 if escape {
                     escape = false;
+                    i += 1;
                     continue;
                 }
                 if b == b'\\' {
                     escape = true;
+                    i += 1;
                     continue;
                 }
                 if b == b'"' {
                     in_string = false;
                 }
+                i += 1;
                 continue;
             }
 
             if b == b'"' {
                 in_string = true;
+                i += 1;
                 continue;
             }
 
             if b == b'[' {
-                depth += 1;
-            } else if b == b']' {
+                let mut j = i + 1;
+                while j < bytes.len() && bytes[j].is_ascii_whitespace() {
+                    j += 1;
+                }
+                if j < bytes.len() && bytes[j] == b'{' {
+                    if depth == 0 {
+                        start = Some(i);
+                    }
+                    depth += 1;
+                }
+                i += 1;
+                continue;
+            }
+
+            if b == b']' {
+                if depth == 0 {
+                    i += 1;
+                    continue;
+                }
                 depth -= 1;
                 if depth == 0 {
-                    return Some(s[start..=i].to_string());
+                    if let Some(s0) = start {
+                        return Some(s[s0..=i].to_string());
+                    }
                 }
+                i += 1;
+                continue;
             }
+
+            i += 1;
         }
 
         None

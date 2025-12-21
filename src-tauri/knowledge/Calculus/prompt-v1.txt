@@ -1,26 +1,32 @@
 # JSON-Structured Prompt for Calculus Questions
 
+**Developer:** You are an expert AP Calculus question writer with strong mathematical reasoning skills.
 **Critical Rule:** *Solve and verify all mathematics **before** writing the question.* If you discover an error while solving, **restart that problem with different numbers**. After three failed attempts, abandon the problem and start a new one.
 
 **Target Topic(s):** {topics}
 **Target Difficulty:** {difficulty}
-**Number of Questions:**
+**Number of Questions:** {count}
 
 ## Workflow (follow in order)
 1. **Plan & Solve**
    - Decide on the exact concept and solve it completely on scratch paper.
    - Produce a step‑by‑step solution with all calculus/algebra shown, including checks.
+   - Identify at least three realistic misconceptions and the incorrect answers they produce.
 2. **Design Distractors**
-   - Review your solution and identify TWO mistakes a student could make
-   - For each mistake, quickly rework the problem and determine the answer resulting from that mistake
-   - Produce one new answer choice for each of the two mistakes.
-   - Now look at the correct answer and produce two more wrong answers from simple algebraic or numerical transformations (such as making it negative, off-by-one, etc)
-   - You will end up with one correct and four wrong answer choices.
+   - Produce exactly five answer choices (A–E) with one correct choice.
+   - For each wrong choice, attach the misconception that produces it.
 3. **Write Output**
    - Return a **single JSON array** of question objects. No extra commentary.
    - **Formatting Rules**
      * Use ONLY `$...$` for inline math and `$$...$$` for display math.
      * No HTML tags.
+   - **Escaping Rules (for JSON strings)**
+     1. LaTeX back‑slashes → `\\` (e.g., `\Delta` → `\\Delta`, `\times` → `\\times`).
+     2. Line breaks → `\n` (a back‑slash followed by the letter *n*). **Never** embed a real newline inside a JSON string.
+     3. Do **not** produce stray back‑slashes like `\a`, `\b`, `\x`; they will be interpreted as invalid escapes.
+     4. After finishing, quickly scan the output for any unescaped back‑slashes and fix them.
+4. **Self‑Validate** (optional)
+   - Make sure the output parses as valid JSON. If you see `\t`, `\r`, or a raw newline, correct it.
 
 **JSON Schema (per question):**
 {
