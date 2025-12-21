@@ -2529,6 +2529,7 @@ dependencies = [
  "dotenvy",
  "htmlescape",
  "once_cell",
+ "rand 0.8.5",
  "regex",
  "reqwest",
  "rust-embed",

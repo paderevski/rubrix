@@ -109,8 +109,8 @@ pub async fn generate(
             "version": MODEL_VERSION,
             "input": {
                 "prompt": prompt,
-                "max_tokens": 8192,
-                "temperature": 1.0
+                "max_tokens": 32000,
+                "temperature": 0.2
             }
         }))
         .timeout(Duration::from_secs(30))

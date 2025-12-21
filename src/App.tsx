@@ -264,6 +264,27 @@ function App() {
     }
   };
 
+  const handleExportDocx = async () => {
+    const filePath = await save({
+      defaultPath: "questions.docx",
+      filters: [{ name: "Word Document", extensions: ["docx"] }],
+    });
+
+    if (!filePath) return;
+
+    try {
+      setStatus("Converting to Word document...");
+      const data = await invoke<number[]>("export_to_docx", {
+        title: "AP CS Questions",
+      });
+      await writeBinaryFile(filePath, new Uint8Array(data));
+      setStatus(`Exported to ${filePath}`);
+    } catch (err) {
+      console.error("Export failed:", err);
+      setStatus(`Export error: ${err}`);
+    }
+  };
+
   const handleSaveSession = async () => {
     if (questions.length === 0) {
       setStatus("No questions to save");
@@ -411,6 +432,14 @@ function App() {
             >
               <FileDown className="w-4 h-4" />
               Export QTI
+            </button>
+            <button
+              onClick={handleExportDocx}
+              disabled={questions.length === 0}
+              className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FileDown className="w-4 h-4" />
+              Export Word
             </button>
           </div>
         </header>
