@@ -50,9 +50,11 @@ Rubrix is a desktop application that helps teachers create multiple-choice quest
 3. **Generate** - Select topics, set difficulty, and click Generate
 4. **Export** - Save questions and import to your LMS
 
-[Get Started →](getting-started.md){: .btn}
-[View User Guide →](user-guide.md){: .btn}
-[Changelog →](changelog.md){: .btn}
+---
+
+**[Get Started →](getting-started.md)** | **[View User Guide →](user-guide.md)** | **[Changelog →](changelog.md)**
+
+---
 
 ## Why Rubrix?
 
