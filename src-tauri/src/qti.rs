@@ -376,10 +376,10 @@ fn convert_to_html(q: &Question) -> String {
 
     // Collect code blocks (block-level)
     for cap in code_block_re.captures_iter(&text) {
-        let start = cap.get(0).unwrap().start();
-        let end = cap.get(0).unwrap().end();
-        let code = cap.get(1).unwrap().as_str();
-        let html = format!("<pre>{}</pre>", htmlescape::encode_minimal(code.trim()));
+        let start: usize = cap.get(0).unwrap().start();
+        let end: usize = cap.get(0).unwrap().end();
+        let code: &str = cap.get(1).unwrap().as_str();
+        let html: String = format!("<pre>{}</pre>", htmlescape::encode_minimal(code.trim()));
         blocks.push(Block::BlockLevel(start, end, html));
     }
 
