@@ -8,7 +8,7 @@ mod qti;
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
-use tauri::State;
+use tauri::{CustomMenuItem, Manager, Menu, State, Submenu};
 
 fn de_opt_string_or_json<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
 where
@@ -320,6 +320,13 @@ fn delete_question(index: usize, state: State<AppState>) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn set_questions(new_questions: Vec<Question>, state: State<AppState>) -> Result<(), String> {
+    let mut stored = state.questions.lock().unwrap();
+    *stored = new_questions;
+    Ok(())
+}
+
+#[tauri::command]
 fn get_questions(state: State<AppState>) -> Vec<Question> {
     state.questions.lock().unwrap().clone()
 }
@@ -336,6 +343,63 @@ fn export_to_qti(title: String, state: State<AppState>) -> Result<Vec<u8>, Strin
     qti::export_qti_zip(&title, &questions)
 }
 
+#[tauri::command]
+async fn export_to_docx(title: String, state: State<'_, AppState>) -> Result<Vec<u8>, String> {
+    use rand::seq::SliceRandom;
+    use rand::thread_rng;
+
+    // Get questions and process them for Word export
+    let questions = state.questions.lock().unwrap().clone();
+
+    // Build custom markdown for Word export
+    let mut output = format!("Title: {}\n\n", title);
+
+    for (i, q) in questions.iter().enumerate() {
+        // Question number and text
+        output.push_str(&format!("{}. {}\n\n", i + 1, q.text));
+
+        // Shuffle answers
+        let mut shuffled_answers: Vec<_> = q.answers.iter().collect();
+        shuffled_answers.shuffle(&mut thread_rng());
+
+        // Format answers with indent and mark correct ones with *
+        for answer in shuffled_answers {
+            let marker = if answer.is_correct { "*" } else { "" };
+            output.push_str(&format!("    a. {}{}\n", marker, answer.text));
+        }
+
+        output.push_str("\n");
+    }
+
+    // Create JSON payload
+    let payload = serde_json::json!({
+        "markdown": output,
+        "format": "docx"
+    });
+
+    // Call the API endpoint
+    let client = reqwest::Client::new();
+    let response = client
+        .post("https://aminsl4ogh.execute-api.us-east-1.amazonaws.com/convert")
+        .json(&payload)
+        .send()
+        .await
+        .map_err(|e| format!("Failed to call API: {}", e))?;
+
+    // Check if the response was successful
+    if !response.status().is_success() {
+        return Err(format!("API returned error: {}", response.status()));
+    }
+
+    // Get the binary response
+    let docx_bytes = response
+        .bytes()
+        .await
+        .map_err(|e| format!("Failed to read response: {}", e))?;
+
+    Ok(docx_bytes.to_vec())
+}
+
 // ============================================================================
 // Main
 // ============================================================================
@@ -348,8 +412,36 @@ fn main() {
         knowledge,
     };
 
+    let zoom_in = CustomMenuItem::new("zoom_in", "Zoom In").accelerator("CmdOrCtrl+=");
+    let zoom_out = CustomMenuItem::new("zoom_out", "Zoom Out").accelerator("CmdOrCtrl+-");
+    let zoom_reset = CustomMenuItem::new("zoom_reset", "Actual Size").accelerator("CmdOrCtrl+0");
+
+    let view_menu = Submenu::new(
+        "View",
+        Menu::new()
+            .add_item(zoom_in)
+            .add_item(zoom_out)
+            .add_item(zoom_reset),
+    );
+
+    let menu = Menu::new().add_submenu(view_menu);
+
     tauri::Builder::default()
         .manage(state)
+        .menu(menu)
+        .on_menu_event(|event| {
+            let id = event.menu_item_id();
+            let payload = match id {
+                "zoom_in" => Some("in"),
+                "zoom_out" => Some("out"),
+                "zoom_reset" => Some("reset"),
+                _ => None,
+            };
+
+            if let Some(p) = payload {
+                let _ = event.window().app_handle().emit_all("app-zoom", p);
+            }
+        })
         .invoke_handler(tauri::generate_handler![
             get_subjects,
             get_topics,
@@ -358,9 +450,11 @@ fn main() {
             update_question,
             add_question,
             delete_question,
+            set_questions,
             get_questions,
             export_to_txt,
             export_to_qti,
+            export_to_docx,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

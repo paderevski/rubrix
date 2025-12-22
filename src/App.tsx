@@ -1,20 +1,34 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
-import { save } from "@tauri-apps/api/dialog";
-import { writeBinaryFile, writeTextFile } from "@tauri-apps/api/fs";
+import { open, save } from "@tauri-apps/api/dialog";
+import { writeBinaryFile, writeTextFile, readTextFile } from "@tauri-apps/api/fs";
 import Sidebar from "./components/Sidebar";
 import QuestionList from "./components/QuestionList";
 import EditModal from "./components/EditModal";
 import StreamingPreview from "./components/StreamingPreview";
 import { Question, TopicInfo, SubjectInfo, GenerationRequest } from "./types";
-import { FileDown, FileText, Loader2, Eye, EyeOff } from "lucide-react";
+import { FileDown, FileText, Loader2, Eye, EyeOff, Save as SaveIcon, FolderOpen } from "lucide-react";
 import AlertModal from "./components/AlertModal";
 
 // Event payload from Rust backend
 interface StreamEvent {
   text: string;
   done: boolean;
+}
+
+const sessionFileFilter = { name: "Rubrix Session", extensions: ["json"] };
+
+function parseSessionQuestions(raw: unknown): Question[] {
+  if (Array.isArray(raw)) {
+    return raw as Question[];
+  }
+
+  if (raw && typeof raw === "object" && Array.isArray((raw as any).questions)) {
+    return (raw as any).questions as Question[];
+  }
+
+  throw new Error("Invalid session file format");
 }
 
 function App() {
@@ -24,13 +38,23 @@ function App() {
   const [topics, setTopics] = useState<TopicInfo[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [difficulty, setDifficulty] = useState("medium");
-  const [questionCount, setQuestionCount] = useState(5);
+  const [questionCount, setQuestionCount] = useState(1);
   const [notes, setNotes] = useState("");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [status, setStatus] = useState("Ready");
   const [appendMode, setAppendMode] = useState(false);
+
+  // Zoom state (driven by native menu events)
+  const [zoom, setZoom] = useState<number>(() => {
+    const saved = typeof localStorage !== "undefined" ? localStorage.getItem("appZoom") : null;
+    const parsed = saved ? parseFloat(saved) : 1;
+    if (Number.isFinite(parsed)) {
+      return Math.min(Math.max(parsed, 0.85), 1.3);
+    }
+    return 1;
+  });
 
   // Streaming state
   const [streamingText, setStreamingText] = useState("");
@@ -41,10 +65,19 @@ function App() {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
-  // Load subjects on mount
+  // Load subjects and any previously generated questions on mount
   useEffect(() => {
     loadSubjects();
+    loadExistingQuestions();
   }, []);
+
+  // Apply zoom on mount and when it changes
+  useEffect(() => {
+    document.documentElement.style.setProperty("--app-zoom", zoom.toString());
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("appZoom", zoom.toString());
+    }
+  }, [zoom]);
 
   // Load topics when subject changes
   useEffect(() => {
@@ -62,6 +95,28 @@ function App() {
 
     return () => {
       unlisten.then((f) => f());
+    };
+  }, []);
+
+  // Listen for zoom events from the native menu
+  useEffect(() => {
+    const clamp = (v: number) => Math.min(Math.max(v, 0.85), 1.3);
+    const step = 0.05;
+
+    const handler = (evt: { payload: string }) => {
+      if (evt.payload === "in") {
+        setZoom((z) => clamp(z + step));
+      } else if (evt.payload === "out") {
+        setZoom((z) => clamp(z - step));
+      } else if (evt.payload === "reset") {
+        setZoom(1);
+      }
+    };
+
+    const unlistenZoom = listen("app-zoom", handler);
+
+    return () => {
+      unlistenZoom.then((f) => f());
     };
   }, []);
 
@@ -84,6 +139,18 @@ function App() {
       setSelectedTopics([]); // Clear selected topics when subject changes
     } catch (err) {
       console.error("Failed to load topics:", err);
+    }
+  };
+
+  const loadExistingQuestions = async () => {
+    try {
+      const stored = await invoke<Question[]>("get_questions");
+      if (stored.length > 0) {
+        setQuestions(stored);
+        setStatus(`Restored ${stored.length} question${stored.length === 1 ? "" : "s"}`);
+      }
+    } catch (err) {
+      console.error("Failed to restore questions:", err);
     }
   };
 
@@ -237,6 +304,79 @@ function App() {
     }
   };
 
+  const handleExportDocx = async () => {
+    const filePath = await save({
+      defaultPath: "questions.docx",
+      filters: [{ name: "Word Document", extensions: ["docx"] }],
+    });
+
+    if (!filePath) return;
+
+    try {
+      setStatus("Converting to Word document...");
+      const data = await invoke<number[]>("export_to_docx", {
+        title: "AP CS Questions",
+      });
+      await writeBinaryFile(filePath, new Uint8Array(data));
+      setStatus(`Exported to ${filePath}`);
+    } catch (err) {
+      console.error("Export failed:", err);
+      setStatus(`Export error: ${err}`);
+    }
+  };
+
+  const handleSaveSession = async () => {
+    if (questions.length === 0) {
+      setStatus("No questions to save");
+      return;
+    }
+
+    const filePath = await save({
+      defaultPath: "rubrix-session.json",
+      filters: [sessionFileFilter],
+    });
+
+    if (!filePath) return;
+
+    try {
+      const payload = {
+        version: 1,
+        savedAt: new Date().toISOString(),
+        questions,
+      };
+      await writeTextFile(filePath, JSON.stringify(payload, null, 2));
+      setStatus(`Session saved to ${filePath}`);
+    } catch (err) {
+      console.error("Save session failed:", err);
+      setStatus(`Save session error: ${err}`);
+    }
+  };
+
+  const handleOpenSession = async () => {
+    const selection = await open({
+      multiple: false,
+      filters: [sessionFileFilter],
+    });
+
+    if (!selection) return;
+
+    const filePath = Array.isArray(selection) ? selection[0] : selection;
+    if (!filePath) return;
+
+    try {
+      const content = await readTextFile(filePath);
+      const parsed = parseSessionQuestions(JSON.parse(content));
+      setQuestions(parsed);
+      await invoke("set_questions", { new_questions: parsed });
+      setStatus(
+        `Loaded ${parsed.length} question${parsed.length === 1 ? "" : "s"} from session`
+      );
+    } catch (err) {
+      console.error("Open session failed:", err);
+      setStatus(`Open session error: ${err}`);
+    }
+  };
+
   // Determine what to show in main area
   const showStreamingPreview = isGenerating || (streamingText && !streamingComplete);
   const showQuestions = questions.length > 0 && !showStreamingPreview;
@@ -281,6 +421,21 @@ function App() {
           </h1>
 
           <div className="flex gap-2">
+            <button
+              onClick={handleOpenSession}
+              className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary"
+            >
+              <FolderOpen className="w-4 h-4" />
+              Open Session
+            </button>
+            <button
+              onClick={handleSaveSession}
+              disabled={questions.length === 0}
+              className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <SaveIcon className="w-4 h-4" />
+              Save Session
+            </button>
             {/* Toggle Preview Button (when streaming is complete but still visible) */}
             {streamingText && streamingComplete && (
               <button
@@ -317,6 +472,14 @@ function App() {
             >
               <FileDown className="w-4 h-4" />
               Export QTI
+            </button>
+            <button
+              onClick={handleExportDocx}
+              disabled={questions.length === 0}
+              className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FileDown className="w-4 h-4" />
+              Export Word
             </button>
           </div>
         </header>

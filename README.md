@@ -1,17 +1,21 @@
-# Rubrix - AP CS Test Generator
+# Rubrix - AI Test Generator
 
-An AI-powered multiple choice question generator for AP Computer Science A, built with Tauri + React.
+An AI-powered multiple choice question generator for AP Computer Science A and Calculus, built with Tauri + React.
 
 ![Rubrix Screenshot](docs/screenshot.png)
 
 ## Features
 
-- 🎯 **Topic Selection** - Choose from 8 AP CS A topics
+- 📚 **Multi-Subject Support** - AP Computer Science A and Calculus
+- 🎯 **Topic Selection** - Choose from multiple topics per subject
 - 🎚️ **Difficulty Control** - Easy, Medium, or Hard questions
-- 🤖 **AI Generation** - Powered by Claude Sonnet 4.5 via Replicate
+- 🤖 **AI Generation** - Powered by Claude Sonnet 4.5 via Replicate with subject-specific prompts
+- 🔢 **LaTeX Rendering** - Full mathematical notation support with KaTeX
 - ✏️ **Edit Questions** - Modify generated questions before export
-- 🔄 **Regenerate** - Don't like a question? Generate a new one
-- 📤 **Export to QTI** - Direct export to Schoology-compatible format
+- 🔄 **Smart Regeneration** - Regenerate questions with context awareness (preserves subject/topics)
+- 📤 **Export to QTI** - Direct export to Schoology-compatible format with enhanced formatting
+- 💻 **Code Block Support** - Syntax highlighting for code in questions and answers
+- 📊 **Markdown Tables** - Support for tables in question content
 
 ## Prerequisites
 
@@ -38,17 +42,30 @@ npm run tauri build
 rubrix/
 ├── src/                    # React frontend
 │   ├── components/         # UI components
+│   │   ├── QuestionCard.tsx    # Question display with LaTeX/code rendering
+│   │   ├── EditModal.tsx       # Question editor
+│   │   ├── Sidebar.tsx         # Topic selection
+│   │   └── StreamingPreview.tsx # Real-time generation view
 │   ├── App.tsx             # Main app component
 │   └── types.ts            # TypeScript types
 │
 ├── src-tauri/              # Rust backend
 │   ├── src/
-│   │   ├── main.rs         # Tauri commands
+│   │   ├── main.rs         # Tauri commands & Question struct
 │   │   ├── llm.rs          # Replicate API client
-│   │   ├── qti.rs          # QTI export
-│   │   ├── knowledge.rs    # Knowledge base
-│   │   └── prompts.rs      # LLM prompts
-│   └── knowledge/          # Example question banks
+│   │   ├── qti.rs          # QTI export with LaTeX & formatting
+│   │   ├── knowledge.rs    # Subject-specific knowledge management
+│   │   └── prompts.rs      # Prompt templating system
+│   └── knowledge/          # Subject knowledge bases
+│       ├── Computer Science/
+│       │   ├── prompt.txt          # CS-specific generation prompt
+│       │   ├── question-bank.json  # Example CS questions
+│       │   ├── question-schema.json
+│       │   └── [topic files].txt   # Topic knowledge
+│       └── Calculus/
+│           ├── prompt.txt          # Calculus-specific prompt
+│           ├── question-bank.json  # Example calc questions
+│           └── question-schema.json
 │
 └── package.json
 ```
@@ -64,45 +81,59 @@ const REPLICATE_API_TOKEN: &str = "YOUR_REPLICATE_API_TOKEN_HERE";
 
 With your actual Replicate API token.
 
+### Subject-Specific Prompts
+
+Each subject has its own prompt template in `knowledge/[Subject]/prompt.txt`. These prompts use placeholders:
+- `{topics}` - Selected topics
+- `{difficulty}` - Question difficulty
+- `{count}` - Number of questions
+- `{examples}` - Few-shot examples from question-bank.json
+- `{user_instructions}` - Optional user guidance
+- `{regenerate}` - Context for regeneration
+
 ### Adding Knowledge Base Questions
 
-Add question files to `src-tauri/knowledge/` in this format:
+Add example questions to `knowledge/[Subject]/question-bank.json`:
 
-```
-Title: Topic Name
-
-1. Question text here?
-
-```java
-// Optional code block
-public void example() { }
-```
-
-a. Correct answer (always first)
-a. Wrong answer 2
-a. Wrong answer 3
-a. Wrong answer 4
+```json
+{
+  "id": "1",
+  "text": "What is the derivative of $f(x) = x^2$?",
+  "subject": "Calculus",
+  "topics": ["Derivatives"],
+  "answers": [
+    {"text": "$f'(x) = 2x$", "is_correct": true, "explanation": "Power rule"},
+    {"text": "$f'(x) = x$", "is_correct": false}
+  ],
+  "explanation": "Use the power rule"
+}
 ```
 
-Available topic files:
-- `arrays.txt`
-- `recursion.txt`
-- `strings.txt`
-- `classes.txt`
-- `inheritance.txt`
-- `arraylist.txt`
-- `2darrays.txt`
-- `sorting.txt`
+**Formatting Support:**
+- Inline LaTeX: `$f'(x)$`
+- Display LaTeX: `$$\\int_0^1 x^2 dx$$`
+- Code blocks: ` ```java ... ``` `
+- Inline code: `` `variable` ``
+- Markdown tables
+
+Available **Computer Science** topics:
+- Arrays, Recursion, Strings, Classes, Inheritance
+- ArrayList, 2D Arrays, Sorting
+
+Available **Calculus** topics:
+- Derivatives, Integrals, Limits, and more (41 topics total)
 
 ## Usage
 
-1. **Select Topics** - Check the topics you want questions about
-2. **Set Difficulty** - Choose Easy, Medium, or Hard
-3. **Adjust Count** - Slide to set number of questions (1-20)
-4. **Add Notes** - Optional guidance for the AI
-5. **Generate** - Click to create questions
-6. **Review & Edit** - Modify any questions as needed
-7. **Export** - Save as .txt or .imscc (QTI format)
+1. **Select Subject** - Choose between Computer Science or Calculus
+2. **Select Topics** - Check the topics you want questions about
+3. **Set Difficulty** - Choose Easy, Medium, or Hard
+4. **Adjust Count** - Slide to set number of questions (1-20)
+5. **Add Notes** - Optional guidance for the AI
+6. **Generate** - Click to create questions with streaming preview
+7. **Review & Edit** - Modify any questions as needed
+8. **Regenerate Individual Questions** - Click regenerate on any question to get a replacement (preserves subject/topics)
+9. **Export** - Save as .txt or .imscc (QTI format)
 
 ## Exporting to Schoology
 
@@ -133,10 +164,23 @@ npm run tauri dev
 
 ## Tech Stack
 
-- **Frontend**: React 18, TypeScript, Tailwind CSS
+- **Frontend**: React 18, TypeScript, Tailwind CSS, Radix UI
+- **Rendering**: ReactMarkdown, KaTeX, rehype/remark plugins
 - **Backend**: Rust, Tauri
 - **AI**: Claude Sonnet 4.5 via Replicate
-- **Export**: IMS QTI 1.2
+- **Export**: IMS QTI 1.2 with enhanced LaTeX and formatting support
+
+## Recent Improvements (v0.3.0)
+
+- ✅ Multi-subject support with subject-specific prompts
+- ✅ LaTeX rendering with proper prime/apostrophe handling
+- ✅ Smart paragraph grouping (inline LaTeX stays in paragraph)
+- ✅ HTML escaping only on non-LaTeX text
+- ✅ Markdown table support in QTI export
+- ✅ Multi-line answer support with `<br />` tags
+- ✅ Special character cleaning (UTF-8 artifacts, curly quotes)
+- ✅ Question regeneration with context preservation
+- ✅ Automatic version syncing between package.json and tauri.conf.json
 
 ## License
 
