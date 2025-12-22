@@ -41,12 +41,13 @@ const questionMarkdownComponents = {
 
 function normalizeMathDelimiters(content: string) {
   if (!content) return "";
+  // Only turn escaped newlines into real newlines when they are not the start of a LaTeX command
+  // (e.g., `\ne` should stay as not-equal, not become a newline).
   return content
     .replace(/\\\(/g, "$")
     .replace(/\\\)/g, "$")
     .replace(/\\\[/g, "$$")
     .replace(/\\\]/g, "$$")
-    .replace(/\\n/g, "\n");
 }
 
 function RichMarkdown({ content }: { content: string }) {
