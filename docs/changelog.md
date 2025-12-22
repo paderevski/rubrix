@@ -1,174 +1,147 @@
----
-layout: default
-title: Changelog
----
-
 # Changelog
 
-See what's new in each version of Rubrix.
+All notable changes to Rubrix are documented in this file.
 
 ---
 
-## Latest (Unreleased)
+## [0.4.0] - 2025-12-21
 
-**Features Coming Soon:**
-- Save and load question banks
-- Better explanation formatting
-- Improved AI prompt quality
+### Added
+- AWS Bedrock streaming backend with reasoning-aware SSE parsing
+- Native zoom controls via View menu (Cmd/Ctrl `+`, `-`, `0`) with persisted zoom factor
+- Simplified streaming preview that shows raw reasoning tokens during generation
 
----
+### Changed
+- Prompt/response parser now ignores reasoning brackets before parsing the JSON array
+- Root font sizing driven by `--app-zoom` CSS variable so UI scales uniformly
 
-## Version 0.3.0
-*December 19, 2024*
-
-This is a major feature release bringing multi-subject support and dramatically improved exports.
-
-### 🎉 New Features
-
-**Multi-Subject Support**
-- Added Calculus support (41 topics)
-- Computer Science now has 8 topics
-- Each subject has customized AI prompts
-
-**Beautiful Math Rendering**
-- Full LaTeX support for mathematical notation
-- Inline math: $f'(x) = 2x$
-- Display equations: $$\int_0^1 x^2 dx$$
-- Proper rendering in both the app and exported files
-
-**Enhanced QTI Export**
-- Fixed LaTeX prime handling (apostrophes work correctly now!)
-- Smart paragraph grouping (inline math stays with text)
-- Markdown table support
-- Multi-line answers with proper formatting
-- Cleans special characters (curly quotes, dashes, etc.)
-
-**Smart Regeneration**
-- Regenerate button now remembers question context
-- Preserves subject and topics automatically
-- Better replacement questions
-
-**Developer Improvements**
-- Automatic version syncing between package.json and Tauri config
-- GitHub Pages documentation site
-
-### 🐛 Bug Fixes
-- Fixed HTML escaping breaking LaTeX formulas
-- Fixed inline math creating unwanted paragraph breaks
-
-### [Download v0.3.0](https://github.com/paderevski/rubrix/releases/tag/v0.3.0)
+### Fixed
+- LaTeX not-equal (`\ne`) now renders correctly instead of inserting newlines
 
 ---
 
-## Version 0.2.3
-*2024*
+## [0.3.0] - 2024-12-19
 
-Minor release with version updates.
+### Added
+- **Multi-subject support**: Added Calculus alongside Computer Science
+- **Subject-specific prompts**: Each subject has customized generation prompts
+- **LaTeX rendering**: Full mathematical notation support with KaTeX
+- **Enhanced QTI export**:
+  - Proper LaTeX handling (primes/apostrophes no longer HTML-encoded)
+  - Smart paragraph grouping (inline LaTeX stays in paragraph)
+  - Markdown table support
+  - Multi-line answer support with `<br />` tags
+  - Special character cleaning (UTF-8 artifacts, curly quotes, dashes)
+- **Question regeneration with context**: Preserves subject and topics when regenerating
+- **Automatic version syncing**: package.json and tauri.conf.json stay in sync
+- **GitHub Pages documentation site**: User-friendly docs at paderevski.github.io/rubrix
 
-### [Download v0.2.3](https://github.com/paderevski/rubrix/releases/tag/v0.2.3)
+### Changed
+- Refactored knowledge base to support multiple subjects with JSON structure
+- Reorganized knowledge files into subject-specific folders
+- Updated Calculus question bank with proper markdown formatting
+
+### Fixed
+- HTML escaping now only applies to non-LaTeX text
+- Inline math expressions stay within paragraphs instead of creating separate ones
 
 ---
 
-## Version 0.2.2
-*2024*
+## [0.2.3] - 2024
 
-Minor release with version updates.
-
-### [Download v0.2.2](https://github.com/paderevski/rubrix/releases/tag/v0.2.2)
+### Changed
+- Version bump for release
 
 ---
 
-## Version 0.2.1
-*2024*
+## [0.2.2] - 2024
 
-### Changes
-- Updated API token configuration
+### Changed
+- Version bump for release
+
+---
+
+## [0.2.1] - 2024
+
+### Changed
+- Updated environment token configuration
 - Improved versioning system
 
-### [Download v0.2.1](https://github.com/paderevski/rubrix/releases/tag/v0.2.1)
+---
+
+## [0.2] - 2024
+
+### Added
+- Text input for regenerate question functionality
+- Ability to provide instructions when regenerating individual questions
 
 ---
 
-## Version 0.2
-*2024*
+## [0.1.1] - 2024
 
-### New Features
-- Added instruction field for question regeneration
-- Provide custom guidance when regenerating individual questions
-
-### [Download v0.2](https://github.com/paderevski/rubrix/releases/tag/v0.2)
+### Changed
+- Version bump for release
+- Minor fixes
 
 ---
 
-## Version 0.1.1
-*2024*
+## [0.1.0] - 2024
 
-Minor bug fixes and improvements.
-
-### [Download v0.1.1](https://github.com/paderevski/rubrix/releases/tag/v0.1.1)
-
----
-
-## Version 0.1.0
-*2024*
-
-🎉 **Initial Release!**
-
-### Features
-
-**Question Generation**
-- AI-powered generation using Claude Sonnet 4.5
-- Real-time streaming preview
-- 8 AP Computer Science A topics
-- 3 difficulty levels (Easy, Medium, Hard)
-- Generate 1-20 questions at once
-- Custom instructions for the AI
-
-**Question Management**
-- Edit any generated question
-- Modify question text and answers
-- Regenerate individual questions
-- Mark correct answers
-
-**Export Options**
-- QTI format for Schoology/LMS import
-- Plain text format
-- Preserves code formatting and structure
-
-**Topics Included**
-- Arrays
-- ArrayList
-- 2D Arrays
-- Recursion
-- Strings
-- Classes
-- Inheritance
-- Sorting
-
-**Technical**
-- Desktop app for Mac, Windows, and Linux
-- Built with Tauri + React
-- Rust backend for performance
-- Modern, clean interface
-
-### [Download v0.1.0](https://github.com/paderevski/rubrix/releases/tag/v0.1.0)
+### Added
+- Initial release
+- GitHub Actions release workflow
+- Core question generation functionality
+- Streaming preview of question generation
+- Edit and regenerate questions
+- QTI export for Schoology
+- Plain text export
+- Support for 8 AP Computer Science A topics:
+  - Arrays
+  - ArrayList
+  - 2D Arrays
+  - Recursion
+  - Strings
+  - Classes
+  - Inheritance
+  - Sorting
+- Difficulty selection (Easy, Medium, Hard)
+- Adjustable question count (1-20)
+- User instructions for AI guidance
+- Code block syntax highlighting
+- ReactMarkdown integration
 
 ---
 
-## Future Plans
+## Project History
 
-We're actively developing Rubrix! Planned features include:
+### Development Milestones
 
-- **More subjects**: Statistics, Chemistry, Physics, Biology
-- **Question library**: Save and reuse questions across sessions
-- **Better export**: More LMS formats, custom templates
-- **API key UI**: Enter your Replicate key directly in the app
-- **Auto-update**: Seamless updates to new versions
-- **Question templates**: Create reusable question formats
-- **Bulk editing**: Edit multiple questions at once
+**v0.1.0 - v0.2**: Foundation
+- Established core architecture (Tauri + React + Rust)
+- Implemented streaming AI generation with Claude via Replicate
+- Built question bank system
+- Created QTI export functionality
 
-Have ideas? [Share them on GitHub!](https://github.com/paderevski/rubrix/discussions)
+**v0.2 - v0.3.0**: Multi-Subject & Enhanced Export
+- Expanded to multiple subjects (CS + Calculus)
+- Dramatically improved QTI export with proper LaTeX handling
+- Subject-specific knowledge bases and prompts
+- Professional documentation site
+
+**v0.3.0+**: Quality & Features
+- Focus on question quality improvements
+- Enhanced explanation formatting
+- Question bank save/load functionality
+- Stricter AI response formatting
 
 ---
 
-[← Back to Home](index.md)
+[Unreleased]: https://github.com/paderevski/rubrix/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/paderevski/rubrix/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/paderevski/rubrix/compare/v0.2.3...v0.3.0
+[0.2.3]: https://github.com/paderevski/rubrix/compare/v0.2.2...v0.2.3
+[0.2.2]: https://github.com/paderevski/rubrix/compare/v0.2.1...v0.2.2
+[0.2.1]: https://github.com/paderevski/rubrix/compare/v0.2...v0.2.1
+[0.2]: https://github.com/paderevski/rubrix/compare/v0.1.1...v0.2
+[0.1.1]: https://github.com/paderevski/rubrix/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/paderevski/rubrix/releases/tag/v0.1.0
