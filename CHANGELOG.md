@@ -4,18 +4,23 @@ All notable changes to Rubrix are documented in this file.
 
 ## [Unreleased]
 
-### Added
-- Save and load question banks functionality
-- Display and formatting for question explanations
-- Enforce JSON-only responses from AI to prevent parsing errors
-- Normalize mathematical output formatting
+_No entries yet._
 
-### Fixed
-- Question explanation rendering now properly formatted
-- Markdown rendering for "Steps" sections in explanations
+---
+
+## [0.4.0] - 2025-12-21
+
+### Added
+- AWS Bedrock streaming backend with reasoning-aware SSE parsing
+- Native zoom controls via View menu (Cmd/Ctrl `+`, `-`, `0`) with persisted zoom factor
+- Simplified streaming preview that shows raw reasoning tokens during generation
 
 ### Changed
-- Tweaked AI prompts for better question quality
+- Prompt/response parser now ignores reasoning brackets before parsing the JSON array
+- Root font sizing driven by `--app-zoom` CSS variable so UI scales uniformly
+
+### Fixed
+- LaTeX not-equal (`\ne`) now renders correctly instead of inserting newlines
 
 ---
 
@@ -135,7 +140,8 @@ All notable changes to Rubrix are documented in this file.
 
 ---
 
-[Unreleased]: https://github.com/paderevski/rubrix/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/paderevski/rubrix/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/paderevski/rubrix/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/paderevski/rubrix/compare/v0.2.3...v0.3.0
 [0.2.3]: https://github.com/paderevski/rubrix/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/paderevski/rubrix/compare/v0.2.1...v0.2.2
