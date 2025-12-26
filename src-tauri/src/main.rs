@@ -172,7 +172,7 @@ pub struct QuestionBankEntry {
     pub cognitive_level: String,
     pub topics: Vec<String>,
     #[serde(default)]
-    pub subtopics: Vec<String>,
+    pub subtopics: Option<Vec<String>>,
     pub skills: Vec<String>,
     pub distractors: DistractorInfo,
 }
