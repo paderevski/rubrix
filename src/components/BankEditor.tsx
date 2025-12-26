@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import { QuestionBankEntry } from "../types";
-import { Loader2, Save, RotateCcw } from "lucide-react";
+import { QuestionBankEntry, TopicInfo } from "../types";
+import { Loader2, Save, RotateCcw, X, Plus } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -61,6 +61,7 @@ export default function BankEditor({ subject }: BankEditorProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [topicOptions, setTopicOptions] = useState<TopicInfo[]>([]);
 
   const selected = useMemo(
     () => entries.find((e) => e.id === selectedId) || null,
@@ -70,6 +71,7 @@ export default function BankEditor({ subject }: BankEditorProps) {
   useEffect(() => {
     if (!subject) return;
     loadBank();
+    loadTopics();
   }, [subject]);
 
   const loadBank = async () => {
@@ -84,6 +86,15 @@ export default function BankEditor({ subject }: BankEditorProps) {
       setError(String(e));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTopics = async () => {
+    try {
+      const data = await invoke<TopicInfo[]>("get_topics", { subject });
+      setTopicOptions(data);
+    } catch (e) {
+      console.error("Failed to load topics", e);
     }
   };
 
@@ -198,138 +209,203 @@ export default function BankEditor({ subject }: BankEditorProps) {
           </div>
         )}
 
-        <div className="p-4 space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Question Text</label>
-            <textarea
-              className="w-full border rounded p-2 text-sm"
-              rows={6}
-              value={selected.text}
-              onChange={(e) => updateEntry(selected.id, { text: e.target.value })}
-            />
-            <div className="mt-2 text-xs font-semibold text-slate-700">Preview</div>
-            <div className="prose prose-sm max-w-none border rounded p-3 bg-white">
-              <RichMarkdown content={selected.text} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Difficulty</label>
-              <input
-                className="w-full border rounded p-2 text-sm"
-                value={selected.difficulty}
-                onChange={(e) => updateEntry(selected.id, { difficulty: e.target.value })}
+        <div className="p-4 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+            {/* Left: Question + Preview */}
+            <div className="flex flex-col gap-3 h-full">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Question</label>
+              <div className="prose prose-sm max-w-none border border-blue-100 rounded p-3 bg-blue-50">
+                <RichMarkdown content={selected.text} />
+              </div>
+              <textarea
+                className="w-full border rounded p-2 text-sm flex-1 min-h-[200px]"
+                rows={8}
+                value={selected.text}
+                onChange={(e) => updateEntry(selected.id, { text: e.target.value })}
               />
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Cognitive Level</label>
-              <input
-                className="w-full border rounded p-2 text-sm"
-                value={selected.cognitive_level}
-                onChange={(e) => updateEntry(selected.id, { cognitive_level: e.target.value })}
-              />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Topics (comma-separated codes)</label>
-              <input
-                className="w-full border rounded p-2 text-sm"
-                value={selected.topics.join(", ")}
-                onChange={(e) =>
-                  updateEntry(selected.id, {
-                    topics: e.target.value
-                      .split(",")
-                      .map((s) => s.trim())
-                      .filter(Boolean),
-                  })
-                }
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Skills (comma-separated)</label>
-              <input
-                className="w-full border rounded p-2 text-sm"
-                value={selected.skills.join(", ")}
-                onChange={(e) =>
-                  updateEntry(selected.id, {
-                    skills: e.target.value
-                      .split(",")
-                      .map((s) => s.trim())
-                      .filter(Boolean),
-                  })
-                }
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Explanation</label>
-            <textarea
-              className="w-full border rounded p-2 text-sm"
-              rows={4}
-              value={selected.explanation}
-              onChange={(e) => updateEntry(selected.id, { explanation: e.target.value })}
-            />
-          </div>
-
-          <div className="space-y-3">
-            <div className="text-sm font-semibold">Answers</div>
-            {selected.options.map((opt) => (
-              <div key={opt.id} className="border rounded p-3 space-y-2">
-                <div className="flex gap-2">
+            {/* Right: Metadata */}
+            <div className="flex flex-col gap-4 h-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Difficulty</label>
                   <input
-                    className="w-24 border rounded p-2 text-sm"
-                    value={opt.id}
-                    onChange={(e) =>
-                      updateOption(selected.id, opt.id, { id: e.target.value })
-                    }
+                    className="w-full border rounded p-2 text-sm"
+                    value={selected.difficulty}
+                    onChange={(e) => updateEntry(selected.id, { difficulty: e.target.value })}
                   />
-                  <label className="flex items-center gap-2 text-xs">
-                    <input
-                      type="checkbox"
-                      checked={opt.is_correct}
-                      onChange={(e) =>
-                        updateOption(selected.id, opt.id, { is_correct: e.target.checked })
-                      }
-                    />
-                    Correct
-                  </label>
                 </div>
-                <textarea
-                  className="w-full border rounded p-2 text-sm"
-                  rows={2}
-                  value={opt.text}
-                  onChange={(e) => updateOption(selected.id, opt.id, { text: e.target.value })}
-                />
-                <div className="text-xs font-semibold text-slate-700">Preview</div>
-                <div className="prose prose-xs max-w-none border rounded p-2 bg-white">
-                  <RichMarkdown content={opt.text} />
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Cognitive Level</label>
+                  <input
+                    className="w-full border rounded p-2 text-sm"
+                    value={selected.cognitive_level}
+                    onChange={(e) => updateEntry(selected.id, { cognitive_level: e.target.value })}
+                  />
                 </div>
               </div>
-            ))}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Topics</label>
+                  <div className="space-y-2">
+                    {selected.topics.length === 0 && (
+                      <div className="text-xs text-muted-foreground">No topics selected.</div>
+                    )}
+                    {selected.topics.map((topicId, idx) => {
+                      const missing = topicId && !topicOptions.some((t) => t.id === topicId);
+                      const selectedTopic = topicOptions.find((t) => t.id === topicId);
+                      const titleText = selectedTopic?.name || (missing ? `(missing) ${topicId}` : "Select a topic");
+                      return (
+                      <div key={`${topicId}-${idx}`} className="flex items-center gap-2">
+                        <div className="flex-1 min-w-0">
+                          <select
+                            className="w-full border rounded px-2 py-1.5 text-sm truncate"
+                            value={topicId}
+                            title={titleText}
+                            onChange={(e) => {
+                              const next = [...selected.topics];
+                              next[idx] = e.target.value;
+                              updateEntry(selected.id, { topics: next });
+                            }}
+                          >
+                            <option value="">Select a topic</option>
+                            {missing && (
+                              <option value={topicId}>{`(missing) ${topicId}`}</option>
+                            )}
+                            {topicOptions.map((t) => (
+                              <option key={t.id} value={t.id}>
+                                {t.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <button
+                          onClick={() => {
+                            const next = selected.topics.filter((_, i) => i !== idx);
+                            updateEntry(selected.id, { topics: next });
+                          }}
+                          className="h-8 w-8 flex items-center justify-center border rounded hover:bg-secondary"
+                          title="Remove topic"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                    })}
+                    <button
+                      onClick={() => {
+                        const first = topicOptions[0]?.id ?? "";
+                        updateEntry(selected.id, { topics: [...selected.topics, first] });
+                      }}
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm border rounded hover:bg-secondary"
+                      disabled={topicOptions.length === 0}
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add topic
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Skills (comma-separated)</label>
+                  <input
+                    className="w-full border rounded p-2 text-sm"
+                    value={selected.skills.join(", ")}
+                    onChange={(e) =>
+                      updateEntry(selected.id, {
+                        skills: e.target.value
+                          .split(",")
+                          .map((s) => s.trim())
+                          .filter(Boolean),
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Explanation</label>
+                <textarea
+                  className="w-full border rounded p-2 text-sm"
+                  rows={4}
+                  value={selected.explanation}
+                  onChange={(e) => updateEntry(selected.id, { explanation: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Distractors (common errors)</label>
+                <textarea
+                  className="w-full border rounded p-2 text-sm"
+                  rows={3}
+                  value={selected.distractors.common_errors.join("\n")}
+                  onChange={(e) =>
+                    updateEntry(selected.id, {
+                      distractors: {
+                        ...selected.distractors,
+                        common_errors: e.target.value
+                          .split("\n")
+                          .map((s) => s.trim())
+                          .filter(Boolean),
+                      },
+                    })
+                  }
+                />
+              </div>
+              <div className="flex-1" />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Distractors (common errors)</label>
-            <textarea
-              className="w-full border rounded p-2 text-sm"
-              rows={3}
-              value={selected.distractors.common_errors.join("\n")}
-              onChange={(e) =>
-                updateEntry(selected.id, {
-                  distractors: {
-                    ...selected.distractors,
-                    common_errors: e.target.value
-                      .split("\n")
-                      .map((s) => s.trim())
-                      .filter(Boolean),
-                  },
-                })
-              }
-            />
+          {/* Answers Block */}
+          <div className="space-y-3">
+            <div className="text-sm font-semibold">Answers</div>
+            {selected.options.map((opt, idx) => (
+              <div
+                key={opt.id}
+                className="flex items-center gap-2 border rounded px-3 py-2 bg-white"
+              >
+                <label className="flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={opt.is_correct}
+                    onChange={(e) =>
+                      updateOption(selected.id, opt.id, { is_correct: e.target.checked })
+                    }
+                  />
+                  Correct
+                </label>
+                <span className="w-6 h-6 flex items-center justify-center rounded-full border text-xs font-semibold text-slate-700">
+                  {String.fromCharCode(65 + idx)}
+                </span>
+                <div className="flex-1 min-w-0 text-xs text-slate-700 truncate border rounded px-2 py-1 bg-slate-50">
+                  <RichMarkdown
+                    content={opt.text}
+                    className="prose prose-xs max-w-none prose-p:my-0 prose-ul:my-0 prose-ol:my-0"
+                    components={{
+                      p({ children }: any) {
+                        return <span className="inline">{children}</span>;
+                      },
+                      ul({ children }: any) {
+                        return <span className="inline">{children}</span>;
+                      },
+                      ol({ children }: any) {
+                        return <span className="inline">{children}</span>;
+                      },
+                      li({ children }: any) {
+                        return <span className="inline">{children}</span>;
+                      },
+                    }}
+                  />
+                </div>
+                <input
+                  className="flex-1 min-w-0 border rounded px-2 py-1 text-sm"
+                  value={opt.text}
+                  onChange={(e) => updateOption(selected.id, opt.id, { text: e.target.value })}
+                  placeholder="Answer text"
+                />
+              </div>
+            ))}
           </div>
         </div>
       </div>

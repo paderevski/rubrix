@@ -379,7 +379,7 @@
       "difficulty": "",
       "cognitive_level": "",
       "content": {
-        "text": "Which of the following series converge?I. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{8^n}{n!}$II. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{n!}{100^n}$III. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{n+1}{(n+2)(n+3)}$",
+        "text": "Which of the following series converge?\n\nI. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{8^n}{n!}$\n\nII. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{n!}{100^n}$\n\nIII. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{n+1}{(n+2)(n+3)}$",
         "options": [
           {
             "id": "a",

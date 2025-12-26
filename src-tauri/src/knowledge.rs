@@ -208,8 +208,11 @@ impl KnowledgeBase {
             let mut subject_topic_codes: HashMap<String, Vec<String>> = HashMap::new();
 
             for (name, display, _desc, topic_codes) in topic_definitions {
-                // Store the mapping from topic name to topic codes
+                // Store mappings for both the canonical name and each code -> codes
                 subject_topic_codes.insert(name.clone(), topic_codes.clone());
+                for code in &topic_codes {
+                    subject_topic_codes.insert(code.clone(), topic_codes.clone());
+                }
 
                 // Count examples for this topic from question bank
                 let json_count = subject_bank_entries
@@ -223,8 +226,9 @@ impl KnowledgeBase {
 
                 // Only include topics that have questions
                 if json_count > 0 {
+                    let primary_code = topic_codes.get(0).cloned().unwrap_or_else(|| name.clone());
                     subject_topics.push(TopicInfo {
-                        id: name,
+                        id: primary_code,
                         name: display,
                         description: format!("{} questions available", json_count),
                         example_count: json_count,
