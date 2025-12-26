@@ -50,13 +50,22 @@ function normalizeMathDelimiters(content: string) {
     .replace(/\\\]/g, "$$")
 }
 
-function RichMarkdown({ content }: { content: string }) {
+function RichMarkdown({
+  content,
+  className,
+  components,
+}: {
+  content: string;
+  className?: string;
+  components?: any;
+}) {
   const normalized = normalizeMathDelimiters(content);
   return (
     <ReactMarkdown
+      className={className}
       remarkPlugins={[remarkGfm, remarkMath]}
       rehypePlugins={[rehypeRaw, rehypeKatex]}
-      components={questionMarkdownComponents}
+      components={{ ...questionMarkdownComponents, ...components }}
     >
       {normalized}
     </ReactMarkdown>
@@ -193,26 +202,17 @@ export default function QuestionCard({
               <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium bg-white border">
                 {String.fromCharCode(65 + i)}
               </span>
-              <span className="flex-1 text-sm">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm, remarkMath]}
-                  rehypePlugins={[rehypeRaw, rehypeKatex]}
+              <div className="flex-1 text-sm">
+                <RichMarkdown
+                  content={answer.text}
+                  className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-pre:my-2"
                   components={{
                     p({ children }: any) {
                       return <>{children}</>;
                     },
-                    code({ children }: any) {
-                      return (
-                        <code className="px-1 py-0.5 bg-slate-100 text-slate-800 rounded text-xs font-mono">
-                          {children}
-                        </code>
-                      );
-                    },
                   }}
-                >
-                  {normalizeMathDelimiters(answer.text)}
-                </ReactMarkdown>
-              </span>
+                />
+              </div>
               {answer.is_correct && (
                 <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
               )}

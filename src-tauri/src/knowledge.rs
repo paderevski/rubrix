@@ -1,25 +1,70 @@
 //! Knowledge base management - loads example questions for few-shot prompting
 
 use crate::{
-    CommonMistake, DistractorInfo, QuestionBankEntry, QuestionBankOption, SubjectInfo, TopicInfo,
+    CommonMistake, DistractorInfo, QuestionBankEntry, QuestionBankOption, SubjectInfo,
+    SubtopicInfo, TopicInfo,
 };
 use rust_embed::RustEmbed;
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::{env, fs, path::PathBuf};
 
 #[derive(RustEmbed)]
-#[folder = "knowledge/"]
+#[folder = "../imports/knowledge/"]
 struct KnowledgeAssets;
+
+fn resolve_knowledge_path(file: &str) -> Option<PathBuf> {
+    if let Ok(base) = env::var("RUBRIX_KNOWLEDGE_DIR") {
+        let mut candidates: Vec<PathBuf> = Vec::new();
+        let base_path = PathBuf::from(base);
+
+        if base_path.is_absolute() {
+            candidates.push(base_path.clone());
+        } else if let Ok(cwd) = env::current_dir() {
+            candidates.push(cwd.join(&base_path));
+            if let Some(parent) = cwd.parent() {
+                candidates.push(parent.join(&base_path));
+            }
+        } else {
+            candidates.push(base_path.clone());
+        }
+
+        for candidate_base in candidates {
+            let candidate = candidate_base.join(file);
+            if candidate.exists() {
+                return Some(candidate);
+            }
+        }
+    }
+    None
+}
+
+fn load_knowledge_file(file: &str) -> Option<String> {
+    if let Some(path) = resolve_knowledge_path(file) {
+        if let Ok(content) = fs::read_to_string(&path) {
+            return Some(content);
+        }
+    }
+
+    KnowledgeAssets::get(file).map(|embedded| String::from_utf8_lossy(&embedded.data).to_string())
+}
 
 /// Schema file structure for topics
 #[derive(Debug, Deserialize)]
 struct QuestionSchema {
     topics: TopicsSection,
+    #[serde(default)]
+    subtopics: SubtopicsSection,
 }
 
 #[derive(Debug, Deserialize)]
 struct TopicsSection {
     items: Vec<TopicSchemaItem>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct SubtopicsSection {
+    items: Vec<SubtopicSchemaItem>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -30,6 +75,19 @@ struct TopicSchemaItem {
     name: String,
     #[serde(default)]
     display: String,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Deserialize)]
+struct SubtopicSchemaItem {
+    #[serde(default)]
+    id: String,
+    #[serde(default)]
+    name: String,
+    #[serde(default)]
+    display: String,
+    #[serde(default)]
+    parent_topic: String,
 }
 
 /// Full question bank JSON structure
@@ -66,6 +124,8 @@ struct OptionJson {
 #[derive(Debug, Deserialize)]
 struct Pedagogy {
     topics: Vec<String>,
+    #[serde(default)]
+    subtopics: Vec<String>,
     skills: Vec<String>,
 }
 
@@ -106,8 +166,7 @@ impl KnowledgeBase {
         for subject_name in subject_names {
             // Load the schema file to get topic definitions
             let schema_filename = format!("{}/question-schema.json", subject_name);
-            let topic_definitions = if let Some(file) = KnowledgeAssets::get(&schema_filename) {
-                let content = String::from_utf8_lossy(&file.data);
+            let topic_definitions = if let Some(content) = load_knowledge_file(&schema_filename) {
                 match serde_json::from_str::<QuestionSchema>(&content) {
                     Ok(schema) => {
                         // Filter to only T0XX codes and build topic map
@@ -115,7 +174,7 @@ impl KnowledgeBase {
                             .topics
                             .items
                             .into_iter()
-                            .filter(|item| item.id.starts_with('T') && !item.id.is_empty())
+                            .filter(|item| !item.id.is_empty())
                             .map(|item| {
                                 (
                                     item.name.clone(),
@@ -147,12 +206,35 @@ impl KnowledgeBase {
                 continue;
             }
 
+            // Load subtopics definitions (if present)
+            let mut subtopic_map: HashMap<String, Vec<SubtopicInfo>> = HashMap::new();
+            if let Some(content) = load_knowledge_file(&schema_filename) {
+                if let Ok(schema) = serde_json::from_str::<QuestionSchema>(&content) {
+                    for sub in schema
+                        .subtopics
+                        .items
+                        .into_iter()
+                        .filter(|s| !s.id.is_empty())
+                    {
+                        subtopic_map
+                            .entry(sub.parent_topic.clone())
+                            .or_default()
+                            .push(SubtopicInfo {
+                                id: sub.id.clone(),
+                                name: sub.display.clone(),
+                                description: format!("Subtopic of {}", sub.parent_topic),
+                                example_count: 0,
+                                parent_topic: Some(sub.parent_topic.clone()),
+                            });
+                    }
+                }
+            }
+
             let mut subject_topics = Vec::new();
 
             // Load JSON question bank once per subject (outside topic loop)
             let bank_filename = format!("{}/question-bank.json", subject_name);
-            let subject_bank_entries = if let Some(file) = KnowledgeAssets::get(&bank_filename) {
-                let content = String::from_utf8_lossy(&file.data);
+            let subject_bank_entries = if let Some(content) = load_knowledge_file(&bank_filename) {
                 match serde_json::from_str::<QuestionBankFile>(&content) {
                     Ok(bank) => bank
                         .questions
@@ -174,6 +256,7 @@ impl KnowledgeBase {
                             difficulty: q.difficulty,
                             cognitive_level: q.cognitive_level,
                             topics: q.pedagogy.topics,
+                            subtopics: q.pedagogy.subtopics,
                             skills: q.pedagogy.skills,
                             distractors: DistractorInfo {
                                 common_mistakes: q
@@ -208,8 +291,11 @@ impl KnowledgeBase {
             let mut subject_topic_codes: HashMap<String, Vec<String>> = HashMap::new();
 
             for (name, display, _desc, topic_codes) in topic_definitions {
-                // Store the mapping from topic name to topic codes
+                // Store mappings for both the canonical name and each code -> codes
                 subject_topic_codes.insert(name.clone(), topic_codes.clone());
+                for code in &topic_codes {
+                    subject_topic_codes.insert(code.clone(), topic_codes.clone());
+                }
 
                 // Count examples for this topic from question bank
                 let json_count = subject_bank_entries
@@ -223,11 +309,26 @@ impl KnowledgeBase {
 
                 // Only include topics that have questions
                 if json_count > 0 {
+                    let primary_code = topic_codes.get(0).cloned().unwrap_or_else(|| name.clone());
+
+                    // Attach subtopics (if any) and map them to parent codes
+                    let children = subtopic_map
+                        .remove(&primary_code)
+                        .unwrap_or_default()
+                        .into_iter()
+                        .map(|mut child| {
+                            child.example_count = json_count;
+                            subject_topic_codes.insert(child.id.clone(), topic_codes.clone());
+                            child
+                        })
+                        .collect::<Vec<_>>();
+
                     subject_topics.push(TopicInfo {
-                        id: name,
+                        id: primary_code,
                         name: display,
                         description: format!("{} questions available", json_count),
                         example_count: json_count,
+                        children,
                     });
                 }
             }
@@ -304,11 +405,13 @@ impl KnowledgeBase {
         let mut results: Vec<QuestionBankEntry> = subject_entries
             .iter()
             .filter(|entry| {
-                // Check topic match
+                // Check topic or subtopic match
                 let topic_match = if let Some(map) = topic_code_map {
                     topic_ids.iter().any(|tid| {
                         if let Some(codes) = map.get(tid) {
-                            codes.iter().any(|code| entry.topics.contains(code))
+                            codes.iter().any(|code| {
+                                entry.topics.contains(code) || entry.subtopics.contains(code)
+                            })
                         } else {
                             false
                         }
@@ -335,7 +438,9 @@ impl KnowledgeBase {
                     let topic_match = if let Some(map) = topic_code_map {
                         topic_ids.iter().any(|tid| {
                             if let Some(codes) = map.get(tid) {
-                                codes.iter().any(|code| entry.topics.contains(code))
+                                codes.iter().any(|code| {
+                                    entry.topics.contains(code) || entry.subtopics.contains(code)
+                                })
                             } else {
                                 false
                             }

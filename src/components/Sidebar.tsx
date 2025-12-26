@@ -1,4 +1,4 @@
-import { Loader2, Sparkles, Plus } from "lucide-react";
+import { Loader2, Sparkles, Plus, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { TopicInfo, SubjectInfo } from "../types";
 
 interface SidebarProps {
@@ -19,6 +19,8 @@ interface SidebarProps {
   existingCount: number;
   onGenerate: () => void;
   isGenerating: boolean;
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
 }
 
 export default function Sidebar({
@@ -39,6 +41,8 @@ export default function Sidebar({
   existingCount,
   onGenerate,
   isGenerating,
+  collapsed = false,
+  onToggleCollapsed,
 }: SidebarProps) {
   const toggleTopic = (topicId: string) => {
     if (selectedTopics.includes(topicId)) {
@@ -48,15 +52,44 @@ export default function Sidebar({
     }
   };
 
+  if (collapsed) {
+    return (
+      <aside className="w-14 border-r bg-card flex flex-col items-center gap-3 py-3">
+        <button
+          onClick={onToggleCollapsed}
+          className="p-2 rounded-md border hover:bg-secondary"
+          title="Expand filters"
+        >
+          <PanelLeftOpen className="w-4 h-4" />
+        </button>
+        <button
+          onClick={onGenerate}
+          disabled={isGenerating || selectedTopics.length === 0}
+          className="p-2 rounded-md border bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          title={isGenerating ? "Generating..." : "Generate questions"}
+        >
+          {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+        </button>
+      </aside>
+    );
+  }
+
   return (
     <aside className="w-80 border-r bg-card flex flex-col">
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {/* Subject Selection */}
         <div>
-          <label className="text-sm font-medium text-foreground mb-2 block">
-            Subject
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-sm font-medium text-foreground">Subject</label>
+            <button
+              onClick={onToggleCollapsed}
+              className="p-1.5 rounded-md border hover:bg-secondary"
+              title="Collapse sidebar"
+            >
+              <PanelLeftClose className="w-4 h-4" />
+            </button>
+          </div>
           <select
             value={selectedSubject}
             onChange={(e) => onSubjectChange(e.target.value)}

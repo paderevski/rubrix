@@ -8,6 +8,36 @@ export interface Question {
   topics?: string[];
 }
 
+// Question bank (rich) entries
+export interface QuestionBankEntry {
+  id: string;
+  text: string;
+  options: QuestionBankOption[];
+  explanation: string;
+  difficulty: string;
+  cognitive_level: string;
+  topics: string[];
+  subtopics?: string[];
+  skills: string[];
+  distractors: DistractorInfo;
+}
+
+export interface QuestionBankOption {
+  id: string;
+  text: string;
+  is_correct: boolean;
+}
+
+export interface DistractorInfo {
+  common_mistakes: CommonMistake[];
+  common_errors: string[];
+}
+
+export interface CommonMistake {
+  option_id: string;
+  misconception: string;
+}
+
 export interface Answer {
   text: string;
   is_correct: boolean;
@@ -19,6 +49,15 @@ export interface TopicInfo {
   name: string;
   description: string;
   example_count: number;
+  children?: SubtopicInfo[];
+}
+
+export interface SubtopicInfo {
+  id: string;
+  name: string;
+  description: string;
+  example_count: number;
+  parent_topic?: string;
 }
 
 export interface SubjectInfo {

@@ -81,6 +81,7 @@ struct StreamOptions {
 }
 
 // Streaming response structures
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 struct StreamChunk {
     choices: Vec<StreamChoice>,
@@ -88,6 +89,7 @@ struct StreamChunk {
     usage: Option<Usage>,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 struct StreamChoice {
     delta: Delta,
@@ -95,6 +97,7 @@ struct StreamChoice {
     finish_reason: Option<String>,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, Debug, Default)]
 struct Delta {
     #[serde(default)]
@@ -103,6 +106,7 @@ struct Delta {
     role: Option<String>,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 struct Usage {
     prompt_tokens: u32,

@@ -7,8 +7,17 @@ import Sidebar from "./components/Sidebar";
 import QuestionList from "./components/QuestionList";
 import EditModal from "./components/EditModal";
 import StreamingPreview from "./components/StreamingPreview";
+import BankEditor from "./components/BankEditor";
 import { Question, TopicInfo, SubjectInfo, GenerationRequest } from "./types";
-import { FileDown, FileText, Loader2, Eye, EyeOff, Save as SaveIcon, FolderOpen } from "lucide-react";
+import {
+  FileDown,
+  FileText,
+  Loader2,
+  Eye,
+  EyeOff,
+  Save as SaveIcon,
+  FolderOpen,
+} from "lucide-react";
 import AlertModal from "./components/AlertModal";
 
 // Event payload from Rust backend
@@ -60,6 +69,8 @@ function App() {
   const [streamingText, setStreamingText] = useState("");
   const [streamingComplete, setStreamingComplete] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
+  const [activeTab, setActiveTab] = useState<"generate" | "bank">("generate");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Alert modal state
   const [alertOpen, setAlertOpen] = useState(false);
@@ -382,160 +393,190 @@ function App() {
   const showQuestions = questions.length > 0 && !showStreamingPreview;
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex flex-col h-screen bg-background">
       <AlertModal
         open={alertOpen}
         message={alertMessage}
         onClose={() => setAlertOpen(false)}
       />
-      {/* Sidebar */}
-      <Sidebar
-        subjects={subjects}
-        selectedSubject={selectedSubject}
-        onSubjectChange={setSelectedSubject}
-        topics={topics}
-        selectedTopics={selectedTopics}
-        onTopicsChange={setSelectedTopics}
-        difficulty={difficulty}
-        onDifficultyChange={setDifficulty}
-        questionCount={questionCount}
-        onQuestionCountChange={setQuestionCount}
-        notes={notes}
-        onNotesChange={setNotes}
-        appendMode={appendMode}
-        onAppendModeChange={setAppendMode}
-        existingCount={questions.length}
-        onGenerate={handleGenerate}
-        isGenerating={isGenerating}
-      />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="flex items-center justify-between px-6 py-4 border-b bg-white">
-          <h1 className="text-xl font-semibold text-foreground">
-            📝 Rubrix
-            <span className="text-sm font-normal text-muted-foreground ml-2">
-              AP CS Test Generator
-            </span>
-          </h1>
+      {/* Header */}
+      <header className="flex items-center justify-between px-6 py-4 border-b bg-white">
+        <h1 className="text-xl font-semibold text-foreground">
+          📝 Rubrix
+          <span className="text-sm font-normal text-muted-foreground ml-2">
+            AP CS Test Generator
+          </span>
+        </h1>
 
-          <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex rounded border overflow-hidden">
             <button
-              onClick={handleOpenSession}
+              className={`px-3 py-2 text-sm ${
+                activeTab === "generate" ? "bg-primary text-white" : "bg-white"
+              }`}
+              onClick={() => setActiveTab("generate")}
+            >
+              Generate
+            </button>
+            <button
+              className={`px-3 py-2 text-sm ${
+                activeTab === "bank" ? "bg-primary text-white" : "bg-white"
+              }`}
+              onClick={() => setActiveTab("bank")}
+            >
+              Bank Editor
+            </button>
+          </div>
+          <button
+            onClick={handleOpenSession}
+            className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary"
+          >
+            <FolderOpen className="w-4 h-4" />
+            Open Session
+          </button>
+          <button
+            onClick={handleSaveSession}
+            disabled={questions.length === 0}
+            className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <SaveIcon className="w-4 h-4" />
+            Save Session
+          </button>
+          {/* Toggle Preview Button (when streaming is complete but still visible) */}
+          {streamingText && streamingComplete && (
+            <button
+              onClick={() => setShowPreview(!showPreview)}
               className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary"
             >
-              <FolderOpen className="w-4 h-4" />
-              Open Session
+              {showPreview ? (
+                <>
+                  <EyeOff className="w-4 h-4" />
+                  Hide Raw
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4" />
+                  Show Raw
+                </>
+              )}
             </button>
-            <button
-              onClick={handleSaveSession}
-              disabled={questions.length === 0}
-              className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <SaveIcon className="w-4 h-4" />
-              Save Session
-            </button>
-            {/* Toggle Preview Button (when streaming is complete but still visible) */}
-            {streamingText && streamingComplete && (
-              <button
-                onClick={() => setShowPreview(!showPreview)}
-                className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary"
-              >
-                {showPreview ? (
-                  <>
-                    <EyeOff className="w-4 h-4" />
-                    Hide Raw
-                  </>
-                ) : (
-                  <>
-                    <Eye className="w-4 h-4" />
-                    Show Raw
-                  </>
-                )}
-              </button>
-            )}
-
-            {/* Export Buttons */}
-            <button
-              onClick={handleExportTxt}
-              disabled={questions.length === 0}
-              className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <FileText className="w-4 h-4" />
-              Export .txt
-            </button>
-            <button
-              onClick={handleExportQti}
-              disabled={questions.length === 0}
-              className="flex items-center gap-2 px-3 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <FileDown className="w-4 h-4" />
-              Export QTI
-            </button>
-            <button
-              onClick={handleExportDocx}
-              disabled={questions.length === 0}
-              className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <FileDown className="w-4 h-4" />
-              Export Word
-            </button>
-          </div>
-        </header>
-
-        {/* Main Area - Either streaming preview or questions */}
-        <main className="flex-1 overflow-hidden flex">
-          {/* Streaming Preview Panel */}
-          {showPreview && streamingText && (
-            <div className={`border-r bg-slate-50 overflow-hidden flex flex-col ${
-              showQuestions ? "w-1/2" : "flex-1"
-            }`}>
-              <StreamingPreview
-                text={streamingText}
-                isComplete={streamingComplete}
-              />
-            </div>
           )}
 
-          {/* Questions Panel */}
-          <div className={`overflow-auto p-6 ${
-            showPreview && streamingText ? "flex-1" : "flex-1"
-          }`}>
-            {questions.length === 0 && !isGenerating ? (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                <div className="text-6xl mb-4">📚</div>
-                <p className="text-lg">No questions yet</p>
-                <p className="text-sm">
-                  Select topics and click "Generate Questions" to get started
-                </p>
-              </div>
-            ) : questions.length === 0 && isGenerating ? (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                <Loader2 className="w-8 h-8 animate-spin mb-4" />
-                <p className="text-lg">Generating questions...</p>
-                <p className="text-sm">Watch the live output on the left</p>
-              </div>
-            ) : (
-              <QuestionList
-                questions={questions}
-                onRegenerate={handleRegenerate}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onAdd={handleAddQuestion}
-              />
-            )}
-          </div>
-        </main>
+          {/* Export Buttons */}
+          <button
+            onClick={handleExportTxt}
+            disabled={questions.length === 0}
+            className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <FileText className="w-4 h-4" />
+            Export .txt
+          </button>
+          <button
+            onClick={handleExportQti}
+            disabled={questions.length === 0}
+            className="flex items-center gap-2 px-3 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <FileDown className="w-4 h-4" />
+            Export QTI
+          </button>
+          <button
+            onClick={handleExportDocx}
+            disabled={questions.length === 0}
+            className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <FileDown className="w-4 h-4" />
+            Export Word
+          </button>
+        </div>
+      </header>
 
-        {/* Status Bar */}
-        <footer className="flex items-center justify-between px-6 py-2 border-t bg-white text-sm text-muted-foreground">
-          <span className="flex items-center gap-2">
-            {isGenerating && <Loader2 className="w-4 h-4 animate-spin" />}
-            {status}
-          </span>
-          <span>{questions.length} questions</span>
-        </footer>
+      <div className="flex flex-1 min-h-0">
+        {/* Sidebar */}
+        <Sidebar
+          subjects={subjects}
+          selectedSubject={selectedSubject}
+          onSubjectChange={setSelectedSubject}
+          topics={topics}
+          selectedTopics={selectedTopics}
+          onTopicsChange={setSelectedTopics}
+          difficulty={difficulty}
+          onDifficultyChange={setDifficulty}
+          questionCount={questionCount}
+          onQuestionCountChange={setQuestionCount}
+          notes={notes}
+          onNotesChange={setNotes}
+          appendMode={appendMode}
+          onAppendModeChange={setAppendMode}
+          existingCount={questions.length}
+          onGenerate={handleGenerate}
+          isGenerating={isGenerating}
+          collapsed={sidebarCollapsed}
+          onToggleCollapsed={() => setSidebarCollapsed((prev) => !prev)}
+        />
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Main Area - Either streaming preview/questions or Bank Editor */}
+          {activeTab === "generate" ? (
+            <main className="flex-1 overflow-hidden flex">
+              {/* Streaming Preview Panel */}
+              {showPreview && streamingText && (
+                <div
+                  className={`border-r bg-slate-50 overflow-hidden flex flex-col ${
+                    showQuestions ? "w-1/2" : "flex-1"
+                  }`}
+                >
+                  <StreamingPreview text={streamingText} isComplete={streamingComplete} />
+                </div>
+              )}
+
+              {/* Questions Panel */}
+              <div
+                className={`overflow-auto p-6 ${
+                  showPreview && streamingText ? "flex-1" : "flex-1"
+                }`}
+              >
+                {questions.length === 0 && !isGenerating ? (
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                    <div className="text-6xl mb-4">📚</div>
+                    <p className="text-lg">No questions yet</p>
+                    <p className="text-sm">
+                      Select topics and click "Generate Questions" to get started
+                    </p>
+                  </div>
+                ) : questions.length === 0 && isGenerating ? (
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                    <Loader2 className="w-8 h-8 animate-spin mb-4" />
+                    <p className="text-lg">Generating questions...</p>
+                    <p className="text-sm">Watch the live output on the left</p>
+                  </div>
+                ) : (
+                  <QuestionList
+                    questions={questions}
+                    onRegenerate={handleRegenerate}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onAdd={handleAddQuestion}
+                  />
+                )}
+              </div>
+            </main>
+          ) : (
+            <main className="flex-1 overflow-auto p-6">
+              <BankEditor subject={selectedSubject} />
+            </main>
+          )}
+
+          {/* Status Bar */}
+          <footer className="flex items-center justify-between px-6 py-2 border-t bg-white text-sm text-muted-foreground">
+            <span className="flex items-center gap-2">
+              {isGenerating && <Loader2 className="w-4 h-4 animate-spin" />}
+              {status}
+            </span>
+            <span>{questions.length} questions</span>
+          </footer>
+        </div>
       </div>
 
       {/* Edit Modal */}
