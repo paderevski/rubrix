@@ -7,6 +7,9 @@ mod qti;
 
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
+use std::fs;
+use std::io::Write;
+use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::{CustomMenuItem, Manager, Menu, State, Submenu};
 
@@ -95,6 +98,40 @@ pub struct QuestionBankEntry {
     pub topics: Vec<String>,
     pub skills: Vec<String>,
     pub distractors: DistractorInfo,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct QuestionBankFile {
+    questions: Vec<QuestionBankJsonEntry>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct QuestionBankJsonEntry {
+    id: String,
+    difficulty: String,
+    cognitive_level: String,
+    content: QuestionContent,
+    pedagogy: Pedagogy,
+    distractors: DistractorsJson,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct QuestionContent {
+    text: String,
+    options: Vec<QuestionBankOption>,
+    explanation: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct Pedagogy {
+    topics: Vec<String>,
+    skills: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct DistractorsJson {
+    common_mistakes: Vec<CommonMistake>,
+    common_errors: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -400,6 +437,96 @@ async fn export_to_docx(title: String, state: State<'_, AppState>) -> Result<Vec
     Ok(docx_bytes.to_vec())
 }
 
+/// Load question bank JSON for a subject from disk
+#[tauri::command]
+fn load_question_bank(subject: String) -> Result<Vec<QuestionBankEntry>, String> {
+    let path = PathBuf::from("knowledge")
+        .join(&subject)
+        .join("question-bank.json");
+    let data = fs::read_to_string(&path)
+        .map_err(|e| format!("Failed to read {}: {}", path.display(), e))?;
+    let parsed: QuestionBankFile = serde_json::from_str(&data)
+        .map_err(|e| format!("Failed to parse question-bank.json: {}", e))?;
+
+    let entries = parsed
+        .questions
+        .into_iter()
+        .map(|q| QuestionBankEntry {
+            id: q.id,
+            text: q.content.text,
+            options: q.content.options,
+            explanation: q.content.explanation,
+            difficulty: q.difficulty,
+            cognitive_level: q.cognitive_level,
+            topics: q.pedagogy.topics,
+            skills: q.pedagogy.skills,
+            distractors: DistractorInfo {
+                common_mistakes: q.distractors.common_mistakes,
+                common_errors: q.distractors.common_errors,
+            },
+        })
+        .collect();
+
+    Ok(entries)
+}
+
+/// Save question bank JSON for a subject to disk (atomic write)
+#[tauri::command]
+fn save_question_bank(subject: String, entries: Vec<QuestionBankEntry>) -> Result<(), String> {
+    let path = PathBuf::from("knowledge")
+        .join(&subject)
+        .join("question-bank.json");
+    let parent = path
+        .parent()
+        .ok_or_else(|| format!("Invalid path for subject: {}", subject))?;
+
+    // Ensure parent exists
+    fs::create_dir_all(parent)
+        .map_err(|e| format!("Failed to create dir {}: {}", parent.display(), e))?;
+
+    let file_model = QuestionBankFile {
+        questions: entries
+            .into_iter()
+            .map(|e| QuestionBankJsonEntry {
+                id: e.id,
+                difficulty: e.difficulty,
+                cognitive_level: e.cognitive_level,
+                content: QuestionContent {
+                    text: e.text,
+                    options: e.options,
+                    explanation: e.explanation,
+                },
+                pedagogy: Pedagogy {
+                    topics: e.topics,
+                    skills: e.skills,
+                },
+                distractors: DistractorsJson {
+                    common_mistakes: e.distractors.common_mistakes,
+                    common_errors: e.distractors.common_errors,
+                },
+            })
+            .collect(),
+    };
+
+    let json = serde_json::to_string_pretty(&file_model)
+        .map_err(|e| format!("Failed to serialize question bank: {}", e))?;
+
+    let tmp_path = path.with_extension("json.tmp");
+    {
+        let mut f = fs::File::create(&tmp_path)
+            .map_err(|e| format!("Failed to create temp file {}: {}", tmp_path.display(), e))?;
+        f.write_all(json.as_bytes())
+            .map_err(|e| format!("Failed to write temp file: {}", e))?;
+        f.sync_all()
+            .map_err(|e| format!("Failed to sync temp file: {}", e))?;
+    }
+
+    fs::rename(&tmp_path, &path)
+        .map_err(|e| format!("Failed to replace {}: {}", path.display(), e))?;
+
+    Ok(())
+}
+
 // ============================================================================
 // Main
 // ============================================================================
@@ -455,6 +582,8 @@ fn main() {
             export_to_txt,
             export_to_qti,
             export_to_docx,
+            load_question_bank,
+            save_question_bank,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
