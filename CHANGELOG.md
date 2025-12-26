@@ -2,6 +2,10 @@
 
 All notable changes to Rubrix are documented in this file.
 
+## [Unreleased]
+
+_No entries yet._
+
 ---
 
 ## [0.5.0] - 2025-12-26
@@ -12,6 +16,7 @@ All notable changes to Rubrix are documented in this file.
 - Bank Editor now reads/writes question banks from the configured knowledge path and shows subtopic dropdowns alongside topics
 
 ### Changed
+- Topic IDs now map back to human-readable names in generation prompts to avoid code-like labels (e.g., `T001`)
 - Knowledge file resolution falls back to embedded assets but prefers user-edited copies in the writable knowledge directory
 
 ### Fixed

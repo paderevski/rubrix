@@ -18,10 +18,15 @@ Rubrix is a desktop application that helps teachers create multiple-choice quest
 - Calculus
 - More to come
 
+🧭 **Topic & Subtopic Coverage**
+- Pick subjects, topics, and nested subtopics from curated knowledge banks
+- Override the knowledge directory via `RUBRIX_KNOWLEDGE_DIR`; user edits are preferred over embedded defaults
+
 🎯 **Smart Question Generation**
 - Choose difficulty level (Easy, Medium, Hard)
 - Generate 1-5 questions at once
 - Add custom instructions for the AI generator
+- Uses your editable knowledge bank for context
 
 🔢 **Beautiful Math Rendering**
 - Full LaTeX support for mathematical notation
@@ -43,12 +48,18 @@ Rubrix is a desktop application that helps teachers create multiple-choice quest
 - Also export as plain text
 - Import directly into your LMS
 
+🗂 **Question Bank Editor**
+- Load and save question banks from the configurable knowledge directory
+- Tag questions with topics and subtopics; edit answers and explanations before export
+- Keep local banks in sync while releases still bundle embedded defaults
+
 ## Quick Start
 
 1. **[Download Rubrix](https://github.com/paderevski/rubrix/releases/latest)** for your platform
 2. **Install** - Run the installer (Mac, Windows, or Linux)
-3. **Generate** - Select topics, set difficulty, and click Generate
-4. **Export** - Save questions and import to your LMS
+3. *(Optional)* **Set knowledge path** - Create/point `RUBRIX_KNOWLEDGE_DIR` to your editable banks (falls back to bundled defaults)
+4. **Generate** - Select topics/subtopics, set difficulty, and click Generate
+5. **Export** - Save questions and import to your LMS
 
 ---
 
