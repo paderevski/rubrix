@@ -77,6 +77,7 @@ struct TopicSchemaItem {
     display: String,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct SubtopicSchemaItem {
     #[serde(default)]

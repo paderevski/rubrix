@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { QuestionBankEntry, TopicInfo } from "../types";
 import { Loader2, Save, RotateCcw, X, Plus } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -37,13 +37,22 @@ function normalizeMathDelimiters(content: string) {
     .replace(/\\\]/g, "$$");
 }
 
-function RichMarkdown({ content }: { content: string }) {
+function RichMarkdown({
+  content,
+  className,
+  components,
+}: {
+  content: string;
+  className?: string;
+  components?: Components;
+}) {
   const normalized = normalizeMathDelimiters(content);
   return (
     <ReactMarkdown
+      className={className}
       remarkPlugins={[remarkGfm, remarkMath]}
       rehypePlugins={[rehypeRaw, rehypeKatex]}
-      components={markdownComponents}
+      components={{ ...markdownComponents, ...(components || {}) }}
     >
       {normalized}
     </ReactMarkdown>
