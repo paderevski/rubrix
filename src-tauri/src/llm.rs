@@ -128,10 +128,28 @@ pub async fn generate(
 ) -> Result<String, String> {
     let client = Client::new();
 
-    // Load .env file (ignore error if already loaded or not present)
-    let _ = dotenvy::dotenv();
+    // Load .env file (ignore error if already loaded or not present) and log resolution
+    let env_path = dotenvy::dotenv().ok();
+    if let Some(path) = env_path {
+        eprintln!("INFO: Loaded .env from {}", path.display());
+    } else {
+        eprintln!("INFO: No .env found when initializing LLM client");
+    }
+
     use std::env;
-    let api_token = env::var("AWS_BEARER_TOKEN_BEDROCK").unwrap_or_default();
+    let api_token = match env::var("AWS_BEARER_TOKEN_BEDROCK") {
+        Ok(token) => {
+            eprintln!(
+                "INFO: AWS_BEARER_TOKEN_BEDROCK present (length={})",
+                token.len()
+            );
+            token
+        }
+        Err(err) => {
+            eprintln!("WARN: AWS_BEARER_TOKEN_BEDROCK not set: {}", err);
+            String::new()
+        }
+    };
 
     // For dev/demo purposes, if no API key is set, return mock data
     if api_token.is_empty() {
