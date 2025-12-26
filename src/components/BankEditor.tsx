@@ -257,6 +257,9 @@ export default function BankEditor({ subject }: BankEditorProps) {
                       const missing = topicId && !topicOptions.some((t) => t.id === topicId);
                       const selectedTopic = topicOptions.find((t) => t.id === topicId);
                       const titleText = selectedTopic?.name || (missing ? `(missing) ${topicId}` : "Select a topic");
+                      const children = selectedTopic?.children || [];
+                      const subtopics = selected.subtopics || [];
+                      const subValue = subtopics[idx] || "";
                       return (
                       <div key={`${topicId}-${idx}`} className="flex items-center gap-2">
                         <div className="flex-1 min-w-0">
@@ -267,7 +270,9 @@ export default function BankEditor({ subject }: BankEditorProps) {
                             onChange={(e) => {
                               const next = [...selected.topics];
                               next[idx] = e.target.value;
-                              updateEntry(selected.id, { topics: next });
+                              const nextSubs = [...subtopics];
+                              nextSubs[idx] = "";
+                              updateEntry(selected.id, { topics: next, subtopics: nextSubs });
                             }}
                           >
                             <option value="">Select a topic</option>
@@ -280,11 +285,33 @@ export default function BankEditor({ subject }: BankEditorProps) {
                               </option>
                             ))}
                           </select>
+                          {children.length > 0 && (
+                            <div className="mt-2">
+                              <select
+                                className="w-full border rounded px-2 py-1.5 text-sm truncate"
+                                value={subValue}
+                                title={subValue || "Select subtopic"}
+                                onChange={(e) => {
+                                  const nextSubs = [...subtopics];
+                                  nextSubs[idx] = e.target.value;
+                                  updateEntry(selected.id, { subtopics: nextSubs });
+                                }}
+                              >
+                                <option value="">Select subtopic (optional)</option>
+                                {children.map((child) => (
+                                  <option key={child.id} value={child.id}>
+                                    {child.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
                         </div>
                         <button
                           onClick={() => {
                             const next = selected.topics.filter((_, i) => i !== idx);
-                            updateEntry(selected.id, { topics: next });
+                            const nextSubs = (selected.subtopics || []).filter((_, i) => i !== idx);
+                            updateEntry(selected.id, { topics: next, subtopics: nextSubs });
                           }}
                           className="h-8 w-8 flex items-center justify-center border rounded hover:bg-secondary"
                           title="Remove topic"
@@ -297,7 +324,8 @@ export default function BankEditor({ subject }: BankEditorProps) {
                     <button
                       onClick={() => {
                         const first = topicOptions[0]?.id ?? "";
-                        updateEntry(selected.id, { topics: [...selected.topics, first] });
+                        const nextSubs = [...(selected.subtopics || []), ""];
+                        updateEntry(selected.id, { topics: [...selected.topics, first], subtopics: nextSubs });
                       }}
                       className="flex items-center gap-2 px-3 py-1.5 text-sm border rounded hover:bg-secondary"
                       disabled={topicOptions.length === 0}

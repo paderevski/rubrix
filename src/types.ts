@@ -17,6 +17,7 @@ export interface QuestionBankEntry {
   difficulty: string;
   cognitive_level: string;
   topics: string[];
+  subtopics?: string[];
   skills: string[];
   distractors: DistractorInfo;
 }
@@ -48,6 +49,15 @@ export interface TopicInfo {
   name: string;
   description: string;
   example_count: number;
+  children?: SubtopicInfo[];
+}
+
+export interface SubtopicInfo {
+  id: string;
+  name: string;
+  description: string;
+  example_count: number;
+  parent_topic?: string;
 }
 
 export interface SubjectInfo {

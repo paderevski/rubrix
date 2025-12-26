@@ -279,9 +279,10 @@ pub fn build_generation_prompt(
     request: &GenerationRequest,
     examples: &[QuestionBankEntry],
     prompt_template: Option<&str>,
+    topics_label: &str,
 ) -> String {
     let config = PromptConfig {
-        topics: request.topics.join(", "),
+        topics: topics_label.to_string(),
         difficulty: &request.difficulty,
         count: request.count as usize,
         examples,
