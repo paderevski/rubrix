@@ -16,9 +16,8 @@ use std::sync::Mutex;
 use tauri::{AppHandle, CustomMenuItem, Manager, Menu, State, Submenu};
 
 fn load_env_vars() {
-    // Load local env files from both src-tauri and the workspace root so RUBRIX_KNOWLEDGE_DIR is visible
+    // Load local env files from src-tauri
     let _ = dotenvy::dotenv();
-    let _ = dotenvy::from_filename("../.env");
 }
 
 fn de_opt_string_or_json<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
@@ -277,12 +276,8 @@ async fn generate_questions(
     let topics_label = topic_labels_for_prompt(&request.subject, &request.topics, &state.knowledge);
 
     // Build prompt with JSON examples
-    let prompt = prompts::build_generation_prompt(
-        &request,
-        &bank_examples,
-        prompt_template,
-        &topics_label,
-    );
+    let prompt =
+        prompts::build_generation_prompt(&request, &bank_examples, prompt_template, &topics_label);
 
     // Call LLM with streaming
     let response = llm::generate(&prompt, Some(app_handle)).await?;
