@@ -46,7 +46,9 @@ fn load_knowledge_file(file: &str) -> Option<String> {
         }
     }
 
-    KnowledgeAssets::get(file).map(|embedded| String::from_utf8_lossy(&embedded.data).to_string())
+    KnowledgeAssets::get(file).map(|embedded: rust_embed::EmbeddedFile| {
+        String::from_utf8_lossy(&embedded.data).to_string()
+    })
 }
 
 /// Schema file structure for topics
