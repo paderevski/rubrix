@@ -1,4 +1,5 @@
 # Rubrix Copilot Instructions
+
 - Stack: React + Tailwind UI in [src](src), Tauri/Rust backend in [src-tauri/src](src-tauri/src) with Bedrock LLM client and IMS QTI export.
 - Front controller [src/App.tsx](src/App.tsx): loads subjects/topics via Tauri `invoke`, streams generation events (`llm-stream`) into the preview pane, stores questions in local state, and drives tabs (generator vs bank editor).
 - Commands exposed in [src-tauri/src/main.rs](src-tauri/src/main.rs): `get_subjects`, `get_topics`, `generate_questions`, `regenerate_question`, CRUD for questions, exports (`export_to_txt`, `export_to_qti`, `export_to_docx`), and question-bank IO (`load_question_bank`, `save_question_bank`). Add frontend invokes plus handler wiring when adding a new command.
