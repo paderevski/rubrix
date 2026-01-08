@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod auth;
 mod knowledge;
 mod llm;
 mod prompts;
@@ -239,6 +240,7 @@ pub struct CommonMistake {
 pub struct AppState {
     pub questions: Mutex<Vec<Question>>,
     pub knowledge: knowledge::KnowledgeBase,
+    pub api_key: Mutex<Option<String>>, // Cached Bedrock API key
 }
 
 // ============================================================================
@@ -279,8 +281,11 @@ async fn generate_questions(
     let prompt =
         prompts::build_generation_prompt(&request, &bank_examples, prompt_template, &topics_label);
 
+    // Get cached API key from state
+    let api_key = state.api_key.lock().unwrap().clone();
+
     // Call LLM with streaming
-    let response = llm::generate(&prompt, Some(app_handle)).await?;
+    let response = llm::generate(&prompt, Some(app_handle), api_key).await?;
 
     // Parse response into questions
     let mut new_questions = prompts::parse_llm_response(&response)?;
@@ -356,7 +361,11 @@ async fn regenerate_question(
         instructions.as_deref(),
         prompt_template,
     );
-    let response = llm::generate(&prompt, Some(app_handle)).await?;
+
+    // Get cached API key from state
+    let api_key = state.api_key.lock().unwrap().clone();
+
+    let response = llm::generate(&prompt, Some(app_handle), api_key).await?;
 
     // Parse the single question
     let mut new_questions = prompts::parse_llm_response(&response)?;
@@ -451,10 +460,45 @@ fn get_questions(state: State<AppState>) -> Vec<Question> {
     state.questions.lock().unwrap().clone()
 }
 
+/// Authenticate with Lambda and cache the API key
+#[tauri::command]
+async fn authenticate(username: String, password: String, state: State<'_, AppState>) -> Result<(), String> {
+    // Call Lambda to get the Bedrock API key
+    let api_key = auth::get_bedrock_api_key(&username, &password)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    // Cache the key in state
+    let mut cached_key = state.api_key.lock().unwrap();
+    *cached_key = Some(api_key);
+
+    Ok(())
+}
+
+/// Check if we have a cached API key
+#[tauri::command]
+fn check_auth(state: State<AppState>) -> bool {
+    state.api_key.lock().unwrap().is_some()
+}
+
+/// Clear the cached API key (logout)
+#[tauri::command]
+fn clear_auth(state: State<AppState>) -> Result<(), String> {
+    let mut cached_key = state.api_key.lock().unwrap();
+    *cached_key = None;
+    Ok(())
+}
+
 #[tauri::command]
 fn export_to_txt(title: String, state: State<AppState>) -> Result<String, String> {
     let questions = state.questions.lock().unwrap();
     qti::export_txt(&title, &questions)
+}
+
+#[tauri::command]
+fn export_to_md(title: String, state: State<AppState>) -> Result<String, String> {
+    let questions = state.questions.lock().unwrap();
+    qti::export_md(&title, &questions)
 }
 
 #[tauri::command]
@@ -465,31 +509,11 @@ fn export_to_qti(title: String, state: State<AppState>) -> Result<Vec<u8>, Strin
 
 #[tauri::command]
 async fn export_to_docx(title: String, state: State<'_, AppState>) -> Result<Vec<u8>, String> {
-    use rand::seq::SliceRandom;
-    use rand::thread_rng;
-
-    // Get questions and process them for Word export
+    // Get questions and process them for Word export using the markdown pipeline
     let questions = state.questions.lock().unwrap().clone();
 
-    // Build custom markdown for Word export
-    let mut output = format!("Title: {}\n\n", title);
-
-    for (i, q) in questions.iter().enumerate() {
-        // Question number and text
-        output.push_str(&format!("{}. {}\n\n", i + 1, q.text));
-
-        // Shuffle answers
-        let mut shuffled_answers: Vec<_> = q.answers.iter().collect();
-        shuffled_answers.shuffle(&mut thread_rng());
-
-        // Format answers with indent and mark correct ones with *
-        for answer in shuffled_answers {
-            let marker = if answer.is_correct { "*" } else { "" };
-            output.push_str(&format!("    a. {}{}\n", marker, answer.text));
-        }
-
-        output.push_str("\n");
-    }
+    // Reuse markdown export (shuffle + answer key)
+    let output = qti::export_md(&title, &questions)?;
 
     // Create JSON payload
     let payload = serde_json::json!({
@@ -680,6 +704,7 @@ fn main() {
     let state = AppState {
         questions: Mutex::new(Vec::new()),
         knowledge,
+        api_key: Mutex::new(None), // Start with no cached key
     };
 
     let zoom_in = CustomMenuItem::new("zoom_in", "Zoom In").accelerator("CmdOrCtrl+=");
@@ -722,7 +747,11 @@ fn main() {
             delete_question,
             set_questions,
             get_questions,
+            authenticate,
+            check_auth,
+            clear_auth,
             export_to_txt,
+            export_to_md,
             export_to_qti,
             export_to_docx,
             load_question_bank,

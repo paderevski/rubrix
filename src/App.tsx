@@ -8,6 +8,7 @@ import QuestionList from "./components/QuestionList";
 import EditModal from "./components/EditModal";
 import StreamingPreview from "./components/StreamingPreview";
 import BankEditor from "./components/BankEditor";
+import LoginModal from "./components/LoginModal";
 import { Question, TopicInfo, SubjectInfo, GenerationRequest } from "./types";
 import {
   FileDown,
@@ -76,11 +77,49 @@ function App() {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
+  // Authentication state
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   // Load subjects and any previously generated questions on mount
   useEffect(() => {
+    checkAuthentication();
     loadSubjects();
     loadExistingQuestions();
   }, []);
+
+  const checkAuthentication = async () => {
+    try {
+      const isAuth = await invoke<boolean>("check_auth");
+      setIsAuthenticated(isAuth);
+    } catch (err) {
+      console.error("Failed to check auth:", err);
+    }
+  };
+
+  const handleLogin = async (username: string, password: string) => {
+    setAuthError("");
+    try {
+      await invoke("authenticate", { username, password });
+      setIsAuthenticated(true);
+      setLoginModalOpen(false);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      setAuthError(errorMsg);
+      throw new Error(errorMsg);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await invoke("clear_auth");
+      setIsAuthenticated(false);
+      setStatus("Logged out");
+    } catch (err) {
+      console.error("Failed to clear auth:", err);
+    }
+  };
 
   // Apply zoom on mount and when it changes
   useEffect(() => {
@@ -171,6 +210,13 @@ function App() {
       return;
     }
 
+    // Check if authenticated, if not show login modal
+    if (!isAuthenticated) {
+      setLoginModalOpen(true);
+      setStatus("Authentication required");
+      return;
+    }
+
     setIsGenerating(true);
     setStreamingText("");
     setStreamingComplete(false);
@@ -199,7 +245,15 @@ function App() {
       }
     } catch (err) {
       console.error("Generation failed:", err);
-      setStatus(`Error: ${err}`);
+      const errorMsg = String(err);
+
+      // If error suggests missing auth, show login modal
+      if (errorMsg.includes("LAMBDA_URL") || errorMsg.includes("auth")) {
+        setLoginModalOpen(true);
+        setStatus("Authentication required");
+      } else {
+        setStatus(`Error: ${err}`);
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -271,16 +325,16 @@ function App() {
     }
   };
 
-  const handleExportTxt = async () => {
+  const handleExportMd = async () => {
     const filePath = await save({
-      defaultPath: "questions.txt",
-      filters: [{ name: "Text", extensions: ["txt"] }],
+      defaultPath: "questions.md",
+      filters: [{ name: "Markdown", extensions: ["md"] }],
     });
 
     if (!filePath) return;
 
     try {
-      const content = await invoke<string>("export_to_txt", {
+      const content = await invoke<string>("export_to_md", {
         title: "AP CS Questions",
       });
       await writeTextFile(filePath, content);
@@ -410,6 +464,19 @@ function App() {
         </h1>
 
         <div className="flex flex-wrap gap-2 items-center">
+          {/* Auth indicator */}
+          {isAuthenticated && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-md text-sm text-green-700">
+              <span>🔐 Authenticated</span>
+              <button
+                onClick={handleLogout}
+                className="text-xs underline hover:no-underline"
+              >
+                Logout
+              </button>
+            </div>
+          )}
+
           <div className="flex rounded border overflow-hidden">
             <button
               className={`px-3 py-2 text-sm ${
@@ -465,12 +532,12 @@ function App() {
 
           {/* Export Buttons */}
           <button
-            onClick={handleExportTxt}
+            onClick={handleExportMd}
             disabled={questions.length === 0}
             className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FileText className="w-4 h-4" />
-            Export .txt
+            Export .md
           </button>
           <button
             onClick={handleExportQti}
@@ -587,6 +654,17 @@ function App() {
           onClose={() => setEditingIndex(null)}
         />
       )}
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={loginModalOpen}
+        onClose={() => {
+          setLoginModalOpen(false);
+          setAuthError("");
+        }}
+        onLogin={handleLogin}
+        error={authError}
+      />
     </div>
   );
 }
