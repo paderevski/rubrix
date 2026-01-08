@@ -122,9 +122,11 @@ pub struct StreamEvent {
 }
 
 /// Generate text using the Bedrock API with streaming updates
+/// Pass optional api_token to override cached/env token (used for authenticated sessions)
 pub async fn generate(
     prompt: &str,
     app_handle: Option<tauri::AppHandle>,
+    api_token: Option<String>,
 ) -> Result<String, String> {
     let client = Client::new();
 
@@ -137,18 +139,26 @@ pub async fn generate(
     }
 
     use std::env;
-    let api_token = match env::var("AWS_BEARER_TOKEN_BEDROCK") {
-        Ok(token) => {
-            eprintln!(
-                "INFO: AWS_BEARER_TOKEN_BEDROCK present (length={})",
-                token.len()
-            );
+
+    // Use provided token, or fall back to env var
+    let api_token = match api_token {
+        Some(token) => {
+            eprintln!("INFO: Using provided API token (length={})", token.len());
             token
         }
-        Err(err) => {
-            eprintln!("WARN: AWS_BEARER_TOKEN_BEDROCK not set: {}", err);
-            String::new()
-        }
+        None => match env::var("AWS_BEARER_TOKEN_BEDROCK") {
+            Ok(token) => {
+                eprintln!(
+                    "INFO: AWS_BEARER_TOKEN_BEDROCK present (length={})",
+                    token.len()
+                );
+                token
+            }
+            Err(err) => {
+                eprintln!("WARN: AWS_BEARER_TOKEN_BEDROCK not set: {}", err);
+                String::new()
+            }
+        },
     };
 
     // For dev/demo purposes, if no API key is set, return mock data

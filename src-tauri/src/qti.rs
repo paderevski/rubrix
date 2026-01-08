@@ -1,6 +1,8 @@
 //! QTI export functionality - generates IMS QTI XML for LMS import
 
 use crate::Question;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 use regex::Regex;
 use std::io::Write;
 use zip::write::FileOptions;
@@ -169,6 +171,66 @@ fn convert_markdown_table(markdown: &str) -> String {
     html
 }
 
+/// If a markdown table is wrapped in a fenced code block, unwrap it so pandoc renders it as a table.
+fn convert_codeblock_tables_to_markdown(text: &str) -> String {
+    let code_block_re = Regex::new(r"```[^\n]*\n(?P<body>[\s\S]*?)\n```\s*").unwrap();
+
+    code_block_re
+        .replace_all(text, |caps: &regex::Captures| {
+            let body = caps.name("body").map(|m| m.as_str()).unwrap_or("");
+            if is_markdown_table(body) {
+                body.trim().to_string()
+            } else {
+                caps.get(0)
+                    .map(|m| m.as_str().to_string())
+                    .unwrap_or_default()
+            }
+        })
+        .into_owned()
+}
+
+fn is_markdown_table(body: &str) -> bool {
+    let mut lines = body.lines().filter(|l| !l.trim().is_empty());
+    if let (Some(header), Some(separator)) = (lines.next(), lines.next()) {
+        let looks_like_header = header.contains('|');
+        let looks_like_separator = separator
+            .trim()
+            .chars()
+            .all(|c| matches!(c, '|' | '-' | ':' | ' '));
+        looks_like_header && looks_like_separator
+    } else {
+        false
+    }
+}
+
+fn indent_block(text: &str, first_prefix: &str, rest_prefix: &str) -> String {
+    let mut lines = text.lines();
+    if let Some(first) = lines.next() {
+        let mut out = String::new();
+        out.push_str(first_prefix);
+        out.push_str(first.trim());
+        for line in lines {
+            out.push('\n');
+            out.push_str(rest_prefix);
+            out.push_str(line.trim());
+        }
+        out
+    } else {
+        String::new()
+    }
+}
+
+fn normalize_math_delimiters(content: &str) -> String {
+    if content.is_empty() {
+        return String::new();
+    }
+    content
+        .replace(r"\(", "$")
+        .replace(r"\)", "$")
+        .replace(r"\[", "$$")
+        .replace(r"\]", "$$")
+}
+
 /// Convert answer text to HTML with proper escaping and line break preservation
 fn convert_answer_to_html(answer: &str) -> String {
     let display_latex_re = Regex::new(r"\$\$([^\$]+)\$\$").unwrap();
@@ -251,29 +313,50 @@ fn convert_answer_to_html(answer: &str) -> String {
 // ============================================================================
 
 /// Export questions to our intermediate .txt format
-pub fn export_txt(title: &str, questions: &[Question]) -> Result<String, String> {
-    let mut output = format!("Title: {}\n\n", title);
+pub fn export_md(title: &str, questions: &[Question]) -> Result<String, String> {
+    let mut output = format!("# {}\n\n", title);
+    let mut rng = thread_rng();
+    let mut answer_key: Vec<(usize, char)> = Vec::new();
 
     for (i, q) in questions.iter().enumerate() {
-        // Question number and text (markdown format)
-        output.push_str(&format!("{}. {}\n\n", i + 1, q.text));
+        let question_text =
+            convert_codeblock_tables_to_markdown(&normalize_math_delimiters(q.text.trim()));
+        output.push_str(&format!("{}. {}\n\n", i + 1, question_text));
 
-        // Answers - correct one first
-        let correct_first: Vec<_> = q
-            .answers
-            .iter()
-            .filter(|a| a.is_correct)
-            .chain(q.answers.iter().filter(|a| !a.is_correct))
-            .collect();
+        let mut answers = q.answers.clone();
+        answers.shuffle(&mut rng);
 
-        for answer in correct_first {
-            output.push_str(&format!("a. {}\n", answer.text));
+        for (idx, answer) in answers.iter().enumerate() {
+            let label = (b'A' + idx as u8) as char;
+            let body = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(
+                answer.text.trim(),
+            ));
+            let formatted = format!("{}) {}", label, body);
+            output.push_str(&indent_block(&formatted, "    ", "    "));
+            output.push('\n');
         }
 
-        output.push_str("\n\n");
+        if let Some((idx, _)) = answers.iter().enumerate().find(|(_, a)| a.is_correct) {
+            let label = (b'A' + idx as u8) as char;
+            answer_key.push((i + 1, label));
+        }
+
+        output.push('\n');
+    }
+
+    if !answer_key.is_empty() {
+        output.push_str("## Answers\n\n");
+        for (number, label) in answer_key {
+            output.push_str(&format!("{}. {}\n", number, label));
+        }
     }
 
     Ok(output)
+}
+
+/// Backward compatibility: keep TXT export entry point but emit markdown content.
+pub fn export_txt(title: &str, questions: &[Question]) -> Result<String, String> {
+    export_md(title, questions)
 }
 
 /// Export questions to QTI ZIP format (ready for Schoology)
