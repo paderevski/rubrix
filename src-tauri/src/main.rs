@@ -204,7 +204,7 @@ struct QuestionContent {
 struct Pedagogy {
     topics: Vec<String>,
     #[serde(default)]
-    subtopics: Vec<String>,
+    subtopics: Option<Vec<String>>,
     skills: Vec<String>,
 }
 
@@ -462,7 +462,11 @@ fn get_questions(state: State<AppState>) -> Vec<Question> {
 
 /// Authenticate with Lambda and cache the API key
 #[tauri::command]
-async fn authenticate(username: String, password: String, state: State<'_, AppState>) -> Result<(), String> {
+async fn authenticate(
+    username: String,
+    password: String,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
     // Call Lambda to get the Bedrock API key
     let api_key = auth::get_bedrock_api_key(&username, &password)
         .await

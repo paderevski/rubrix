@@ -127,7 +127,7 @@ struct OptionJson {
 struct Pedagogy {
     topics: Vec<String>,
     #[serde(default)]
-    subtopics: Vec<String>,
+    subtopics: Option<Vec<String>>,
     skills: Vec<String>,
 }
 
@@ -412,7 +412,11 @@ impl KnowledgeBase {
                     topic_ids.iter().any(|tid| {
                         if let Some(codes) = map.get(tid) {
                             codes.iter().any(|code| {
-                                entry.topics.contains(code) || entry.subtopics.contains(code)
+                                entry.topics.contains(code)
+                                    || entry
+                                        .subtopics
+                                        .as_ref()
+                                        .map_or(false, |st| st.contains(code))
                             })
                         } else {
                             false
@@ -441,7 +445,11 @@ impl KnowledgeBase {
                         topic_ids.iter().any(|tid| {
                             if let Some(codes) = map.get(tid) {
                                 codes.iter().any(|code| {
-                                    entry.topics.contains(code) || entry.subtopics.contains(code)
+                                    entry.topics.contains(code)
+                                        || entry
+                                            .subtopics
+                                            .as_ref()
+                                            .map_or(false, |st| st.contains(code))
                                 })
                             } else {
                                 false
