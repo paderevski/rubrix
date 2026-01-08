@@ -2,8 +2,8 @@ name: Release Build
 
 on:
   push:
-    branches:
-      - release
+    tags:
+      - "v*"
   workflow_dispatch:
 
 jobs:
