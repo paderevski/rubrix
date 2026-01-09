@@ -128,7 +128,10 @@ pub async fn generate(
     app_handle: Option<tauri::AppHandle>,
     api_token: Option<String>,
 ) -> Result<String, String> {
-    let client = Client::new();
+    let client = Client::builder()
+        .timeout(Duration::from_secs(90))
+        .build()
+        .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
 
     // Load .env file (ignore error if already loaded or not present) and log resolution
     let env_path = dotenvy::dotenv().ok();
