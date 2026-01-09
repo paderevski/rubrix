@@ -106,10 +106,11 @@ export default function QuestionCard({
   }, [question, formattedExplanation]);
 
   const handleRegenerate = () => {
-    if (showInstructions && instructions.trim()) {
-      onRegenerate(instructions.trim());
+    const trimmed = instructions.trim();
+
+    if (trimmed) {
+      onRegenerate(trimmed);
       setInstructions("");
-      setShowInstructions(false);
     } else {
       onRegenerate();
     }

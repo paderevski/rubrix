@@ -412,8 +412,9 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
     // - models that accidentally output multiple arrays
     fn extract_first_json_array(s: &str) -> Option<String> {
         let bytes = s.as_bytes();
-        let mut depth: i32 = 0;
-        let mut start: Option<usize> = None;
+        let mut array_depth: i32 = 0;
+        let mut tracked_start: Option<usize> = None;
+        let mut tracked_level: Option<i32> = None;
         let mut in_string = false;
         let mut escape = false;
 
@@ -446,31 +447,38 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
             }
 
             if b == b'[' {
-                let mut j = i + 1;
-                while j < bytes.len() && bytes[j].is_ascii_whitespace() {
-                    j += 1;
-                }
-                if j < bytes.len() && bytes[j] == b'{' {
-                    if depth == 0 {
-                        start = Some(i);
+                array_depth += 1;
+
+                if tracked_start.is_none() {
+                    let mut j = i + 1;
+                    while j < bytes.len() && bytes[j].is_ascii_whitespace() {
+                        j += 1;
                     }
-                    depth += 1;
+                    if j < bytes.len() && bytes[j] == b'{' {
+                        tracked_start = Some(i);
+                        tracked_level = Some(array_depth);
+                    }
                 }
+
                 i += 1;
                 continue;
             }
 
             if b == b']' {
-                if depth == 0 {
-                    i += 1;
-                    continue;
-                }
-                depth -= 1;
-                if depth == 0 {
-                    if let Some(s0) = start {
-                        return Some(s[s0..=i].to_string());
+                if array_depth > 0 {
+                    if let (Some(start), Some(level)) = (tracked_start, tracked_level) {
+                        if array_depth == level {
+                            return Some(s[start..=i].to_string());
+                        }
+                    }
+                    array_depth -= 1;
+
+                    if array_depth == 0 {
+                        tracked_start = None;
+                        tracked_level = None;
                     }
                 }
+
                 i += 1;
                 continue;
             }
@@ -489,13 +497,15 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
 
     eprintln!("Extracted JSON array ({} chars)", json_str.len());
 
-    let questions: Vec<Question> = serde_json::from_str(&json_str).map_err(|e| {
+    let sanitized_json = sanitize_json_string(&json_str);
+
+    let questions: Vec<Question> = serde_json::from_str(&sanitized_json).map_err(|e| {
         eprintln!("ERROR: Failed to parse JSON: {}", e);
-        eprintln!("JSON string: {}", &json_str[..json_str.len().min(500)]);
+        eprintln!("JSON string: {}", &sanitized_json[..sanitized_json.len().min(500)]);
         format!(
             "Failed to parse JSON response: {}. JSON: {}",
             e,
-            &json_str[..json_str.len().min(500)]
+            &sanitized_json[..sanitized_json.len().min(500)]
         )
     })?;
 
@@ -515,6 +525,46 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
     }
 
     Ok(result)
+}
+
+/// Ensure literal control characters inside JSON strings are escaped so serde can parse them
+fn sanitize_json_string(input: &str) -> String {
+    let mut output = String::with_capacity(input.len());
+    let mut in_string = false;
+    let mut escape = false;
+
+    for ch in input.chars() {
+        if in_string {
+            if escape {
+                output.push(ch);
+                escape = false;
+                continue;
+            }
+
+            match ch {
+                '\\' => {
+                    output.push(ch);
+                    escape = true;
+                }
+                '"' => {
+                    output.push(ch);
+                    in_string = false;
+                }
+                '\n' => output.push_str("\\n"),
+                '\r' => output.push_str("\\r"),
+                '\t' => output.push_str("\\t"),
+                _ => output.push(ch),
+            }
+        } else {
+            output.push(ch);
+            if ch == '"' {
+                in_string = true;
+                escape = false;
+            }
+        }
+    }
+
+    output
 }
 
 /// Truncate string to max length
@@ -637,4 +687,42 @@ Some extra commentary.
         assert_eq!(questions[0].answers.len(), 2);
         assert!(questions[0].answers[0].is_correct);
     }
+
+    #[test]
+    fn test_parse_handles_nested_arrays() {
+        let input = r#"[
+  {
+    "text": "Nested array question",
+    "topics": ["arrays", "loops"],
+    "answers": [
+      {"text": "Option A", "is_correct": false},
+      {"text": "Option B", "is_correct": true}
+    ]
+  }
+]"#;
+
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert_eq!(questions[0].text, "Nested array question");
+        assert_eq!(questions[0].answers.len(), 2);
+        assert!(questions[0].answers[1].is_correct);
+    }
+
+        #[test]
+        fn test_parse_handles_multiline_strings() {
+                let input = r#"[
+    {
+        "text": "Line 1
+Line 2",
+        "answers": [
+            {"text": "Top", "is_correct": true},
+            {"text": "Bottom", "is_correct": false}
+        ]
+    }
+]"#;
+
+                let questions = parse_llm_response(input).unwrap();
+                assert_eq!(questions.len(), 1);
+                assert_eq!(questions[0].text, "Line 1\nLine 2");
+        }
 }

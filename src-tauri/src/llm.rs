@@ -193,6 +193,7 @@ pub async fn generate(
     };
 
     // Send request
+    eprintln!("INFO: Dispatching Bedrock request ({} bytes payload)", prompt.len());
     let response = client
         .post(BEDROCK_ENDPOINT)
         .headers(headers)
@@ -202,6 +203,7 @@ pub async fn generate(
         .map_err(|e| format!("Failed to send request: {}", e))?;
 
     let status = response.status();
+    eprintln!("INFO: Bedrock response status: {}", status);
     if !status.is_success() {
         let body = response.text().await.unwrap_or_default();
         return Err(format!("Bedrock API error ({}): {}", status.as_u16(), body));
@@ -210,11 +212,20 @@ pub async fn generate(
     let mut stream = response.bytes_stream();
     let mut buffer = String::new();
     let mut accumulated = String::new();
+    let mut chunk_count: usize = 0;
 
     while let Some(chunk) = stream.next().await {
         let chunk = chunk.map_err(|e| format!("Stream error: {}", e))?;
         let text = String::from_utf8_lossy(&chunk);
         buffer.push_str(&text);
+        chunk_count += 1;
+        if chunk_count <= 3 {
+            eprintln!(
+                "INFO: Received SSE chunk #{} ({} bytes)",
+                chunk_count,
+                chunk.len()
+            );
+        }
 
         // Process complete SSE lines
         while let Some(line_end) = buffer.find('\n') {
@@ -240,6 +251,12 @@ pub async fn generate(
                                 .replace("</reasoning>", "");
                             accumulated.push_str(&cleaned);
                             emit_stream(&app_handle, &accumulated, false);
+                            if chunk_count <= 3 {
+                                eprintln!(
+                                    "INFO: Emitted stream update ({} chars total)",
+                                    accumulated.len()
+                                );
+                            }
                         }
                     }
                 }
@@ -247,6 +264,11 @@ pub async fn generate(
         }
     }
 
+    eprintln!(
+        "INFO: Completed Bedrock stream after {} chunks ({} chars)",
+        chunk_count,
+        accumulated.len()
+    );
     emit_stream(&app_handle, &accumulated, true);
     log_llm_interaction(prompt, &accumulated);
     Ok(accumulated)

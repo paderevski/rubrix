@@ -9,7 +9,7 @@ import EditModal from "./components/EditModal";
 import StreamingPreview from "./components/StreamingPreview";
 import BankEditor from "./components/BankEditor";
 import LoginModal from "./components/LoginModal";
-import { Question, TopicInfo, SubjectInfo, GenerationRequest } from "./types";
+import { Question, TopicInfo, SubjectInfo, GenerationRequest, Answer } from "./types";
 import {
   FileDown,
   FileText,
@@ -30,15 +30,132 @@ interface StreamEvent {
 const sessionFileFilter = { name: "Rubrix Session", extensions: ["json"] };
 
 function parseSessionQuestions(raw: unknown): Question[] {
-  if (Array.isArray(raw)) {
-    return raw as Question[];
+  const payload: unknown[] | null = Array.isArray(raw)
+    ? raw
+    : raw && typeof raw === "object" && Array.isArray((raw as any).questions)
+    ? (raw as any).questions
+    : null;
+
+  if (!payload) {
+    throw new Error("Invalid session file format");
   }
 
-  if (raw && typeof raw === "object" && Array.isArray((raw as any).questions)) {
-    return (raw as any).questions as Question[];
+  const warn = (message: string, meta?: unknown) => {
+    if (meta !== undefined) {
+      console.warn(`[Rubrix Session] ${message}`, meta);
+    } else {
+      console.warn(`[Rubrix Session] ${message}`);
+    }
+  };
+
+  const stringifyValue = (value: unknown): string | undefined => {
+    if (value == null) return undefined;
+    if (typeof value === "string") return value;
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  };
+
+  const coerceRichText = (value: unknown): string | undefined => {
+    const str = stringifyValue(value)?.trim();
+    return str && str.length > 0 ? str : undefined;
+  };
+
+  const coerceAnswers = (entry: Record<string, unknown>, questionIndex: number): Answer[] => {
+    const rawAnswers = Array.isArray((entry as any).answers)
+      ? ((entry as any).answers as unknown[])
+      : Array.isArray((entry as any).options)
+      ? ((entry as any).options as unknown[])
+      : [];
+
+    if (!Array.isArray((entry as any).answers) && Array.isArray((entry as any).options)) {
+      warn(`Question ${questionIndex + 1} used legacy "options" field; converting to "answers".`);
+    }
+
+    if (rawAnswers.length === 0) {
+      warn(`Question ${questionIndex + 1} is missing answers.`);
+      return [];
+    }
+
+    const answers: Answer[] = [];
+
+    rawAnswers.forEach((answerRaw, answerIndex) => {
+      if (!answerRaw || typeof answerRaw !== "object") {
+        warn(`Question ${questionIndex + 1} answer ${answerIndex + 1} is not an object; skipping.`);
+        return;
+      }
+
+      const answer = answerRaw as Record<string, unknown>;
+      const text =
+        typeof answer.text === "string" && answer.text.trim().length > 0
+          ? answer.text
+          : `Answer ${String.fromCharCode(65 + answerIndex)}`;
+
+      const isCorrect =
+        typeof answer.is_correct === "boolean"
+          ? answer.is_correct
+          : typeof (answer as any).correct === "boolean"
+          ? Boolean((answer as any).correct)
+          : false;
+
+      answers.push({
+        text,
+        is_correct: isCorrect,
+        explanation: coerceRichText(answer.explanation),
+      });
+    });
+
+    return answers;
+  };
+
+  const normalized = payload
+    .map((entry: unknown, questionIndex: number) => {
+      if (!entry || typeof entry !== "object") {
+        warn(`Question ${questionIndex + 1} is not an object; skipping.`);
+        return null;
+      }
+
+      const q = entry as Record<string, unknown>;
+      const text =
+        typeof q.text === "string" && q.text.trim().length > 0
+          ? q.text
+          : stringifyValue(q.text) ?? "Untitled question";
+
+      const answers = coerceAnswers(q, questionIndex);
+      if (answers.length === 0) {
+        warn(`Question ${questionIndex + 1} has no valid answers; it may fail to render.`);
+      }
+
+      const topics = Array.isArray(q.topics)
+        ? (q.topics as unknown[]).filter(
+            (topic): topic is string => typeof topic === "string" && topic.trim().length > 0
+          )
+        : undefined;
+
+      const normalizedQuestion: Question = {
+        id:
+          typeof q.id === "string" && q.id.trim().length > 0
+            ? q.id
+            : `q${questionIndex + 1}`,
+        text,
+        answers,
+        explanation: coerceRichText(q.explanation),
+        distractors: coerceRichText(q.distractors),
+        subject: typeof q.subject === "string" ? q.subject : undefined,
+        topics,
+      };
+
+      return normalizedQuestion;
+    })
+    .filter((question: Question | null): question is Question => Boolean(question));
+
+  if (normalized.length === 0) {
+    throw new Error("No valid questions found in session file");
   }
 
-  throw new Error("Invalid session file format");
+  return normalized;
 }
 
 function App() {
