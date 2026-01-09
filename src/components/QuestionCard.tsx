@@ -7,7 +7,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { prism } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { nightOwl } from "react-syntax-highlighter/dist/esm/styles/prism";
 import "katex/dist/katex.min.css";
 
 interface QuestionCardProps {
@@ -19,21 +19,32 @@ interface QuestionCardProps {
 }
 
 const questionMarkdownComponents = {
+  p({ children }: any) {
+    return <div className="prose-p:my-2">{children}</div>;
+  },
+  text({ children }: any) {
+    return <>{children}</>;
+  },
   code(props: any) {
     const { inline, className, children, ...rest } = props;
+    const textContent = Array.isArray(children)
+      ? children.join("")
+      : typeof children === "string"
+      ? children
+      : String(children ?? "");
     const match = /language-(\w+)/.exec(className || "");
     return !inline && match ? (
       <SyntaxHighlighter
-        style={prism}
+        style={nightOwl}
         language={match[1]}
         PreTag="div"
         customStyle={{ margin: 0, borderRadius: "0.5rem" }}
       >
-        {String(children).replace(/\n$/, "")}
+        {textContent.replace(/\n$/, "")}
       </SyntaxHighlighter>
     ) : (
       <code className="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded text-sm font-mono" {...rest}>
-        {children}
+        {textContent}
       </code>
     );
   },

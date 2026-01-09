@@ -52,6 +52,11 @@ code {
   border-radius: 0.25rem;
 }
 
+.prose code::before,
+.prose code::after {
+  content: none !important;
+}
+
 pre code {
   background-color: transparent;
   padding: 0;
