@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod auth;
+mod config;
 mod knowledge;
 mod llm;
 mod prompts;
@@ -472,25 +473,53 @@ async fn authenticate(
         .await
         .map_err(|e| e.to_string())?;
 
-    // Cache the key in state
+    // Cache the key in state (memory)
     let mut cached_key = state.api_key.lock().unwrap();
-    *cached_key = Some(api_key);
+    *cached_key = Some(api_key.clone());
+
+    // Save to keychain in dev mode for persistence across sessions
+    if config::is_dev_mode() {
+        let _ = config::CredentialStore::save_token(&api_key);
+    }
 
     Ok(())
 }
 
-/// Check if we have a cached API key
+/// Check if we have a cached API key (checks memory and keychain in dev)
 #[tauri::command]
 fn check_auth(state: State<AppState>) -> bool {
-    state.api_key.lock().unwrap().is_some()
+    // Check memory cache first
+    if state.api_key.lock().unwrap().is_some() {
+        return true;
+    }
+
+    // In dev mode, check keychain as well
+    if config::is_dev_mode() {
+        config::CredentialStore::load_token().is_some()
+    } else {
+        false
+    }
 }
 
-/// Clear the cached API key (logout)
+/// Clear the cached API key (logout) - clears both memory and keychain
 #[tauri::command]
 fn clear_auth(state: State<AppState>) -> Result<(), String> {
+    // Clear memory cache
     let mut cached_key = state.api_key.lock().unwrap();
     *cached_key = None;
+
+    // Clear keychain in dev mode
+    if config::is_dev_mode() {
+        config::CredentialStore::clear_token()?;
+    }
+
     Ok(())
+}
+
+/// Check if running in development mode
+#[tauri::command]
+fn is_dev_mode() -> bool {
+    config::is_dev_mode()
 }
 
 #[tauri::command]
@@ -754,6 +783,7 @@ fn main() {
             authenticate,
             check_auth,
             clear_auth,
+            is_dev_mode,
             export_to_txt,
             export_to_md,
             export_to_qti,

@@ -198,13 +198,24 @@ function App() {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [authError, setAuthError] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isDevMode, setIsDevMode] = useState(false);
 
   // Load subjects and any previously generated questions on mount
   useEffect(() => {
+    checkDevMode();
     checkAuthentication();
     loadSubjects();
     loadExistingQuestions();
   }, []);
+
+  const checkDevMode = async () => {
+    try {
+      const devMode = await invoke<boolean>("is_dev_mode");
+      setIsDevMode(devMode);
+    } catch (err) {
+      console.error("Failed to check dev mode:", err);
+    }
+  };
 
   const checkAuthentication = async () => {
     try {
@@ -581,6 +592,13 @@ function App() {
         </h1>
 
         <div className="flex flex-wrap gap-2 items-center">
+          {/* Dev mode indicator */}
+          {isDevMode && (
+            <div className="px-3 py-1 bg-yellow-50 border border-yellow-300 rounded-md text-sm text-yellow-800">
+              🔧 DEV MODE
+            </div>
+          )}
+
           {/* Auth indicator */}
           {isAuthenticated && (
             <div className="flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-md text-sm text-green-700">
@@ -588,6 +606,7 @@ function App() {
               <button
                 onClick={handleLogout}
                 className="text-xs underline hover:no-underline"
+                title={isDevMode ? "Clears keychain cache" : "Clears session"}
               >
                 Logout
               </button>

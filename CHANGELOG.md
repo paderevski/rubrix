@@ -4,7 +4,24 @@ All notable changes to Rubrix are documented in this file.
 
 ## [Unreleased]
 
-_No entries yet._
+### Added
+- **Dev/Release credential management**: Development mode now caches AWS tokens in system keychain for seamless restarts
+- Keyring integration for secure, OS-encrypted credential storage (macOS Keychain, Windows Credential Manager, Linux Secret Service)
+- Dev mode indicator in UI header showing "🔧 DEV MODE" badge
+- New `is_dev_mode` command to detect build profile from frontend
+- `.env.example` file with documentation for development environment variables
+- `DEV_AWS_TOKEN` environment variable support for local development overrides
+
+### Changed
+- Authentication flow now auto-saves tokens to keychain in development mode
+- Token resolution hierarchy: provided > keychain > DEV_AWS_TOKEN > AWS_BEARER_TOKEN_BEDROCK > mock/error
+- `check_auth` command now checks both memory cache and keychain in dev mode
+- `clear_auth` (logout) now clears keychain in addition to memory cache in dev mode
+- Mock mode now only activates in development builds when no credentials available
+
+### Documentation
+- Added comprehensive [docs/CREDENTIALS.md](docs/CREDENTIALS.md) guide for credential management
+- Updated [DEV_RELEASE_STRATEGY.md](DEV_RELEASE_STRATEGY.md) with full implementation details
 
 ---
 

@@ -9,6 +9,8 @@ use std::io::Write;
 use tauri::Manager;
 use tokio::time::Duration;
 
+use crate::config;
+
 const BEDROCK_ENDPOINT: &str =
     "https://bedrock-runtime.us-west-2.amazonaws.com/openai/v1/chat/completions";
 const MODEL_ID: &str = "openai.gpt-oss-120b-1:0";
@@ -121,6 +123,51 @@ pub struct StreamEvent {
     pub done: bool,
 }
 
+/// Resolve API token from multiple sources with priority order
+fn get_api_token(provided_token: Option<String>) -> Result<String, String> {
+    use std::env;
+
+    // 1. Use explicitly provided token (from auth command)
+    if let Some(token) = provided_token {
+        eprintln!("INFO: Using provided API token (length={})", token.len());
+
+        // Save to keychain in dev mode for future sessions
+        if config::is_dev_mode() {
+            let _ = config::CredentialStore::save_token(&token);
+        }
+
+        return Ok(token);
+    }
+
+    // 2. DEV MODE: Try keychain first
+    if config::is_dev_mode() {
+        if let Some(token) = config::CredentialStore::load_token() {
+            return Ok(token);
+        }
+
+        // 3. Try DEV_AWS_TOKEN env var (for local .env overrides)
+        if let Ok(token) = env::var("DEV_AWS_TOKEN") {
+            eprintln!("INFO: Using DEV_AWS_TOKEN from environment");
+            // Cache to keychain for next time
+            let _ = config::CredentialStore::save_token(&token);
+            return Ok(token);
+        }
+    }
+
+    // 4. Try production env var (both dev and release)
+    if let Ok(token) = env::var("AWS_BEARER_TOKEN_BEDROCK") {
+        eprintln!("INFO: Using AWS_BEARER_TOKEN_BEDROCK from environment");
+        return Ok(token);
+    }
+
+    // 5. No token available
+    if config::is_dev_mode() {
+        Err("No token available. Authenticate or set DEV_AWS_TOKEN in .env".into())
+    } else {
+        Err("Authentication required. No API token found.".into())
+    }
+}
+
 /// Generate text using the Bedrock API with streaming updates
 /// Pass optional api_token to override cached/env token (used for authenticated sessions)
 pub async fn generate(
@@ -133,41 +180,23 @@ pub async fn generate(
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
 
-    // Load .env file (ignore error if already loaded or not present) and log resolution
-    let env_path = dotenvy::dotenv().ok();
-    if let Some(path) = env_path {
-        eprintln!("INFO: Loaded .env from {}", path.display());
-    } else {
-        eprintln!("INFO: No .env found when initializing LLM client");
-    }
+    // Load .env file (ignore error if already loaded or not present)
+    let _ = dotenvy::dotenv();
 
-    use std::env;
-
-    // Use provided token, or fall back to env var
-    let api_token = match api_token {
-        Some(token) => {
-            eprintln!("INFO: Using provided API token (length={})", token.len());
-            token
+    // Resolve API token from hierarchy: provided > keychain > env vars
+    let api_token = match get_api_token(api_token) {
+        Ok(token) => token,
+        Err(e) => {
+            eprintln!("WARN: {}", e);
+            // For dev/demo purposes, fall back to mock data
+            if config::is_dev_mode() {
+                eprintln!("INFO: Falling back to mock mode in dev");
+                return Ok(generate_mock_response(prompt, app_handle).await);
+            } else {
+                return Err(e);
+            }
         }
-        None => match env::var("AWS_BEARER_TOKEN_BEDROCK") {
-            Ok(token) => {
-                eprintln!(
-                    "INFO: AWS_BEARER_TOKEN_BEDROCK present (length={})",
-                    token.len()
-                );
-                token
-            }
-            Err(err) => {
-                eprintln!("WARN: AWS_BEARER_TOKEN_BEDROCK not set: {}", err);
-                String::new()
-            }
-        },
     };
-
-    // For dev/demo purposes, if no API key is set, return mock data
-    if api_token.is_empty() {
-        return Ok(generate_mock_response(prompt, app_handle).await);
-    }
 
     // Emit starting event
     emit_stream(&app_handle, "", false);

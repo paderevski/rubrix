@@ -9,11 +9,12 @@ An AI-powered multiple choice question generator for AP Computer Science A and C
 - 📚 **Multi-Subject Support** - AP Computer Science A and Calculus
 - 🎯 **Topic Selection** - Choose from multiple topics per subject
 - 🎚️ **Difficulty Control** - Easy, Medium, or Hard questions
-- 🤖 **AI Generation** - Powered by Claude Sonnet 4.5 via Replicate with subject-specific prompts
+- 🤖 **AI Generation** - Powered by AWS Bedrock via secure authentication
+- 🔐 **Dev Mode Credentials** - Auto-cached tokens in development for seamless restarts
 - 🔢 **LaTeX Rendering** - Full mathematical notation support with KaTeX
 - ✏️ **Edit Questions** - Modify generated questions before export
-- 🔄 **Smart Regeneration** - Regenerate questions with context awareness (preserves subject/topics)
-- 📤 **Export to QTI** - Direct export to Schoology-compatible format with enhanced formatting
+- 🔄 **Smart Regeneration** - Regenerate questions with context awareness
+- 📤 **Export to QTI** - Direct export to Schoology-compatible format
 - 💻 **Code Block Support** - Syntax highlighting for code in questions and answers
 - 📊 **Markdown Tables** - Support for tables in question content
 
@@ -29,14 +30,30 @@ An AI-powered multiple choice question generator for AP Computer Science A and C
 # Install dependencies
 npm install
 
-# Run in development mode
+# Run in development mode (with auto-cached credentials)
 npm run tauri dev
 
 # Build for production
 npm run tauri build
 ```
 
-## Project Structure
+### First Run
+On first launch in dev mode, you'll be prompted to authenticate. Your credentials will be securely cached in your system keychain for future sessions. See [QUICKSTART_CREDENTIALS.md](QUICKSTART_CREDENTIALS.md) for details.
+
+## Configuration
+
+### Development Credentials
+For development convenience, credentials are automatically cached in your system keychain after first login.
+
+**Quick setup options:**
+1. **Auto-cache (recommended)**: Just log in once, credentials persist across restarts
+2. **Environment variable**: Set `DEV_AWS_TOKEN` in `src-tauri/.env`
+3. **Mock mode**: Run without credentials for UI testing
+
+See [docs/CREDENTIALS.md](docs/CREDENTIALS.md) for full documentation.
+
+### Production Builds
+Release builds require authentication each session and never persist credentials.
 
 ```
 rubrix/
@@ -69,17 +86,6 @@ rubrix/
 │
 └── package.json
 ```
-
-## Configuration
-
-### API Key
-
-Edit `src-tauri/src/llm.rs` and replace:
-```rust
-const REPLICATE_API_TOKEN: &str = "YOUR_REPLICATE_API_TOKEN_HERE";
-```
-
-With your actual Replicate API token.
 
 ### Subject-Specific Prompts
 
