@@ -225,7 +225,10 @@ pub async fn generate(
     };
 
     // Send request
-    eprintln!("INFO: Dispatching Bedrock request ({} bytes payload)", prompt.len());
+    eprintln!(
+        "INFO: Dispatching Bedrock request ({} bytes payload)",
+        prompt.len()
+    );
     let response = client
         .post(BEDROCK_ENDPOINT)
         .headers(headers)

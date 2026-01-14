@@ -21,190 +21,34 @@ pub struct RegenerateContext<'a> {
 
 /// Build the core prompt (used for both generate and regenerate)
 fn build_core_prompt(config: &PromptConfig) -> String {
-    // Use custom prompt template if provided, otherwise use default
+    // Use custom prompt template if provided
     if let Some(template) = config.prompt_template {
         return format_custom_prompt(template, config);
     }
 
-    // Default prompt (original AP CS A prompt)
-    let difficulty_desc = match config.difficulty {
-        "easy" => "D1 (Easy) - Basic recall or simple application, 1-2 steps",
-        "medium" => "D2 (Medium) - Requires analysis or multi-step reasoning, 3-5 steps",
-        "hard" => "D3 (Hard) - Complex analysis, synthesis of multiple concepts, 5+ steps",
-        _ => "D2 (Medium) - Requires analysis or multi-step reasoning",
-    };
+    // Fallback: No prompt template found
+    // This should not happen in normal operation - all subjects should have a prompt.txt file
+    eprintln!("WARNING: No prompt template found. Please add a prompt.txt file for this subject.");
 
-    // Format JSON examples with pedagogically useful fields
-    let examples_str = if config.examples.is_empty() {
-        String::from("(No examples available - generate based on AP CS A standards)")
-    } else {
-        config
-            .examples
-            .iter()
-            .enumerate()
-            .map(|(i, e)| {
-                format!(
-                    "### Example {}\n```json\n{}\n```",
-                    i + 1,
-                    format_example_as_json(e)
-                )
-            })
-            .collect::<Vec<_>>()
-            .join("\n\n")
-    };
-
-    // Build optional sections
-    let user_instructions_str = match config.user_instructions {
-        Some(notes) if !notes.trim().is_empty() => {
-            format!("\n\n**Additional Instructions from User:**\n{}", notes)
-        }
-        _ => String::new(),
-    };
-
-    let regenerate_section = match &config.regenerate_context {
-        Some(ctx) => {
-            let other_questions_str = if ctx.other_questions.is_empty() {
-                String::new()
-            } else {
-                format!(
-                    "\n\n**Other questions in this set (avoid duplicating these):**\n{}",
-                    ctx.other_questions
-                        .iter()
-                        .map(|q| format!("- {}", q))
-                        .collect::<Vec<_>>()
-                        .join("\n")
-                )
-            };
-            format!(
-                r#"
-
----
-
-## REGENERATION REQUEST
-
-You are replacing an existing question. Generate a NEW question that is DIFFERENT but covers a similar topic and difficulty.
-
-**Question to replace:**
-{}
-{}
-
-Keep similar topic and difficulty but use DIFFERENT code/scenarios."#,
-                ctx.current_question.text, other_questions_str
-            )
-        }
-        None => String::new(),
-    };
-
+    // Return minimal fallback that will at least allow basic generation
     format!(
-        r#"You are an expert AP Computer Science A question writer with strong analytical and debugging skills.
+        r#"Generate {count} multiple choice question(s) about {topics} at {difficulty} difficulty level.
 
-**CRITICAL RULE: Calculate the correct answer BEFORE writing the question.**
-
-When generating questions with code or calculations:
-1. First, decide on the concept you'll test
-2. Write the code mentally or on scratch paper
-3. TRACE through the code step-by-step and calculate the correct answer
-4. Verify your calculation is correct - double-check your math
-5. Create wrong answers based on specific misconceptions
-6. ONLY THEN start writing in the output format below
-
-If you discover an error while writing your explanation, DO NOT try to fix it mid-stream. Instead, silently start that question over with different code.
-
-**Target Topic(s):** {topics}
-**Target Difficulty:** {difficulty}
-**Number of Questions:** {count}
-{regenerate}
----
-
-## Reference Examples (JSON format)
-
-Study these examples carefully. Pay special attention to:
-- How the `distractors` field shows WHY each wrong answer is tempting
-- The `common_errors` that students make
-- The relationship between `difficulty` and `cognitive_level`
-- The precision and accuracy of the explanations
-
-{examples}
-
----
-
-## Your Task
-
-Generate {count} NEW question(s) that:
-1. Test the specified topic(s) at the target difficulty
-2. Use DIFFERENT code and scenarios than the examples
-3. Each wrong answer must exploit a specific student misconception
-4. Match the quality and style shown in the examples
-5. Have internally consistent, mathematically correct answers that you've verified
-
-**WORKFLOW (FOLLOW THIS ORDER):**
-
-For EACH question you write:
-
-**Step 1: Plan & Solve (Do this in the explanation section)**
-- Decide what concept you'll test
-- Write the code you'll use
-- TRACE through it step-by-step and calculate the CORRECT answer
-- Double-check your calculation - verify it's right
-- Think through common student errors for this type of problem
-
-**Step 2: Design Distractors (Also in the explanation section)**
-- Identify 3-4 specific misconceptions students have
-- For each misconception, calculate what wrong answer it would produce
-- Make sure each distractor comes from a real error pattern (off-by-one, wrong operator, pass-by-value confusion, loop bound errors, etc.)
-
-**Step 3: Write the Question (Now you can start writing JSON)**
-- Only NOW should you write the stem and code
-- Write ALL answer choices (correct + distractors) with their explanations
-- Write the explanation showing the step-by-step solution
-- Write the distractors analysis explaining the error patterns
-
-**Output Format (JSON Array):**
-
-Return your response as a JSON array containing {count} question object(s). Each question should follow this structure:
-
-```json
+Return ONLY a JSON array with this structure:
 [
   {{
-    "text": "Question text here with markdown formatting like **bold** or `code`. Can include code blocks:\n\n```java\nSystem.out.println(\"Hello\");\n```",
-    "explanation": "Step-by-step walkthrough of how to arrive at the correct answer. Verify correct answer. Design distractors.",
-        "distractors": "Analysis of why each wrong answer is tempting and what misconception leads to it",
+    "text": "Question text",
+    "explanation": "Explanation of the correct answer",
+    "distractors": "Why wrong answers are tempting",
     "answers": [
-      {{"text": "Answer text (use markdown like `42` for code)", "is_correct": false, "explanation": "Why this is wrong"}},
-      {{"text": "Another answer", "is_correct": true, "explanation": "Why this is correct"}},
-      {{"text": "Third answer", "is_correct": false, "explanation": "Common misconception"}},
-      {{"text": "Fourth answer", "is_correct": false, "explanation": "Off-by-one error"}}
-        ]
+      {{"text": "Answer 1", "is_correct": false, "explanation": "Why wrong"}},
+      {{"text": "Answer 2", "is_correct": true, "explanation": "Why correct"}}
+    ]
   }}
-]
-```
-
-**Field Guidelines:**
-- `text`: Complete question text in markdown format (can include code blocks with ```java```)
-- `answers`: Array of 4-5 answer choices with explanations
-  - `text`: Answer text (use backticks for code like `42`)
-  - `is_correct`: Boolean indicating if this is the correct answer
-  - `explanation`: Brief explanation of why this answer is correct/incorrect
-- `explanation`: Detailed walkthrough showing how to solve the problem
-- `distractors`: Analysis of common student errors that lead to wrong answers
-
-**Quality Checklist (verify before submitting):**
-- ✓ Did you work out the correct answer BEFORE writing anything?
-- ✓ Does your explanation match the answer you marked as correct?
-- ✓ Does each distractor represent a real student error pattern?
-- ✓ Is your code syntactically correct Java?
-- ✓ Are all inline code references wrapped in backticks?
-- ✓ Is your explanation clear, accurate, and step-by-step?
-- ✓ Did you return ONLY the JSON array with no extra text?
-{user_instructions}
-
-Generate a JSON array with {count} question(s) now:"#,
-        topics = config.topics,
-        difficulty = difficulty_desc,
+]"#,
         count = config.count,
-        examples = examples_str,
-        regenerate = regenerate_section,
-        user_instructions = user_instructions_str,
+        topics = config.topics,
+        difficulty = config.difficulty
     )
 }
 
@@ -501,7 +345,10 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
 
     let questions: Vec<Question> = serde_json::from_str(&sanitized_json).map_err(|e| {
         eprintln!("ERROR: Failed to parse JSON: {}", e);
-        eprintln!("JSON string: {}", &sanitized_json[..sanitized_json.len().min(500)]);
+        eprintln!(
+            "JSON string: {}",
+            &sanitized_json[..sanitized_json.len().min(500)]
+        );
         format!(
             "Failed to parse JSON response: {}. JSON: {}",
             e,
@@ -527,17 +374,36 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
     Ok(result)
 }
 
-/// Ensure literal control characters inside JSON strings are escaped so serde can parse them
+/// Ensure literal control characters inside JSON strings are escaped so serde can parse them.
+/// Also fixes common invalid escape sequences that LLMs generate (e.g., \( \) \[ \] for LaTeX).
 fn sanitize_json_string(input: &str) -> String {
-    let mut output = String::with_capacity(input.len());
+    let mut output = String::with_capacity(input.len() + 256);
     let mut in_string = false;
     let mut escape = false;
 
-    for ch in input.chars() {
+    let chars: Vec<char> = input.chars().collect();
+    let mut i = 0;
+
+    while i < chars.len() {
+        let ch = chars[i];
+
         if in_string {
             if escape {
-                output.push(ch);
+                // We're in an escape sequence - check if it's valid JSON
+                match ch {
+                    '"' | '\\' | '/' | 'b' | 'f' | 'n' | 'r' | 't' | 'u' => {
+                        // Valid JSON escape sequence
+                        output.push(ch);
+                    }
+                    _ => {
+                        // Invalid escape sequence (common for LaTeX like \(, \), \[, \], etc.)
+                        // Add another backslash to make it literal
+                        output.push('\\');
+                        output.push(ch);
+                    }
+                }
                 escape = false;
+                i += 1;
                 continue;
             }
 
@@ -562,6 +428,8 @@ fn sanitize_json_string(input: &str) -> String {
                 escape = false;
             }
         }
+
+        i += 1;
     }
 
     output
@@ -708,9 +576,9 @@ Some extra commentary.
         assert!(questions[0].answers[1].is_correct);
     }
 
-        #[test]
-        fn test_parse_handles_multiline_strings() {
-                let input = r#"[
+    #[test]
+    fn test_parse_handles_multiline_strings() {
+        let input = r#"[
     {
         "text": "Line 1
 Line 2",
@@ -721,8 +589,30 @@ Line 2",
     }
 ]"#;
 
-                let questions = parse_llm_response(input).unwrap();
-                assert_eq!(questions.len(), 1);
-                assert_eq!(questions[0].text, "Line 1\nLine 2");
-        }
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert_eq!(questions[0].text, "Line 1\nLine 2");
+    }
+
+    #[test]
+    fn test_parse_handles_latex_escape_sequences() {
+        // LLMs often generate invalid JSON escapes like \(, \), \[, \] for LaTeX
+        // Our sanitizer should fix these by adding an extra backslash
+        let input = r#"[
+    {
+        "text": "Function \\(f(x)=x^2\\) on interval \\[0,2\\]",
+        "explanation": "Formula: \\[f(x) = x^2\\]\nThis is valid.",
+        "answers": [
+            {"text": "$x^2$", "is_correct": true},
+            {"text": "$2x$", "is_correct": false}
+        ]
+    }
+]"#;
+
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        // The output should preserve the LaTeX delimiters
+        assert!(questions[0].text.contains("\\(f(x)=x^2\\)"));
+        assert!(questions[0].text.contains("\\[0,2\\]"));
+    }
 }

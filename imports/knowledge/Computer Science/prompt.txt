@@ -75,7 +75,8 @@ Return your response as a JSON array containing {count} question object(s). Each
       {{"text": "Answer text (use markdown like `42` for code)", "is_correct": false, "explanation": "Why this is wrong"}},
       {{"text": "Another answer", "is_correct": true, "explanation": "Why this is correct"}},
       {{"text": "Third answer", "is_correct": false, "explanation": "Common misconception"}},
-      {{"text": "Fourth answer", "is_correct": false, "explanation": "Off-by-one error"}}
+      {{"text": "Fourth answer", "is_correct": false, "explanation": "Off-by-one error"}},
+      {{"text": "Fifth answer", "is_correct": false, "explanation": "Calculation mistake"}}
     ]
   }}
 ]
@@ -83,7 +84,7 @@ Return your response as a JSON array containing {count} question object(s). Each
 
 **Field Guidelines:**
 - `text`: Complete question text in markdown format (can include code blocks with ```java```)
-- `answers`: Array of 4-5 answer choices with explanations
+- `answers`: Array of 5 answer choices with explanations
   - `text`: Answer text (use backticks for code like `42`)
   - `is_correct`: Boolean indicating if this is the correct answer
   - `explanation`: Brief explanation of why this answer is correct/incorrect
@@ -98,6 +99,8 @@ Return your response as a JSON array containing {count} question object(s). Each
 - ✓ Are all inline code references wrapped in backticks?
 - ✓ Is your explanation clear, accurate, and step-by-step?
 - ✓ Did you return ONLY the JSON array with no extra text?
+
+*** User instructions
 {user_instructions}
 
-Generate a JSON array with {count} question(s) now:
+**Output Now:** Return a single JSON array with {count} question(s) following the schema.

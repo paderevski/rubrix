@@ -4,7 +4,20 @@
 
 **Target Topic(s):** {topics}
 **Target Difficulty:** {difficulty}
-**Number of Questions:**
+**Number of Questions:** {count}
+{regenerate}
+---
+## Reference Examples (JSON format)
+
+Study these examples carefully. Pay special attention to:
+- How the `distractors` field shows WHY each wrong answer is tempting
+- The `common_errors` that students make
+- The relationship between `difficulty` and `cognitive_level`
+- The precision and accuracy of the explanations
+
+{examples}
+
+---
 
 ## Workflow (follow in order)
 1. **Plan & Solve**
@@ -22,18 +35,28 @@
      * Use ONLY `$...$` for inline math and `$$...$$` for display math.
      * No HTML tags.
 
-**JSON Schema (per question):**
-{
-  "text": "Question stem in Markdown, LaTeX allowed",
-  "answers": [
-    {"text":"Choice text (Markdown)","is_correct":true/false,"explanation":"Why this choice is correct/incorrect"}
-  ],
-  "explanation": "Full worked solution in Markdown (use `\n` for line breaks)",
-  "distractors": "- **Misconception 1**: …\n- **Misconception 2**: …",
-  "difficulty": "Medium"
-}
+**Output Format (JSON Array):**
 
-**Reference Example(s)**
-{examples}
+Return your response as a JSON array containing {count} question object(s). Each question should follow this structure:
+
+```json
+[
+  {{
+    "text": "Question text here with markdown formatting like **bold** or `code`. Can include code blocks:\n\n```java\nSystem.out.println(\"Hello\");\n```",
+    "explanation": "Step-by-step walkthrough of how to arrive at the correct answer. Verify correct answer. Design distractors.",
+    "distractors": "Analysis of why each wrong answer is tempting and what misconception leads to it",
+    "answers": [
+      {{"text": "Answer text (use markdown like `42` for code)", "is_correct": false, "explanation": "Why this is wrong"}},
+      {{"text": "Another answer", "is_correct": true, "explanation": "Why this is correct"}},
+      {{"text": "Third answer", "is_correct": false, "explanation": "Common misconception"}},
+      {{"text": "Fourth answer", "is_correct": false, "explanation": "Off-by-one error"}},
+      {{"text": "Fifth answer", "is_correct": false, "explanation": "Calculation mistake"}}
+    ]
+  }}
+]
+```
+
+*** User instructions
+{user_instructions}
 
 **Output Now:** Return a single JSON array with {count} question(s) following the schema.
