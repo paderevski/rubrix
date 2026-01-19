@@ -38,6 +38,7 @@ const questionMarkdownComponents = {
         style={ghcolors}
         language={match[1]}
         PreTag="div"
+        className="code-block--question"
         customStyle={{ margin: 0, borderRadius: "0.5rem" }}
       >
         {textContent.replace(/\n$/, "")}

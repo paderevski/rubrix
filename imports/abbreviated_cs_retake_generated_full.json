@@ -1,0 +1,1061 @@
+{
+  "version": 1,
+  "savedAt": "2026-01-19T21:58:49.745Z",
+  "questions": [
+    {
+      "id": "q1",
+      "text": "Consider the following code segment.\n\n```java\nint a = 5;\nint b = 3;\nint c = a;\na = a + b;\nb = c * a;\nSystem.out.println(a + \" \" + b + \" \" + c);\n```\n\nWhat is printed as a result of executing this code segment?",
+      "answers": [
+        {
+          "text": "`8 40 5`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "`8 64 5`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`8 64 8`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`8 5 40`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q2",
+      "text": "In the following statement, `a` and `b` are properly declared and initialized `int` variables.\n\n```java\nboolean flag = ((a % 2 == 0) && (b % 2 == 0)) || ((a % 2 != 0) && (b % 2 != 0));\n```\n\nWhich of the following best describes the conditions in which `flag` is assigned the value `true`?",
+      "answers": [
+        {
+          "text": "When `a` and `b` are both even or both odd",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "When one of `a` and `b` is even and the other is odd",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "True for all integer values of `a` and `b`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "When `a` and `b` are equal (`a == b`)",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q3",
+      "text": "Consider the following `Gadget` class.\n\n```java\npublic class Gadget\n{\n    private String model;\n    private int year;\n    private double price;\n\n    public Gadget(String m, int y)\n    {\n        model = m;\n        year = y;\n        price = 0.0;\n    }\n    // There are no other constructors.\n}\n```\n\nWhich of the following code segments, appearing in a class other than `Gadget`, will correctly create an instance of a `Gadget` object?",
+      "answers": [
+        {
+          "text": "```java\nGadget g = new Gadget(\"iPhone\", 2020);\n```",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "```java\nGadget g = new Gadget(2020, \"iPhone\");\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```java\nGadget g = new Gadget(\"iPhone\", \"2020\");\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```java\nGadget g = Gadget(\"iPhone\", 2020);\n```",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q4",
+      "text": "Consider the following code segment.\n\n```java\nint a = (7 + 3) * 2 - 5 / 2;\nint b = a % 4 + a / 5;\n```\n\nWhat is the value of `b` after this code segment is executed?",
+      "answers": [
+        {
+          "text": "`5`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "`4`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`6`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`3`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q5",
+      "text": "Consider the following code segment.\n\n```java\ndouble x = 80.0;\ndouble y = 0.0;\n\nif (x >= 100.0)\n{\n    y = 30.0;\n}\nelse if (x > 80.0)\n{\n    y = 20.0;\n}\nelse if (x >= 60.0)\n{\n    y = 15.0;\n}\nelse\n{\n    y = 5.0;\n}\nSystem.out.println(x - y);\n```\n\nWhat is printed as a result of executing this code segment?",
+      "answers": [
+        {
+          "text": "`65.0`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "`60.0`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`80.0`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`75.0`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q6",
+      "text": "Consider the following code segment.\n\n```java\nfor (int j = 6; j >= 0; j -= 2) // Line 1\n{\n    System.out.print(j);\n}\n```\n\nThis code segment is intended to produce only the following output. \n\n`642`\n\nIt does not work as intended.\n\nSpecify a single change (give the line number and the exact change) that can be made so that this code segment works as intended.",
+      "answers": [
+        {
+          "text": "In line 1, changing the condition `j >= 0` to `j > 0`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "In line 1, changing the initialization `j = 6` to `j = 5`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "In line 1, changing the condition `j >= 0` to `j > 2`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "In line 1, changing the decrement `j -= 2` to `j -= 1`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q7",
+      "text": "Consider the following code segment.\n\n```java\nString s = \"RSTUVW\";\nString x = /* missing code */;\nSystem.out.println(x);\n```\n\nWhich of the following expressions can be used to replace `/* missing code */` so that this code segment prints the string \"WRST\"?",
+      "answers": [
+        {
+          "text": "`s.substring(5) + s.substring(0, 3)`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "`s.substring(4) + s.substring(0, 3)`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`s.substring(0, 3) + s.substring(5)`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`s.charAt(5) + s.charAt(0) + s.charAt(1) + s.charAt(2)`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q8",
+      "text": "Consider the following code segment.\n\n```java\ndouble a = 3.0;\ndouble b = 8.0;\ndouble c = a / (int)b;\ndouble d = (int)(a / b);\nSystem.out.println(c + \" \" + d);\n```\n\nWhat is printed as a result of executing this code segment?",
+      "answers": [
+        {
+          "text": "`0.375, 0.0`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "`0.0, 0.0`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`0.375, 0.375`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`0.375, 1.0`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q9",
+      "text": "Consider the following class definitions.\n\n```java\npublic class Box\n{\n    private int x;\n    private int y;\n\n    public Box(int xVal, int yVal)\n    {\n        x = xVal;\n        y = yVal;\n    }\n\n    private int foo()\n    {\n        return x * y;\n    }\n}\n\npublic class Checker\n{\n    public static boolean compare(Box b1, Box b2)\n    {\n        if (b1.foo() > b2.foo())\n        {\n            return true;\n        }\n        return false;\n    }\n}\n```\n\nWhich of the following best explains why an error occurs when the classes are compiled?",
+      "answers": [
+        {
+          "text": "The `foo` method cannot be accessed from a class other than `Box`.",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "The `foo` method cannot be referenced from the static method `compare`.",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "The `foo` method must be declared `static` because `compare` is static.",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "The `compare` method must be an instance method (not `static`) to call `foo`.",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q10",
+      "text": "Assume the following class is defined in its own file.\n\n```java\npublic class Quad {\n    private int p;\n    private int q;\n\n    public Quad(int p, int q) {\n        this.p = p;\n        this.q = q;\n    }\n\n    public int sum() {\n        return p + q;\n    }\n\n    public int sum(int extra) {\n        return p + q + extra;\n    }\n\n    private int secret() {\n        return p * q;\n    }\n\n    private static int staticSum(Quad obj) {\n        return obj.p + obj.q;\n    }\n}\n```\n\nIn another class you have created an instance:\n\n```java\nQuad myQuad = new Quad(2, 3);\n```\n\nWhich of the following statements **will compile without error**?\n",
+      "answers": [
+        {
+          "text": "`int a = myQuad.sum();`",
+          "is_correct": true,
+          "explanation": "The method `sum()` is public and instance‑level; the call is legal and compiles."
+        },
+        {
+          "text": "`int b = myQuad.secret();`",
+          "is_correct": false,
+          "explanation": "`secret()` is private, so it cannot be accessed outside the `Quad` class."
+        },
+        {
+          "text": "`int c = Quad.sum(5);`",
+          "is_correct": false,
+          "explanation": "`sum(int)` is not static; invoking it with the class name is illegal."
+        },
+        {
+          "text": "`int d = Quad.staticSum(myQuad);`",
+          "is_correct": false,
+          "explanation": "`staticSum` is private, therefore it is not visible to other classes."
+        },
+        {
+          "text": "`int e = myQuad.sum(2, 3);`",
+          "is_correct": false,
+          "explanation": "No overload of `sum` accepts two `int` arguments; the call does not match any method signature."
+        }
+      ],
+      "explanation": "We examine each statement against the definition of `Quad`.\n\n*Statement A*: `myQuad.sum()` calls the public instance method `sum()` that takes no arguments. This method exists and is accessible, so the statement compiles.\n\n*Statement B*: `secret()` is declared **private**, therefore it is not accessible outside the `Quad` class. Attempting to call it from another class causes a compile‑time error.\n\n*Statement C*: `sum(int)` is an instance method, not a static method. Using the class name (`Quad.sum(5)`) attempts to invoke it as static, which is illegal; the compiler reports “non‑static method sum(int) cannot be referenced from a static context”.\n\n*Statement D*: `staticSum(Quad)` is declared **private static**, so it cannot be accessed from another class. The call therefore fails to compile.\n\n*Statement E*: There is no overload of `sum` that takes two `int` parameters. The compiler cannot find a matching method signature, leading to a “cannot find symbol” error.\n\nOnly statement **A** satisfies both visibility and correct method invocation rules, so it is the only one that compiles without error.",
+      "distractors": "Common misconceptions that generate the wrong choices:\n\n- **B (private method access)**: Students often forget that `private` limits access to the defining class, so they think any method can be called on an object.\n- **C (static vs. instance invocation)**: Learners sometimes treat any method as callable via the class name, overlooking the static requirement.\n- **D (private static method)**: The distinction between `private` and `public` is missed; students see the `static` keyword and assume it is enough for external access.\n- **E (method overloading arity)**: Overloading is understood, but students may think extra arguments are ignored or that Java will auto‑fill missing parameters, causing them to write a call with the wrong number of arguments.",
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q11",
+      "text": "Consider the following class:\n\n```java\npublic class Container {\n    private int z;\n\n    public Container(int initial) {\n        z = initial;\n    }\n\n    public int getZ() {\n        return z;\n    }\n}\n```\n\nWrite a method named `foo` that could be added to the `Container` class so that other classes can modify the value of `z`. The method should have the appropriate access modifier and should not return a value. Provide the exact method declaration and body as you would type it inside the class (include the braces).",
+      "answers": [
+        {
+          "text": "```java\npublic void foo(int num)\n{\n    z = num;\n}\n```",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "```java\npublic void foo(int z)\n{\n    z = z;\n}\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```java\nprivate void foo(int num)\n{\n    z = num;\n}\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```java\npublic void foo(int num)\n{\n    z == num;\n}\n```",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q12",
+      "text": "Consider the following code segment.\n\n```java\nfor (int i = 1; i <= 6; i++)\n{\n    for (int j = 0; j < i; j++)\n    {\n        System.out.println(\"*\");\n        // Line 4\n    }\n}\n```\n\nHow many times will the statement in line 4 be executed as a result of running this code segment?",
+      "answers": [
+        {
+          "text": "`21`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "`15`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`27`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`36`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q13",
+      "text": "Assume that `isMember`, `isExpired`, and `hasBadge` are boolean variables that have been properly declared and initialized. Which boolean expression is logically equivalent to the expression\n\n```java\n!(isMember || isExpired) && hasBadge\n```\n\nWrite an equivalent expression using only the variables `isMember`, `isExpired`, `hasBadge` and the operators `&&`, `||`, and `!`.",
+      "answers": [
+        {
+          "text": "`(!isMember && !isExpired) && hasBadge`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "`(!isMember || !isExpired) && hasBadge`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`(!isMember && isExpired) && hasBadge`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`!(isMember && isExpired) && hasBadge`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q14",
+      "text": "Consider the following code segment.\n\n```java\nString str = \"mississippi\";\nString target = \"s\";\nint j = str.indexOf(target);\n\nwhile (j >= 0)\n{\n    System.out.print(str.substring(0, j + 1) + \" \");\n    str = str.substring(j + 1);\n    j = str.indexOf(target);\n}\n```\n\nWhat is printed as a result of executing this code segment?",
+      "answers": [
+        {
+          "text": "`mis s is s`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "`mis s s s`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`mis sis sip`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`mis mis mis`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q15",
+      "text": "The following method is intended to return the minimum value that appears in the `int` array `arr`.\n\n```java\npublic static int foo(int[] arr)\n{\n    int m = 0;\n    for (int x : arr)\n    {\n        if (x < m)\n        {\n            m = x;\n        }\n    }\n    return m;\n}\n```\n\nThe method works as intended for some, but not all, `int` arrays. Which of the following best describes the conditions in which the method does not return the intended result?",
+      "answers": [
+        {
+          "text": "When the minimum value in `arr` is positive (greater than 0)",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "When the minimum value in `arr` is negative (less than 0)",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "When the maximum value in `arr` is positive (greater than 0)",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "When the minimum value in `arr` is the first element (`arr[0]`)",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q16",
+      "text": "Consider the following statement.\n\n```java\nint x = (int) (Math.random() * 8) - 3;\n```\n\nDescribe all possible integer values that `x` can assume after this statement executes. In your answer, state the smallest and largest possible values and explain whether each endpoint is inclusive or exclusive based on how `Math.random()` and the cast to `int` behave.",
+      "answers": [
+        {
+          "text": "It generates a random integer between -3 and 4, inclusive, and assigns it to `x`.",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "It always assigns the integer -3 to `x`.",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "It generates a random integer between -3 and 5, inclusive, and assigns it to `x`.",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "It generates a random integer between -2 and 5, inclusive, and assigns it to `x`.",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q17",
+      "text": "Consider the following code segment.\n\n```java\nint x = 729;\nwhile (x % 9 == 0)\n{\n    x /= 3;\n}\nSystem.out.println(x);\n```\n\nWhat is printed as a result of executing this code segment?",
+      "answers": [
+        {
+          "text": "`3`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "`1`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`729`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`9`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q18",
+      "text": "Consider the following code segment.\n\n```java\nfor (int j = 4; j > 0; j--)\n{\n    for (/* missing code */)\n    {\n        System.out.print(j + \" \");\n    }\n    System.out.println();\n}\n```\n\nThis code segment is intended to produce the following output.\n\n```\n4 4 4 4\n3 3 3\n2 2\n1\n```\n\nWhich of the following can be used to replace `/* missing code */` so that this code segment works as intended?",
+      "answers": [
+        {
+          "text": "```java\nint k = 0; k < j; k++\n```",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "```java\nint k = 0; k <= j; k++\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```java\nint k = 0; k == j; k++\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```java\nint k = 0; k < j; k--\n```",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q19",
+      "text": "The following class definition does not compile.\n\n```java\npublic class Gadget\n{\n    private String a;\n    private String b;\n    private int c;\n\n    public Gadget(String s1, String s2)\n    {\n        a = s1;\n        b = s2;\n        c = 0;\n    }\n\n    public void increment()\n    {\n        c++;\n    }\n\n    public String doSomething()\n    {\n        return s1 + \", \" + s2;\n    }\n}\n```\n\nWhich of the following best explains why the class will not compile?",
+      "answers": [
+        {
+          "text": "The `doSomething` method does not have access to variables named `s1` or `s2`.",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "The class has three instance variables (`a`, `b`, `c`), but its constructor has only two parameters (`s1`, `s2`).",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "The `doSomething` method is declared `static`, so it cannot access the instance variables `a` and `b`.",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "Assigning `a = s1` and `b = s2` in the constructor makes `s1` and `s2` become aliases for the fields, so `doSomething` can use `s1` and `s2`.",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q20",
+      "text": "Consider the following method.\n\n```java\npublic static void mystery(int[] arr, int idx)\n{\n    arr[idx + 1] = idx;\n}\n```\n\nThe following code segment appears in a method in the same class as `mystery`.\n\n```java\nint[] data = new int[5];\nmystery(data, 1);\nmystery(data, 3);\n```\n\nWhat are the contents of `data` after executing this code segment?",
+      "answers": [
+        {
+          "text": "`{0, 0, 1, 0, 3}`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "`{0, 1, 0, 3, 0}`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`{0, 0, 2, 0, 4}`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`{0, 0, 0, 0, 0}`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q21",
+      "text": "Consider the following code segment.\n\n```java\nArrayList<Integer> list = new ArrayList<Integer>();\nlist.add(10);\nlist.add(20);\nlist.add(1, 30);\nlist.add(0, 40);\nlist.set(2, 50);\nlist.remove(3);\n```\n\nWhat are the contents of `list` after executing this code segment?",
+      "answers": [
+        {
+          "text": "`[40, 10, 50]`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "`[40, 10, 50, 20]`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`[40, 50, 20]`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`[40, 30, 50]`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q22",
+      "text": "Consider the following class definition.\n\n```java\npublic class Gizmo\n{\n    private static int n = 0;\n    private int watt;\n    private String color;\n\n    public Gizmo()\n    {\n        watt = 10;\n        color = \"white\";\n    }\n\n    public Gizmo(int w, String c)\n    {\n        watt = w;\n        color = c;\n        n++;\n    }\n\n    public static int mystery()\n    {\n        return n;\n    }\n}\n```\n\nThe following code segment appears in a class other than `Gizmo`.\n\n```java\nGizmo g1 = new Gizmo(12, \"red\");\nGizmo g2 = new Gizmo();\nGizmo g3 = new Gizmo(8, \"blue\");\nGizmo g4 = new Gizmo(15, \"green\");\nSystem.out.println(Gizmo.mystery());\n```\n\nWhat is printed as a result of executing this code segment if it is executed before any other instances of `Gizmo` are constructed?",
+      "answers": [
+        {
+          "text": "3",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "4",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "2",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "1",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q23",
+      "text": "A researcher wants to investigate whether students who took an engineering elective were more likely to participate in the school's robotics team. The researcher has access to the following data sets.\n\n- Data set 1 contains an entry for each club at the school. Each entry includes the club name and a list of the names of the club members.\n- Data set 2 contains an entry for each member of the robotics team. Each entry contains the member's name, the number of competitions the member has attended, and the member's favorite elective.\n- Data set 3 contains an entry for each student at the school. Each entry contains the student's name, a list of the courses the student took, and a list of the clubs the student participated in.\n- Data set 4 contains an entry for each student at the school. Each entry contains the student's name, the student's favorite elective, and the student's favorite club.\n\nWhich data set is most appropriate for the researcher's investigation? Explain your choice and briefly state why the other data sets are less suitable.",
+      "answers": [
+        {
+          "text": "Data set 3 — It lists, for each student, the courses taken and the clubs participated in, allowing direct comparison of robotics participation between students who did and did not take an engineering elective.",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "Data set 2 — It lists each robotics team member and their favorite elective, but since it covers only robotics members you cannot compare participation rates between students who did and did not take engineering electives.",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "Data set 4 — It lists each student's favorite elective and favorite club, but 'favorite' does not equal courses taken or actual membership, so it cannot identify who took an engineering elective or who joined the robotics team.",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "Data set 1 — It lists each club and its members, so you can identify robotics participants, but it does not include the courses students took, so you cannot determine who took engineering electives.",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q24",
+      "text": "Consider the following method.\n\n```java\npublic static void mystery(int num)\n{\n    if (num > -50)\n    {\n        mystery(num * -2 + 1);\n        System.out.print(num + \" \");\n    }\n}\n```\n\nWhat is printed as a result of the call `mystery(7)`?",
+      "answers": [
+        {
+          "text": "`27 -13 7`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "`7 -13 27`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`29 -15 7`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`28 -12 8`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q25",
+      "text": "The following incomplete method is intended to return the median (middle) value among its three parameters (i.e., the value that is neither the maximum nor the minimum).\n\n```java\npublic static int mystery(int a, int b, int c)\n{\n    /* missing code */\n}\n```\n\nWhich of the following can be used to replace `/* missing code */` so that the method works as intended?",
+      "answers": [
+        {
+          "text": "```java\nif ((a <= b && a >= c) || (a >= b && a <= c))\n    return a;\nelse if ((b <= a && b >= c) || (b >= a && b <= c))\n    return b;\nelse\n    return c;\n```",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "```java\nif ((a <= b || a >= c) || (a >= b || a <= c))\n    return a;\nelse if ((b <= a || b >= c) || (b >= a || b <= c))\n    return b;\nelse\n    return c;\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```java\nif ((a < b && a > c) || (a > b && a < c))\n    return a;\nelse if ((b < a && b > c) || (b > a && b < c))\n    return b;\nelse\n    return c;\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```java\nif (a <= b && b <= c)\n    return b;\nelse if (b <= a && a <= c)\n    return a;\nelse\n    return c;\n```",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q26",
+      "text": "Consider the following code segment.\n\n```java\nint[][] mat = {{1, 2, 3},\n               {4, 5, 6},\n               {7, 8, 9}};\nArrayList<Integer> list = new ArrayList<Integer>();\n\n/* missing code */\n```\n\nAfter executing this code segment, `list` should contain `[7, 4, 1, 8, 5, 2, 9, 6, 3]`. Which of the following can replace `/* missing code */` to produce this result?",
+      "answers": [
+        {
+          "text": "```java\nfor (int k = 0; k < mat[0].length; k++)\n{\n    for (int j = mat.length - 1; j >= 0; j--)\n    {\n        list.add(mat[j][k]);\n    }\n}\n```",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "```java\nfor (int k = 0; k < mat[0].length; k++)\n{\n    for (int j = 0; j < mat.length; j++)\n    {\n        list.add(mat[j][k]);\n    }\n}\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```java\nfor (int k = 0; k < mat[0].length; k++)\n{\n    for (int j = mat.length - 1; j >= 0; j--)\n    {\n        list.add(mat[k][j]);\n    }\n}\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```java\nfor (int k = 0; k < mat[0].length; k++)\n{\n    for (int j = 0; j < mat.length; j++)\n    {\n        list.add(0, mat[j][k]);\n    }\n}\n```",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q27",
+      "text": "Consider the following code segment.\n\n```java\nint[] arr = {3, 6, 9, 12, 15, 18, 21};\n\nfor (int i = 0; i < arr.length; i += 2)\n{\n    arr[i] += i;\n}\n```\n\nWhat are the contents of `arr` after executing this code segment?",
+      "answers": [
+        {
+          "text": "`{3, 6, 11, 12, 19, 18, 27}`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "`{3, 7, 11, 15, 19, 23, 27}`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`{4, 6, 10, 12, 16, 18, 22}`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`{3, 6, 11, 12, 19, 18, 21}`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q28",
+      "text": "Consider the following code segment.\n\n```java\nArrayList<String> listA = new ArrayList<String>();\nlistA.add(\"p\");\nlistA.add(\"q\");\nlistA.add(\"r\");\nlistA.add(\"q\");\nArrayList<String> listB = new ArrayList<String>();\n/* missing code */\n```\n\nAfter executing this code segment, `listB` should contain $[\"q\",\"r\",\"q\",\"p\",\"p\",\"q\",\"r\",\"q\"]$. Which of the following can replace `/* missing code */` to produce this result?",
+      "answers": [
+        {
+          "text": "```java\nfor (int i = listA.size() - 1; i >= 0; i--)\n{\n    listB.add(listA.get(i));\n}\nfor (int i = 0; i < listA.size(); i++)\n{\n    listB.add(listA.get(i));\n}\n```",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "```java\nfor (int i = listA.size() - 1; i > 0; i--)\n{\n    listB.add(listA.get(i));\n}\nfor (int i = 0; i < listA.size(); i++)\n{\n    listB.add(listA.get(i));\n}\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```java\nfor (int i = listA.size() - 1; i >= 0; i--)\n{\n    listB.add(listA.get(i));\n}\nfor (int i = 1; i < listA.size(); i++)\n{\n    listB.add(listA.get(i));\n}\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```java\nfor (int i = listA.size() - 1; i >= 0; i--)\n{\n    listB.add(listA.get(i));\n}\nfor (int i = 0; i < listA.size(); i++)\n{\n    listB.add(0, listA.get(i));\n}\n```",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q29",
+      "text": "Consider the following method.\n\n```java\npublic static boolean mystery(ArrayList<Integer> list)\n{\n    int prev = Integer.MIN_VALUE;\n    for (int n : list)\n    {\n        if (n < prev)\n        {\n            return false;\n        }\n        prev = n;\n    }\n    return true;\n}\n```\n\nWhich of the following best describes the behavior of the method?",
+      "answers": [
+        {
+          "text": "It returns `true` if `list` is sorted from least to greatest and returns `false` otherwise.",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "It returns `true` if `list` is strictly increasing (each element greater than the previous) and returns `false` otherwise.",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "It returns `true` if `list` is sorted from greatest to least and returns `false` otherwise.",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "It returns `true` if every element in `list` is greater than or equal to the minimum element in `list` and returns `false` otherwise.",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q30",
+      "text": "Consider the following code segment.\n\n```java\nint[][] mystery = new int[4][3];\n\nfor (int r = 0; r < mystery.length; r++)\n{\n    for (int c = 0; c < mystery[0].length; c++)\n    {\n        if (r + c == mystery.length - 1)\n        {\n            mystery[r][c] = c + 1;\n        }\n    }\n}\n```\n\nWhat are the contents of `mystery` after executing this code segment?  Write the contents as a 2D array literal (for example: `{{...}, {...}, ...}`).",
+      "answers": [
+        {
+          "text": "```\n{{0, 0, 0},\n {0, 0, 3},\n {0, 2, 0},\n {1, 0, 0}}\n```",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "```\n{{0, 0, 0},\n {0, 0, 0},\n {0, 0, 3},\n {0, 2, 0}}\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```\n{{0, 0, 0},\n {0, 0, 2},\n {0, 1, 0},\n {0, 0, 0}}\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```\n{{0, 0, 0},\n {0, 0, 3},\n {0, 2, 0},\n {0, 0, 0}}\n```",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q31",
+      "text": "Consider the following method. When an element of the two-dimensional array `arr` is accessed, the first index is used to specify the row and the second index is used to specify the column.\n\n```java\npublic static int mystery(int[][] arr, int x, int target)\n{\n    int n = 0;\n    for (int i = 0; i < arr.length; i++)\n    {\n        if (x < arr[i].length && arr[i][x] == target)\n        {\n            n++;\n        }\n    }\n    return n;\n}\n```\n\nWhich of the following best describes the value returned by the method?",
+      "answers": [
+        {
+          "text": "The number of times that an element equal to `target` appears in column `x` of `arr`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "The number of times that an element equal to `target` appears in row `x` of `arr`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "The number of rows in `arr` that contain column `x`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "The number of times that an element equal to `target` appears anywhere in `arr`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q32",
+      "text": "The following method implements a recursive binary search variant.\n\n```java\npublic static int mystery(int[] arr, int low, int high, int target)\n{\n    if (low <= high)\n    {\n        int mid = (low + high + 1) / 2;\n        if (target < arr[mid])\n        {\n            return mystery(arr, low, mid - 1, target);\n        }\n        else if (target > arr[mid])\n        {\n            return mystery(arr, mid + 1, high, target);\n        }\n        else\n        {\n            return mid;\n        }\n    }\n    return -1;\n}\n```\n\nThe following code segment appears in a method in the same class as `mystery`:\n\n```java\nint[] values = {4, 4, 4, 5, 6, 7, 8};\nint idx = mystery(values, 0, values.length - 1, 4);\n```\n\nWhat is the value of `idx` after executing the code segment?",
+      "answers": [
+        {
+          "text": "`1`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "`0`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`2`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`3`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q33",
+      "text": "Consider the following method that implements insertion sort on an ArrayList of Integer objects.\n\n```java\npublic static void doSomething(ArrayList<Integer> arr)\n{\n    for (int j = 1; j < arr.size(); j++)\n    {\n        int temp = arr.get(j);\n        int k = j;\n        while (k > 0 && temp < arr.get(k - 1))\n        {\n            arr.set(k, arr.get(k - 1));\n            k--;\n        }\n        arr.set(k, temp);\n        /* end of outer loop */\n    }\n}\n```\n\nAssume `doSomething` is called with an ArrayList initialized with the following Integer objects:\n\n`[45, 15, 35, 25, 55, 5]`\n\nWhat will the contents of `arr` be after three passes of the outer loop (i.e., when `j == 3` at the point indicated by `/* end of outer loop */`)?",
+      "answers": [
+        {
+          "text": "`[15, 25, 35, 45, 55, 5]`",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "`[45, 35, 25, 15, 55, 5]`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`[15, 35, 45, 25, 55, 5]`",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "`[15, 25, 55, 55, 55, 5]`",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q34",
+      "text": "Consider the following code segment.\n\n```java\nString[] words = {\"clam\", \"moss\", \"sand\", \"dog\", \"goat\", \"tire\"};\nint m = -1;\n\nfor (int i = 0; i < words.length; i++)\n{\n    for (int j = i + 1; j < words.length; j++)\n    {\n        if (words[i].charAt(words[i].length() - 1) == words[j].charAt(0))\n        {\n            m = j;\n        }\n    }\n}\n```\n\nWhat is the value of `m` after executing this code segment?",
+      "answers": [
+        {
+          "text": "5",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "1",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "4",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "6",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    },
+    {
+      "id": "q35",
+      "text": "Consider the following code segment.\n\n```java\nint j = 7;\nint s = 0;\nwhile (j >= 2)\n{\n    j--;\n    s += j;\n}\n```\n\nWhich of the following code segments assigns the same value to `s` as the preceding code segment?",
+      "answers": [
+        {
+          "text": "```java\nint s = 0;\nfor (int j = 1; j <= 6; j++)\n{\n    s += j;\n}\n```",
+          "is_correct": true,
+          "explanation": null
+        },
+        {
+          "text": "```java\nint s = 0;\nfor (int j = 2; j <= 6; j++)\n{\n    s += j;\n}\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```java\nint s = 0;\nfor (int j = 1; j <= 7; j++)\n{\n    s += j;\n}\n```",
+          "is_correct": false,
+          "explanation": null
+        },
+        {
+          "text": "```java\nint s = 0;\nfor (int j = 0; j < 6; j++)\n{\n    s += j;\n}\n```",
+          "is_correct": false,
+          "explanation": null
+        }
+      ],
+      "explanation": null,
+      "distractors": null,
+      "subject": "",
+      "topics": []
+    }
+  ]
+}
