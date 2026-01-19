@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "savedAt": "2026-01-19T05:25:19.604Z",
+  "questions": [
+    {
+      "id": "q1",
+      "text": "Consider the following `Rectangle` class and the code in `main`:\n\n```java\npublic class Rectangle {\n    private int width;\n    private int height;\n\n    public Rectangle(int w, int h) {\n        width = w;\n        height = h;\n    }\n\n    public void setWidth(int w) { width = w; }\n    public void setHeight(int h) { height = h; }\n\n    public int getArea() { return width * height; }\n}\n\npublic class TestRect {\n    public static void main(String[] args) {\n        Rectangle r = new Rectangle(3, 4);\n        r.setWidth(5);\n        System.out.println(r.getArea());\n    }\n}\n```\n\nWhat is printed to the console when the program is executed?\n\n",
+      "answers": [
+        {
+          "text": "`20`",
+          "is_correct": true,
+          "explanation": "The setter updates `width` to 5, so area = 5 × 4 = 20."
+        },
+        {
+          "text": "`12`",
+          "is_correct": false,
+          "explanation": "This would be the area if the `setWidth` call were ignored (3 × 4)."
+        },
+        {
+          "text": "`25`",
+          "is_correct": false,
+          "explanation": "Multiplying the new width by itself (5 × 5) is a common field‑mix‑up."
+        },
+        {
+          "text": "`0`",
+          "is_correct": false,
+          "explanation": "Assumes the method returns an uninitialized value; not true for this code."
+        },
+        {
+          "text": "`9`",
+          "is_correct": false,
+          "explanation": "Uses the original width for both factors (3 × 3)."
+        }
+      ],
+      "explanation": "Step‑by‑step trace:\n1. `new Rectangle(3,4)` calls the constructor, setting `width = 3` and `height = 4`.\n2. `r.setWidth(5)` changes the private field `width` from 3 to 5.  The height remains 4.\n3. `r.getArea()` returns `width * height`, i.e. `5 * 4 = 20`.\n4. `System.out.println` prints that value.\n\nTherefore the program outputs **20**.\n\n---\n**Design of distractors**\n- **12** – assumes the call to `setWidth` is ignored, so the original width (3) is used: `3 * 4 = 12`.\n- **25** – multiplies the new width by itself instead of by height: `5 * 5 = 25` (a common mix‑up of the two fields).\n- **0** – pretends `getArea` returns an uninitialized value or that the object was never constructed.\n- **9** – multiplies the original width by itself (`3 * 3 = 9`), representing a reversal of the intended dimensions.\n\nThese reflect typical misconceptions about setters, field access, and arithmetic errors.",
+      "distractors": "Common mistakes that generate the wrong choices:\n- **Ignoring the setter** – students think a method call has no effect on private data, leading to the original area `12`.\n- **Using width twice** – mixing up which field to use in the multiplication, producing `25`.\n- **Assuming a default value** – believing that an uninitialized field defaults to 0, giving `0`.\n- **Using width for both factors but keeping the original width** – yields `9`.\n\nThese stem from misconceptions about mutability, encapsulation, and simple arithmetic.",
+      "subject": "Computer Science",
+      "topics": [
+        "T005"
+      ]
+    },
+    {
+      "id": "q2",
+      "text": "Examine the `Counter` class below and the statements in `main`:\n\n```java\npublic class Counter {\n    private static int totalCount = 0; // counts all Counter objects\n    private int id;                     // unique id for this object\n\n    public Counter() {\n        totalCount++;        // increment shared counter\n        id = totalCount;     // assign a unique id\n    }\n\n    public int getTotal() {\n        return totalCount;\n    }\n}\n\npublic class TestCounter {\n    public static void main(String[] args) {\n        Counter a = new Counter();\n        Counter b = new Counter();\n        Counter c = new Counter();\n        System.out.println(c.getTotal());\n    }\n}\n```\n\nWhat does the program print?\n\n",
+      "answers": [
+        {
+          "text": "`3`",
+          "is_correct": true,
+          "explanation": "Three constructors run, each incrementing the shared `totalCount` to 3."
+        },
+        {
+          "text": "`0`",
+          "is_correct": false,
+          "explanation": "Would be true only if the static field never changed."
+        },
+        {
+          "text": "`1`",
+          "is_correct": false,
+          "explanation": "Counts only the first object; ignores later increments."
+        },
+        {
+          "text": "`2`",
+          "is_correct": false,
+          "explanation": "Off‑by‑one; misses the increment performed by the third construction."
+        },
+        {
+          "text": "`4`",
+          "is_correct": false,
+          "explanation": "Adds an nonexistent extra increment."
+        }
+      ],
+      "explanation": "Step‑by‑step execution:\n1. `totalCount` starts at 0 (static, shared by all instances).\n2. Creating `a` calls the constructor: `totalCount` becomes 1, `a.id = 1`.\n3. Creating `b` increments `totalCount` to 2, `b.id = 2`.\n4. Creating `c` increments `totalCount` to 3, `c.id = 3`.\n5. `c.getTotal()` returns the **static** field `totalCount`, which is now 3.\n6. The `println` statement outputs `3`.\n\nThus the correct output is **3**.\n\n---\n**Design of distractors**\n- **0** – assumes the static counter never changes.\n- **1** – thinks only the first object affects the static field.\n- **2** – off‑by‑one error, forgetting that the third construction also increments.\n- **4** – adds an extra increment that does not exist.\n\nEach wrong answer reflects a typical misunderstanding of static versus instance state.",
+      "distractors": "Typical misconceptions leading to the distractors:\n- **Static never changes** – students treat `totalCount` as if it were an instance variable, keeping it at its initial value (0).\n- **Only first object counts** – believing the static field is set once and never updated again, yielding 1.\n- **Off‑by‑one** – forgetting that the third constructor call also increments the counter, resulting in 2.\n- **Extra increment** – erroneously counting an additional increment (perhaps from a phantom object), giving 4.\n\nAll stem from confusion about when and how static fields are modified.",
+      "subject": "Computer Science",
+      "topics": [
+        "T005"
+      ]
+    },
+    {
+      "id": "q3",
+      "text": "The following `Point` class attempts to override `Object.equals`.\n\n```java\npublic class Point {\n    private int x, y;\n\n    public Point(int x, int y) {\n        this.x = x;\n        this.y = y;\n    }\n\n    @Override\n    public boolean equals(Object o) {\n        if (this == o) return true;\n        if (!(o instanceof Point)) return false;\n        Point p = (Point) o;\n        return x == p.x && y == p.y;\n    }\n}\n```\n\nAnd the test code:\n\n```java\npublic class TestPoint {\n    public static void main(String[] args) {\n        Point p1 = new Point(2, 3);\n        Point p2 = new Point(2, 3);\n        System.out.println(p1.equals(p2));\n    }\n}\n```\n\nWhich statement about the `equals` method is **true**?\n\n",
+      "answers": [
+        {
+          "text": "It correctly overrides `Object.equals` and returns `true` when the coordinates match.",
+          "is_correct": true,
+          "explanation": "The signature matches, the @Override annotation passes, and the field comparison yields `true` for identical points."
+        },
+        {
+          "text": "It fails to override because the parameter type is `Point` instead of `Object`.",
+          "is_correct": false,
+          "explanation": "The method *does* take `Object`; the cast occurs inside the body."
+        },
+        {
+          "text": "The method will cause a compilation error due to a missing return statement.",
+          "is_correct": false,
+          "explanation": "A return statement is present (`return x == p.x && y == p.y;`)."
+        },
+        {
+          "text": "It returns `true` only when the two references point to the same object.",
+          "is_correct": false,
+          "explanation": "After the reference check, it also compares the field values."
+        },
+        {
+          "text": "It will throw a `ClassCastException` when `equals` is called with a non‑`Point` object.",
+          "is_correct": false,
+          "explanation": "The `instanceof` test prevents an unsafe cast."
+        }
+      ],
+      "explanation": "The method signature matches `public boolean equals(Object o)`, so it correctly overrides `Object.equals`. The `@Override` annotation will compile without error, confirming the override. The body first checks reference equality, then ensures the argument is a `Point`, casts it, and finally compares both `x` and `y` fields. Since `p1` and `p2` have identical coordinates (2, 3), the method returns `true`. Therefore the statement that \"It correctly overrides `Object.equals` and returns `true` when the coordinates match\" is the true one.\n\n---\n**Design of distractors**\n- **It fails to override because the parameter type is `Point` instead of `Object`.** – Confuses method overloading with overriding.\n- **The method will cause a compilation error due to a missing return statement.** – Misreading the code; in reality a return is present.\n- **It returns `true` only when the two references point to the same object.** – Overlooks the field‑by‑field comparison.\n- **It will throw a `ClassCastException` when `equals` is called with a non‑`Point` object.** – Ignores the `instanceof` guard that prevents casting an incompatible type.\n\nEach distractor mirrors a frequent misunderstanding of the equals contract.\n",
+      "distractors": "Analysis of why students pick each wrong answer:\n- **Wrong parameter type** – Students often think that a method taking a `Point` does not override `Object.equals`, not recognizing the need for the `Object` signature.\n- **Missing return** – The eye‑scan mistake where a student believes the method lacks a `return` because the body is long.\n- **Reference‑only check** – Over‑reliance on `this == o` leads to thinking that only identical references return `true`.\n- **ClassCastException** – Forgetting the protective `instanceof` test, so they assume the cast will always happen.\n\nAll stem from incomplete knowledge of overriding rules and the equals contract.",
+      "subject": "Computer Science",
+      "topics": [
+        "T005"
+      ]
+    }
+  ]
+}

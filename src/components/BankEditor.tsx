@@ -15,7 +15,7 @@ const markdownComponents = {
     const match = /language-(\w+)/.exec(className || "");
     if (!inline && match) {
       return (
-        <pre className="bg-slate-900 text-slate-100 rounded p-3 overflow-auto text-xs" {...rest}>
+        <pre className="bg-slate-50 text-slate-900 border border-slate-200 rounded p-3 overflow-auto text-xs" {...rest}>
           <code>{String(children).replace(/\n$/, "")}</code>
         </pre>
       );
@@ -223,7 +223,7 @@ export default function BankEditor({ subject }: BankEditorProps) {
             {/* Left: Question + Preview */}
             <div className="flex flex-col gap-3 h-full">
               <label className="block text-xs font-semibold text-slate-700 mb-1">Question</label>
-              <div className="prose prose-sm max-w-none border border-blue-100 rounded p-3 bg-blue-50">
+              <div className="prose prose-sm max-w-none prose-pre:!bg-slate-50 prose-pre:!text-slate-900 prose-pre:!border prose-pre:!border-slate-200 prose-code:!bg-slate-100 prose-code:!text-slate-800 border border-blue-100 rounded p-3 bg-blue-50">
                 <RichMarkdown content={selected.text} />
               </div>
               <textarea

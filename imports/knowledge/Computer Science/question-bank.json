@@ -1579,16 +1579,16 @@
       "difficulty": "D1",
       "cognitive_level": "B2",
       "content": {
-        "text": "Consider s1 and s2 defined as follows. String s1 = new String(\"hello\"); String s2 = new String(\"hello\"); Which of the following is/are correct ways to see if s1 and s2 hold identical strings?",
+        "text": "Consider `s1` and `s2` defined as follows. \n```java\nString s1 = new String(\"hello\"); \nString s2 = new String(\"hello”);\n```\n Which of the following is/are correct ways to see if `s1` and `s2` hold identical strings?\n\nI. `if (s1 == s2)`\n\nII. `if (s1.compareTo(s2) = 0)`\n\nIII. `if (s1.equals(s2))`",
         "options": [
           {
             "id": "a",
-            "text": "I only: if (s1 == s2)",
+            "text": "I only",
             "is_correct": false
           },
           {
             "id": "b",
-            "text": "III only: if (s1.equals(s2))",
+            "text": "III only",
             "is_correct": false
           },
           {
@@ -1598,7 +1598,7 @@
           },
           {
             "id": "d",
-            "text": "II and III only: if (s1.compareTo(s2) == 0) AND if (s1.equals(s2))",
+            "text": "II and III only",
             "is_correct": true
           },
           {
@@ -1849,7 +1849,7 @@
       "difficulty": "D1",
       "cognitive_level": "B2",
       "content": {
-        "text": "Consider the following expression: a / b + c – d % e * f Which of the expressions given below is equivalent?",
+        "text": "Consider the following expression: \n\n`a / b + c – d % e * f` \n\nWhich of the expressions given below is equivalent?",
         "options": [
           {
             "id": "a",
@@ -1884,7 +1884,7 @@
           "T001"
         ],
         "subtopics": [
-          "ST004",
+          "ST003",
           "ST005"
         ],
         "skills": [

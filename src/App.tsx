@@ -27,7 +27,7 @@ interface StreamEvent {
   done: boolean;
 }
 
-const sessionFileFilter = { name: "Rubrix Session", extensions: ["json"] };
+const sessionFileFilter = { name: "Rubrix Session", extensions: ["json", "md"] };
 
 function parseSessionQuestions(raw: unknown): Question[] {
   const payload: unknown[] | null = Array.isArray(raw)
@@ -156,6 +156,95 @@ function parseSessionQuestions(raw: unknown): Question[] {
   }
 
   return normalized;
+}
+
+function parseMarkdownQuestions(content: string): Question[] {
+  const warn = (message: string) => {
+    console.warn(`[Rubrix Markdown] ${message}`);
+  };
+
+  // Split by numbered questions (1., 2., 3., etc.)
+  const questionBlocks = content.split(/^\d+\.\s+/m).filter(block => block.trim().length > 0);
+
+  if (questionBlocks.length === 0) {
+    throw new Error("No questions found in markdown file");
+  }
+
+  const questions: Question[] = [];
+
+  questionBlocks.forEach((block, index) => {
+    const lines = block.split('\n');
+
+    // Find where answers start (first line starting with "a.")
+    let answerStartIndex = lines.findIndex(line => line.trim().startsWith('a.'));
+
+    if (answerStartIndex === -1) {
+      warn(`Question ${index + 1} has no answers; skipping.`);
+      return;
+    }
+
+    // Question text is everything before the first answer
+    const questionText = lines.slice(0, answerStartIndex).join('\n').trim();
+
+    if (!questionText) {
+      warn(`Question ${index + 1} has no text; skipping.`);
+      return;
+    }
+
+    // Extract answers (lines starting with "a.")
+    const answers: Answer[] = [];
+    let currentAnswer = '';
+    let answerIndex = 0;
+
+    for (let i = answerStartIndex; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      if (line.startsWith('a.')) {
+        // Save previous answer if exists
+        if (currentAnswer) {
+          answers.push({
+            text: currentAnswer.trim(),
+            is_correct: answerIndex === 0, // First answer is correct
+          });
+          answerIndex++;
+        }
+        // Start new answer, removing "a." prefix and any markdown formatting
+        currentAnswer = line.substring(2).trim().replace(/\*\*/g, '');
+      } else if (currentAnswer) {
+        // Continue multi-line answer
+        currentAnswer += '\n' + line;
+      }
+    }
+
+    // Add last answer
+    if (currentAnswer) {
+      answers.push({
+        text: currentAnswer.trim(),
+        is_correct: answerIndex === 0, // First answer is correct
+      });
+    }
+
+    if (answers.length === 0) {
+      warn(`Question ${index + 1} has no valid answers after parsing; skipping.`);
+      return;
+    }
+
+    questions.push({
+      id: `q${index + 1}`,
+      text: questionText,
+      answers,
+      explanation: undefined,
+      distractors: undefined,
+      subject: undefined,
+      topics: undefined,
+    });
+  });
+
+  if (questions.length === 0) {
+    throw new Error("No valid questions found in markdown file");
+  }
+
+  return questions;
 }
 
 function App() {
@@ -558,9 +647,17 @@ function App() {
 
     try {
       const content = await readTextFile(filePath);
-      const parsed = parseSessionQuestions(JSON.parse(content));
+
+      // Detect file type and parse accordingly
+      let parsed: Question[];
+      if (filePath.toLowerCase().endsWith('.md')) {
+        parsed = parseMarkdownQuestions(content);
+      } else {
+        parsed = parseSessionQuestions(JSON.parse(content));
+      }
+
       setQuestions(parsed);
-      await invoke("set_questions", { new_questions: parsed });
+      await invoke("set_questions", { newQuestions: parsed });
       setStatus(
         `Loaded ${parsed.length} question${parsed.length === 1 ? "" : "s"} from session`
       );

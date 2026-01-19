@@ -40,6 +40,7 @@
           "T011",
           "T010"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -88,6 +89,7 @@
           "T043",
           "T018"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -135,6 +137,7 @@
           "T028",
           "T030"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -181,6 +184,7 @@
         "topics": [
           "T041"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -228,6 +232,7 @@
           "T049",
           "T055"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -274,6 +279,7 @@
         "topics": [
           "T031"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -321,6 +327,7 @@
           "T011",
           "T016"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -367,6 +374,7 @@
         "topics": [
           "T027"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -414,6 +422,7 @@
           "T050",
           "T054"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -460,6 +469,7 @@
         "topics": [
           "T028"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -507,6 +517,7 @@
           "T004",
           "T006"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -555,6 +566,7 @@
           "T021",
           "T023"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -601,6 +613,7 @@
         "topics": [
           "T055"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -647,6 +660,7 @@
         "topics": [
           "T037"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -694,6 +708,7 @@
           "T029",
           "T025"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -740,6 +755,7 @@
         "topics": [
           "T036"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -787,6 +803,7 @@
           "T056",
           "T055"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -834,6 +851,7 @@
           "T029",
           "T030"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -880,6 +898,7 @@
         "topics": [
           "T009"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -926,6 +945,7 @@
         "topics": [
           "T026"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -972,6 +992,7 @@
         "topics": [
           "T032"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1018,6 +1039,7 @@
         "topics": [
           "T028"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1064,6 +1086,7 @@
         "topics": [
           "T023"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1076,7 +1099,7 @@
       "difficulty": "",
       "cognitive_level": "",
       "content": {
-        "text": "Which of the following series converge conditionally?I. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{(-1)^n}{n}$II. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{(-1)^n}{n!}$III. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{(-1)^n}{n^2}$",
+        "text": "Which of the following series converge conditionally?\n\nI. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{(-1)^n}{n}$\n\nII. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{(-1)^n}{n!}$\n\nIII. $\\displaystyle\\sum_{n=1}^{\\infty} \\frac{(-1)^n}{n^2}$",
         "options": [
           {
             "id": "a",
@@ -1111,6 +1134,7 @@
           "T053",
           "T050"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1158,6 +1182,7 @@
           "T035",
           "T017"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1205,6 +1230,7 @@
           "T056",
           "T001"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1251,6 +1277,7 @@
         "topics": [
           "T057"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1297,6 +1324,7 @@
         "topics": [
           "T034"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1345,6 +1373,7 @@
           "T006",
           "T021"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1392,6 +1421,7 @@
           "T007",
           "T022"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1438,6 +1468,7 @@
         "topics": [
           "T028"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1484,6 +1515,7 @@
         "topics": [
           "T057"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1531,6 +1563,7 @@
           "T025",
           "T023"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1577,6 +1610,7 @@
         "topics": [
           "T023"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1623,6 +1657,7 @@
         "topics": [
           "T028"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1669,6 +1704,7 @@
         "topics": [
           "T004"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1716,6 +1752,7 @@
           "T023",
           "T011"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1763,6 +1800,7 @@
           "T017",
           "T011"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1810,6 +1848,7 @@
           "T028",
           "T022"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1856,6 +1895,7 @@
         "topics": [
           "T039"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1903,6 +1943,7 @@
           "T023",
           "T025"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1950,6 +1991,7 @@
           "T018",
           "T029"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -1997,6 +2039,7 @@
           "T050",
           "T052"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -2044,6 +2087,7 @@
           "T045",
           "T046"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {
@@ -2091,6 +2135,7 @@
           "T013",
           "T011"
         ],
+        "subtopics": null,
         "skills": []
       },
       "distractors": {

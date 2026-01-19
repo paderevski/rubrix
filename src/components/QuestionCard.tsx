@@ -7,7 +7,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { nightOwl } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { ghcolors } from "react-syntax-highlighter/dist/esm/styles/prism";
 import "katex/dist/katex.min.css";
 
 interface QuestionCardProps {
@@ -35,7 +35,7 @@ const questionMarkdownComponents = {
     const match = /language-(\w+)/.exec(className || "");
     return !inline && match ? (
       <SyntaxHighlighter
-        style={nightOwl}
+        style={ghcolors}
         language={match[1]}
         PreTag="div"
         customStyle={{ margin: 0, borderRadius: "0.5rem" }}
@@ -196,7 +196,7 @@ export default function QuestionCard({
       {/* Content */}
       <div className="p-4">
         {/* Question Text (with HTML, Markdown, LaTeX, and code blocks) */}
-        <div className="mb-4 prose prose-sm max-w-none">
+        <div className="prose mb-4">
           <RichMarkdown content={question.text} />
         </div>
 
@@ -217,7 +217,6 @@ export default function QuestionCard({
               <div className="flex-1 text-sm">
                 <RichMarkdown
                   content={answer.text}
-                  className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-pre:my-2"
                   components={{
                     p({ children }: any) {
                       return <>{children}</>;
@@ -247,7 +246,7 @@ export default function QuestionCard({
               )}
             </button>
             {showExplanation && (
-              <div className="px-4 py-3 border-t border-slate-200 bg-white prose prose-sm max-w-none">
+              <div className="prose px-4 py-3 border-t border-slate-200 bg-white">
                 <RichMarkdown content={formattedExplanation} />
               </div>
             )}
