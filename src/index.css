@@ -40,13 +40,13 @@ pre {
   border-radius: 0.5rem;
   overflow-x: auto;
   font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, Monaco, monospace;
-  font-size: 0.875rem;
+  font-size: 1rem !important;
   line-height: 1.5;
 }
 
 code {
-  font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, Monaco, monospace;
-  font-size: 0.875em;
+  font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, Monaco, monospace !important;
+  font-size: 1em !important;
   background-color: hsl(210 40% 96.1%);
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
@@ -59,7 +59,7 @@ code {
 
 .prose pre  {
     background-color: transparent;
-    font-size: 1rem;
+    font-size: 1rem !important;
 }
 
 pre code {

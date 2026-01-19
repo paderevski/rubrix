@@ -197,7 +197,7 @@ function parseMarkdownQuestions(content: string): Question[] {
     let answerIndex = 0;
 
     for (let i = answerStartIndex; i < lines.length; i++) {
-      const line = lines[i].trim();
+      const line = lines[i];
 
       if (line.startsWith('a.')) {
         // Save previous answer if exists
