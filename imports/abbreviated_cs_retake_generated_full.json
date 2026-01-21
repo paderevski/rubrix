@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "savedAt": "2026-01-19T21:58:49.745Z",
+  "savedAt": "2026-01-20T00:51:31.471Z",
   "questions": [
     {
       "id": "q1",
@@ -8,57 +8,45 @@
       "answers": [
         {
           "text": "`8 40 5`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "`8 64 5`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`8 64 8`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`8 5 40`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
     {
       "id": "q2",
-      "text": "In the following statement, `a` and `b` are properly declared and initialized `int` variables.\n\n```java\nboolean flag = ((a % 2 == 0) && (b % 2 == 0)) || ((a % 2 != 0) && (b % 2 != 0));\n```\n\nWhich of the following best describes the conditions in which `flag` is assigned the value `true`?",
+      "text": "In the following statement, `a` and `b` are properly declared and initialized `int` variables.\n\n```java\nboolean flag = ((a % 2 == 0) && (b % 2 == 0)) || \n                ((a % 2 != 0) && (b % 2 != 0));\n```\n\nWhich of the following best describes the conditions in which `flag` is assigned the value `true`?",
       "answers": [
         {
           "text": "When `a` and `b` are both even or both odd",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "When one of `a` and `b` is even and the other is odd",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "True for all integer values of `a` and `b`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "When `a` and `b` are equal (`a == b`)",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -68,27 +56,21 @@
       "answers": [
         {
           "text": "```java\nGadget g = new Gadget(\"iPhone\", 2020);\n```",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "```java\nGadget g = new Gadget(2020, \"iPhone\");\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```java\nGadget g = new Gadget(\"iPhone\", \"2020\");\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```java\nGadget g = Gadget(\"iPhone\", 2020);\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -98,27 +80,21 @@
       "answers": [
         {
           "text": "`5`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "`4`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`6`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`3`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -128,27 +104,21 @@
       "answers": [
         {
           "text": "`65.0`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "`60.0`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`80.0`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`75.0`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -158,27 +128,21 @@
       "answers": [
         {
           "text": "In line 1, changing the condition `j >= 0` to `j > 0`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "In line 1, changing the initialization `j = 6` to `j = 5`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "In line 1, changing the condition `j >= 0` to `j > 2`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "In line 1, changing the decrement `j -= 2` to `j -= 1`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -188,27 +152,21 @@
       "answers": [
         {
           "text": "`s.substring(5) + s.substring(0, 3)`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "`s.substring(4) + s.substring(0, 3)`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`s.substring(0, 3) + s.substring(5)`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`s.charAt(5) + s.charAt(0) + s.charAt(1) + s.charAt(2)`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -218,27 +176,21 @@
       "answers": [
         {
           "text": "`0.375, 0.0`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "`0.0, 0.0`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`0.375, 0.375`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`0.375, 1.0`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -248,27 +200,21 @@
       "answers": [
         {
           "text": "The `foo` method cannot be accessed from a class other than `Box`.",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "The `foo` method cannot be referenced from the static method `compare`.",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "The `foo` method must be declared `static` because `compare` is static.",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "The `compare` method must be an instance method (not `static`) to call `foo`.",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -313,27 +259,21 @@
       "answers": [
         {
           "text": "```java\npublic void foo(int num)\n{\n    z = num;\n}\n```",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "```java\npublic void foo(int z)\n{\n    z = z;\n}\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```java\nprivate void foo(int num)\n{\n    z = num;\n}\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```java\npublic void foo(int num)\n{\n    z == num;\n}\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -343,57 +283,45 @@
       "answers": [
         {
           "text": "`21`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "`15`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`27`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`36`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
     {
       "id": "q13",
-      "text": "Assume that `isMember`, `isExpired`, and `hasBadge` are boolean variables that have been properly declared and initialized. Which boolean expression is logically equivalent to the expression\n\n```java\n!(isMember || isExpired) && hasBadge\n```\n\nWrite an equivalent expression using only the variables `isMember`, `isExpired`, `hasBadge` and the operators `&&`, `||`, and `!`.",
+      "text": "Assume that `isMember`, `isExpired`, and `hasBadge` are boolean variables that have been properly declared and initialized. Which boolean expression is logically equivalent to the expression\n\n```java\n!(isMember || isExpired) && hasBadge\n```\n\nWrite an equivalent expression.",
       "answers": [
         {
           "text": "`(!isMember && !isExpired) && hasBadge`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "`(!isMember || !isExpired) && hasBadge`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`(!isMember && isExpired) && hasBadge`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`!(isMember && isExpired) && hasBadge`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -403,27 +331,21 @@
       "answers": [
         {
           "text": "`mis s is s`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "`mis s s s`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`mis sis sip`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`mis mis mis`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -433,27 +355,21 @@
       "answers": [
         {
           "text": "When the minimum value in `arr` is positive (greater than 0)",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "When the minimum value in `arr` is negative (less than 0)",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "When the maximum value in `arr` is positive (greater than 0)",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "When the minimum value in `arr` is the first element (`arr[0]`)",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -463,27 +379,21 @@
       "answers": [
         {
           "text": "It generates a random integer between -3 and 4, inclusive, and assigns it to `x`.",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "It always assigns the integer -3 to `x`.",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "It generates a random integer between -3 and 5, inclusive, and assigns it to `x`.",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "It generates a random integer between -2 and 5, inclusive, and assigns it to `x`.",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -493,27 +403,21 @@
       "answers": [
         {
           "text": "`3`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "`1`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`729`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`9`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -523,27 +427,21 @@
       "answers": [
         {
           "text": "```java\nint k = 0; k < j; k++\n```",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "```java\nint k = 0; k <= j; k++\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```java\nint k = 0; k == j; k++\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```java\nint k = 0; k < j; k--\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -553,27 +451,21 @@
       "answers": [
         {
           "text": "The `doSomething` method does not have access to variables named `s1` or `s2`.",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "The class has three instance variables (`a`, `b`, `c`), but its constructor has only two parameters (`s1`, `s2`).",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "The `doSomething` method is declared `static`, so it cannot access the instance variables `a` and `b`.",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "Assigning `a = s1` and `b = s2` in the constructor makes `s1` and `s2` become aliases for the fields, so `doSomething` can use `s1` and `s2`.",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -583,27 +475,21 @@
       "answers": [
         {
           "text": "`{0, 0, 1, 0, 3}`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "`{0, 1, 0, 3, 0}`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`{0, 0, 2, 0, 4}`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`{0, 0, 0, 0, 0}`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -613,27 +499,21 @@
       "answers": [
         {
           "text": "`[40, 10, 50]`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "`[40, 10, 50, 20]`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`[40, 50, 20]`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`[40, 30, 50]`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -643,27 +523,21 @@
       "answers": [
         {
           "text": "3",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "4",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "2",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "1",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -672,28 +546,22 @@
       "text": "A researcher wants to investigate whether students who took an engineering elective were more likely to participate in the school's robotics team. The researcher has access to the following data sets.\n\n- Data set 1 contains an entry for each club at the school. Each entry includes the club name and a list of the names of the club members.\n- Data set 2 contains an entry for each member of the robotics team. Each entry contains the member's name, the number of competitions the member has attended, and the member's favorite elective.\n- Data set 3 contains an entry for each student at the school. Each entry contains the student's name, a list of the courses the student took, and a list of the clubs the student participated in.\n- Data set 4 contains an entry for each student at the school. Each entry contains the student's name, the student's favorite elective, and the student's favorite club.\n\nWhich data set is most appropriate for the researcher's investigation? Explain your choice and briefly state why the other data sets are less suitable.",
       "answers": [
         {
-          "text": "Data set 3 — It lists, for each student, the courses taken and the clubs participated in, allowing direct comparison of robotics participation between students who did and did not take an engineering elective.",
-          "is_correct": true,
-          "explanation": null
+          "text": "Data set 1",
+          "is_correct": false
         },
         {
-          "text": "Data set 2 — It lists each robotics team member and their favorite elective, but since it covers only robotics members you cannot compare participation rates between students who did and did not take engineering electives.",
-          "is_correct": false,
-          "explanation": null
+          "text": "Data set 2",
+          "is_correct": false
         },
         {
-          "text": "Data set 4 — It lists each student's favorite elective and favorite club, but 'favorite' does not equal courses taken or actual membership, so it cannot identify who took an engineering elective or who joined the robotics team.",
-          "is_correct": false,
-          "explanation": null
+          "text": "Data set 3",
+          "is_correct": true
         },
         {
-          "text": "Data set 1 — It lists each club and its members, so you can identify robotics participants, but it does not include the courses students took, so you cannot determine who took engineering electives.",
-          "is_correct": false,
-          "explanation": null
+          "text": "Data set 4",
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -703,27 +571,21 @@
       "answers": [
         {
           "text": "`27 -13 7`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "`7 -13 27`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`29 -15 7`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`28 -12 8`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -733,27 +595,21 @@
       "answers": [
         {
           "text": "```java\nif ((a <= b && a >= c) || (a >= b && a <= c))\n    return a;\nelse if ((b <= a && b >= c) || (b >= a && b <= c))\n    return b;\nelse\n    return c;\n```",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "```java\nif ((a <= b || a >= c) || (a >= b || a <= c))\n    return a;\nelse if ((b <= a || b >= c) || (b >= a || b <= c))\n    return b;\nelse\n    return c;\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```java\nif ((a < b && a > c) || (a > b && a < c))\n    return a;\nelse if ((b < a && b > c) || (b > a && b < c))\n    return b;\nelse\n    return c;\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```java\nif (a <= b && b <= c)\n    return b;\nelse if (b <= a && a <= c)\n    return a;\nelse\n    return c;\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -763,27 +619,21 @@
       "answers": [
         {
           "text": "```java\nfor (int k = 0; k < mat[0].length; k++)\n{\n    for (int j = mat.length - 1; j >= 0; j--)\n    {\n        list.add(mat[j][k]);\n    }\n}\n```",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "```java\nfor (int k = 0; k < mat[0].length; k++)\n{\n    for (int j = 0; j < mat.length; j++)\n    {\n        list.add(mat[j][k]);\n    }\n}\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```java\nfor (int k = 0; k < mat[0].length; k++)\n{\n    for (int j = mat.length - 1; j >= 0; j--)\n    {\n        list.add(mat[k][j]);\n    }\n}\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```java\nfor (int k = 0; k < mat[0].length; k++)\n{\n    for (int j = 0; j < mat.length; j++)\n    {\n        list.add(0, mat[j][k]);\n    }\n}\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -793,57 +643,45 @@
       "answers": [
         {
           "text": "`{3, 6, 11, 12, 19, 18, 27}`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "`{3, 7, 11, 15, 19, 23, 27}`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`{4, 6, 10, 12, 16, 18, 22}`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`{3, 6, 11, 12, 19, 18, 21}`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
     {
       "id": "q28",
-      "text": "Consider the following code segment.\n\n```java\nArrayList<String> listA = new ArrayList<String>();\nlistA.add(\"p\");\nlistA.add(\"q\");\nlistA.add(\"r\");\nlistA.add(\"q\");\nArrayList<String> listB = new ArrayList<String>();\n/* missing code */\n```\n\nAfter executing this code segment, `listB` should contain $[\"q\",\"r\",\"q\",\"p\",\"p\",\"q\",\"r\",\"q\"]$. Which of the following can replace `/* missing code */` to produce this result?",
+      "text": "Consider the following code segment.\n\n```java\nArrayList<String> listA = new ArrayList<String>();\nlistA.add(\"p\");\nlistA.add(\"q\");\nlistA.add(\"r\");\nlistA.add(\"q\");\nArrayList<String> listB = new ArrayList<String>();\n/* missing code */\n```\n\nAfter executing this code segment, `listB` should contain `[\"q\",\"r\",\"q\",\"p\",\"p\",\"q\",\"r\",\"q”]`. Which of the following can replace `/* missing code */` to produce this result?",
       "answers": [
         {
           "text": "```java\nfor (int i = listA.size() - 1; i >= 0; i--)\n{\n    listB.add(listA.get(i));\n}\nfor (int i = 0; i < listA.size(); i++)\n{\n    listB.add(listA.get(i));\n}\n```",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "```java\nfor (int i = listA.size() - 1; i > 0; i--)\n{\n    listB.add(listA.get(i));\n}\nfor (int i = 0; i < listA.size(); i++)\n{\n    listB.add(listA.get(i));\n}\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```java\nfor (int i = listA.size() - 1; i >= 0; i--)\n{\n    listB.add(listA.get(i));\n}\nfor (int i = 1; i < listA.size(); i++)\n{\n    listB.add(listA.get(i));\n}\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```java\nfor (int i = listA.size() - 1; i >= 0; i--)\n{\n    listB.add(listA.get(i));\n}\nfor (int i = 0; i < listA.size(); i++)\n{\n    listB.add(0, listA.get(i));\n}\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -853,27 +691,21 @@
       "answers": [
         {
           "text": "It returns `true` if `list` is sorted from least to greatest and returns `false` otherwise.",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "It returns `true` if `list` is strictly increasing (each element greater than the previous) and returns `false` otherwise.",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "It returns `true` if `list` is sorted from greatest to least and returns `false` otherwise.",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "It returns `true` if every element in `list` is greater than or equal to the minimum element in `list` and returns `false` otherwise.",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -883,27 +715,21 @@
       "answers": [
         {
           "text": "```\n{{0, 0, 0},\n {0, 0, 3},\n {0, 2, 0},\n {1, 0, 0}}\n```",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "```\n{{0, 0, 0},\n {0, 0, 0},\n {0, 0, 3},\n {0, 2, 0}}\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```\n{{0, 0, 0},\n {0, 0, 2},\n {0, 1, 0},\n {0, 0, 0}}\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```\n{{0, 0, 0},\n {0, 0, 3},\n {0, 2, 0},\n {0, 0, 0}}\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -913,27 +739,21 @@
       "answers": [
         {
           "text": "The number of times that an element equal to `target` appears in column `x` of `arr`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "The number of times that an element equal to `target` appears in row `x` of `arr`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "The number of rows in `arr` that contain column `x`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "The number of times that an element equal to `target` appears anywhere in `arr`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -943,27 +763,21 @@
       "answers": [
         {
           "text": "`1`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "`0`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`2`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`3`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -973,27 +787,21 @@
       "answers": [
         {
           "text": "`[15, 25, 35, 45, 55, 5]`",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "`[45, 35, 25, 15, 55, 5]`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`[15, 35, 45, 25, 55, 5]`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "`[15, 25, 55, 55, 55, 5]`",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -1003,27 +811,21 @@
       "answers": [
         {
           "text": "5",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "1",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "4",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "6",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     },
@@ -1033,27 +835,21 @@
       "answers": [
         {
           "text": "```java\nint s = 0;\nfor (int j = 1; j <= 6; j++)\n{\n    s += j;\n}\n```",
-          "is_correct": true,
-          "explanation": null
+          "is_correct": true
         },
         {
           "text": "```java\nint s = 0;\nfor (int j = 2; j <= 6; j++)\n{\n    s += j;\n}\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```java\nint s = 0;\nfor (int j = 1; j <= 7; j++)\n{\n    s += j;\n}\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         },
         {
           "text": "```java\nint s = 0;\nfor (int j = 0; j < 6; j++)\n{\n    s += j;\n}\n```",
-          "is_correct": false,
-          "explanation": null
+          "is_correct": false
         }
       ],
-      "explanation": null,
-      "distractors": null,
       "subject": "",
       "topics": []
     }
