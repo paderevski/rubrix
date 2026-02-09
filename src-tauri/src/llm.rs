@@ -130,6 +130,7 @@ fn get_api_token(provided_token: Option<String>) -> Result<String, String> {
     // 1. Use explicitly provided token (from auth command)
     if let Some(token) = provided_token {
         eprintln!("INFO: Using provided API token (length={})", token.len());
+        eprintln!("DEBUG: Token value: {}", token);
 
         // Save to keychain in dev mode for future sessions
         if config::is_dev_mode() {
@@ -142,12 +143,15 @@ fn get_api_token(provided_token: Option<String>) -> Result<String, String> {
     // 2. DEV MODE: Try keychain first
     if config::is_dev_mode() {
         if let Some(token) = config::CredentialStore::load_token() {
+            eprintln!("INFO: Using token from keychain (length={})", token.len());
+            eprintln!("DEBUG: Token value: {}", token);
             return Ok(token);
         }
 
         // 3. Try DEV_AWS_TOKEN env var (for local .env overrides)
         if let Ok(token) = env::var("DEV_AWS_TOKEN") {
             eprintln!("INFO: Using DEV_AWS_TOKEN from environment");
+            eprintln!("DEBUG: Token value: {}", token);
             // Cache to keychain for next time
             let _ = config::CredentialStore::save_token(&token);
             return Ok(token);
@@ -157,6 +161,7 @@ fn get_api_token(provided_token: Option<String>) -> Result<String, String> {
     // 4. Try production env var (both dev and release)
     if let Ok(token) = env::var("AWS_BEARER_TOKEN_BEDROCK") {
         eprintln!("INFO: Using AWS_BEARER_TOKEN_BEDROCK from environment");
+        eprintln!("DEBUG: Token value: {}", token);
         return Ok(token);
     }
 

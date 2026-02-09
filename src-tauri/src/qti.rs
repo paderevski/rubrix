@@ -321,7 +321,7 @@ pub fn export_md(title: &str, questions: &[Question]) -> Result<String, String> 
     for (i, q) in questions.iter().enumerate() {
         let question_text =
             convert_codeblock_tables_to_markdown(&normalize_math_delimiters(q.text.trim()));
-        output.push_str(&format!("{}. {}\n\n", i + 1, question_text));
+        output.push_str(&format!("**Question {}.** {}\n\n", i + 1, question_text));
 
         let mut answers = q.answers.clone();
         answers.shuffle(&mut rng);
@@ -332,7 +332,7 @@ pub fn export_md(title: &str, questions: &[Question]) -> Result<String, String> 
                 answer.text.trim(),
             ));
             let formatted = format!("{}) {}", label, body);
-            output.push_str(&indent_block(&formatted, "    ", "    "));
+            output.push_str(&formatted);
             output.push('\n');
         }
 
