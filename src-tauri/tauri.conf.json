@@ -49,7 +49,7 @@
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "AP CS Test Generator",
+      "shortDescription": "Test Item Engine",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
@@ -68,7 +68,7 @@
         "fullscreen": false,
         "height": 800,
         "resizable": true,
-        "title": "Rubrix - AP CS Test Generator",
+        "title": "Catie - Test Item Engine",
         "width": 1200,
         "minWidth": 800,
         "minHeight": 600

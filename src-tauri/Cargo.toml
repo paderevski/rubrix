@@ -1,7 +1,7 @@
 [package]
 name = "rubrix"
 version = "0.4.0"
-description = "AI-powered AP CS Test Generator"
+description = "Content Aware Test Item Engine"
 authors = ["You"]
 edition = "2021"
 

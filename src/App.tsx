@@ -552,7 +552,7 @@ function App() {
 
     try {
       const content = await invoke<string>("export_to_md", {
-        title: "AP CS Questions",
+        title: "Quiz",
       });
       await writeTextFile(filePath, content);
       setStatus(`Exported to ${filePath}`);
@@ -572,7 +572,7 @@ function App() {
 
     try {
       const data = await invoke<number[]>("export_to_qti", {
-        title: "AP CS Questions",
+        title: "Quiz",
       });
       await writeBinaryFile(filePath, new Uint8Array(data));
       setStatus(`Exported to ${filePath}`);
@@ -597,7 +597,7 @@ function App() {
     try {
       setStatus("Converting to Word document...");
       const data = await invoke<number[]>("export_to_docx", {
-        title: "AP CS Questions",
+        title: "Quiz",
       });
       await writeBinaryFile(filePath, new Uint8Array(data));
       setStatus(`Exported to ${filePath}`);
@@ -682,9 +682,9 @@ function App() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b bg-white">
         <h1 className="text-xl font-semibold text-foreground">
-          📝 Rubrix
+          📝 Catie
           <span className="text-sm font-normal text-muted-foreground ml-2">
-            AP CS Test Generator
+            Test Item Engine
           </span>
         </h1>
 
