@@ -343,7 +343,7 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
 
     let sanitized_json = sanitize_json_string(&json_str);
 
-    let questions: Vec<Question> = serde_json::from_str(&sanitized_json).map_err(|e| {
+    let mut questions: Vec<Question> = serde_json::from_str(&sanitized_json).map_err(|e| {
         eprintln!("ERROR: Failed to parse JSON: {}", e);
         eprintln!(
             "JSON string: {}",
@@ -355,6 +355,10 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
             &sanitized_json[..sanitized_json.len().min(500)]
         )
     })?;
+
+    for question in &mut questions {
+        normalize_question_text(question);
+    }
 
     if questions.is_empty() {
         eprintln!("ERROR: Parsed JSON array is empty");
@@ -372,6 +376,71 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
     }
 
     Ok(result)
+}
+
+const DOUBLE_BACKSLASH_N_EXCEPTIONS: [&str; 5] = ["eq", "abla", "u", "ewline", "ewcommand"];
+
+fn normalize_question_text(question: &mut Question) {
+    question.text = replace_double_backslash_n(&question.text);
+
+    if let Some(explanation) = question.explanation.as_ref() {
+        question.explanation = Some(replace_double_backslash_n(explanation));
+    }
+
+    if let Some(distractors) = question.distractors.as_ref() {
+        question.distractors = Some(replace_double_backslash_n(distractors));
+    }
+
+    for answer in &mut question.answers {
+        answer.text = replace_double_backslash_n(&answer.text);
+        if let Some(explanation) = answer.explanation.as_ref() {
+            answer.explanation = Some(replace_double_backslash_n(explanation));
+        }
+    }
+}
+
+fn replace_double_backslash_n(input: &str) -> String {
+    let chars: Vec<char> = input.chars().collect();
+    let mut output = String::with_capacity(input.len());
+    let mut i = 0;
+
+    while i < chars.len() {
+        if chars[i] == '\\'
+            && i + 2 < chars.len()
+            && chars[i + 1] == '\\'
+            && chars[i + 2] == 'n'
+        {
+            let mut is_exception = false;
+            for exception in DOUBLE_BACKSLASH_N_EXCEPTIONS.iter() {
+                let end = i + 3 + exception.len();
+                if end <= chars.len()
+                    && chars[i + 3..end]
+                        .iter()
+                        .copied()
+                        .eq(exception.chars())
+                {
+                    is_exception = true;
+                    break;
+                }
+            }
+
+            if is_exception {
+                output.push(chars[i]);
+                output.push(chars[i + 1]);
+                output.push(chars[i + 2]);
+            } else {
+                output.push('\n');
+            }
+
+            i += 3;
+            continue;
+        }
+
+        output.push(chars[i]);
+        i += 1;
+    }
+
+    output
 }
 
 /// Ensure literal control characters inside JSON strings are escaped so serde can parse them.
