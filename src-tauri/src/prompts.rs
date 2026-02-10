@@ -405,20 +405,50 @@ fn replace_double_backslash_n(input: &str) -> String {
     let mut i = 0;
 
     while i < chars.len() {
-        if chars[i] == '\\'
-            && i + 2 < chars.len()
-            && chars[i + 1] == '\\'
-            && chars[i + 2] == 'n'
-        {
+        if chars[i] == '\\' && i + 2 < chars.len() && chars[i + 1] == '\\' {
+            let next = chars[i + 2];
+            if next == '(' {
+                output.push('$');
+                i += 3;
+                while i < chars.len() && (chars[i] == ' ' || chars[i] == '\t') {
+                    i += 1;
+                }
+                continue;
+            }
+
+            if next == ')' {
+                while output.ends_with(' ') || output.ends_with('\t') {
+                    output.pop();
+                }
+                output.push('$');
+                i += 3;
+                continue;
+            }
+
+            if next == '[' {
+                output.push_str("$$");
+                i += 3;
+                while i < chars.len() && (chars[i] == ' ' || chars[i] == '\t') {
+                    i += 1;
+                }
+                continue;
+            }
+
+            if next == ']' {
+                while output.ends_with(' ') || output.ends_with('\t') {
+                    output.pop();
+                }
+                output.push_str("$$");
+                i += 3;
+                continue;
+            }
+        }
+
+        if chars[i] == '\\' && i + 2 < chars.len() && chars[i + 1] == '\\' && chars[i + 2] == 'n' {
             let mut is_exception = false;
             for exception in DOUBLE_BACKSLASH_N_EXCEPTIONS.iter() {
                 let end = i + 3 + exception.len();
-                if end <= chars.len()
-                    && chars[i + 3..end]
-                        .iter()
-                        .copied()
-                        .eq(exception.chars())
-                {
+                if end <= chars.len() && chars[i + 3..end].iter().copied().eq(exception.chars()) {
                     is_exception = true;
                     break;
                 }
