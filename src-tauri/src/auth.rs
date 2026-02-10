@@ -6,6 +6,8 @@ use serde_json;
 use sha2::{Digest, Sha256};
 use std::env;
 
+const BUILT_LAMBDA_URL: Option<&str> = option_env!("LAMBDA_URL");
+
 #[derive(Serialize)]
 struct SecretRequest {
     user: String,
@@ -27,9 +29,14 @@ pub async fn get_bedrock_api_key(
     user: &str,
     password: &str,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    let lambda_url = env::var("LAMBDA_URL").map_err(|_| {
-        "LAMBDA_URL environment variable not set. Configure your Lambda Function URL."
-    })?;
+    let lambda_url = match env::var("LAMBDA_URL") {
+        Ok(url) => url,
+        Err(_) => BUILT_LAMBDA_URL
+            .map(|url| url.to_string())
+            .ok_or_else(|| {
+                "LAMBDA_URL not set. Configure the environment variable or bake it at build time."
+            })?,
+    };
 
     // Hash password client-side (SHA256)
     let mut hasher = Sha256::new();
