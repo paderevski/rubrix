@@ -30,10 +30,14 @@ Study these examples carefully. Pay special attention to:
    - Now look at the correct answer and produce two more wrong answers from simple algebraic or numerical transformations (such as making it negative, off-by-one, etc)
    - You will end up with one correct and four wrong answer choices.
 3. **Write Output**
-   - Return a **single JSON array** of question objects. No extra commentary.
+  - Return a **single JSON array** of question objects.
+  - Output JSON only. Do not include any text before or after the array.
    - **Formatting Rules**
      * Use ONLY `$...$` for inline math and `$$...$$` for display math.
      * No HTML tags.
+
+*** User instructions
+{user_instructions}
 
 **Output Format (JSON Array):**
 
@@ -41,22 +45,18 @@ Return your response as a JSON array containing {count} question object(s). Each
 
 ```json
 [
-  {{
+  {
     "text": "Question text here with markdown formatting like **bold** or `code`. Can include code blocks:\n\n```java\nSystem.out.println(\"Hello\");\n```",
     "explanation": "Step-by-step walkthrough of how to arrive at the correct answer. Verify correct answer. Design distractors.",
     "distractors": "Analysis of why each wrong answer is tempting and what misconception leads to it",
     "answers": [
-      {{"text": "Answer text (use markdown like `42` for code)", "is_correct": false, "explanation": "Why this is wrong"}},
-      {{"text": "Another answer", "is_correct": true, "explanation": "Why this is correct"}},
-      {{"text": "Third answer", "is_correct": false, "explanation": "Common misconception"}},
-      {{"text": "Fourth answer", "is_correct": false, "explanation": "Off-by-one error"}},
-      {{"text": "Fifth answer", "is_correct": false, "explanation": "Calculation mistake"}}
+      {"text": "Answer text (use markdown like `42` for code)", "is_correct": false, "explanation": "Why this is wrong"},
+      {"text": "Another answer", "is_correct": true, "explanation": "Why this is correct"},
+      {"text": "Third answer", "is_correct": false, "explanation": "Common misconception"},
+      {"text": "Fourth answer", "is_correct": false, "explanation": "Off-by-one error"},
+      {"text": "Fifth answer", "is_correct": false, "explanation": "Calculation mistake"}
     ]
-  }}
+  }
 ]
 ```
-
 *** User instructions
-{user_instructions}
-
-**Output Now:** Return a single JSON array with {count} question(s) following the schema.
