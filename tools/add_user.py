@@ -28,7 +28,7 @@ def hash_password(password: str) -> str:
 def add_user(username: str, password: str, bedrock_api_key: str):
     """Store both password hash and Bedrock API key for a user"""
     password_hash = hash_password(password)
-    
+
     # Store password hash for validation
     ssm.put_parameter(
         Name=f"/secrets/{username}/password_hash",
@@ -37,7 +37,7 @@ def add_user(username: str, password: str, bedrock_api_key: str):
         Overwrite=True,
     )
     print(f"✓ Stored password hash for user: {username}")
-    
+
     # Store Bedrock API key to return on successful auth
     ssm.put_parameter(
         Name=f"/secrets/{username}/secret",
@@ -46,7 +46,7 @@ def add_user(username: str, password: str, bedrock_api_key: str):
         Overwrite=True,
     )
     print(f"✓ Stored Bedrock API key for user: {username}")
-    
+
     print(f"\nUser '{username}' is now configured for authentication.")
     print(f"Password hash (for verification): {password_hash}")
 
@@ -55,15 +55,15 @@ def main():
     if len(sys.argv) != 4:
         print(__doc__)
         sys.exit(1)
-    
+
     username = sys.argv[1]
     password = sys.argv[2]
     bedrock_api_key = sys.argv[3]
-    
+
     if not username or not password or not bedrock_api_key:
         print("Error: All arguments must be non-empty")
         sys.exit(1)
-    
+
     try:
         add_user(username, password, bedrock_api_key)
     except Exception as e:

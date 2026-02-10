@@ -27,14 +27,15 @@ pub async fn get_bedrock_api_key(
     user: &str,
     password: &str,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    let lambda_url = env::var("LAMBDA_URL")
-        .map_err(|_| "LAMBDA_URL environment variable not set. Configure your Lambda Function URL.")?;
+    let lambda_url = env::var("LAMBDA_URL").map_err(|_| {
+        "LAMBDA_URL environment variable not set. Configure your Lambda Function URL."
+    })?;
 
     // Hash password client-side (SHA256)
     let mut hasher = Sha256::new();
     hasher.update(password.as_bytes());
     let password_hash = format!("{:x}", hasher.finalize());
-    
+
     eprintln!("DEBUG AUTH: user={}, password_len={}", user, password.len());
     eprintln!("DEBUG AUTH: password_hash={}", password_hash);
 
@@ -44,9 +45,12 @@ pub async fn get_bedrock_api_key(
         user: user.to_string(),
         password_hash: password_hash.clone(),
     };
-    
+
     eprintln!("DEBUG AUTH: sending request to {}", lambda_url);
-    eprintln!("DEBUG AUTH: request body: user={}, password_hash={}", user, password_hash);
+    eprintln!(
+        "DEBUG AUTH: request body: user={}, password_hash={}",
+        user, password_hash
+    );
 
     let response = client
         .post(&lambda_url)
@@ -102,10 +106,22 @@ mod tests {
         // These expected values were generated with:
         // python3 -c "import hashlib; print(hashlib.sha256(b'test').hexdigest())"
         let test_cases = vec![
-            ("test", "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"),
-            ("mypassword123", "6e659deaa85842cdabb5c6305fcc40033ba43772ec00d45c2a3c921741a5e377"),
-            ("", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"),
-            ("alice", "2bd806c97f0e00af1a1fc3328fa763a9269723c8db8fac4f93af71db186d6e90"),
+            (
+                "test",
+                "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+            ),
+            (
+                "mypassword123",
+                "6e659deaa85842cdabb5c6305fcc40033ba43772ec00d45c2a3c921741a5e377",
+            ),
+            (
+                "",
+                "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            ),
+            (
+                "alice",
+                "2bd806c97f0e00af1a1fc3328fa763a9269723c8db8fac4f93af71db186d6e90",
+            ),
         ];
 
         for (password, expected) in test_cases {

@@ -13,14 +13,8 @@ fn hash_password_rust(password: &str) -> String {
 }
 
 fn main() {
-    let test_cases = vec![
-        "mypassword123",
-        "test", 
-        "alice",
-        "",
-        "secret!@#$%",
-    ];
-    
+    let test_cases = vec!["mypassword123", "test", "alice", "", "secret!@#$%"];
+
     println!("Testing password hashing (Rust):\n");
     for password in test_cases {
         let hash = hash_password_rust(password);
@@ -28,7 +22,7 @@ fn main() {
         println!("Hash:     {}", hash);
         println!();
     }
-    
+
     // Test with command line args
     let args: Vec<String> = std::env::args().collect();
     if args.len() > 1 {
