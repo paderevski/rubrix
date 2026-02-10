@@ -1,5 +1,42 @@
 # TODO
 
+## Bedrock Gateway Migration (Plan)
+
+### Goal
+Move from client-side Bedrock calls to a server-side gateway so the app sends user/pass + prompt to a gateway, and the gateway calls Bedrock. Keep SSE streaming and existing `llm-stream` event shape.
+
+### Phase 0: Contract
+- Endpoint: `POST /generate`
+- Request JSON: `{ "user": "...", "password_hash": "...", "prompt": "...", "meta": { ... } }`
+- Response: `text/event-stream` SSE chunks with `data: {"text":"...","done":false}` and a final `done=true` event
+
+### Phase 1: Lambda Gateway (Python)
+- Location: use existing Lambda folder
+- Steps:
+   - Validate user: read `/secrets/{user}/password_hash` from SSM with `WithDecryption=True`
+   - Compare with `password_hash`
+   - Call Bedrock with server-side credentials
+   - Stream SSE chunks back to client
+- Use API Gateway HTTP API with streaming enabled
+
+### Phase 2: Client Swap (Tauri)
+- Replace direct Bedrock calls in `src-tauri/src/llm.rs` with gateway calls
+- Preserve `llm-stream` event payload shape
+
+### Phase 3: Usage Control (DynamoDB)
+- Table: `rubrix_usage`
+- Keys: partition `user`, sort `date` (YYYY-MM-DD)
+- Fields: `requests`, `tokens_used`, `last_request_at`
+- Flow per request:
+   - Read usage row
+   - Enforce limits (requests/day, tokens/day)
+   - Atomic increment
+
+### Phase 4: Security/ops
+- CloudWatch logging for audit/usage
+- API Gateway throttling and IP rate limits
+- Remove client Bedrock token usage entirely
+
 ## Git Workflow Improvement
 
 ### Current workflow:

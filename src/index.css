@@ -56,14 +56,14 @@ body {
 /* Raw reasoning/streaming tokens */
 .code-block--reasoning {
   font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, Monaco, monospace;
-  background-color: hsl(222.2 84% 4.9%);
-  color: hsl(210 40% 98%);
+  background-color: hsl(240, 9%, 98%);
+  color: hsl(210 40% 8%);
   padding: 1rem;
   border-radius: 0.5rem;
   overflow-x: auto;
-  font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, Monaco, monospace;
-  font-size: 1rem !important;
+  font-size: 0.7rem !important;
   line-height: 1.5;
+  border: 1px solid hsl(210 40% 90%);
 }
 
 /* Inline code styling */
