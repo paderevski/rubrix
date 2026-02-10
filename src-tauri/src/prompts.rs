@@ -494,6 +494,9 @@ fn sanitize_json_string(input: &str) -> String {
                         // Valid JSON escape sequence
                         output.push(ch);
                     }
+                    '\n' => output.push('n'),
+                    '\r' => output.push('r'),
+                    '\t' => output.push('t'),
                     _ => {
                         // Invalid escape sequence (common for LaTeX like \(, \), \[, \], etc.)
                         // Add another backslash to make it literal
@@ -596,6 +599,15 @@ mod tests {
         assert_eq!(questions.len(), 2);
         assert_eq!(questions[0].id, "q1");
         assert_eq!(questions[1].id, "q2");
+    }
+
+    #[test]
+    fn test_backslash_newline_sanitization() {
+        let input = "[\n  {\n    \"text\": \"Line 1\\\nLine 2\",\n    \"answers\": [\n      {\"text\": \"A\", \"is_correct\": true}\n    ]\n  }\n]";
+
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert_eq!(questions[0].text, "Line 1\nLine 2");
     }
 
     #[test]
