@@ -7,6 +7,7 @@ edition = "2021"
 
 [build-dependencies]
 tauri-build = { version = "1", features = [] }
+dotenvy = "0.15.7"
 
 [dependencies]
 tauri = { version = "1", features = [ "fs-all", "dialog-open", "shell-open", "dialog-save"] }
