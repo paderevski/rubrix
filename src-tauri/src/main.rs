@@ -15,7 +15,7 @@ use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use tauri::{AppHandle, CustomMenuItem, Manager, Menu, State, Submenu};
+use tauri::{AppHandle, CustomMenuItem, Manager, Menu, MenuItem, State, Submenu};
 
 fn load_env_vars() {
     // Load local env files from src-tauri
@@ -270,10 +270,7 @@ fn load_saved_credentials(app_handle: &AppHandle) -> Result<Option<SavedCredenti
     Ok(Some(creds))
 }
 
-fn save_saved_credentials(
-    app_handle: &AppHandle,
-    creds: &SavedCredentials,
-) -> Result<(), String> {
+fn save_saved_credentials(app_handle: &AppHandle, creds: &SavedCredentials) -> Result<(), String> {
     let path = credentials_path(app_handle)?;
     let parent = path
         .parent()
@@ -542,13 +539,7 @@ async fn authenticate(
     let mut cached_key = state.api_key.lock().unwrap();
     *cached_key = Some(api_key.clone());
 
-    save_saved_credentials(
-        &app_handle,
-        &SavedCredentials {
-            username,
-            password,
-        },
-    )?;
+    save_saved_credentials(&app_handle, &SavedCredentials { username, password })?;
 
     Ok(())
 }
@@ -831,6 +822,16 @@ fn main() {
     let zoom_out = CustomMenuItem::new("zoom_out", "Zoom Out").accelerator("CmdOrCtrl+-");
     let zoom_reset = CustomMenuItem::new("zoom_reset", "Actual Size").accelerator("CmdOrCtrl+0");
 
+    let file_menu = Submenu::new("File", Menu::new().add_native_item(MenuItem::Quit));
+    let edit_menu = Submenu::new(
+        "Edit",
+        Menu::new()
+            .add_native_item(MenuItem::Cut)
+            .add_native_item(MenuItem::Copy)
+            .add_native_item(MenuItem::Paste)
+            .add_native_item(MenuItem::SelectAll),
+    );
+
     let view_menu = Submenu::new(
         "View",
         Menu::new()
@@ -839,7 +840,10 @@ fn main() {
             .add_item(zoom_reset),
     );
 
-    let menu = Menu::new().add_submenu(view_menu);
+    let menu = Menu::new()
+        .add_submenu(file_menu)
+        .add_submenu(edit_menu)
+        .add_submenu(view_menu);
 
     tauri::Builder::default()
         .manage(state)
