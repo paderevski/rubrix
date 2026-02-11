@@ -308,7 +308,7 @@ function App() {
 
   const checkAuthentication = async () => {
     try {
-      const isAuth = await invoke<boolean>("check_auth");
+      const isAuth = await invoke<boolean>("auto_authenticate");
       setIsAuthenticated(isAuth);
     } catch (err) {
       console.error("Failed to check auth:", err);

@@ -131,41 +131,26 @@ fn get_api_token(provided_token: Option<String>) -> Result<String, String> {
     if let Some(token) = provided_token {
         eprintln!("INFO: Using provided API token (length={})", token.len());
         eprintln!("DEBUG: Token value: {}", token);
-
-        // Save to keychain in dev mode for future sessions
-        if config::is_dev_mode() {
-            let _ = config::CredentialStore::save_token(&token);
-        }
-
         return Ok(token);
     }
 
-    // 2. DEV MODE: Try keychain first
+    // 2. DEV MODE: Try DEV_AWS_TOKEN env var (for local .env overrides)
     if config::is_dev_mode() {
-        if let Some(token) = config::CredentialStore::load_token() {
-            eprintln!("INFO: Using token from keychain (length={})", token.len());
-            eprintln!("DEBUG: Token value: {}", token);
-            return Ok(token);
-        }
-
-        // 3. Try DEV_AWS_TOKEN env var (for local .env overrides)
         if let Ok(token) = env::var("DEV_AWS_TOKEN") {
             eprintln!("INFO: Using DEV_AWS_TOKEN from environment");
             eprintln!("DEBUG: Token value: {}", token);
-            // Cache to keychain for next time
-            let _ = config::CredentialStore::save_token(&token);
             return Ok(token);
         }
     }
 
-    // 4. Try production env var (both dev and release)
+    // 3. Try production env var (both dev and release)
     if let Ok(token) = env::var("AWS_BEARER_TOKEN_BEDROCK") {
         eprintln!("INFO: Using AWS_BEARER_TOKEN_BEDROCK from environment");
         eprintln!("DEBUG: Token value: {}", token);
         return Ok(token);
     }
 
-    // 5. No token available
+    // 4. No token available
     if config::is_dev_mode() {
         Err("No token available. Authenticate or set DEV_AWS_TOKEN in .env".into())
     } else {
@@ -234,20 +219,66 @@ pub async fn generate(
         "INFO: Dispatching Bedrock request ({} bytes payload)",
         prompt.len()
     );
-    let response = client
-        .post(BEDROCK_ENDPOINT)
-        .headers(headers)
-        .json(&request)
-        .send()
-        .await
-        .map_err(|e| format!("Failed to send request: {}", e))?;
+    let mut response = None;
+    let mut last_error: Option<String> = None;
+    let max_retries = 3;
 
-    let status = response.status();
-    eprintln!("INFO: Bedrock response status: {}", status);
-    if !status.is_success() {
-        let body = response.text().await.unwrap_or_default();
-        return Err(format!("Bedrock API error ({}): {}", status.as_u16(), body));
+    for attempt in 0..=max_retries {
+        let result = client
+            .post(BEDROCK_ENDPOINT)
+            .headers(headers.clone())
+            .json(&request)
+            .send()
+            .await;
+
+        match result {
+            Ok(res) => {
+                let status = res.status();
+                eprintln!("INFO: Bedrock response status: {}", status);
+                if status.is_success() {
+                    response = Some(res);
+                    break;
+                }
+
+                let body = res.text().await.unwrap_or_default();
+                let err_msg = format!("Bedrock API error ({}): {}", status.as_u16(), body);
+
+                if attempt < max_retries && is_retryable_status(status.as_u16()) {
+                    let delay_ms = 500_u64.saturating_mul(2_u64.pow(attempt));
+                    eprintln!(
+                        "WARN: Bedrock transient error, retrying in {}ms (attempt {}/{})",
+                        delay_ms,
+                        attempt + 1,
+                        max_retries + 1
+                    );
+                    tokio::time::sleep(Duration::from_millis(delay_ms)).await;
+                    continue;
+                }
+
+                last_error = Some(err_msg);
+                break;
+            }
+            Err(e) => {
+                let err_msg = format!("Failed to send request: {}", e);
+                if attempt < max_retries {
+                    let delay_ms = 500_u64.saturating_mul(2_u64.pow(attempt));
+                    eprintln!(
+                        "WARN: Request failed, retrying in {}ms (attempt {}/{})",
+                        delay_ms,
+                        attempt + 1,
+                        max_retries + 1
+                    );
+                    tokio::time::sleep(Duration::from_millis(delay_ms)).await;
+                    continue;
+                }
+                last_error = Some(err_msg);
+                break;
+            }
+        }
     }
+
+    let response = response
+        .ok_or_else(|| last_error.unwrap_or_else(|| "Bedrock request failed".to_string()))?;
 
     let mut stream = response.bytes_stream();
     let mut buffer = String::new();
@@ -312,6 +343,10 @@ pub async fn generate(
     emit_stream(&app_handle, &accumulated, true);
     log_llm_interaction(prompt, &accumulated);
     Ok(accumulated)
+}
+
+fn is_retryable_status(status: u16) -> bool {
+    status == 429 || status >= 500
 }
 
 /// Emit a streaming event to the frontend

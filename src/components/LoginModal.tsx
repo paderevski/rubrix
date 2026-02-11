@@ -105,7 +105,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, error }: LoginMod
         <div className="mt-4 pt-4 border-t border-gray-200">
           <p className="text-xs text-gray-500">
             Your password is hashed client-side (SHA256) before transmission.
-            The API key is cached in memory for this session only.
+            Credentials are stored locally on this device for automatic login.
           </p>
         </div>
       </div>

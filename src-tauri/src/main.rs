@@ -244,6 +244,70 @@ pub struct AppState {
     pub api_key: Mutex<Option<String>>, // Cached Bedrock API key
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct SavedCredentials {
+    username: String,
+    password: String,
+}
+
+fn credentials_path(app_handle: &AppHandle) -> Result<PathBuf, String> {
+    let base = app_handle
+        .path_resolver()
+        .app_local_data_dir()
+        .ok_or_else(|| "No app data dir available".to_string())?;
+    Ok(base.join("auth").join("credentials.json"))
+}
+
+fn load_saved_credentials(app_handle: &AppHandle) -> Result<Option<SavedCredentials>, String> {
+    let path = credentials_path(app_handle)?;
+    if !path.exists() {
+        return Ok(None);
+    }
+    let data = fs::read_to_string(&path)
+        .map_err(|e| format!("Failed to read {}: {}", path.display(), e))?;
+    let creds = serde_json::from_str::<SavedCredentials>(&data)
+        .map_err(|e| format!("Failed to parse {}: {}", path.display(), e))?;
+    Ok(Some(creds))
+}
+
+fn save_saved_credentials(
+    app_handle: &AppHandle,
+    creds: &SavedCredentials,
+) -> Result<(), String> {
+    let path = credentials_path(app_handle)?;
+    let parent = path
+        .parent()
+        .ok_or_else(|| format!("Invalid path for credentials: {}", path.display()))?;
+    fs::create_dir_all(parent)
+        .map_err(|e| format!("Failed to create dir {}: {}", parent.display(), e))?;
+
+    let json = serde_json::to_string_pretty(creds)
+        .map_err(|e| format!("Failed to serialize credentials: {}", e))?;
+
+    let tmp_path = path.with_extension("json.tmp");
+    {
+        let mut f = fs::File::create(&tmp_path)
+            .map_err(|e| format!("Failed to create temp file {}: {}", tmp_path.display(), e))?;
+        f.write_all(json.as_bytes())
+            .map_err(|e| format!("Failed to write temp file: {}", e))?;
+        f.sync_all()
+            .map_err(|e| format!("Failed to sync temp file: {}", e))?;
+    }
+
+    fs::rename(&tmp_path, &path)
+        .map_err(|e| format!("Failed to replace {}: {}", path.display(), e))?;
+    Ok(())
+}
+
+fn clear_saved_credentials(app_handle: &AppHandle) -> Result<(), String> {
+    let path = credentials_path(app_handle)?;
+    if path.exists() {
+        fs::remove_file(&path)
+            .map_err(|e| format!("Failed to remove {}: {}", path.display(), e))?;
+    }
+    Ok(())
+}
+
 // ============================================================================
 // Tauri Commands
 // ============================================================================
@@ -467,6 +531,7 @@ async fn authenticate(
     username: String,
     password: String,
     state: State<'_, AppState>,
+    app_handle: AppHandle,
 ) -> Result<(), String> {
     // Call Lambda to get the Bedrock API key
     let api_key = auth::get_bedrock_api_key(&username, &password)
@@ -477,15 +542,45 @@ async fn authenticate(
     let mut cached_key = state.api_key.lock().unwrap();
     *cached_key = Some(api_key.clone());
 
-    // Save to keychain in dev mode for persistence across sessions
-    if config::is_dev_mode() {
-        let _ = config::CredentialStore::save_token(&api_key);
-    }
+    save_saved_credentials(
+        &app_handle,
+        &SavedCredentials {
+            username,
+            password,
+        },
+    )?;
 
     Ok(())
 }
 
-/// Check if we have a cached API key (checks memory and keychain in dev)
+/// Attempt to auto-authenticate using cached key or saved credentials
+#[tauri::command]
+async fn auto_authenticate(
+    state: State<'_, AppState>,
+    app_handle: AppHandle,
+) -> Result<bool, String> {
+    if state.api_key.lock().unwrap().is_some() {
+        return Ok(true);
+    }
+
+    if let Some(creds) = load_saved_credentials(&app_handle)? {
+        match auth::get_bedrock_api_key(&creds.username, &creds.password).await {
+            Ok(api_key) => {
+                let mut cached_key = state.api_key.lock().unwrap();
+                *cached_key = Some(api_key);
+                return Ok(true);
+            }
+            Err(err) => {
+                eprintln!("WARN: Auto-auth failed: {}", err);
+                let _ = clear_saved_credentials(&app_handle);
+            }
+        }
+    }
+
+    Ok(false)
+}
+
+/// Check if we have a cached API key
 #[tauri::command]
 fn check_auth(state: State<AppState>) -> bool {
     // Check memory cache first
@@ -493,25 +588,17 @@ fn check_auth(state: State<AppState>) -> bool {
         return true;
     }
 
-    // In dev mode, check keychain as well
-    if config::is_dev_mode() {
-        config::CredentialStore::load_token().is_some()
-    } else {
-        false
-    }
+    false
 }
 
-/// Clear the cached API key (logout) - clears both memory and keychain
+/// Clear the cached API key (logout) - clears memory and saved credentials
 #[tauri::command]
-fn clear_auth(state: State<AppState>) -> Result<(), String> {
+fn clear_auth(state: State<AppState>, app_handle: AppHandle) -> Result<(), String> {
     // Clear memory cache
     let mut cached_key = state.api_key.lock().unwrap();
     *cached_key = None;
 
-    // Clear keychain in dev mode
-    if config::is_dev_mode() {
-        config::CredentialStore::clear_token()?;
-    }
+    let _ = clear_saved_credentials(&app_handle);
 
     Ok(())
 }
@@ -781,6 +868,7 @@ fn main() {
             set_questions,
             get_questions,
             authenticate,
+            auto_authenticate,
             check_auth,
             clear_auth,
             is_dev_mode,
