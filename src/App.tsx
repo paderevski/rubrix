@@ -681,12 +681,7 @@ function App() {
 
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b bg-white">
-        <h1 className="text-xl font-semibold text-foreground">
-          📝 Catie
-          <span className="text-sm font-normal text-muted-foreground ml-2">
-            Test Item Engine
-          </span>
-        </h1>
+
 
         <div className="flex flex-wrap gap-2 items-center">
           {/* Dev mode indicator */}
