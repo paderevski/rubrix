@@ -12,7 +12,7 @@ use tokio::time::Duration;
 use crate::config;
 
 const BEDROCK_ENDPOINT: &str =
-    "https://bedrock-runtime.us-west-2.amazonaws.com/openai/v1/chat/completions";
+    "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1/chat/completions";
 const MODEL_ID: &str = "openai.gpt-oss-120b-1:0";
 
 /// Log prompt and response to a file (appends each time)
