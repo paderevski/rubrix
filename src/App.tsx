@@ -27,7 +27,7 @@ interface StreamEvent {
   done: boolean;
 }
 
-const sessionFileFilter = { name: "Rubrix Session", extensions: ["json", "md"] };
+const sessionFileFilter = { name: "Catie Session", extensions: ["json", "md"] };
 
 function parseSessionQuestions(raw: unknown): Question[] {
   const payload: unknown[] | null = Array.isArray(raw)
@@ -614,7 +614,7 @@ function App() {
     }
 
     const filePath = await save({
-      defaultPath: "rubrix-session.json",
+      defaultPath: "catie-session.json",
       filters: [sessionFileFilter],
     });
 

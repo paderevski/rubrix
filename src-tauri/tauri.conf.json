@@ -7,7 +7,7 @@
     "withGlobalTauri": false
   },
   "package": {
-    "productName": "Rubrix",
+    "productName": "Catie",
     "version": "0.7.2"
   },
   "tauri": {
