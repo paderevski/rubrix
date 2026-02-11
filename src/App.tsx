@@ -260,7 +260,7 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [status, setStatus] = useState("Ready");
-  const [appendMode, setAppendMode] = useState(false);
+  const [appendMode, setAppendMode] = useState(true);
 
   // Zoom state (driven by native menu events)
   const [zoom, setZoom] = useState<number>(() => {
