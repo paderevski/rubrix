@@ -9,6 +9,7 @@ Move from client-side Bedrock calls to a server-side gateway so the app sends us
 - Endpoint: `POST /generate`
 - Request JSON: `{ "user": "...", "password_hash": "...", "prompt": "...", "meta": { ... } }`
 - Response: `text/event-stream` SSE chunks with `data: {"text":"...","done":false}` and a final `done=true` event
+- Status: Drafted in docs/BEDROCK_GATEWAY_CONTRACT.md
 
 ### Phase 1: Lambda Gateway (Python)
 - Location: use existing Lambda folder

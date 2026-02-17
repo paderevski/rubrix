@@ -242,9 +242,10 @@ pub struct AppState {
     pub questions: Mutex<Vec<Question>>,
     pub knowledge: knowledge::KnowledgeBase,
     pub api_key: Mutex<Option<String>>, // Cached Bedrock API key
+    pub credentials: Mutex<Option<SavedCredentials>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct SavedCredentials {
     username: String,
     password: String,
@@ -345,9 +346,22 @@ async fn generate_questions(
 
     // Get cached API key from state
     let api_key = state.api_key.lock().unwrap().clone();
+    let gateway_auth = if llm::gateway_url().is_some() {
+        state
+            .credentials
+            .lock()
+            .unwrap()
+            .clone()
+            .map(|creds| llm::GatewayAuth {
+                user: creds.username,
+                password_hash: auth::hash_password(&creds.password),
+            })
+    } else {
+        None
+    };
 
     // Call LLM with streaming
-    let response = llm::generate(&prompt, Some(app_handle), api_key).await?;
+    let response = llm::generate(&prompt, Some(app_handle), api_key, gateway_auth).await?;
 
     // Parse response into questions
     let mut new_questions = prompts::parse_llm_response(&response)?;
@@ -426,8 +440,21 @@ async fn regenerate_question(
 
     // Get cached API key from state
     let api_key = state.api_key.lock().unwrap().clone();
+    let gateway_auth = if llm::gateway_url().is_some() {
+        state
+            .credentials
+            .lock()
+            .unwrap()
+            .clone()
+            .map(|creds| llm::GatewayAuth {
+                user: creds.username,
+                password_hash: auth::hash_password(&creds.password),
+            })
+    } else {
+        None
+    };
 
-    let response = llm::generate(&prompt, Some(app_handle), api_key).await?;
+    let response = llm::generate(&prompt, Some(app_handle), api_key, gateway_auth).await?;
 
     // Parse the single question
     let mut new_questions = prompts::parse_llm_response(&response)?;
@@ -530,6 +557,14 @@ async fn authenticate(
     state: State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<(), String> {
+    if llm::gateway_url().is_some() {
+        let creds = SavedCredentials { username, password };
+        let mut cached_creds = state.credentials.lock().unwrap();
+        *cached_creds = Some(creds.clone());
+        save_saved_credentials(&app_handle, &creds)?;
+        return Ok(());
+    }
+
     // Call Lambda to get the Bedrock API key
     let api_key = auth::get_bedrock_api_key(&username, &password)
         .await
@@ -550,6 +585,20 @@ async fn auto_authenticate(
     state: State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<bool, String> {
+    if llm::gateway_url().is_some() {
+        if state.credentials.lock().unwrap().is_some() {
+            return Ok(true);
+        }
+
+        if let Some(creds) = load_saved_credentials(&app_handle)? {
+            let mut cached_creds = state.credentials.lock().unwrap();
+            *cached_creds = Some(creds);
+            return Ok(true);
+        }
+
+        return Ok(false);
+    }
+
     if state.api_key.lock().unwrap().is_some() {
         return Ok(true);
     }
@@ -579,6 +628,10 @@ fn check_auth(state: State<AppState>) -> bool {
         return true;
     }
 
+    if state.credentials.lock().unwrap().is_some() {
+        return true;
+    }
+
     false
 }
 
@@ -588,6 +641,9 @@ fn clear_auth(state: State<AppState>, app_handle: AppHandle) -> Result<(), Strin
     // Clear memory cache
     let mut cached_key = state.api_key.lock().unwrap();
     *cached_key = None;
+
+    let mut cached_creds = state.credentials.lock().unwrap();
+    *cached_creds = None;
 
     let _ = clear_saved_credentials(&app_handle);
 
@@ -816,6 +872,7 @@ fn main() {
         questions: Mutex::new(Vec::new()),
         knowledge,
         api_key: Mutex::new(None), // Start with no cached key
+        credentials: Mutex::new(None),
     };
 
     let zoom_in = CustomMenuItem::new("zoom_in", "Zoom In").accelerator("CmdOrCtrl+=");

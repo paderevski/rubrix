@@ -3,6 +3,12 @@
 ## Overview
 Rubrix now retrieves AWS Bedrock API keys from a Lambda secret store, requiring user authentication before question generation.
 
+## Bedrock Gateway Contract
+The gateway contract for the upcoming Bedrock proxy is documented in
+[docs/BEDROCK_GATEWAY_CONTRACT.md](docs/BEDROCK_GATEWAY_CONTRACT.md). This
+defines the POST payload, SSE response shape, and error handling that the
+client and gateway will share.
+
 ## Flow
 1. User attempts to generate questions
 2. Backend checks for cached API key in memory

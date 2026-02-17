@@ -31,11 +31,9 @@ pub async fn get_bedrock_api_key(
 ) -> Result<String, Box<dyn std::error::Error>> {
     let lambda_url = match env::var("LAMBDA_URL") {
         Ok(url) => url,
-        Err(_) => BUILT_LAMBDA_URL
-            .map(|url| url.to_string())
-            .ok_or_else(|| {
-                "LAMBDA_URL not set. Configure the environment variable or bake it at build time."
-            })?,
+        Err(_) => BUILT_LAMBDA_URL.map(|url| url.to_string()).ok_or_else(|| {
+            "LAMBDA_URL not set. Configure the environment variable or bake it at build time."
+        })?,
     };
 
     // Hash password client-side (SHA256)
@@ -96,6 +94,12 @@ pub async fn get_bedrock_api_key(
             }
         }
     }
+}
+
+pub fn hash_password(password: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(password.as_bytes());
+    format!("{:x}", hasher.finalize())
 }
 
 #[cfg(test)]

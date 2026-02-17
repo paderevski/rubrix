@@ -11,6 +11,8 @@ use tokio::time::Duration;
 
 use crate::config;
 
+const BUILT_GATEWAY_URL: Option<&str> = option_env!("BEDROCK_GATEWAY_URL");
+
 const BEDROCK_ENDPOINT: &str =
     "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1/chat/completions";
 const MODEL_ID: &str = "openai.gpt-oss-120b-1:0";
@@ -123,6 +125,32 @@ pub struct StreamEvent {
     pub done: bool,
 }
 
+#[derive(Clone)]
+pub struct GatewayAuth {
+    pub user: String,
+    pub password_hash: String,
+}
+
+#[derive(Serialize)]
+struct GatewayRequest {
+    user: String,
+    password_hash: String,
+    prompt: String,
+}
+
+#[derive(Deserialize)]
+struct GatewayStreamChunk {
+    text: String,
+    done: bool,
+}
+
+pub fn gateway_url() -> Option<String> {
+    let _ = dotenvy::dotenv();
+    std::env::var("BEDROCK_GATEWAY_URL")
+        .ok()
+        .or_else(|| BUILT_GATEWAY_URL.map(|url| url.to_string()))
+}
+
 /// Resolve API token from multiple sources with priority order
 fn get_api_token(provided_token: Option<String>) -> Result<String, String> {
     use std::env;
@@ -164,6 +192,7 @@ pub async fn generate(
     prompt: &str,
     app_handle: Option<tauri::AppHandle>,
     api_token: Option<String>,
+    gateway_auth: Option<GatewayAuth>,
 ) -> Result<String, String> {
     let client = Client::builder()
         .timeout(Duration::from_secs(90))
@@ -172,6 +201,86 @@ pub async fn generate(
 
     // Load .env file (ignore error if already loaded or not present)
     let _ = dotenvy::dotenv();
+
+    if let Some(url) = gateway_url() {
+        let gateway_auth = match gateway_auth {
+            Some(auth) => auth,
+            None => {
+                if config::is_dev_mode() {
+                    eprintln!("WARN: No gateway credentials, falling back to mock mode in dev");
+                    return Ok(generate_mock_response(prompt, app_handle).await);
+                }
+                return Err("Authentication required. No gateway credentials found.".into());
+            }
+        };
+
+        emit_stream(&app_handle, "", false);
+
+        let request = GatewayRequest {
+            user: gateway_auth.user,
+            password_hash: gateway_auth.password_hash,
+            prompt: prompt.to_string(),
+        };
+
+        let response = client
+            .post(&url)
+            .json(&request)
+            .send()
+            .await
+            .map_err(|e| format!("Failed to connect to gateway: {}", e))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("Gateway error ({}): {}", status.as_u16(), body));
+        }
+
+        let mut stream = response.bytes_stream();
+        let mut buffer = String::new();
+        let mut accumulated = String::new();
+
+        while let Some(chunk) = stream.next().await {
+            let chunk = chunk.map_err(|e| format!("Gateway stream error: {}", e))?;
+            let text = String::from_utf8_lossy(&chunk);
+            buffer.push_str(&text);
+
+            while let Some(line_end) = buffer.find('\n') {
+                let line = buffer[..line_end].trim().to_string();
+                buffer = buffer[line_end + 1..].to_string();
+
+                if line.is_empty() || line.starts_with(':') {
+                    continue;
+                }
+
+                if let Some(data) = line.strip_prefix("data:") {
+                    let data = data.trim();
+                    if data.is_empty() {
+                        continue;
+                    }
+
+                    if let Ok(chunk) = serde_json::from_str::<GatewayStreamChunk>(data) {
+                        if !chunk.text.is_empty() {
+                            let cleaned = chunk
+                                .text
+                                .replace("<reasoning>", "")
+                                .replace("</reasoning>", "");
+                            accumulated.push_str(&cleaned);
+                            emit_stream(&app_handle, &accumulated, false);
+                        }
+                        if chunk.done {
+                            emit_stream(&app_handle, &accumulated, true);
+                            log_llm_interaction(prompt, &accumulated);
+                            return Ok(accumulated);
+                        }
+                    }
+                }
+            }
+        }
+
+        emit_stream(&app_handle, &accumulated, true);
+        log_llm_interaction(prompt, &accumulated);
+        return Ok(accumulated);
+    }
 
     // Resolve API token from hierarchy: provided > keychain > env vars
     let api_token = match get_api_token(api_token) {
