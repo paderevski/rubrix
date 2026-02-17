@@ -1,0 +1,10 @@
+{
+  "name": "rubrix-bedrock-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "main": "lambda_handler.js",
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.758.0",
+    "@aws-sdk/client-ssm": "^3.758.0"
+  }
+}
