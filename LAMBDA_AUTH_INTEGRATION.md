@@ -71,7 +71,17 @@ client and gateway will share.
 Create `.env` in `src-tauri/` (or workspace root):
 ```env
 LAMBDA_URL=https://your-lambda-function-url.lambda-url.us-west-2.on.aws/
+BEDROCK_GATEWAY_URL=https://your-gateway-url.lambda-url.us-east-1.on.aws/
 ```
+
+**Release builds**: `BEDROCK_GATEWAY_URL` must be set at build time so it is
+embedded into the binary. Example:
+```bash
+BEDROCK_GATEWAY_URL="https://your-gateway-url" npm run tauri build
+```
+
+If you build in CI, add `BEDROCK_GATEWAY_URL` to GitHub Actions secrets and
+export it as an env var before `npm run tauri build`.
 
 **Important**: The app will still run without `LAMBDA_URL` using mock responses for development, but real API key retrieval requires the Lambda URL to be configured.
 

@@ -11,18 +11,21 @@ Move from client-side Bedrock calls to a server-side gateway so the app sends us
 - Response: `text/event-stream` SSE chunks with `data: {"text":"...","done":false}` and a final `done=true` event
 - Status: Drafted in docs/BEDROCK_GATEWAY_CONTRACT.md
 
-### Phase 1: Lambda Gateway (Python)
-- Location: use existing Lambda folder
+### Phase 1: Lambda Gateway (Node)
+- Location: lambda_functions/bedrock_gateway
 - Steps:
    - Validate user: read `/secrets/{user}/password_hash` from SSM with `WithDecryption=True`
    - Compare with `password_hash`
    - Call Bedrock with server-side credentials
    - Stream SSE chunks back to client
-- Use API Gateway HTTP API with streaming enabled
+- Use Function URL or API Gateway HTTP API with response streaming enabled
+- Status: Gateway running with streaming (Node handler)
 
 ### Phase 2: Client Swap (Tauri)
 - Replace direct Bedrock calls in `src-tauri/src/llm.rs` with gateway calls
 - Preserve `llm-stream` event payload shape
+- Status: Gateway path wired, build-time `BEDROCK_GATEWAY_URL` required
+- Build env: add `BEDROCK_GATEWAY_URL` to GitHub Actions secrets/env for release builds
 
 ### Phase 3: Usage Control (DynamoDB)
 - Table: `rubrix_usage`
