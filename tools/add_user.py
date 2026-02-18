@@ -16,6 +16,7 @@ Example:
 import sys
 import hashlib
 import boto3
+import re
 
 ssm = boto3.client("ssm")
 
@@ -25,13 +26,25 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 
+def sanitize_user(username: str) -> str:
+    """Make username safe for SSM parameter paths."""
+    sanitized = re.sub(r"[^A-Za-z0-9._-]", "_", username)
+    if sanitized.lower().startswith("ssm"):
+        sanitized = f"user_{sanitized}"
+    return sanitized
+
+
 def add_user(username: str, password: str, bedrock_api_key: str):
     """Store both password hash and Bedrock API key for a user"""
     password_hash = hash_password(password)
+    safe_user = sanitize_user(username)
+
+    if safe_user != username:
+        print(f"INFO: Normalized username '{username}' -> '{safe_user}'")
 
     # Store password hash for validation
     ssm.put_parameter(
-        Name=f"/secrets/{username}/password_hash",
+        Name=f"/secrets/{safe_user}/password_hash",
         Value=password_hash,
         Type="SecureString",
         Overwrite=True,
@@ -40,7 +53,7 @@ def add_user(username: str, password: str, bedrock_api_key: str):
 
     # Store Bedrock API key to return on successful auth
     ssm.put_parameter(
-        Name=f"/secrets/{username}/secret",
+        Name=f"/secrets/{safe_user}/secret",
         Value=bedrock_api_key,
         Type="SecureString",
         Overwrite=True,

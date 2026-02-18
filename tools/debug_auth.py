@@ -8,6 +8,7 @@ Usage: python debug_auth.py <username> <password>
 import sys
 import hashlib
 import boto3
+import re
 
 ssm = boto3.client("ssm")
 
@@ -17,8 +18,19 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 
+def sanitize_user(username: str) -> str:
+    """Make username safe for SSM parameter paths."""
+    sanitized = re.sub(r"[^A-Za-z0-9._-]", "_", username)
+    if sanitized.lower().startswith("ssm"):
+        sanitized = f"user_{sanitized}"
+    return sanitized
+
+
 def debug_auth(username: str, password: str):
     """Debug authentication setup"""
+    safe_user = sanitize_user(username)
+    if safe_user != username:
+        print(f"INFO: Normalized username '{username}' -> '{safe_user}'")
     print(f"Debugging authentication for user: {username}")
     print(f"Password: {password}")
     print()
@@ -33,7 +45,7 @@ def debug_auth(username: str, password: str):
     print(f"2. Checking SSM Parameter Store...")
     try:
         hash_response = ssm.get_parameter(
-            Name=f"/secrets/{username}/password_hash", WithDecryption=True
+            Name=f"/secrets/{safe_user}/password_hash", WithDecryption=True
         )
         stored_hash = hash_response["Parameter"]["Value"]
         print(f"   Stored hash:   {stored_hash}")
@@ -57,7 +69,7 @@ def debug_auth(username: str, password: str):
         # 4. Check if secret exists
         try:
             key_response = ssm.get_parameter(
-                Name=f"/secrets/{username}/secret", WithDecryption=True
+                Name=f"/secrets/{safe_user}/secret", WithDecryption=True
             )
             key_value = key_response["Parameter"]["Value"]
             print(f"4. ✓ Bedrock API key exists (length: {len(key_value)})")

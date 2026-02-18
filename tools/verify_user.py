@@ -15,6 +15,7 @@ Example:
 import sys
 import hashlib
 import boto3
+import re
 
 ssm = boto3.client("ssm")
 
@@ -24,12 +25,23 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 
+def sanitize_user(username: str) -> str:
+    """Make username safe for SSM parameter paths."""
+    sanitized = re.sub(r"[^A-Za-z0-9._-]", "_", username)
+    if sanitized.lower().startswith("ssm"):
+        sanitized = f"user_{sanitized}"
+    return sanitized
+
+
 def verify_user(username: str, password: str = None):
     """Verify user exists and optionally check password"""
+    safe_user = sanitize_user(username)
+    if safe_user != username:
+        print(f"INFO: Normalized username '{username}' -> '{safe_user}'")
     try:
         # Get stored password hash
         hash_response = ssm.get_parameter(
-            Name=f"/secrets/{username}/password_hash", WithDecryption=True
+            Name=f"/secrets/{safe_user}/password_hash", WithDecryption=True
         )
         stored_hash = hash_response["Parameter"]["Value"]
         print(f"✓ User '{username}' found")
@@ -38,13 +50,15 @@ def verify_user(username: str, password: str = None):
         # Check if Bedrock API key exists
         try:
             key_response = ssm.get_parameter(
-                Name=f"/secrets/{username}/secret", WithDecryption=True
+                Name=f"/secrets/{safe_user}/secret", WithDecryption=True
             )
             key_value = key_response["Parameter"]["Value"]
             print(f"✓ Bedrock API key exists (length: {len(key_value)})")
             print(f"Key preview: {key_value[:20]}...")
         except ssm.exceptions.ParameterNotFound:
-            print(f"✗ WARNING: Bedrock API key NOT found at /secrets/{username}/secret")
+            print(
+                f"✗ WARNING: Bedrock API key NOT found at /secrets/{safe_user}/secret"
+            )
 
         # Verify password if provided
         if password:
@@ -61,7 +75,7 @@ def verify_user(username: str, password: str = None):
 
     except ssm.exceptions.ParameterNotFound:
         print(f"✗ User '{username}' not found")
-        print(f"   (Missing parameter: /secrets/{username}/password_hash)")
+        print(f"   (Missing parameter: /secrets/{safe_user}/password_hash)")
         return False
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

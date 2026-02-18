@@ -1,4 +1,5 @@
 import boto3
+import re
 
 ssm = boto3.client("ssm")
 
@@ -6,8 +7,11 @@ ssm = boto3.client("ssm")
 def store_secret(
     user: str, secret_value: str, kms_key_id: str | None = None, overwrite: bool = True
 ):
+    safe_user = re.sub(r"[^A-Za-z0-9._-]", "_", user)
+    if safe_user.lower().startswith("ssm"):
+        safe_user = f"user_{safe_user}"
     kwargs = dict(
-        Name=f"/secrets/{user}/secret",
+        Name=f"/secrets/{safe_user}/secret",
         Value=secret_value,
         Type="SecureString",
         Overwrite=overwrite,

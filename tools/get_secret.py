@@ -1,10 +1,16 @@
 import boto3
+import re
 
 ssm = boto3.client("ssm")
 
 
 def get_secret(user: str):
-    response = ssm.get_parameter(Name=f"/secrets/{user}/secret", WithDecryption=True)
+    safe_user = re.sub(r"[^A-Za-z0-9._-]", "_", user)
+    if safe_user.lower().startswith("ssm"):
+        safe_user = f"user_{safe_user}"
+    response = ssm.get_parameter(
+        Name=f"/secrets/{safe_user}/secret", WithDecryption=True
+    )
     return response["Parameter"]["Value"]
 
 
