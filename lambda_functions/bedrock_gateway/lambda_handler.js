@@ -9,16 +9,32 @@ const {
   InvokeModelWithResponseStreamCommand,
 } = require("@aws-sdk/client-bedrock-runtime");
 const { SSMClient, GetParameterCommand } = require("@aws-sdk/client-ssm");
+const {
+  DynamoDBClient,
+  GetItemCommand,
+  PutItemCommand,
+  UpdateItemCommand,
+} = require("@aws-sdk/client-dynamodb");
+const { marshall, unmarshall } = require("@aws-sdk/util-dynamodb");
 
-const AWS_REGION = process.env.AWS_REGION || "us-east-1";
+const AWS_REGION = "us-east-1";
 const ssm = new SSMClient({ region: AWS_REGION });
 const bedrock = new BedrockRuntimeClient({ region: AWS_REGION });
+const usageRegion = process.env.USAGE_REGION || AWS_REGION;
+const usageDb = new DynamoDBClient({ region: usageRegion });
 
 const MODEL_ID = process.env.BEDROCK_MODEL_ID || "openai.gpt-oss-120b-1:0";
 const REASONING_EFFORT = process.env.BEDROCK_REASONING_EFFORT || "medium";
 const MAX_TOKENS = process.env.BEDROCK_MAX_TOKENS
   ? Number(process.env.BEDROCK_MAX_TOKENS)
   : 2048;
+const USAGE_TABLE_NAME = process.env.USAGE_TABLE_NAME || "";
+const USAGE_DEFAULT_BUDGET = process.env.USAGE_DEFAULT_BUDGET
+  ? Number(process.env.USAGE_DEFAULT_BUDGET)
+  : null;
+const USAGE_MAX_TEXT_BYTES = process.env.USAGE_MAX_TEXT_BYTES
+  ? Number(process.env.USAGE_MAX_TEXT_BYTES)
+  : 300000;
 
 function buildErrorResponse(responseStream, statusCode, message) {
   if (responseStream && typeof responseStream.setContentType === "function") {
@@ -76,7 +92,102 @@ function extractTextFromPayload(payload) {
   return null;
 }
 
-function handleRawChunk(rawText, responseStream) {
+function extractUsageFromPayload(payload) {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const usage = payload.usage;
+  if (usage && typeof usage === "object") {
+    const promptTokens = Number.isFinite(usage.prompt_tokens)
+      ? usage.prompt_tokens
+      : null;
+    const completionTokens = Number.isFinite(usage.completion_tokens)
+      ? usage.completion_tokens
+      : null;
+    const cachedTokens = Number.isFinite(usage.cached_tokens)
+      ? usage.cached_tokens
+      : null;
+    if (Number.isFinite(usage.total_tokens)) {
+      return {
+        totalTokens: usage.total_tokens,
+        promptTokens,
+        completionTokens,
+        cachedTokens,
+      };
+    }
+    const promptValue = Number.isFinite(promptTokens) ? promptTokens : 0;
+    const completionValue = Number.isFinite(completionTokens)
+      ? completionTokens
+      : 0;
+    const total = promptValue + completionValue;
+    if (total > 0) {
+      return {
+        totalTokens: total,
+        promptTokens,
+        completionTokens,
+        cachedTokens,
+      };
+    }
+  }
+
+  return null;
+}
+
+function truncateTextToBytes(text, maxBytes) {
+  if (!text) {
+    return { text: "", bytes: 0, truncated: false };
+  }
+  const totalBytes = Buffer.byteLength(text, "utf-8");
+  if (!Number.isFinite(maxBytes) || maxBytes <= 0 || totalBytes <= maxBytes) {
+    return { text, bytes: totalBytes, truncated: false };
+  }
+  let low = 0;
+  let high = text.length;
+  while (low < high) {
+    const mid = Math.ceil((low + high) / 2);
+    const slice = text.slice(0, mid);
+    if (Buffer.byteLength(slice, "utf-8") <= maxBytes) {
+      low = mid;
+    } else {
+      high = mid - 1;
+    }
+  }
+  const truncatedText = text.slice(0, low);
+  return {
+    text: truncatedText,
+    bytes: Buffer.byteLength(truncatedText, "utf-8"),
+    truncated: true,
+  };
+}
+
+function appendChunkWithLimit(state, chunk) {
+  if (!chunk || state.responseTruncated) {
+    return;
+  }
+  const remainingBytes = Math.max(
+    state.maxResponseBytes - state.responseBytes,
+    0,
+  );
+  if (remainingBytes <= 0) {
+    state.responseTruncated = true;
+    return;
+  }
+  const chunkBytes = Buffer.byteLength(chunk, "utf-8");
+  if (chunkBytes <= remainingBytes) {
+    state.responseParts.push(chunk);
+    state.responseBytes += chunkBytes;
+    return;
+  }
+  const truncated = truncateTextToBytes(chunk, remainingBytes);
+  if (truncated.text) {
+    state.responseParts.push(truncated.text);
+    state.responseBytes += truncated.bytes;
+  }
+  state.responseTruncated = true;
+}
+
+function handleRawChunk(rawText, responseStream, usageState) {
   const lines = rawText.split(/\r?\n/);
   let handled = false;
 
@@ -94,9 +205,14 @@ function handleRawChunk(rawText, responseStream) {
 
     try {
       const payload = JSON.parse(payloadText);
+      const usageTokens = extractUsageFromPayload(payload);
+      if (usageTokens && Number.isFinite(usageTokens.totalTokens)) {
+        usageState.tokens = usageTokens;
+      }
       const text = extractTextFromPayload(payload);
       if (text) {
         responseStream.write(sseEvent(text, false));
+        appendChunkWithLimit(usageState, text);
       }
     } catch (error) {
       console.warn("Failed to parse Bedrock chunk", error);
@@ -109,9 +225,14 @@ function handleRawChunk(rawText, responseStream) {
 
   try {
     const payload = JSON.parse(rawText);
+    const usageTokens = extractUsageFromPayload(payload);
+    if (usageTokens && Number.isFinite(usageTokens.totalTokens)) {
+      usageState.tokens = usageTokens;
+    }
     const text = extractTextFromPayload(payload);
     if (text) {
       responseStream.write(sseEvent(text, false));
+      appendChunkWithLimit(usageState, text);
     }
   } catch (error) {
     console.warn("Failed to parse Bedrock payload", error);
@@ -142,6 +263,14 @@ const streamingHandler = async (event, responseStream) => {
     );
   }
 
+  if (!USAGE_TABLE_NAME || !Number.isFinite(USAGE_DEFAULT_BUDGET)) {
+    return buildErrorResponse(
+      responseStream,
+      500,
+      "Usage control is not configured",
+    );
+  }
+
   try {
     const storedHashParam = await ssm.send(
       new GetParameterCommand({
@@ -161,6 +290,66 @@ const streamingHandler = async (event, responseStream) => {
     return buildErrorResponse(responseStream, 500, "Internal server error");
   }
 
+  let usageRecord;
+  try {
+    const usageResponse = await usageDb.send(
+      new GetItemCommand({
+        TableName: USAGE_TABLE_NAME,
+        Key: marshall({ user_id: safeUser, record_id: "summary" }),
+      }),
+    );
+    if (usageResponse.Item) {
+      usageRecord = unmarshall(usageResponse.Item);
+    } else {
+      const now = new Date().toISOString();
+      const newRecord = {
+        user_id: safeUser,
+        record_id: "summary",
+        budget_tokens: USAGE_DEFAULT_BUDGET,
+        remaining_tokens: USAGE_DEFAULT_BUDGET,
+        total_tokens: 0,
+        updated_at: now,
+      };
+      await usageDb.send(
+        new PutItemCommand({
+          TableName: USAGE_TABLE_NAME,
+          Item: marshall(newRecord),
+          ConditionExpression: "attribute_not_exists(user_id)",
+        }),
+      );
+      usageRecord = newRecord;
+    }
+  } catch (error) {
+    if (error.name === "ConditionalCheckFailedException") {
+      try {
+        const usageResponse = await usageDb.send(
+          new GetItemCommand({
+            TableName: USAGE_TABLE_NAME,
+            Key: marshall({ user_id: safeUser, record_id: "summary" }),
+          }),
+        );
+        if (usageResponse.Item) {
+          usageRecord = unmarshall(usageResponse.Item);
+        }
+      } catch (retryError) {
+        console.error("Usage lookup retry error", retryError);
+        return buildErrorResponse(responseStream, 500, "Internal server error");
+      }
+    } else {
+      console.error("Usage lookup error", error);
+      return buildErrorResponse(responseStream, 500, "Internal server error");
+    }
+  }
+
+  if (usageRecord) {
+    const remaining = Number.isFinite(usageRecord.remaining_tokens)
+      ? usageRecord.remaining_tokens
+      : USAGE_DEFAULT_BUDGET;
+    if (remaining <= 0) {
+      return buildErrorResponse(responseStream, 429, "Usage budget exceeded");
+    }
+  }
+
   const requestBody = {
     model: MODEL_ID,
     messages: [{ role: "user", content: prompt }],
@@ -176,6 +365,23 @@ const streamingHandler = async (event, responseStream) => {
   if (typeof responseStream.setContentType === "function") {
     responseStream.setContentType("text/event-stream");
   }
+
+  const requestId = `req#${new Date().toISOString()}#${Math.random()
+    .toString(36)
+    .slice(2, 10)}`;
+  const promptText = String(prompt);
+  const promptMaxBytes = Math.max(Math.floor(USAGE_MAX_TEXT_BYTES / 2), 0);
+  const promptResult = truncateTextToBytes(promptText, promptMaxBytes);
+  const usageState = {
+    tokens: null,
+    responseParts: [],
+    responseBytes: 0,
+    responseTruncated: false,
+    maxResponseBytes: Math.max(USAGE_MAX_TEXT_BYTES - promptResult.bytes, 0),
+    prompt: promptResult.text,
+    promptBytes: promptResult.bytes,
+    promptTruncated: promptResult.truncated,
+  };
 
   try {
     const command = new InvokeModelWithResponseStreamCommand({
@@ -195,7 +401,7 @@ const streamingHandler = async (event, responseStream) => {
       }
       const rawText = decoder.decode(chunk.bytes, { stream: false }).trim();
       if (rawText) {
-        handleRawChunk(rawText, responseStream);
+        handleRawChunk(rawText, responseStream, usageState);
       }
     }
 
@@ -205,6 +411,75 @@ const streamingHandler = async (event, responseStream) => {
     console.error("Bedrock invoke error", error);
     responseStream.write(sseEvent("", true));
     responseStream.end();
+  } finally {
+    const responseText = usageState.responseParts.join("");
+    const responseBytes = usageState.responseBytes;
+    const responseTruncated = usageState.responseTruncated;
+    const tokens = usageState.tokens || {};
+    const totalTokens = tokens.totalTokens;
+    if (Number.isFinite(totalTokens) && totalTokens > 0) {
+      const remaining =
+        usageRecord && Number.isFinite(usageRecord.remaining_tokens)
+          ? usageRecord.remaining_tokens
+          : USAGE_DEFAULT_BUDGET;
+      const newRemaining = Math.max(remaining - totalTokens, 0);
+      const now = new Date().toISOString();
+      try {
+        await usageDb.send(
+          new UpdateItemCommand({
+            TableName: USAGE_TABLE_NAME,
+            Key: marshall({ user_id: safeUser, record_id: "summary" }),
+            UpdateExpression:
+              "SET remaining_tokens = :remaining, " +
+              "total_tokens = if_not_exists(total_tokens, :zero) + :used, " +
+              "budget_tokens = if_not_exists(budget_tokens, :budget), " +
+              "updated_at = :now",
+            ExpressionAttributeValues: marshall({
+              ":remaining": newRemaining,
+              ":used": totalTokens,
+              ":zero": 0,
+              ":budget": USAGE_DEFAULT_BUDGET,
+              ":now": now,
+            }),
+          }),
+        );
+      } catch (error) {
+        console.error("Usage update error", error);
+      }
+    }
+
+    try {
+      const createdAt = new Date().toISOString();
+      const item = {
+        user_id: safeUser,
+        record_id: requestId,
+        created_at: createdAt,
+        prompt: usageState.prompt,
+        response: responseText,
+        prompt_bytes: usageState.promptBytes,
+        response_bytes: responseBytes,
+        prompt_truncated: usageState.promptTruncated,
+        response_truncated: responseTruncated,
+        tokens_total: Number.isFinite(totalTokens) ? totalTokens : null,
+        tokens_input: Number.isFinite(tokens.promptTokens)
+          ? tokens.promptTokens
+          : null,
+        tokens_output: Number.isFinite(tokens.completionTokens)
+          ? tokens.completionTokens
+          : null,
+        tokens_cached: Number.isFinite(tokens.cachedTokens)
+          ? tokens.cachedTokens
+          : null,
+      };
+      await usageDb.send(
+        new PutItemCommand({
+          TableName: USAGE_TABLE_NAME,
+          Item: marshall(item, { removeUndefinedValues: true }),
+        }),
+      );
+    } catch (error) {
+      console.error("Usage detail insert error", error);
+    }
   }
 };
 
