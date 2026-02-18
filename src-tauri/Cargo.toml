@@ -1,6 +1,6 @@
 [package]
-name = "rubrix"
-version = "0.4.0"
+name = "catie"
+version = "0.9.0"
 description = "Content Aware Test Item Engine"
 authors = ["You"]
 edition = "2021"

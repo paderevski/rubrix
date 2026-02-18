@@ -420,6 +420,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "catie"
+version = "0.9.0"
+dependencies = [
+ "chrono",
+ "dotenvy",
+ "futures-util",
+ "htmlescape",
+ "keyring",
+ "once_cell",
+ "rand 0.8.5",
+ "regex",
+ "reqwest",
+ "rust-embed",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tauri",
+ "tauri-build",
+ "tokio",
+ "urlencoding",
+ "zip",
+]
+
+[[package]]
 name = "cbc"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3097,30 +3121,6 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "windows 0.37.0",
-]
-
-[[package]]
-name = "rubrix"
-version = "0.4.0"
-dependencies = [
- "chrono",
- "dotenvy",
- "futures-util",
- "htmlescape",
- "keyring",
- "once_cell",
- "rand 0.8.5",
- "regex",
- "reqwest",
- "rust-embed",
- "serde",
- "serde_json",
- "sha2",
- "tauri",
- "tauri-build",
- "tokio",
- "urlencoding",
- "zip",
 ]
 
 [[package]]
