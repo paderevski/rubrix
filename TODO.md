@@ -35,6 +35,7 @@ Move from client-side Bedrock calls to a server-side gateway so the app sends us
    - Read usage row
    - Enforce limits (requests/day, tokens/day)
    - Atomic increment
+- Tomorrow: implement quotas + rate limiting in gateway, keep logs extensible (CloudWatch -> S3/Athena later)
 
 ### Phase 4: Security/ops
 - CloudWatch logging for audit/usage
