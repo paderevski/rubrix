@@ -28,6 +28,17 @@ function buildErrorResponse(responseStream, statusCode, message) {
   responseStream.end();
 }
 
+function normalizeUser(user) {
+  const sanitized = (user || "").replace(/[^A-Za-z0-9._-]/g, "_");
+  if (!sanitized) {
+    return "";
+  }
+  if (/^ssm/i.test(sanitized)) {
+    return `user_${sanitized}`;
+  }
+  return sanitized;
+}
+
 function sseEvent(text, done) {
   return `data: ${JSON.stringify({ text, done })}\n\n`;
 }
@@ -119,10 +130,11 @@ const streamingHandler = async (event, responseStream) => {
   }
 
   const user = body.user;
+  const safeUser = normalizeUser(user);
   const passwordHash = body.password_hash;
   const prompt = body.prompt;
 
-  if (!user || !passwordHash || !prompt) {
+  if (!user || !safeUser || !passwordHash || !prompt) {
     return buildErrorResponse(
       responseStream,
       400,
@@ -133,7 +145,7 @@ const streamingHandler = async (event, responseStream) => {
   try {
     const storedHashParam = await ssm.send(
       new GetParameterCommand({
-        Name: `/secrets/${user}/password_hash`,
+        Name: `/secrets/${safeUser}/password_hash`,
         WithDecryption: true,
       }),
     );

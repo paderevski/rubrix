@@ -1,5 +1,6 @@
 import boto3
 import json
+import re
 
 ssm = boto3.client("ssm")
 
@@ -27,10 +28,14 @@ def lambda_handler(event, context):
     except json.JSONDecodeError:
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid JSON"})}
 
+    safe_user = re.sub(r"[^A-Za-z0-9._-]", "_", user)
+    if safe_user.lower().startswith("ssm"):
+        safe_user = f"user_{safe_user}"
+
     try:
         # Get stored hash from Parameter Store
         stored_hash_param = ssm.get_parameter(
-            Name=f"/secrets/{user}/password_hash", WithDecryption=True
+            Name=f"/secrets/{safe_user}/password_hash", WithDecryption=True
         )
         stored_hash = stored_hash_param["Parameter"]["Value"]
 
@@ -38,7 +43,7 @@ def lambda_handler(event, context):
         if password_hash == stored_hash:
             # Password hash matches - get secret
             secret_param = ssm.get_parameter(
-                Name=f"/secrets/{user}/secret", WithDecryption=True
+                Name=f"/secrets/{safe_user}/secret", WithDecryption=True
             )
             return {
                 "statusCode": 200,
