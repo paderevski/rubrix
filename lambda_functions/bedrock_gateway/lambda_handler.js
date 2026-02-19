@@ -27,7 +27,7 @@ const MODEL_ID = process.env.BEDROCK_MODEL_ID || "openai.gpt-oss-120b-1:0";
 const REASONING_EFFORT = process.env.BEDROCK_REASONING_EFFORT || "medium";
 const MAX_TOKENS = process.env.BEDROCK_MAX_TOKENS
   ? Number(process.env.BEDROCK_MAX_TOKENS)
-  : 2048;
+  : 20480;
 const USAGE_TABLE_NAME = process.env.USAGE_TABLE_NAME || "";
 const USAGE_DEFAULT_BUDGET = process.env.USAGE_DEFAULT_BUDGET
   ? Number(process.env.USAGE_DEFAULT_BUDGET)
