@@ -5,6 +5,8 @@
   "main": "lambda_handler.js",
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.758.0",
-    "@aws-sdk/client-ssm": "^3.758.0"
+    "@aws-sdk/client-dynamodb": "^3.758.0",
+    "@aws-sdk/client-ssm": "^3.758.0",
+    "@aws-sdk/util-dynamodb": "^3.758.0"
   }
 }
