@@ -20,7 +20,7 @@ const { marshall, unmarshall } = require("@aws-sdk/util-dynamodb");
 const AWS_REGION = "us-east-1";
 const ssm = new SSMClient({ region: AWS_REGION });
 const bedrock = new BedrockRuntimeClient({ region: AWS_REGION });
-const usageRegion = process.env.USAGE_REGION || AWS_REGION;
+const usageRegion = "us-east-1";
 const usageDb = new DynamoDBClient({ region: usageRegion });
 
 const MODEL_ID = process.env.BEDROCK_MODEL_ID || "openai.gpt-oss-120b-1:0";
@@ -28,13 +28,9 @@ const REASONING_EFFORT = process.env.BEDROCK_REASONING_EFFORT || "medium";
 const MAX_TOKENS = process.env.BEDROCK_MAX_TOKENS
   ? Number(process.env.BEDROCK_MAX_TOKENS)
   : 20480;
-const USAGE_TABLE_NAME = process.env.USAGE_TABLE_NAME || "";
-const USAGE_DEFAULT_BUDGET = process.env.USAGE_DEFAULT_BUDGET
-  ? Number(process.env.USAGE_DEFAULT_BUDGET)
-  : null;
-const USAGE_MAX_TEXT_BYTES = process.env.USAGE_MAX_TEXT_BYTES
-  ? Number(process.env.USAGE_MAX_TEXT_BYTES)
-  : 300000;
+const USAGE_TABLE_NAME = "catieBedrockUsage";
+const USAGE_DEFAULT_BUDGET = 1000000;
+const USAGE_MAX_TEXT_BYTES = 300000;
 
 function buildErrorResponse(responseStream, statusCode, message) {
   if (responseStream && typeof responseStream.setContentType === "function") {
