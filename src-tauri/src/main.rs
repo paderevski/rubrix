@@ -15,7 +15,10 @@ use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
 use std::sync::Mutex;
+use tauri::api::dialog::MessageDialogBuilder;
 use tauri::{AppHandle, CustomMenuItem, Manager, Menu, MenuItem, State, Submenu};
+
+const BUILT_BUG_REPORT_URL: Option<&str> = option_env!("BUG_REPORT_URL");
 
 fn load_env_vars() {
     // Load local env files from src-tauri
@@ -159,6 +162,100 @@ pub struct GenerationRequest {
     pub append: bool, // If true, append to existing questions
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct BugClientContext {
+    pub selected_subject: Option<String>,
+    pub selected_topics: Vec<String>,
+    pub question_count: usize,
+    pub active_tab: String,
+    pub status: String,
+    pub is_authenticated: bool,
+    pub is_dev_mode: bool,
+    pub app_zoom: f64,
+    pub preview_visible: bool,
+    pub streaming_chars: usize,
+    pub user_agent: String,
+    pub captured_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct BugSubmissionInput {
+    pub title: String,
+    pub description: String,
+    #[serde(default)]
+    pub steps_to_reproduce: Vec<String>,
+    #[serde(default)]
+    pub expected_behavior: Option<String>,
+    #[serde(default)]
+    pub actual_behavior: Option<String>,
+    pub severity: String,
+    #[serde(default)]
+    pub reporter_email: Option<String>,
+    pub include_diagnostics: bool,
+    pub client_context: BugClientContext,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+struct BugReportEnvelope {
+    schema_version: String,
+    event_type: String,
+    event_id: String,
+    occurred_at: String,
+    app: BugAppMetadata,
+    reporter: BugReporter,
+    bug: BugPayload,
+    context: BugClientContext,
+    diagnostics: Option<BugDiagnostics>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+struct BugAppMetadata {
+    product_name: String,
+    package_name: String,
+    version: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+struct BugReporter {
+    username: Option<String>,
+    email: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+struct BugPayload {
+    title: String,
+    description: String,
+    steps_to_reproduce: Vec<String>,
+    expected_behavior: Option<String>,
+    actual_behavior: Option<String>,
+    severity: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+struct BugDiagnostics {
+    os: String,
+    arch: String,
+    is_dev_mode: bool,
+    in_memory_question_count: usize,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct SubmitBugResult {
+    event_id: String,
+    upstream_status: u16,
+    upstream_id: Option<String>,
+    upstream_url: Option<String>,
+    message: String,
+}
+
 // ============================================================================
 // Question Bank Types (for few-shot examples)
 // ============================================================================
@@ -269,6 +366,35 @@ fn load_saved_credentials(app_handle: &AppHandle) -> Result<Option<SavedCredenti
     let creds = serde_json::from_str::<SavedCredentials>(&data)
         .map_err(|e| format!("Failed to parse {}: {}", path.display(), e))?;
     Ok(Some(creds))
+}
+
+fn bug_report_url() -> Option<String> {
+    env::var("BUG_REPORT_URL")
+        .ok()
+        .or_else(|| BUILT_BUG_REPORT_URL.map(|s| s.to_string()))
+}
+
+fn generate_event_id() -> String {
+    use rand::{distributions::Alphanumeric, Rng};
+    let rand_part: String = rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(10)
+        .map(char::from)
+        .collect();
+    format!(
+        "bug_{}_{}",
+        chrono::Utc::now().timestamp_millis(),
+        rand_part
+    )
+}
+
+fn extract_string_field(value: &serde_json::Value, keys: &[&str]) -> Option<String> {
+    keys.iter().find_map(|key| {
+        value
+            .get(*key)
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+    })
 }
 
 fn save_saved_credentials(app_handle: &AppHandle, creds: &SavedCredentials) -> Result<(), String> {
@@ -657,6 +783,116 @@ fn is_dev_mode() -> bool {
 }
 
 #[tauri::command]
+async fn submit_bug_report(
+    input: BugSubmissionInput,
+    state: State<'_, AppState>,
+    app_handle: AppHandle,
+) -> Result<SubmitBugResult, String> {
+    let endpoint = bug_report_url().ok_or_else(|| {
+        "BUG_REPORT_URL not set. Configure BUG_REPORT_URL in environment or build-time env."
+            .to_string()
+    })?;
+
+    let event_id = generate_event_id();
+    let package = app_handle.package_info();
+    let reporter_username = state
+        .credentials
+        .lock()
+        .unwrap()
+        .as_ref()
+        .map(|c| c.username.clone());
+
+    let diagnostics = if input.include_diagnostics {
+        Some(BugDiagnostics {
+            os: env::consts::OS.to_string(),
+            arch: env::consts::ARCH.to_string(),
+            is_dev_mode: config::is_dev_mode(),
+            in_memory_question_count: state.questions.lock().unwrap().len(),
+        })
+    } else {
+        None
+    };
+
+    let envelope = BugReportEnvelope {
+        schema_version: "catie.bug_report.v1".to_string(),
+        event_type: "bug_report.submitted".to_string(),
+        event_id: event_id.clone(),
+        occurred_at: chrono::Utc::now().to_rfc3339(),
+        app: BugAppMetadata {
+            product_name: "Catie".to_string(),
+            package_name: package.name.clone(),
+            version: package.version.to_string(),
+        },
+        reporter: BugReporter {
+            username: reporter_username,
+            email: input.reporter_email.clone(),
+        },
+        bug: BugPayload {
+            title: input.title,
+            description: input.description,
+            steps_to_reproduce: input.steps_to_reproduce,
+            expected_behavior: input.expected_behavior,
+            actual_behavior: input.actual_behavior,
+            severity: input.severity,
+        },
+        context: input.client_context,
+        diagnostics,
+    };
+
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(20))
+        .build()
+        .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
+
+    let mut request = client.post(endpoint).json(&envelope);
+
+    if let Ok(api_key) = env::var("BUG_REPORT_API_KEY") {
+        request = request.header("x-api-key", api_key);
+    }
+
+    if let Ok(token) = env::var("BUG_REPORT_BEARER_TOKEN") {
+        request = request.bearer_auth(token);
+    }
+
+    let response = request
+        .send()
+        .await
+        .map_err(|e| format!("Failed to submit bug report: {}", e))?;
+
+    let upstream_status = response.status().as_u16();
+    let body_text = response.text().await.unwrap_or_default();
+
+    if upstream_status >= 400 {
+        return Err(format!(
+            "Bug endpoint error ({}): {}",
+            upstream_status, body_text
+        ));
+    }
+
+    let parsed_json: Option<serde_json::Value> = serde_json::from_str(&body_text).ok();
+    let upstream_id = parsed_json.as_ref().and_then(|json| {
+        extract_string_field(
+            json,
+            &["id", "issue_id", "report_id", "post_id", "ticket_id"],
+        )
+    });
+    let upstream_url = parsed_json.as_ref().and_then(|json| {
+        extract_string_field(
+            json,
+            &["url", "issue_url", "post_url", "ticket_url", "canny_url"],
+        )
+    });
+
+    Ok(SubmitBugResult {
+        event_id,
+        upstream_status,
+        upstream_id,
+        upstream_url,
+        message: "Bug report submitted".to_string(),
+    })
+}
+
+#[tauri::command]
 fn export_to_txt(title: String, state: State<AppState>) -> Result<String, String> {
     let questions = state.questions.lock().unwrap();
     qti::export_txt(&title, &questions)
@@ -878,6 +1114,8 @@ fn main() {
     let zoom_in = CustomMenuItem::new("zoom_in", "Zoom In").accelerator("CmdOrCtrl+=");
     let zoom_out = CustomMenuItem::new("zoom_out", "Zoom Out").accelerator("CmdOrCtrl+-");
     let zoom_reset = CustomMenuItem::new("zoom_reset", "Actual Size").accelerator("CmdOrCtrl+0");
+    let about_catie = CustomMenuItem::new("about_catie", "About Catie");
+    let submit_bug = CustomMenuItem::new("submit_bug", "Submit Bug");
 
     let file_menu = Submenu::new("File", Menu::new().add_native_item(MenuItem::Quit));
     let edit_menu = Submenu::new(
@@ -896,11 +1134,16 @@ fn main() {
             .add_item(zoom_out)
             .add_item(zoom_reset),
     );
+    let help_menu = Submenu::new(
+        "Help",
+        Menu::new().add_item(about_catie).add_item(submit_bug),
+    );
 
     let menu = Menu::new()
         .add_submenu(file_menu)
         .add_submenu(edit_menu)
-        .add_submenu(view_menu);
+        .add_submenu(view_menu)
+        .add_submenu(help_menu);
 
     tauri::Builder::default()
         .manage(state)
@@ -916,6 +1159,29 @@ fn main() {
 
             if let Some(p) = payload {
                 let _ = event.window().app_handle().emit_all("app-zoom", p);
+                return;
+            }
+
+            if id == "about_catie" {
+                let app = event.window().app_handle();
+                let package = app.package_info();
+                let version = package.version.to_string();
+                let body = format!(
+                    "{}\nVersion {}\n\nAI-powered test item engine for generating and exporting assessment questions.",
+                    package.name, version
+                );
+
+                MessageDialogBuilder::new("About Catie", body)
+                    .kind(tauri::api::dialog::MessageDialogKind::Info)
+                    .show(|_| {});
+                return;
+            }
+
+            if id == "submit_bug" {
+                let _ = event
+                    .window()
+                    .app_handle()
+                    .emit_all("app-action", "submit_bug");
             }
         })
         .invoke_handler(tauri::generate_handler![
@@ -933,6 +1199,7 @@ fn main() {
             check_auth,
             clear_auth,
             is_dev_mode,
+            submit_bug_report,
             export_to_txt,
             export_to_md,
             export_to_qti,

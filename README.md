@@ -55,6 +55,18 @@ See [docs/CREDENTIALS.md](docs/CREDENTIALS.md) for full documentation.
 ### Production Builds
 Release builds require authentication each session and never persist credentials.
 
+### Bug Reporting Endpoint
+The app supports a standardized bug submission workflow (`Help -> Submit Bug`) that posts JSON to your server.
+
+Set these in `src-tauri/.env` (or bake at build time):
+- `BUG_REPORT_URL` (required) - AWS endpoint that receives bug JSON
+- `BUG_REPORT_API_KEY` (optional) - sent as `x-api-key`
+- `BUG_REPORT_BEARER_TOKEN` (optional) - sent as `Authorization: Bearer ...`
+
+Canonical schema: [docs/BUG_REPORT_SCHEMA.json](docs/BUG_REPORT_SCHEMA.json)
+AWS GitHub issue router sample: [lambda_functions/bug_intake/lambda_handler.py](lambda_functions/bug_intake/lambda_handler.py)
+Full deployment runbook (IAM/API Gateway/services): [docs/BUG_REPORT_DEPLOYMENT.md](docs/BUG_REPORT_DEPLOYMENT.md)
+
 ```
 rubrix/
 ├── src/                    # React frontend

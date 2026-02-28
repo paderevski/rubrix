@@ -74,3 +74,40 @@ export interface GenerationRequest {
   notes: string | null;
   append: boolean;
 }
+
+export type BugSeverity = "low" | "medium" | "high" | "critical";
+
+export interface BugClientContext {
+  selected_subject: string | null;
+  selected_topics: string[];
+  question_count: number;
+  active_tab: "generate" | "bank";
+  status: string;
+  is_authenticated: boolean;
+  is_dev_mode: boolean;
+  app_zoom: number;
+  preview_visible: boolean;
+  streaming_chars: number;
+  user_agent: string;
+  captured_at: string;
+}
+
+export interface BugSubmissionInput {
+  title: string;
+  description: string;
+  steps_to_reproduce: string[];
+  expected_behavior?: string;
+  actual_behavior?: string;
+  severity: BugSeverity;
+  reporter_email?: string;
+  include_diagnostics: boolean;
+  client_context: BugClientContext;
+}
+
+export interface SubmitBugResult {
+  event_id: string;
+  upstream_status: number;
+  upstream_id?: string;
+  upstream_url?: string;
+  message: string;
+}

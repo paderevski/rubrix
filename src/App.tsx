@@ -9,7 +9,16 @@ import EditModal from "./components/EditModal";
 import StreamingPreview from "./components/StreamingPreview";
 import BankEditor from "./components/BankEditor";
 import LoginModal from "./components/LoginModal";
-import { Question, TopicInfo, SubjectInfo, GenerationRequest, Answer } from "./types";
+import SubmitBugModal from "./components/SubmitBugModal";
+import {
+  Question,
+  TopicInfo,
+  SubjectInfo,
+  GenerationRequest,
+  Answer,
+  BugSubmissionInput,
+  SubmitBugResult,
+} from "./types";
 import {
   FileDown,
   FileText,
@@ -288,6 +297,8 @@ function App() {
   const [authError, setAuthError] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isDevMode, setIsDevMode] = useState(false);
+  const [submitBugOpen, setSubmitBugOpen] = useState(false);
+  const [isSubmittingBug, setIsSubmittingBug] = useState(false);
 
   // Load subjects and any previously generated questions on mount
   useEffect(() => {
@@ -384,6 +395,19 @@ function App() {
 
     return () => {
       unlistenZoom.then((f) => f());
+    };
+  }, []);
+
+  // Listen for general app actions from native menu
+  useEffect(() => {
+    const unlistenAction = listen<string>("app-action", (event) => {
+      if (event.payload === "submit_bug") {
+        setSubmitBugOpen(true);
+      }
+    });
+
+    return () => {
+      unlistenAction.then((f) => f());
     };
   }, []);
 
@@ -667,6 +691,70 @@ function App() {
     }
   };
 
+  const handleSubmitBug = async (payload: {
+    title: string;
+    description: string;
+    steps: string;
+    expectedBehavior: string;
+    actualBehavior: string;
+    severity: "low" | "medium" | "high" | "critical";
+    reporterEmail: string;
+    includeDiagnostics: boolean;
+  }) => {
+    setIsSubmittingBug(true);
+    setStatus("Submitting bug report...");
+
+    try {
+      const stepsToReproduce = payload.steps
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+
+      const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "unknown";
+
+      const input: BugSubmissionInput = {
+        title: payload.title,
+        description: payload.description,
+        steps_to_reproduce: stepsToReproduce,
+        expected_behavior: payload.expectedBehavior || undefined,
+        actual_behavior: payload.actualBehavior || undefined,
+        severity: payload.severity,
+        reporter_email: payload.reporterEmail || undefined,
+        include_diagnostics: payload.includeDiagnostics,
+        client_context: {
+          selected_subject: selectedSubject || null,
+          selected_topics: selectedTopics,
+          question_count: questions.length,
+          active_tab: activeTab,
+          status,
+          is_authenticated: isAuthenticated,
+          is_dev_mode: isDevMode,
+          app_zoom: zoom,
+          preview_visible: showPreview,
+          streaming_chars: streamingText.length,
+          user_agent: userAgent,
+          captured_at: new Date().toISOString(),
+        },
+      };
+
+      const result = await invoke<SubmitBugResult>("submit_bug_report", { input });
+      setStatus(`Bug submitted (${result.event_id})`);
+      setAlertMessage(
+        result.upstream_url
+          ? `Bug submitted successfully.\nEvent ID: ${result.event_id}\nLink: ${result.upstream_url}`
+          : `Bug submitted successfully.\nEvent ID: ${result.event_id}`
+      );
+      setAlertOpen(true);
+      setSubmitBugOpen(false);
+    } catch (err) {
+      console.error("Bug submission failed:", err);
+      setStatus(`Bug submission failed: ${err}`);
+      throw err;
+    } finally {
+      setIsSubmittingBug(false);
+    }
+  };
+
   // Determine what to show in main area
   const showStreamingPreview = isGenerating || (streamingText && !streamingComplete);
   const showQuestions = questions.length > 0 && !showStreamingPreview;
@@ -892,6 +980,13 @@ function App() {
         }}
         onLogin={handleLogin}
         error={authError}
+      />
+
+      <SubmitBugModal
+        isOpen={submitBugOpen}
+        isSubmitting={isSubmittingBug}
+        onClose={() => setSubmitBugOpen(false)}
+        onSubmit={handleSubmitBug}
       />
     </div>
   );
