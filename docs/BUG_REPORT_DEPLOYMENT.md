@@ -181,6 +181,49 @@ Expected response includes one of:
 - Add dead-letter handling if you later make flow async
 - If volume grows, fan-in to SQS first and process asynchronously
 
+## 9) AWS CLI one-shot deployment
+
+If you prefer near-zero clicking, use the example script:
+
+- Script: [../lambda_functions/bug_intake/deploy_example.sh](../lambda_functions/bug_intake/deploy_example.sh)
+
+What it does:
+
+1. Packages `lambda_handler.py`
+2. Creates/updates IAM role + CloudWatch policy
+3. Creates/updates Lambda function
+4. Sets Lambda environment variables
+5. Creates/updates HTTP API + route `POST /bug-report`
+6. Grants API Gateway invoke permission
+7. Prints `BUG_REPORT_URL` and `BUG_REPORT_API_KEY`
+
+Prerequisites:
+
+- AWS CLI configured (`aws configure`)
+- `jq` installed
+- Permissions to manage IAM, Lambda, API Gateway
+
+Run:
+
+```bash
+cd lambda_functions/bug_intake
+chmod +x deploy_example.sh
+./deploy_example.sh
+```
+
+After it prints values, set in `src-tauri/.env`:
+
+```bash
+BUG_REPORT_URL=https://.../prod/bug-report
+BUG_REPORT_API_KEY=...
+```
+
+Then restart app:
+
+```bash
+npm run tauri dev
+```
+
 ## Reference docs
 
 - Workflow: [BUG_REPORT_WORKFLOW.md](BUG_REPORT_WORKFLOW.md)

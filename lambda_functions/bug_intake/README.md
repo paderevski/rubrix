@@ -56,4 +56,6 @@ zip function.zip lambda_handler.py
 
 Then upload `function.zip` to Lambda (Python 3.11 runtime recommended).
 
+AWS CLI automation script: [deploy_example.sh](deploy_example.sh)
+
 For full AWS setup (IAM roles, API Gateway, required services, smoke tests), see [docs/BUG_REPORT_DEPLOYMENT.md](../../docs/BUG_REPORT_DEPLOYMENT.md).
