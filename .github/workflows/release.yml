@@ -46,6 +46,8 @@ jobs:
           AWS_BEARER_TOKEN_BEDROCK: ${{ secrets.AWS_BEARER_TOKEN_BEDROCK }}
           LAMBDA_URL: ${{ secrets.LAMBDA_URL }}
           BEDROCK_GATEWAY_URL: ${{ secrets.BEDROCK_GATEWAY_URL }}
+          BUG_REPORT_URL: ${{ secrets.BUG_REPORT_URL }}
+          BUG_REPORT_API_KEY: ${{ secrets.BUG_REPORT_API_KEY }}
         with:
           tagName: v__VERSION__
           releaseName: "Rubrix v__VERSION__"
