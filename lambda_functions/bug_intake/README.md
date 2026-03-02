@@ -27,6 +27,16 @@ The request body should follow the schema in [docs/BUG_REPORT_SCHEMA.json](../..
 - `DEFAULT_LABELS` (comma-separated, default: `bug`)
 - `RAW_REPORTS_S3_BUCKET` (if set, raw incoming report JSON is stored to S3)
 - `RAW_REPORTS_S3_PREFIX` (default: `bug-reports/`)
+- `BUG_REPORTS_TABLE` (if set, each bug report is persisted to DynamoDB)
+- `BUG_REPORTS_TTL_DAYS` (TTL for Dynamo records, default: `90` days)
+
+### DynamoDB Table Shape (when `BUG_REPORTS_TABLE` is used)
+
+Use a table with partition key:
+
+- `report_id` (String)
+
+The Lambda stores a full record including metadata + payload and returns `db_record_url` in the response.
 
 ## API Gateway Notes
 

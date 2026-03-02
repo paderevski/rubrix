@@ -5,6 +5,7 @@ import os
 import re
 import urllib.parse
 import urllib.request
+from decimal import Decimal
 from datetime import datetime, timezone
 
 try:
@@ -162,6 +163,74 @@ def _store_raw_if_configured(payload: dict, event_id: str):
     return f"s3://{bucket}/{key}"
 
 
+def _to_dynamo_safe(value):
+    if isinstance(value, float):
+        return Decimal(str(value))
+    if isinstance(value, list):
+        return [_to_dynamo_safe(v) for v in value]
+    if isinstance(value, dict):
+        return {k: _to_dynamo_safe(v) for k, v in value.items()}
+    return value
+
+
+def _store_bug_report_if_configured(
+    payload: dict,
+    event_id: str,
+    fingerprint: str,
+    status: str,
+    issue_id: str | None,
+    issue_url: str | None,
+):
+    table_name = os.environ.get("BUG_REPORTS_TABLE")
+    if not table_name or boto3 is None:
+        return None
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    severity = str(payload.get("bug", {}).get("severity", "medium")).lower()
+    reporter = (
+        payload.get("reporter", {}) if isinstance(payload.get("reporter"), dict) else {}
+    )
+    app = payload.get("app", {}) if isinstance(payload.get("app"), dict) else {}
+    context = (
+        payload.get("context", {}) if isinstance(payload.get("context"), dict) else {}
+    )
+
+    ttl_days_raw = os.environ.get("BUG_REPORTS_TTL_DAYS", "90")
+    ttl_days = 90
+    try:
+        ttl_days = max(1, int(ttl_days_raw))
+    except Exception:
+        ttl_days = 90
+
+    ttl_epoch = int(datetime.now(timezone.utc).timestamp()) + ttl_days * 24 * 60 * 60
+
+    item = {
+        "report_id": event_id,
+        "created_at": now_iso,
+        "occurred_at": payload.get("occurred_at"),
+        "status": status,
+        "fingerprint": fingerprint,
+        "schema_version": payload.get("schema_version"),
+        "event_type": payload.get("event_type"),
+        "severity": severity,
+        "reporter_username": reporter.get("username"),
+        "reporter_email": reporter.get("email"),
+        "app_version": app.get("version"),
+        "app_package": app.get("package_name"),
+        "active_tab": context.get("active_tab"),
+        "selected_subject": context.get("selected_subject"),
+        "issue_id": issue_id,
+        "issue_url": issue_url,
+        "ttl": ttl_epoch,
+        "payload": payload,
+    }
+
+    dynamo = boto3.resource("dynamodb")
+    table = dynamo.Table(table_name)
+    table.put_item(Item=_to_dynamo_safe(item))
+    return f"dynamodb://{table_name}/{event_id}"
+
+
 def lambda_handler(event, context):
     try:
         expected_ingest_key = os.environ.get("INGEST_API_KEY")
@@ -212,6 +281,21 @@ def lambda_handler(event, context):
                 {"body": "\n".join(comment_lines)},
             )
 
+            db_location = None
+            try:
+                db_location = _store_bug_report_if_configured(
+                    payload=payload,
+                    event_id=event_id,
+                    fingerprint=fingerprint,
+                    status="deduplicated",
+                    issue_id=(
+                        str(existing.get("number")) if existing.get("number") else None
+                    ),
+                    issue_url=existing.get("html_url"),
+                )
+            except Exception as db_error:
+                print(f"DynamoDB persistence failed for {event_id}: {db_error}")
+
             return _response(
                 200,
                 {
@@ -221,6 +305,7 @@ def lambda_handler(event, context):
                     "issue_url": existing.get("html_url"),
                     "fingerprint": fingerprint,
                     "raw_json_url": raw_location,
+                    "db_record_url": db_location,
                 },
             )
 
@@ -242,6 +327,19 @@ def lambda_handler(event, context):
         create_url = f"https://api.github.com/repos/{owner}/{repo}/issues"
         created = _github_request("POST", create_url, token, issue_payload)
 
+        db_location = None
+        try:
+            db_location = _store_bug_report_if_configured(
+                payload=payload,
+                event_id=event_id,
+                fingerprint=fingerprint,
+                status="created",
+                issue_id=str(created.get("number")) if created.get("number") else None,
+                issue_url=created.get("html_url"),
+            )
+        except Exception as db_error:
+            print(f"DynamoDB persistence failed for {event_id}: {db_error}")
+
         return _response(
             200,
             {
@@ -251,6 +349,7 @@ def lambda_handler(event, context):
                 "issue_url": created.get("html_url"),
                 "fingerprint": fingerprint,
                 "raw_json_url": raw_location,
+                "db_record_url": db_location,
             },
         )
 

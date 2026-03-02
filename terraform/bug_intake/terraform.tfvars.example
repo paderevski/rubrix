@@ -1,0 +1,15 @@
+aws_region   = "us-east-1"
+name_prefix  = "catie"
+
+github_owner = "your-org-or-user"
+github_repo  = "your-repo"
+github_token = "ghp_xxx"
+
+ingest_api_key = "replace-me-strong-random"
+default_labels = "bug,triage"
+
+bug_reports_ttl_days = 90
+
+# Optional raw S3 archive
+raw_reports_s3_bucket = ""
+raw_reports_s3_prefix = "bug-reports/"
