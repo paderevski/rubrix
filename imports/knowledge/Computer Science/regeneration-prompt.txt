@@ -10,15 +10,44 @@ Metadata:
 - subject: {subject}
 - style/cognitive target: {style}
 
-Please craft a NEW question that is similar in topic, complexity, and style, but not a paraphrase.
 
-Avoid duplicating these other questions in this set:
-{other_questions}
 
-Additional human instructions (optional):
+## Your Task
+
+Generate 1 NEW question that:
+
+1. Tests the specified topic(s) at the target difficulty
+2. Use SIMILAR BUT DISTINCT code and scenarios to the current question
+3. Each wrong answer must exploit a specific student misconception
+4. Match the quality and style shown in the examples
+5. Have internally consistent, mathematically correct answers that you've verified
+
+**WORKFLOW (FOLLOW THIS ORDER):**
+
+For the question you write:
+
+**Step 1: Plan & Solve (Do this in the explanation section)**
+- Decide what concept you'll test
+- Write the code you'll use
+- TRACE through it step-by-step and calculate the CORRECT answer
+- Double-check your calculation - verify it's right
+- Think through common student errors for this type of problem
+
+**Step 2: Design 4 Distractors (Also in the explanation section)**
+- Identify 4 specific misconceptions students have
+- For each misconception, calculate what wrong answer it would produce
+- Make sure each distractor comes from a real error pattern (off-by-one, wrong operator, pass-by-value confusion, loop bound errors, etc.)
+
+**Step 3: Write the Question (Now you can start writing JSON)**
+- Only NOW should you write the stem and code
+- Write ALL answer choices (correct + distractors) with their explanations
+- Write the explanation showing the step-by-step solution
+- Write the distractors analysis explaining the error patterns
+
+** Additional human instructions (optional): **
 {user_instructions}
 
-Required guards:
+** Required guards **
 1) Return ONLY a JSON array with exactly 1 question object.
 2) Preserve schema exactly:
    - text (string)
@@ -29,7 +58,7 @@ Required guards:
 4) Keep explanations internally consistent with the marked correct answer.
 5) Do not include markdown fences or extra prose in output.
 
-Strict output format:
+** Strict output format: **
 [
   {
     "text": "...",
