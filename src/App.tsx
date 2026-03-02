@@ -916,7 +916,7 @@ function App() {
 
               {/* Questions Panel */}
               <div
-                className={`overflow-auto p-6 ${
+                className={`overflow-auto overscroll-contain p-6 ${
                   showPreview && streamingText ? "flex-1" : "flex-1"
                 }`}
               >
@@ -946,7 +946,7 @@ function App() {
               </div>
             </main>
           ) : (
-            <main className="flex-1 overflow-auto p-6">
+            <main className="flex-1 overflow-auto overscroll-contain p-6">
               <BankEditor subject={selectedSubject} />
             </main>
           )}

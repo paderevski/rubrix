@@ -77,7 +77,7 @@ export default function Sidebar({
   return (
     <aside className="w-80 border-r bg-card flex flex-col">
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-6">
         {/* Subject Selection */}
         <div>
           <div className="flex items-center justify-between mb-2">

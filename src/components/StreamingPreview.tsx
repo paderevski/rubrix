@@ -28,7 +28,7 @@ export default function StreamingPreview({ text, isComplete }: StreamingPreviewP
         </span>
       </div>
 
-      <div ref={containerRef} className="flex-1 overflow-auto p-4 bg-white">
+      <div ref={containerRef} className="flex-1 overflow-auto overscroll-contain p-4 bg-white">
         {hasContent ? (
           <pre className="code-block--reasoning whitespace-pre-wrap">
             {text}
