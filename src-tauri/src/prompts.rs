@@ -217,10 +217,32 @@ pub fn build_regenerate_prompt(
     user_instructions: Option<&str>,
     prompt_template: Option<&str>,
 ) -> String {
-    // Extract topics from current question content (simple heuristic)
-    let topics = "similar topic as original".to_string();
+    let topics_label = if current.topics.is_empty() {
+        "(not specified)".to_string()
+    } else {
+        current.topics.join(", ")
+    };
 
-    // Build context of other questions to avoid duplication
+    let subject_label = if current.subject.trim().is_empty() {
+        "(not specified)".to_string()
+    } else {
+        current.subject.clone()
+    };
+
+    let inferred_difficulty = examples
+        .first()
+        .map(|e| e.difficulty.clone())
+        .unwrap_or_else(|| "same as original".to_string());
+
+    let inferred_style = examples
+        .first()
+        .map(|e| e.cognitive_level.clone())
+        .unwrap_or_else(|| "same as original".to_string());
+
+    let current_json = serde_json::to_string_pretty(current)
+        .unwrap_or_else(|_| "{\"error\":\"failed to serialize current question\"}".to_string());
+
+    // Build short context of other questions to reduce duplication
     let other_questions: Vec<String> = context
         .iter()
         .filter(|q| q.id != current.id)
@@ -228,19 +250,84 @@ pub fn build_regenerate_prompt(
         .map(|q| truncate(&q.text, 50))
         .collect();
 
-    let config = PromptConfig {
-        topics,
-        difficulty: "medium", // Could be inferred from the question in future
-        count: 1,
-        examples: &examples[..examples.len().min(1)], // Use at most 1 example for regeneration
-        user_instructions,
-        regenerate_context: Some(RegenerateContext {
-            current_question: current,
-            other_questions,
-        }),
-        prompt_template,
+    let other_questions_block = if other_questions.is_empty() {
+        "(none)".to_string()
+    } else {
+        other_questions
+            .iter()
+            .map(|q| format!("- {}", q))
+            .collect::<Vec<_>>()
+            .join("\n")
     };
-    build_core_prompt(&config)
+
+    let user_instructions_block = match user_instructions {
+        Some(text) if !text.trim().is_empty() => text.trim().to_string(),
+        _ => "(none)".to_string(),
+    };
+
+    if let Some(template) = prompt_template {
+        return template
+            .replace("{current_question_json}", &current_json)
+            .replace("{difficulty}", &inferred_difficulty)
+            .replace("{topics}", &topics_label)
+            .replace("{subject}", &subject_label)
+            .replace("{style}", &inferred_style)
+            .replace("{other_questions}", &other_questions_block)
+            .replace("{user_instructions}", &user_instructions_block);
+    }
+
+    format!(
+        r#"You are rewriting ONE multiple-choice question.
+
+Here is the current question JSON (include stem, choices, and metadata):
+```json
+{current_json}
+```
+
+This is a level {difficulty} question about {topics}.
+Metadata:
+- subject: {subject}
+- cognitive/style target: {style}
+- answer choice count target: match the current question unless the prompt requires a fix
+Avoid duplicating these other questions in the current set:
+{other_questions}
+
+Additional human instructions (must follow):
+{user_instructions}
+
+Please craft a NEW question that is similar in topic, complexity, and style, but not a paraphrase.
+
+Required guards:
+1. Return ONLY a JSON array with exactly 1 question object.
+2. Preserve schema exactly:
+   - text (string)
+   - explanation (string)
+   - distractors (string)
+   - answers (array of objects with text, is_correct, explanation)
+3. Include exactly one correct answer (`is_correct: true`).
+4. Keep explanations internally consistent with the marked correct answer.
+5. Do not mention these instructions or include markdown fences in output.
+
+Output format (strict):
+[
+  {{
+    "text": "...",
+    "explanation": "...",
+    "distractors": "...",
+    "answers": [
+      {{"text": "...", "is_correct": false, "explanation": "..."}},
+      {{"text": "...", "is_correct": true,  "explanation": "..."}}
+    ]
+  }}
+]"#,
+        current_json = current_json,
+        difficulty = inferred_difficulty,
+        topics = topics_label,
+        subject = subject_label,
+        style = inferred_style,
+        other_questions = other_questions_block,
+        user_instructions = user_instructions_block,
+    )
 }
 
 /// Parse LLM response into Question objects

@@ -152,6 +152,8 @@ pub struct KnowledgeBase {
     pub topic_code_mappings: HashMap<String, HashMap<String, Vec<String>>>,
     /// Prompt templates for each subject
     pub prompts: HashMap<String, String>,
+    /// Regeneration prompt templates for each subject
+    pub regeneration_prompts: HashMap<String, String>,
 }
 
 impl KnowledgeBase {
@@ -159,6 +161,7 @@ impl KnowledgeBase {
     pub fn load() -> Self {
         let mut subjects: HashMap<String, Vec<TopicInfo>> = HashMap::new();
         let mut prompts: HashMap<String, String> = HashMap::new();
+        let mut regeneration_prompts: HashMap<String, String> = HashMap::new();
         let mut bank_entries: HashMap<String, Vec<QuestionBankEntry>> = HashMap::new();
         let mut topic_code_mappings: HashMap<String, HashMap<String, Vec<String>>> = HashMap::new();
 
@@ -342,12 +345,22 @@ impl KnowledgeBase {
 
             // Load prompt template for this subject
             let prompt_filename = format!("{}/prompt.txt", subject_name);
-            if let Some(file) = KnowledgeAssets::get(&prompt_filename) {
-                let content = String::from_utf8_lossy(&file.data).to_string();
+            if let Some(content) = load_knowledge_file(&prompt_filename) {
                 prompts.insert(subject_name.to_string(), content);
             } else {
                 eprintln!(
                     "Warning: No prompt.txt found for {}, will use default",
+                    subject_name
+                );
+            }
+
+            // Load regeneration prompt template for this subject
+            let regen_prompt_filename = format!("{}/regeneration-prompt.txt", subject_name);
+            if let Some(content) = load_knowledge_file(&regen_prompt_filename) {
+                regeneration_prompts.insert(subject_name.to_string(), content);
+            } else {
+                eprintln!(
+                    "Warning: No regeneration-prompt.txt found for {}, will use built-in regeneration prompt",
                     subject_name
                 );
             }
@@ -363,6 +376,7 @@ impl KnowledgeBase {
             bank_entries,
             topic_code_mappings,
             prompts,
+            regeneration_prompts,
         }
     }
 
@@ -477,5 +491,10 @@ impl KnowledgeBase {
     /// Get prompt template for a subject, or return default
     pub fn get_prompt(&self, subject: &str) -> Option<&str> {
         self.prompts.get(subject).map(|s| s.as_str())
+    }
+
+    /// Get regeneration prompt template for a subject
+    pub fn get_regeneration_prompt(&self, subject: &str) -> Option<&str> {
+        self.regeneration_prompts.get(subject).map(|s| s.as_str())
     }
 }

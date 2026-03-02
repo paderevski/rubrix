@@ -552,8 +552,8 @@ async fn regenerate_question(
     // Get one example for reference
     let bank_examples = state.knowledge.get_bank_examples(subject, topics, None, 1);
 
-    // Get prompt template for this subject
-    let prompt_template = state.knowledge.get_prompt(subject);
+    // Get regeneration prompt template for this subject
+    let regeneration_prompt_template = state.knowledge.get_regeneration_prompt(subject);
 
     // Build prompt for single question regeneration
     let prompt = prompts::build_regenerate_prompt(
@@ -561,7 +561,7 @@ async fn regenerate_question(
         &current_questions,
         &bank_examples,
         instructions.as_deref(),
-        prompt_template,
+        regeneration_prompt_template,
     );
 
     // Get cached API key from state
