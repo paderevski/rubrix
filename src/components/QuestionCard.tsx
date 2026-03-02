@@ -58,8 +58,8 @@ function normalizeMathDelimiters(content: string) {
   return content
     .replace(/\\\(/g, "$")
     .replace(/\\\)/g, "$")
-    .replace(/\\\[/g, "$$")
-    .replace(/\\\]/g, "$$")
+    .replace(/(^|[^\\])\\\[/g, "$1$$")
+    .replace(/(^|[^\\])\\\]/g, "$1$$")
 }
 
 function RichMarkdown({

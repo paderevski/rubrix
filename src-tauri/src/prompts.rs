@@ -468,69 +468,30 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
 const DOUBLE_BACKSLASH_N_EXCEPTIONS: [&str; 5] = ["eq", "abla", "u", "ewline", "ewcommand"];
 
 fn normalize_question_text(question: &mut Question) {
-    question.text = replace_double_backslash_n(&question.text);
+    question.text = normalize_escaped_math_and_newlines(&question.text);
 
     if let Some(explanation) = question.explanation.as_ref() {
-        question.explanation = Some(replace_double_backslash_n(explanation));
+        question.explanation = Some(normalize_escaped_math_and_newlines(explanation));
     }
 
     if let Some(distractors) = question.distractors.as_ref() {
-        question.distractors = Some(replace_double_backslash_n(distractors));
+        question.distractors = Some(normalize_escaped_math_and_newlines(distractors));
     }
 
     for answer in &mut question.answers {
-        answer.text = replace_double_backslash_n(&answer.text);
+        answer.text = normalize_escaped_math_and_newlines(&answer.text);
         if let Some(explanation) = answer.explanation.as_ref() {
-            answer.explanation = Some(replace_double_backslash_n(explanation));
+            answer.explanation = Some(normalize_escaped_math_and_newlines(explanation));
         }
     }
 }
 
-fn replace_double_backslash_n(input: &str) -> String {
+fn normalize_escaped_math_and_newlines(input: &str) -> String {
     let chars: Vec<char> = input.chars().collect();
     let mut output = String::with_capacity(input.len());
     let mut i = 0;
 
     while i < chars.len() {
-        if chars[i] == '\\' && i + 2 < chars.len() && chars[i + 1] == '\\' {
-            let next = chars[i + 2];
-            if next == '(' {
-                output.push('$');
-                i += 3;
-                while i < chars.len() && (chars[i] == ' ' || chars[i] == '\t') {
-                    i += 1;
-                }
-                continue;
-            }
-
-            if next == ')' {
-                while output.ends_with(' ') || output.ends_with('\t') {
-                    output.pop();
-                }
-                output.push('$');
-                i += 3;
-                continue;
-            }
-
-            if next == '[' {
-                output.push_str("$$");
-                i += 3;
-                while i < chars.len() && (chars[i] == ' ' || chars[i] == '\t') {
-                    i += 1;
-                }
-                continue;
-            }
-
-            if next == ']' {
-                while output.ends_with(' ') || output.ends_with('\t') {
-                    output.pop();
-                }
-                output.push_str("$$");
-                i += 3;
-                continue;
-            }
-        }
-
         if chars[i] == '\\' && i + 2 < chars.len() && chars[i + 1] == '\\' && chars[i + 2] == 'n' {
             let mut is_exception = false;
             for exception in DOUBLE_BACKSLASH_N_EXCEPTIONS.iter() {
@@ -551,6 +512,45 @@ fn replace_double_backslash_n(input: &str) -> String {
 
             i += 3;
             continue;
+        }
+
+        if chars[i] == '\\' && i + 1 < chars.len() && (i == 0 || chars[i - 1] != '\\') {
+            let next = chars[i + 1];
+            if next == '(' {
+                output.push('$');
+                i += 2;
+                while i < chars.len() && (chars[i] == ' ' || chars[i] == '\t') {
+                    i += 1;
+                }
+                continue;
+            }
+
+            if next == ')' {
+                while output.ends_with(' ') || output.ends_with('\t') {
+                    output.pop();
+                }
+                output.push('$');
+                i += 2;
+                continue;
+            }
+
+            if next == '[' {
+                output.push_str("$$");
+                i += 2;
+                while i < chars.len() && (chars[i] == ' ' || chars[i] == '\t') {
+                    i += 1;
+                }
+                continue;
+            }
+
+            if next == ']' {
+                while output.ends_with(' ') || output.ends_with('\t') {
+                    output.pop();
+                }
+                output.push_str("$$");
+                i += 2;
+                continue;
+            }
         }
 
         output.push(chars[i]);
@@ -695,6 +695,56 @@ mod tests {
         let questions = parse_llm_response(input).unwrap();
         assert_eq!(questions.len(), 1);
         assert_eq!(questions[0].text, "Line 1\nLine 2");
+    }
+
+    #[test]
+    fn test_preserve_double_backslash_spacing_command() {
+        let input = r#"[
+    {
+        "text": "Consider the piecewise function\n\n$$\nf(x)=\\begin{cases}\n\\dfrac{3x^{2}-kx-12}{x-3}, & x\\neq 3,\\\\[6pt]\n c, & x=3.\n\\end{cases}\n$$",
+        "answers": [
+            {"text": "A", "is_correct": true}
+        ]
+    }
+]"#;
+
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert!(questions[0].text.contains("\\\\[6pt]"));
+        assert!(!questions[0].text.contains("$$6pt]"));
+    }
+
+    #[test]
+    fn test_preserve_double_backslash_spacing_command_4pt() {
+        let input = r#"[
+    {
+        "text": "$$\\begin{aligned}a&=b,\\\\[4pt]c&=d\\end{aligned}$$",
+        "answers": [
+            {"text": "A", "is_correct": true}
+        ]
+    }
+]"#;
+
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert!(questions[0].text.contains("\\\\[4pt]"));
+        assert!(!questions[0].text.contains("$$4pt]"));
+    }
+
+    #[test]
+    fn test_convert_single_backslash_display_delimiters_to_dollars() {
+        let input = r#"[
+    {
+        "text": "Before \\[ x^2 + 1 \\] after",
+        "answers": [
+            {"text": "A", "is_correct": true}
+        ]
+    }
+]"#;
+
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert!(questions[0].text.contains("Before $$x^2 + 1$$ after"));
     }
 
     #[test]
