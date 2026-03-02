@@ -66,6 +66,15 @@ def _truncate_for_issue(text: str | None, limit: int = 4000):
     return cleaned[: max(0, limit - 3)] + "..."
 
 
+def _truncate_tail_for_issue(text: str | None, limit: int = 4000):
+    if not text:
+        return None
+    cleaned = str(text)
+    if len(cleaned) <= limit:
+        return cleaned
+    return "..." + cleaned[-max(0, limit - 3) :]
+
+
 def _fingerprint(payload: dict):
     bug = payload.get("bug", {})
     app = payload.get("app", {})
@@ -141,7 +150,7 @@ def _build_issue_body(payload: dict, event_id: str, fingerprint: str):
         question_count = diagnostics.get("in_memory_question_count")
         llm_log_source = diagnostics.get("llm_log_source") or "not provided"
         last_prompt = _truncate_for_issue(diagnostics.get("last_prompt"), 4000)
-        last_response = _truncate_for_issue(diagnostics.get("last_response"), 4000)
+        last_response = _truncate_tail_for_issue(diagnostics.get("last_response"), 4000)
 
         prompt_block = "- Not provided"
         if last_prompt:
@@ -407,12 +416,44 @@ def lambda_handler(event, context):
         )
     except urllib.error.HTTPError as err:
         body = err.read().decode("utf-8", errors="ignore")
+        payload_local = locals().get("payload")
+        event_id_local = locals().get("event_id")
+        fingerprint_local = locals().get("fingerprint")
+        raw_location_local = locals().get("raw_location")
+
+        db_location = None
+        if (
+            isinstance(payload_local, dict)
+            and isinstance(event_id_local, str)
+            and isinstance(fingerprint_local, str)
+        ):
+            try:
+                db_location = _store_bug_report_if_configured(
+                    payload=payload_local,
+                    event_id=event_id_local,
+                    fingerprint=fingerprint_local,
+                    status="accepted_without_github",
+                    issue_id=None,
+                    issue_url=None,
+                )
+            except Exception as db_error:
+                print(
+                    f"DynamoDB persistence failed for {event_id_local} after GitHub failure: {db_error}"
+                )
+
         return _response(
-            502,
+            202,
             {
-                "error": "GitHub API request failed",
-                "status": err.code,
-                "details": body[:2000],
+                "status": "accepted_without_github",
+                "report_id": event_id_local,
+                "issue_id": None,
+                "issue_url": None,
+                "fingerprint": fingerprint_local,
+                "raw_json_url": raw_location_local,
+                "db_record_url": db_location,
+                "warning": "GitHub API request failed; report stored without issue creation",
+                "github_status": err.code,
+                "github_details": body[:2000],
             },
         )
     except ValueError as err:

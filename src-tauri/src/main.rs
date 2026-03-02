@@ -418,6 +418,21 @@ fn truncate_with_ellipsis(input: &str, max_chars: usize) -> String {
     out
 }
 
+fn truncate_tail_with_ellipsis(input: &str, max_chars: usize) -> String {
+    let total_chars = input.chars().count();
+    if total_chars <= max_chars {
+        return input.to_string();
+    }
+
+    let mut out = String::with_capacity(max_chars + 1);
+    out.push('…');
+    let skip = total_chars.saturating_sub(max_chars);
+    for ch in input.chars().skip(skip) {
+        out.push(ch);
+    }
+    out
+}
+
 fn latest_llm_log_snapshot() -> Option<(String, String, String)> {
     const PROMPT_MARKER: &str = "--- PROMPT ---";
     const RESPONSE_MARKER: &str = "--- RESPONSE ---";
@@ -458,7 +473,7 @@ fn latest_llm_log_snapshot() -> Option<(String, String, String)> {
     }
 
     let prompt = truncate_with_ellipsis(prompt_raw, SNAPSHOT_MAX_CHARS);
-    let response = truncate_with_ellipsis(response_raw, SNAPSHOT_MAX_CHARS);
+    let response = truncate_tail_with_ellipsis(response_raw, SNAPSHOT_MAX_CHARS);
 
     Some((prompt, response, source))
 }
