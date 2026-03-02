@@ -123,6 +123,8 @@ struct Usage {
 pub struct StreamEvent {
     pub text: String,
     pub done: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub remaining_tokens: Option<u64>,
 }
 
 #[derive(Clone)]
@@ -142,6 +144,8 @@ struct GatewayRequest {
 struct GatewayStreamChunk {
     text: String,
     done: bool,
+    #[serde(default)]
+    remaining_tokens: Option<u64>,
 }
 
 pub fn gateway_url() -> Option<String> {
@@ -214,7 +218,7 @@ pub async fn generate(
             }
         };
 
-        emit_stream(&app_handle, "", false);
+        emit_stream(&app_handle, "", false, None);
 
         let request = GatewayRequest {
             user: gateway_auth.user,
@@ -265,10 +269,10 @@ pub async fn generate(
                                 .replace("<reasoning>", "")
                                 .replace("</reasoning>", "");
                             accumulated.push_str(&cleaned);
-                            emit_stream(&app_handle, &accumulated, false);
+                            emit_stream(&app_handle, &accumulated, false, None);
                         }
                         if chunk.done {
-                            emit_stream(&app_handle, &accumulated, true);
+                            emit_stream(&app_handle, &accumulated, true, chunk.remaining_tokens);
                             log_llm_interaction(prompt, &accumulated);
                             return Ok(accumulated);
                         }
@@ -277,7 +281,7 @@ pub async fn generate(
             }
         }
 
-        emit_stream(&app_handle, &accumulated, true);
+        emit_stream(&app_handle, &accumulated, true, None);
         log_llm_interaction(prompt, &accumulated);
         return Ok(accumulated);
     }
@@ -298,7 +302,7 @@ pub async fn generate(
     };
 
     // Emit starting event
-    emit_stream(&app_handle, "", false);
+    emit_stream(&app_handle, "", false, None);
 
     // Build headers
     let mut headers = HeaderMap::new();
@@ -430,7 +434,7 @@ pub async fn generate(
                                 .replace("<reasoning>", "")
                                 .replace("</reasoning>", "");
                             accumulated.push_str(&cleaned);
-                            emit_stream(&app_handle, &accumulated, false);
+                            emit_stream(&app_handle, &accumulated, false, None);
                             if chunk_count <= 3 {
                                 eprintln!(
                                     "INFO: Emitted stream update ({} chars total)",
@@ -449,7 +453,7 @@ pub async fn generate(
         chunk_count,
         accumulated.len()
     );
-    emit_stream(&app_handle, &accumulated, true);
+    emit_stream(&app_handle, &accumulated, true, None);
     log_llm_interaction(prompt, &accumulated);
     Ok(accumulated)
 }
@@ -459,11 +463,17 @@ fn is_retryable_status(status: u16) -> bool {
 }
 
 /// Emit a streaming event to the frontend
-fn emit_stream(app_handle: &Option<tauri::AppHandle>, text: &str, done: bool) {
+fn emit_stream(
+    app_handle: &Option<tauri::AppHandle>,
+    text: &str,
+    done: bool,
+    remaining_tokens: Option<u64>,
+) {
     if let Some(handle) = app_handle {
         let event = StreamEvent {
             text: text.to_string(),
             done,
+            remaining_tokens,
         };
         let _ = handle.emit_all("llm-stream", event);
     }
@@ -576,12 +586,12 @@ d. `-1`
 
     for chunk in chars.chunks(20) {
         accumulated.extend(chunk);
-        emit_stream(&app_handle, &accumulated, false);
+        emit_stream(&app_handle, &accumulated, false, None);
 
         // Small delay to simulate streaming (50ms between chunks)
         tokio::time::sleep(Duration::from_millis(50)).await;
     }
 
-    emit_stream(&app_handle, &accumulated, true);
+    emit_stream(&app_handle, &accumulated, true, None);
     response.to_string()
 }

@@ -34,9 +34,11 @@ import AlertModal from "./components/AlertModal";
 interface StreamEvent {
   text: string;
   done: boolean;
+  remaining_tokens?: number;
 }
 
 const sessionFileFilter = { name: "Catie Session", extensions: ["json", "md"] };
+const remainingTokensStorageKey = "remainingTokens";
 
 function parseSessionQuestions(raw: unknown): Question[] {
   const payload: unknown[] | null = Array.isArray(raw)
@@ -269,6 +271,13 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [status, setStatus] = useState("Ready");
+  const [remainingTokens, setRemainingTokens] = useState<number | null>(() => {
+    if (typeof localStorage === "undefined") return null;
+    const saved = localStorage.getItem(remainingTokensStorageKey);
+    if (!saved) return null;
+    const parsed = Number(saved);
+    return Number.isFinite(parsed) ? parsed : null;
+  });
   const [appendMode, setAppendMode] = useState(true);
 
   // Zoom state (driven by native menu events)
@@ -357,6 +366,12 @@ function App() {
     }
   }, [zoom]);
 
+  useEffect(() => {
+    if (typeof localStorage === "undefined") return;
+    if (remainingTokens === null) return;
+    localStorage.setItem(remainingTokensStorageKey, remainingTokens.toString());
+  }, [remainingTokens]);
+
   // Load topics when subject changes
   useEffect(() => {
     if (selectedSubject) {
@@ -369,6 +384,9 @@ function App() {
     const unlisten = listen<StreamEvent>("llm-stream", (event) => {
       setStreamingText(event.payload.text);
       setStreamingComplete(event.payload.done);
+      if (typeof event.payload.remaining_tokens === "number") {
+        setRemainingTokens(event.payload.remaining_tokens);
+      }
     });
 
     return () => {
@@ -957,7 +975,10 @@ function App() {
               {isGenerating && <Loader2 className="w-4 h-4 animate-spin" />}
               {status}
             </span>
-            <span>{questions.length} questions</span>
+            <span>
+              {questions.length} questions
+              {` • ${remainingTokens !== null ? remainingTokens.toLocaleString() : "N/A"} tokens left`}
+            </span>
           </footer>
         </div>
       </div>

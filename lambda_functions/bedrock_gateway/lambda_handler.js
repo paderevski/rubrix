@@ -51,8 +51,24 @@ function normalizeUser(user) {
   return sanitized;
 }
 
-function sseEvent(text, done) {
-  return `data: ${JSON.stringify({ text, done })}\n\n`;
+function sseEvent(text, done, remainingTokens = null) {
+  const payload = { text, done };
+  if (Number.isFinite(remainingTokens)) {
+    payload.remaining_tokens = remainingTokens;
+  }
+  return `data: ${JSON.stringify(payload)}\n\n`;
+}
+
+function computeProjectedRemainingTokens(usageRecord, usageTokens) {
+  const currentRemaining =
+    usageRecord && Number.isFinite(usageRecord.remaining_tokens)
+      ? usageRecord.remaining_tokens
+      : USAGE_DEFAULT_BUDGET;
+  const usedTokens =
+    usageTokens && Number.isFinite(usageTokens.totalTokens)
+      ? usageTokens.totalTokens
+      : 0;
+  return Math.max(currentRemaining - usedTokens, 0);
 }
 
 function extractTextFromPayload(payload) {
@@ -401,11 +417,19 @@ const streamingHandler = async (event, responseStream) => {
       }
     }
 
-    responseStream.write(sseEvent("", true));
+    const projectedRemaining = computeProjectedRemainingTokens(
+      usageRecord,
+      usageState.tokens,
+    );
+    responseStream.write(sseEvent("", true, projectedRemaining));
     responseStream.end();
   } catch (error) {
     console.error("Bedrock invoke error", error);
-    responseStream.write(sseEvent("", true));
+    const projectedRemaining = computeProjectedRemainingTokens(
+      usageRecord,
+      usageState.tokens,
+    );
+    responseStream.write(sseEvent("", true, projectedRemaining));
     responseStream.end();
   } finally {
     const responseText = usageState.responseParts.join("");
