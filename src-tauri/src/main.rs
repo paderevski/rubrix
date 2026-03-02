@@ -244,6 +244,12 @@ struct BugDiagnostics {
     arch: String,
     is_dev_mode: bool,
     in_memory_question_count: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    last_prompt: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    last_response: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    llm_log_source: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -395,6 +401,66 @@ fn extract_string_field(value: &serde_json::Value, keys: &[&str]) -> Option<Stri
             .and_then(|v| v.as_str())
             .map(|s| s.to_string())
     })
+}
+
+fn truncate_with_ellipsis(input: &str, max_chars: usize) -> String {
+    if input.chars().count() <= max_chars {
+        return input.to_string();
+    }
+    let mut out = String::with_capacity(max_chars + 1);
+    for (idx, ch) in input.chars().enumerate() {
+        if idx >= max_chars {
+            break;
+        }
+        out.push(ch);
+    }
+    out.push('…');
+    out
+}
+
+fn latest_llm_log_snapshot() -> Option<(String, String, String)> {
+    const PROMPT_MARKER: &str = "--- PROMPT ---";
+    const RESPONSE_MARKER: &str = "--- RESPONSE ---";
+    const SNAPSHOT_MAX_CHARS: usize = 8_000;
+    const CANDIDATE_PATHS: [&str; 4] = [
+        "../llm_log.txt",
+        "./llm_log.txt",
+        "llm_log.txt",
+        "../llm_log_03012026.txt",
+    ];
+
+    let mut selected_path: Option<String> = None;
+    let mut content: Option<String> = None;
+
+    for candidate in CANDIDATE_PATHS.iter() {
+        if let Ok(text) = fs::read_to_string(candidate) {
+            if !text.trim().is_empty() {
+                selected_path = Some((*candidate).to_string());
+                content = Some(text);
+                break;
+            }
+        }
+    }
+
+    let source = selected_path?;
+    let text = content?;
+
+    let prompt_marker_idx = text.rfind(PROMPT_MARKER)?;
+    let response_marker_idx = text[prompt_marker_idx..]
+        .find(RESPONSE_MARKER)
+        .map(|offset| prompt_marker_idx + offset)?;
+
+    let prompt_raw = text[prompt_marker_idx + PROMPT_MARKER.len()..response_marker_idx].trim();
+    let response_raw = text[response_marker_idx + RESPONSE_MARKER.len()..].trim();
+
+    if prompt_raw.is_empty() || response_raw.is_empty() {
+        return None;
+    }
+
+    let prompt = truncate_with_ellipsis(prompt_raw, SNAPSHOT_MAX_CHARS);
+    let response = truncate_with_ellipsis(response_raw, SNAPSHOT_MAX_CHARS);
+
+    Some((prompt, response, source))
 }
 
 fn save_saved_credentials(app_handle: &AppHandle, creds: &SavedCredentials) -> Result<(), String> {
@@ -803,11 +869,21 @@ async fn submit_bug_report(
         .map(|c| c.username.clone());
 
     let diagnostics = if input.include_diagnostics {
+        let (last_prompt, last_response, llm_log_source) =
+            if let Some((prompt, response, source)) = latest_llm_log_snapshot() {
+                (Some(prompt), Some(response), Some(source))
+            } else {
+                (None, None, None)
+            };
+
         Some(BugDiagnostics {
             os: env::consts::OS.to_string(),
             arch: env::consts::ARCH.to_string(),
             is_dev_mode: config::is_dev_mode(),
             in_memory_question_count: state.questions.lock().unwrap().len(),
+            last_prompt,
+            last_response,
+            llm_log_source,
         })
     } else {
         None

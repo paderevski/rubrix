@@ -57,6 +57,15 @@ def _compact(text: str):
     return re.sub(r"\s+", " ", (text or "").strip())
 
 
+def _truncate_for_issue(text: str | None, limit: int = 4000):
+    if not text:
+        return None
+    cleaned = str(text)
+    if len(cleaned) <= limit:
+        return cleaned
+    return cleaned[: max(0, limit - 3)] + "..."
+
+
 def _fingerprint(payload: dict):
     bug = payload.get("bug", {})
     app = payload.get("app", {})
@@ -108,6 +117,7 @@ def _build_issue_body(payload: dict, event_id: str, fingerprint: str):
     bug = payload.get("bug", {})
     context = payload.get("context", {})
     reporter = payload.get("reporter", {})
+    diagnostics = payload.get("diagnostics", {})
 
     steps = bug.get("steps_to_reproduce") or []
     steps_md = "\n".join([f"- {s}" for s in steps]) if steps else "- Not provided"
@@ -122,6 +132,43 @@ def _build_issue_body(payload: dict, event_id: str, fingerprint: str):
         "selected_topics": context.get("selected_topics"),
         "severity": bug.get("severity"),
     }
+
+    diagnostics_section = ""
+    if isinstance(diagnostics, dict) and diagnostics:
+        os_name = diagnostics.get("os") or "unknown"
+        arch = diagnostics.get("arch") or "unknown"
+        is_dev_mode = diagnostics.get("is_dev_mode")
+        question_count = diagnostics.get("in_memory_question_count")
+        llm_log_source = diagnostics.get("llm_log_source") or "not provided"
+        last_prompt = _truncate_for_issue(diagnostics.get("last_prompt"), 4000)
+        last_response = _truncate_for_issue(diagnostics.get("last_response"), 4000)
+
+        prompt_block = "- Not provided"
+        if last_prompt:
+            prompt_block = (
+                "<details><summary>Last Prompt Snapshot</summary>\n\n"
+                f"~~~text\n{last_prompt}\n~~~\n\n"
+                "</details>"
+            )
+
+        response_block = "- Not provided"
+        if last_response:
+            response_block = (
+                "<details><summary>Last Response Snapshot</summary>\n\n"
+                f"~~~text\n{last_response}\n~~~\n\n"
+                "</details>"
+            )
+
+        diagnostics_section = (
+            "## Diagnostics\n"
+            f"- OS: {os_name}\n"
+            f"- Arch: {arch}\n"
+            f"- Dev mode: {is_dev_mode}\n"
+            f"- In-memory question count: {question_count}\n"
+            f"- LLM log source: {llm_log_source}\n\n"
+            f"### Last Prompt\n{prompt_block}\n\n"
+            f"### Last Response\n{response_block}\n\n"
+        )
 
     return (
         f"<!-- catie-fingerprint:{fingerprint} -->\n"
@@ -141,6 +188,7 @@ def _build_issue_body(payload: dict, event_id: str, fingerprint: str):
         f"- Topics: {', '.join(context.get('selected_topics') or []) or 'none'}\n"
         f"- Questions in memory: {context.get('question_count')}\n"
         f"- Is authenticated: {context.get('is_authenticated')}\n\n"
+        f"{diagnostics_section}"
         f"## Raw Metadata\n```json\n{json.dumps(metadata, indent=2)}\n```\n"
     )
 
