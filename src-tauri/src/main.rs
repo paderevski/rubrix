@@ -19,6 +19,7 @@ use tauri::api::dialog::MessageDialogBuilder;
 use tauri::{AppHandle, CustomMenuItem, Manager, Menu, MenuItem, State, Submenu};
 
 const BUILT_BUG_REPORT_URL: Option<&str> = option_env!("BUG_REPORT_URL");
+const BUILT_BUG_REPORT_API_KEY: Option<&str> = option_env!("BUG_REPORT_API_KEY");
 
 fn load_env_vars() {
     // Load local env files from src-tauri
@@ -378,6 +379,16 @@ fn bug_report_url() -> Option<String> {
     env::var("BUG_REPORT_URL")
         .ok()
         .or_else(|| BUILT_BUG_REPORT_URL.map(|s| s.to_string()))
+        .map(|value| value.trim().trim_matches('"').to_string())
+        .filter(|value| !value.is_empty())
+}
+
+fn bug_report_api_key() -> Option<String> {
+    env::var("BUG_REPORT_API_KEY")
+        .ok()
+        .or_else(|| BUILT_BUG_REPORT_API_KEY.map(|s| s.to_string()))
+        .map(|value| value.trim().trim_matches('"').to_string())
+        .filter(|value| !value.is_empty())
 }
 
 fn generate_event_id() -> String {
@@ -937,7 +948,7 @@ async fn submit_bug_report(
 
     let mut request = client.post(endpoint).json(&envelope);
 
-    if let Ok(api_key) = env::var("BUG_REPORT_API_KEY") {
+    if let Some(api_key) = bug_report_api_key() {
         request = request.header("x-api-key", api_key);
     }
 
