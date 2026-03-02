@@ -640,9 +640,12 @@ mod tests {
         }];
 
         let result = export_txt("Test", &questions).unwrap();
-        assert!(result.contains("Title: Test"));
-        assert!(result.contains("1. What is 2+2?"));
-        assert!(result.contains("a. 4"));
+        assert!(result.contains("# Test"));
+        assert!(result.contains("**Question 1.**"));
+        assert!(result.contains("What is 2+2?"));
+        // Both answers must appear (shuffled order); match the ") <answer>" format
+        assert!(result.contains(") 4"));
+        assert!(result.contains(") 3"));
     }
 
     #[test]
@@ -794,5 +797,278 @@ mod tests {
         assert!(
             result.contains(r#"<img src="https://learn.lcps.org/svc/latex/latex-to-svg?latex="#)
         );
+    }
+
+    // -------------------------------------------------------------------------
+    // clean_special_characters
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_clean_special_characters_encoding_artifacts() {
+        assert_eq!(clean_special_characters("Â test"), " test");
+        assert_eq!(clean_special_characters("no\u{feff}bom"), "nobom");
+        assert_eq!(clean_special_characters("non\u{00a0}breaking"), "non breaking");
+    }
+
+    #[test]
+    fn test_clean_special_characters_curly_quotes() {
+        assert_eq!(clean_special_characters("\u{201c}hello\u{201d}"), "\"hello\"");
+        assert_eq!(clean_special_characters("\u{2018}it\u{2019}s"), "'it's");
+    }
+
+    #[test]
+    fn test_clean_special_characters_dashes_and_ellipsis() {
+        assert_eq!(clean_special_characters("A\u{2013}B"), "A-B");
+        assert_eq!(clean_special_characters("A\u{2014}B"), "A-B");
+        assert_eq!(clean_special_characters("wait\u{2026}"), "wait...");
+    }
+
+    #[test]
+    fn test_clean_special_characters_tabs() {
+        assert_eq!(clean_special_characters("a\tb"), "a    b");
+    }
+
+    #[test]
+    fn test_clean_special_characters_no_change() {
+        let plain = "Hello World 123";
+        assert_eq!(clean_special_characters(plain), plain);
+    }
+
+    // -------------------------------------------------------------------------
+    // is_markdown_table
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_is_markdown_table_valid() {
+        let table = "| A | B |\n|---|---|\n| 1 | 2 |";
+        assert!(is_markdown_table(table));
+    }
+
+    #[test]
+    fn test_is_markdown_table_invalid_no_pipe() {
+        let not_a_table = "Header\n------\nRow";
+        assert!(!is_markdown_table(not_a_table));
+    }
+
+    #[test]
+    fn test_is_markdown_table_too_short() {
+        let one_line = "| A |";
+        assert!(!is_markdown_table(one_line));
+    }
+
+    #[test]
+    fn test_is_markdown_table_with_alignment() {
+        let table = "| Left | Center | Right |\n|:-----|:------:|------:|\n| a | b | c |";
+        assert!(is_markdown_table(table));
+    }
+
+    // -------------------------------------------------------------------------
+    // normalize_math_delimiters
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_normalize_math_delimiters_inline() {
+        assert_eq!(normalize_math_delimiters(r"\(x+1\)"), "$x+1$");
+    }
+
+    #[test]
+    fn test_normalize_math_delimiters_display() {
+        assert_eq!(normalize_math_delimiters(r"\[x^2\]"), "$$x^2$$");
+    }
+
+    #[test]
+    fn test_normalize_math_delimiters_mixed() {
+        let input = r"Inline \(a+b\) and display \[c=d\]";
+        let output = normalize_math_delimiters(input);
+        assert!(output.contains("$a+b$"));
+        assert!(output.contains("$$c=d$$"));
+    }
+
+    #[test]
+    fn test_normalize_math_delimiters_passthrough_dollars() {
+        let input = "Already $x$ and $$y$$";
+        assert_eq!(normalize_math_delimiters(input), input);
+    }
+
+    #[test]
+    fn test_normalize_math_delimiters_empty() {
+        assert_eq!(normalize_math_delimiters(""), "");
+    }
+
+    // -------------------------------------------------------------------------
+    // sanitize_filename
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_sanitize_filename_basic() {
+        assert_eq!(sanitize_filename("My Quiz"), "My_Quiz");
+    }
+
+    #[test]
+    fn test_sanitize_filename_special_chars() {
+        assert_eq!(sanitize_filename("Test/Quiz:2024"), "Test_Quiz_2024");
+    }
+
+    #[test]
+    fn test_sanitize_filename_allowed_chars() {
+        assert_eq!(sanitize_filename("valid-name_123"), "valid-name_123");
+    }
+
+    #[test]
+    fn test_sanitize_filename_empty() {
+        assert_eq!(sanitize_filename(""), "");
+    }
+
+    // -------------------------------------------------------------------------
+    // convert_inline_code
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_convert_inline_code_basic() {
+        assert_eq!(convert_inline_code("`foo`"), "<code>foo</code>");
+    }
+
+    #[test]
+    fn test_convert_inline_code_multiple() {
+        let input = "Use `a` and `b`";
+        let result = convert_inline_code(input);
+        assert_eq!(result, "Use <code>a</code> and <code>b</code>");
+    }
+
+    #[test]
+    fn test_convert_inline_code_no_backticks() {
+        let input = "plain text";
+        assert_eq!(convert_inline_code(input), "plain text");
+    }
+
+    // -------------------------------------------------------------------------
+    // convert_markdown_table
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_convert_markdown_table_basic() {
+        let md = "| Name | Score |\n|------|-------|\n| Alice | 95 |\n| Bob | 87 |";
+        let html = convert_markdown_table(md);
+        assert!(html.contains("<table"));
+        assert!(html.contains("<th>Name</th>"));
+        assert!(html.contains("<th>Score</th>"));
+        assert!(html.contains("<td>Alice</td>"));
+        assert!(html.contains("<td>87</td>"));
+        assert!(html.contains("</table>"));
+    }
+
+    #[test]
+    fn test_convert_markdown_table_header_only() {
+        // Only a header row (< 2 lines) should return input unchanged
+        let md = "| A |";
+        let result = convert_markdown_table(md);
+        assert_eq!(result.trim(), md.trim());
+    }
+
+    // -------------------------------------------------------------------------
+    // export_md
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_export_md_structure() {
+        let questions = vec![Question {
+            id: "q1".to_string(),
+            text: "What is 1+1?".to_string(),
+            explanation: None,
+            distractors: None,
+            subject: "Math".to_string(),
+            topics: vec![],
+            answers: vec![
+                Answer {
+                    text: "2".to_string(),
+                    is_correct: true,
+                    explanation: None,
+                },
+                Answer {
+                    text: "3".to_string(),
+                    is_correct: false,
+                    explanation: None,
+                },
+            ],
+        }];
+        let result = export_md("Algebra", &questions).unwrap();
+        assert!(result.starts_with("# Algebra\n"));
+        assert!(result.contains("**Question 1.**"));
+        assert!(result.contains("What is 1+1?"));
+        // Both answer choices must appear in the shuffled output
+        assert!(result.contains(") 2"));
+        assert!(result.contains(") 3"));
+        assert!(result.contains("## Answers"));
+        // Answer key must contain the entry for question 1 (format: "1. <letter>")
+        assert!(result.contains("1. "));
+    }
+
+    #[test]
+    fn test_export_md_answer_key_present() {
+        let questions = vec![Question {
+            id: "q1".to_string(),
+            text: "Pick the right one".to_string(),
+            explanation: None,
+            distractors: None,
+            subject: "Test".to_string(),
+            topics: vec![],
+            answers: vec![
+                Answer {
+                    text: "Wrong".to_string(),
+                    is_correct: false,
+                    explanation: None,
+                },
+                Answer {
+                    text: "Correct".to_string(),
+                    is_correct: true,
+                    explanation: None,
+                },
+            ],
+        }];
+        let result = export_md("Quiz", &questions).unwrap();
+        // Answer key section must appear and contain question 1
+        assert!(result.contains("## Answers"));
+        assert!(result.contains("1."));
+    }
+
+    #[test]
+    fn test_export_md_empty_questions() {
+        let result = export_md("Empty", &[]).unwrap();
+        assert!(result.starts_with("# Empty\n"));
+        // No answer key section for an empty question list
+        assert!(!result.contains("## Answers"));
+    }
+
+    // -------------------------------------------------------------------------
+    // export_qti_zip
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_export_qti_zip_returns_bytes() {
+        let questions = vec![Question {
+            id: "q1".to_string(),
+            text: "Question text".to_string(),
+            explanation: None,
+            distractors: None,
+            subject: "Test".to_string(),
+            topics: vec![],
+            answers: vec![
+                Answer {
+                    text: "A".to_string(),
+                    is_correct: true,
+                    explanation: None,
+                },
+                Answer {
+                    text: "B".to_string(),
+                    is_correct: false,
+                    explanation: None,
+                },
+            ],
+        }];
+        let result = export_qti_zip("My Quiz", &questions);
+        assert!(result.is_ok());
+        let bytes = result.unwrap();
+        // ZIP magic bytes: PK\x03\x04
+        assert!(bytes.starts_with(b"PK\x03\x04"));
     }
 }

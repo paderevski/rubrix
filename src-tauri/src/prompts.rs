@@ -844,8 +844,9 @@ Line 2",
 
     #[test]
     fn test_parse_handles_latex_escape_sequences() {
-        // LLMs often generate invalid JSON escapes like \(, \), \[, \] for LaTeX
-        // Our sanitizer should fix these by adding an extra backslash
+        // LLMs often generate invalid JSON escapes like \(, \), \[, \] for LaTeX.
+        // sanitize_json_string fixes these, then normalize_escaped_math_and_newlines
+        // converts \(...\) → $...$ and \[...\] → $$...$$
         let input = r#"[
     {
         "text": "Function \\(f(x)=x^2\\) on interval \\[0,2\\]",
@@ -859,8 +860,148 @@ Line 2",
 
         let questions = parse_llm_response(input).unwrap();
         assert_eq!(questions.len(), 1);
-        // The output should preserve the LaTeX delimiters
-        assert!(questions[0].text.contains("\\(f(x)=x^2\\)"));
-        assert!(questions[0].text.contains("\\[0,2\\]"));
+        // \(...\) delimiters are normalised to $...$ by the pipeline
+        assert!(questions[0].text.contains("$f(x)=x^2$"));
+        // \[...\] delimiters are normalised to $$...$$
+        assert!(questions[0].text.contains("$$0,2$$"));
+    }
+
+    // -------------------------------------------------------------------------
+    // escape_json_string
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_escape_json_string_backslash() {
+        assert_eq!(escape_json_string(r"a\b"), r"a\\b");
+    }
+
+    #[test]
+    fn test_escape_json_string_double_quote() {
+        assert_eq!(escape_json_string(r#"say "hello""#), r#"say \"hello\""#);
+    }
+
+    #[test]
+    fn test_escape_json_string_newline() {
+        assert_eq!(escape_json_string("line1\nline2"), r"line1\nline2");
+    }
+
+    #[test]
+    fn test_escape_json_string_tab() {
+        assert_eq!(escape_json_string("col1\tcol2"), r"col1\tcol2");
+    }
+
+    #[test]
+    fn test_escape_json_string_carriage_return() {
+        assert_eq!(escape_json_string("a\rb"), r"a\rb");
+    }
+
+    #[test]
+    fn test_escape_json_string_no_special_chars() {
+        assert_eq!(escape_json_string("hello world"), "hello world");
+    }
+
+    // -------------------------------------------------------------------------
+    // truncate
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_truncate_short_string() {
+        assert_eq!(truncate("hello", 10), "hello");
+    }
+
+    #[test]
+    fn test_truncate_exact_length() {
+        assert_eq!(truncate("hello", 5), "hello");
+    }
+
+    #[test]
+    fn test_truncate_long_string() {
+        assert_eq!(truncate("hello world", 5), "hello...");
+    }
+
+    #[test]
+    fn test_truncate_empty_string() {
+        assert_eq!(truncate("", 5), "");
+    }
+
+    // -------------------------------------------------------------------------
+    // parse_llm_response edge cases
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_parse_returns_error_on_empty_input() {
+        let result = parse_llm_response("");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_returns_error_on_prose_only() {
+        let result = parse_llm_response("Sorry, I cannot generate that.");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_returns_error_on_empty_array() {
+        // A JSON array that contains no question objects should fail
+        let result = parse_llm_response("[]");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_assigns_sequential_ids() {
+        let input = r#"[
+            {"text":"Q1","answers":[{"text":"A","is_correct":true}]},
+            {"text":"Q2","answers":[{"text":"B","is_correct":true}]},
+            {"text":"Q3","answers":[{"text":"C","is_correct":true}]}
+        ]"#;
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions[0].id, "q1");
+        assert_eq!(questions[1].id, "q2");
+        assert_eq!(questions[2].id, "q3");
+    }
+
+    // -------------------------------------------------------------------------
+    // normalize_escaped_math_and_newlines
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn test_normalize_inline_math_delimiters() {
+        // \( ... \) → $ ... $
+        let input = r"\(x^2\)";
+        let output = normalize_escaped_math_and_newlines(input);
+        assert_eq!(output, "$x^2$");
+    }
+
+    #[test]
+    fn test_normalize_display_math_delimiters() {
+        // \[ ... \] → $$ ... $$
+        let input = r"\[E=mc^2\]";
+        let output = normalize_escaped_math_and_newlines(input);
+        assert_eq!(output, "$$E=mc^2$$");
+    }
+
+    #[test]
+    fn test_normalize_double_backslash_n_is_newline() {
+        // \\n (two backslashes then n) → newline, unless it starts a LaTeX command
+        let chars: Vec<char> = vec!['\\', '\\', 'n'];
+        let input: String = chars.into_iter().collect();
+        let output = normalize_escaped_math_and_newlines(&input);
+        assert_eq!(output, "\n");
+    }
+
+    #[test]
+    fn test_normalize_double_backslash_newline_exception_newline_cmd() {
+        // \\newline is in the exception list, so the \\n must NOT be collapsed to a newline.
+        // Input string: two backslashes followed by "newline" (9 chars total)
+        let input = "\\\\newline";
+        let output = normalize_escaped_math_and_newlines(input);
+        // The sequence is preserved as-is: \\newline
+        assert_eq!(output, "\\\\newline");
+    }
+
+    #[test]
+    fn test_normalize_passthrough_regular_text() {
+        let input = "no special chars here";
+        assert_eq!(normalize_escaped_math_and_newlines(input), input);
     }
 }

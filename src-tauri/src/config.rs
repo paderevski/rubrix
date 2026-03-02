@@ -68,3 +68,14 @@ impl CredentialStore {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_dev_mode_matches_cfg_debug_assertions() {
+        // In a debug (test) build cfg!(debug_assertions) is true; release builds set it false.
+        assert_eq!(is_dev_mode(), cfg!(debug_assertions));
+    }
+}
