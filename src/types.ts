@@ -75,6 +75,10 @@ export interface GenerationRequest {
   append: boolean;
 }
 
+export interface WordExportOptions {
+  include_explanations: boolean;
+}
+
 export type BugSeverity = "low" | "medium" | "high" | "critical";
 
 export interface BugClientContext {

@@ -15,6 +15,7 @@ import {
   TopicInfo,
   SubjectInfo,
   GenerationRequest,
+  WordExportOptions,
   Answer,
   BugSubmissionInput,
   SubmitBugResult,
@@ -296,6 +297,8 @@ function App() {
   const [showPreview, setShowPreview] = useState(true);
   const [activeTab, setActiveTab] = useState<"generate" | "bank">("generate");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [includeGenerateExplanationsInWord, setIncludeGenerateExplanationsInWord] = useState(false);
+  const [includeBankExplanationsInWord, setIncludeBankExplanationsInWord] = useState(false);
 
   // Alert modal state
   const [alertOpen, setAlertOpen] = useState(false);
@@ -629,19 +632,47 @@ function App() {
   };
 
   const handleExportDocx = async () => {
+    const exportingBank = activeTab === "bank";
+    const defaultName = exportingBank
+      ? `${selectedSubject || "question-bank"}.docx`
+      : "questions.docx";
+
     const filePath = await save({
-      defaultPath: "questions.docx",
+      defaultPath: defaultName,
       filters: [{ name: "Word Document", extensions: ["docx"] }],
     });
 
     if (!filePath) return;
 
     try {
-      setStatus("Converting to Word document...");
-      const data = await invoke<number[]>("export_to_docx", {
-        title: "Quiz",
-      });
-      await writeBinaryFile(filePath, new Uint8Array(data));
+      if (exportingBank) {
+        if (!selectedSubject) {
+          setStatus("Select a subject before exporting the question bank");
+          return;
+        }
+
+        setStatus("Converting question bank to Word document...");
+        const options: WordExportOptions = {
+          include_explanations: includeBankExplanationsInWord,
+        };
+        const data = await invoke<number[]>("export_question_bank_to_docx", {
+          subject: selectedSubject,
+          title: `${selectedSubject} Question Bank`,
+          options,
+        });
+        await writeBinaryFile(filePath, new Uint8Array(data));
+      } else {
+        setStatus("Converting to Word document...");
+        const options: WordExportOptions = {
+          include_explanations: includeGenerateExplanationsInWord,
+        };
+        const data = await invoke<number[]>("export_to_docx", {
+          title: "Quiz",
+          options,
+        });
+        await writeBinaryFile(filePath, new Uint8Array(data));
+      }
+
       setStatus(`Exported to ${filePath}`);
     } catch (err) {
       console.error("Export failed:", err);
@@ -776,6 +807,7 @@ function App() {
   // Determine what to show in main area
   const showStreamingPreview = isGenerating || (streamingText && !streamingComplete);
   const showQuestions = questions.length > 0 && !showStreamingPreview;
+  const canExportWord = activeTab === "generate" ? questions.length > 0 : Boolean(selectedSubject);
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -881,9 +913,29 @@ function App() {
             <FileDown className="w-4 h-4" />
             Export QTI
           </button>
+          {activeTab === "generate" && (
+            <label className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md bg-white">
+              <input
+                type="checkbox"
+                checked={includeGenerateExplanationsInWord}
+                onChange={(e) => setIncludeGenerateExplanationsInWord(e.target.checked)}
+              />
+              Include explanations after answer key (Word)
+            </label>
+          )}
+          {activeTab === "bank" && (
+            <label className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md bg-white">
+              <input
+                type="checkbox"
+                checked={includeBankExplanationsInWord}
+                onChange={(e) => setIncludeBankExplanationsInWord(e.target.checked)}
+              />
+              Include explanations + distractors (Word)
+            </label>
+          )}
           <button
             onClick={handleExportDocx}
-            disabled={questions.length === 0}
+            disabled={!canExportWord}
             className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FileDown className="w-4 h-4" />

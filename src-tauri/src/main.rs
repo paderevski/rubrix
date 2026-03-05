@@ -165,6 +165,13 @@ pub struct GenerationRequest {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub struct WordExportOptions {
+    #[serde(default)]
+    pub include_explanations: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub struct BugClientContext {
     pub selected_subject: Option<String>,
     pub selected_topics: Vec<String>,
@@ -487,6 +494,117 @@ fn latest_llm_log_snapshot() -> Option<(String, String, String)> {
     let response = truncate_tail_with_ellipsis(response_raw, SNAPSHOT_MAX_CHARS);
 
     Some((prompt, response, source))
+}
+
+async fn convert_markdown_to_docx(markdown: String) -> Result<Vec<u8>, String> {
+    let payload = serde_json::json!({
+        "markdown": markdown,
+        "format": "docx"
+    });
+
+    let client = reqwest::Client::new();
+    let response = client
+        .post("https://aminsl4ogh.execute-api.us-east-1.amazonaws.com/convert")
+        .json(&payload)
+        .send()
+        .await
+        .map_err(|e| format!("Failed to call API: {}", e))?;
+
+    if !response.status().is_success() {
+        return Err(format!("API returned error: {}", response.status()));
+    }
+
+    let docx_bytes = response
+        .bytes()
+        .await
+        .map_err(|e| format!("Failed to read response: {}", e))?;
+
+    Ok(docx_bytes.to_vec())
+}
+
+fn load_question_bank_entries(
+    subject: &str,
+    state: &AppState,
+    app_handle: &AppHandle,
+) -> Result<Vec<QuestionBankEntry>, String> {
+    let from_disk: Result<Vec<QuestionBankEntry>, String> = (|| {
+        let base = knowledge_base_dir(app_handle)
+            .ok_or_else(|| "No knowledge base directory available".to_string())?;
+        let path = base.join(subject).join("question-bank.json");
+
+        // Prefer user-edited bank in app data; fall back to packaged file if missing
+        let data = if path.exists() {
+            fs::read_to_string(&path)
+                .map_err(|e| format!("Failed to read {}: {}", path.display(), e))?
+        } else {
+            // Fallback to bundled asset path (dev/prod) if present
+            let embedded_path = app_handle
+                .path_resolver()
+                .resolve_resource(format!("knowledge/{}/question-bank.json", subject))
+                .unwrap_or_else(|| {
+                    PathBuf::from("src-tauri/knowledge")
+                        .join(subject)
+                        .join("question-bank.json")
+                });
+            fs::read_to_string(&embedded_path).map_err(|e| {
+                format!(
+                    "Failed to read embedded bank {}: {}",
+                    embedded_path.display(),
+                    e
+                )
+            })?
+        };
+
+        let parsed: QuestionBankFile = serde_json::from_str(&data)
+            .map_err(|e| format!("Failed to parse question-bank.json: {}", e))?;
+
+        Ok(parsed
+            .questions
+            .into_iter()
+            .map(|q| QuestionBankEntry {
+                id: q.id,
+                text: q.content.text,
+                options: q.content.options,
+                explanation: q.content.explanation,
+                difficulty: q.difficulty,
+                cognitive_level: q.cognitive_level,
+                topics: q.pedagogy.topics,
+                subtopics: q.pedagogy.subtopics,
+                skills: q.pedagogy.skills,
+                distractors: DistractorInfo {
+                    common_mistakes: q.distractors.common_mistakes,
+                    common_errors: q.distractors.common_errors,
+                },
+            })
+            .collect())
+    })();
+
+    if let Ok(entries) = &from_disk {
+        return Ok(entries.clone());
+    }
+
+    let disk_error = from_disk
+        .as_ref()
+        .err()
+        .cloned()
+        .unwrap_or_else(|| "unknown error".to_string());
+
+    // Fallback to the in-memory bank loaded at startup (from embedded assets) so the editor still has data
+    if let Some(entries) = state.knowledge.bank_entries.get(subject) {
+        if !entries.is_empty() {
+            eprintln!(
+                "Warning: Using embedded question bank for {} because disk load failed: {}",
+                subject, disk_error
+            );
+            return Ok(entries.clone());
+        }
+    }
+
+    Err(format!(
+        "No question bank found for {}. Set RUBRIX_KNOWLEDGE_DIR to the knowledge folder or add a packaged bank. Last error: {}",
+        subject,
+        disk_error
+    ))
 }
 
 fn save_saved_credentials(app_handle: &AppHandle, creds: &SavedCredentials) -> Result<(), String> {
@@ -1013,40 +1131,43 @@ fn export_to_qti(title: String, state: State<AppState>) -> Result<Vec<u8>, Strin
 }
 
 #[tauri::command]
-async fn export_to_docx(title: String, state: State<'_, AppState>) -> Result<Vec<u8>, String> {
+async fn export_to_docx(
+    title: String,
+    options: Option<WordExportOptions>,
+    state: State<'_, AppState>,
+) -> Result<Vec<u8>, String> {
     // Get questions and process them for Word export using the markdown pipeline
     let questions = state.questions.lock().unwrap().clone();
 
     // Reuse markdown export (shuffle + answer key)
-    let output = qti::export_md(&title, &questions)?;
+    let markdown = qti::export_md_with_options(
+        &title,
+        &questions,
+        qti::ExportMdOptions {
+            include_explanations_section: options
+                .as_ref()
+                .map(|o| o.include_explanations)
+                .unwrap_or(false),
+        },
+    )?;
+    convert_markdown_to_docx(markdown).await
+}
 
-    // Create JSON payload
-    let payload = serde_json::json!({
-        "markdown": output,
-        "format": "docx"
-    });
-
-    // Call the API endpoint
-    let client = reqwest::Client::new();
-    let response = client
-        .post("https://aminsl4ogh.execute-api.us-east-1.amazonaws.com/convert")
-        .json(&payload)
-        .send()
-        .await
-        .map_err(|e| format!("Failed to call API: {}", e))?;
-
-    // Check if the response was successful
-    if !response.status().is_success() {
-        return Err(format!("API returned error: {}", response.status()));
-    }
-
-    // Get the binary response
-    let docx_bytes = response
-        .bytes()
-        .await
-        .map_err(|e| format!("Failed to read response: {}", e))?;
-
-    Ok(docx_bytes.to_vec())
+#[tauri::command]
+async fn export_question_bank_to_docx(
+    subject: String,
+    title: String,
+    options: Option<WordExportOptions>,
+    state: State<'_, AppState>,
+    app_handle: AppHandle,
+) -> Result<Vec<u8>, String> {
+    let entries = load_question_bank_entries(&subject, &state, &app_handle)?;
+    let include_explanations = options
+        .as_ref()
+        .map(|o| o.include_explanations)
+        .unwrap_or(false);
+    let markdown = qti::export_bank_md(&title, &entries, include_explanations)?;
+    convert_markdown_to_docx(markdown).await
 }
 
 /// Load question bank JSON for a subject from disk
@@ -1056,84 +1177,7 @@ fn load_question_bank(
     state: State<AppState>,
     app_handle: AppHandle,
 ) -> Result<Vec<QuestionBankEntry>, String> {
-    let from_disk: Result<Vec<QuestionBankEntry>, String> = (|| {
-        let base = knowledge_base_dir(&app_handle)
-            .ok_or_else(|| "No knowledge base directory available".to_string())?;
-        let path = base.join(&subject).join("question-bank.json");
-
-        // Prefer user-edited bank in app data; fall back to packaged file if missing
-        let data = if path.exists() {
-            fs::read_to_string(&path)
-                .map_err(|e| format!("Failed to read {}: {}", path.display(), e))?
-        } else {
-            // Fallback to bundled asset path (dev/prod) if present
-            let embedded_path = app_handle
-                .path_resolver()
-                .resolve_resource(format!("knowledge/{}/question-bank.json", subject))
-                .unwrap_or_else(|| {
-                    PathBuf::from("src-tauri/knowledge")
-                        .join(&subject)
-                        .join("question-bank.json")
-                });
-            fs::read_to_string(&embedded_path).map_err(|e| {
-                format!(
-                    "Failed to read embedded bank {}: {}",
-                    embedded_path.display(),
-                    e
-                )
-            })?
-        };
-
-        let parsed: QuestionBankFile = serde_json::from_str(&data)
-            .map_err(|e| format!("Failed to parse question-bank.json: {}", e))?;
-
-        Ok(parsed
-            .questions
-            .into_iter()
-            .map(|q| QuestionBankEntry {
-                id: q.id,
-                text: q.content.text,
-                options: q.content.options,
-                explanation: q.content.explanation,
-                difficulty: q.difficulty,
-                cognitive_level: q.cognitive_level,
-                topics: q.pedagogy.topics,
-                subtopics: q.pedagogy.subtopics,
-                skills: q.pedagogy.skills,
-                distractors: DistractorInfo {
-                    common_mistakes: q.distractors.common_mistakes,
-                    common_errors: q.distractors.common_errors,
-                },
-            })
-            .collect())
-    })();
-
-    if let Ok(entries) = &from_disk {
-        return Ok(entries.clone());
-    }
-
-    let disk_error = from_disk
-        .as_ref()
-        .err()
-        .cloned()
-        .unwrap_or_else(|| "unknown error".to_string());
-
-    // Fallback to the in-memory bank loaded at startup (from embedded assets) so the editor still has data
-    if let Some(entries) = state.knowledge.bank_entries.get(&subject) {
-        if !entries.is_empty() {
-            eprintln!(
-                "Warning: Using embedded question bank for {} because disk load failed: {}",
-                subject, disk_error
-            );
-            return Ok(entries.clone());
-        }
-    }
-
-    Err(format!(
-        "No question bank found for {}. Set RUBRIX_KNOWLEDGE_DIR to the knowledge folder or add a packaged bank. Last error: {}",
-        subject,
-        disk_error
-    ))
+    load_question_bank_entries(&subject, &state, &app_handle)
 }
 
 /// Save question bank JSON for a subject to disk (atomic write)
@@ -1306,6 +1350,7 @@ fn main() {
             export_to_md,
             export_to_qti,
             export_to_docx,
+            export_question_bank_to_docx,
             load_question_bank,
             save_question_bank,
         ])

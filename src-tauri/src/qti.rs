@@ -1,6 +1,6 @@
 //! QTI export functionality - generates IMS QTI XML for LMS import
 
-use crate::Question;
+use crate::{Question, QuestionBankEntry};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use regex::Regex;
@@ -312,11 +312,25 @@ fn convert_answer_to_html(answer: &str) -> String {
 // Export Functions
 // ============================================================================
 
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ExportMdOptions {
+    pub include_explanations_section: bool,
+}
+
 /// Export questions to our intermediate .txt format
 pub fn export_md(title: &str, questions: &[Question]) -> Result<String, String> {
+    export_md_with_options(title, questions, ExportMdOptions::default())
+}
+
+pub fn export_md_with_options(
+    title: &str,
+    questions: &[Question],
+    options: ExportMdOptions,
+) -> Result<String, String> {
     let mut output = format!("# {}\n\n", title);
     let mut rng = thread_rng();
     let mut answer_key: Vec<(usize, char)> = Vec::new();
+    let mut explanation_key: Vec<(usize, String)> = Vec::new();
 
     for (i, q) in questions.iter().enumerate() {
         let question_text =
@@ -341,6 +355,18 @@ pub fn export_md(title: &str, questions: &[Question]) -> Result<String, String> 
             answer_key.push((i + 1, label));
         }
 
+        if options.include_explanations_section {
+            if let Some(explanation) = q
+                .explanation
+                .as_ref()
+                .map(|value| value.trim())
+                .filter(|value| !value.is_empty())
+            {
+                let normalized = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(explanation));
+                explanation_key.push((i + 1, normalized));
+            }
+        }
+
         output.push('\n');
     }
 
@@ -349,6 +375,78 @@ pub fn export_md(title: &str, questions: &[Question]) -> Result<String, String> 
         for (number, label) in answer_key {
             output.push_str(&format!("{}. {}\n", number, label));
         }
+    }
+
+    if options.include_explanations_section && !explanation_key.is_empty() {
+        output.push_str("\n## Explanations\n\n");
+        for (number, explanation) in explanation_key {
+            output.push_str(&format!("### Question {}\n\n{}\n\n", number, explanation));
+        }
+    }
+
+    Ok(output)
+}
+
+/// Export question-bank entries to markdown for downstream Word conversion.
+pub fn export_bank_md(
+    title: &str,
+    entries: &[QuestionBankEntry],
+    include_explanations: bool,
+) -> Result<String, String> {
+    let mut output = format!("# {}\n\n", title);
+
+    for (i, entry) in entries.iter().enumerate() {
+        let question_text =
+            convert_codeblock_tables_to_markdown(&normalize_math_delimiters(entry.text.trim()));
+        output.push_str(&format!("**Question {}.** {}\n\n", i + 1, question_text));
+
+        for (idx, option) in entry.options.iter().enumerate() {
+            let label = (b'A' + idx as u8) as char;
+            let body = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(
+                option.text.trim(),
+            ));
+            output.push_str(&format!("{}) {}\n", label, body));
+        }
+
+        if include_explanations {
+            if !entry.explanation.trim().is_empty() {
+                let explanation = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(
+                    entry.explanation.trim(),
+                ));
+                output.push_str("\n**Explanation:**\n\n");
+                output.push_str(&format!("{}\n", explanation));
+            }
+
+            if !entry.distractors.common_errors.is_empty() {
+                output.push_str("\n**Distractors - Common errors:**\n");
+                for err in &entry.distractors.common_errors {
+                    let cleaned = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(
+                        err.trim(),
+                    ));
+                    output.push_str(&format!("- {}\n", cleaned));
+                }
+            }
+
+            if !entry.distractors.common_mistakes.is_empty() {
+                output.push_str("\n**Distractors - Misconceptions by option:**\n");
+                for mistake in &entry.distractors.common_mistakes {
+                    let label = entry
+                        .options
+                        .iter()
+                        .enumerate()
+                        .find(|(_, option)| option.id == mistake.option_id)
+                        .map(|(idx, _)| (b'A' + idx as u8) as char)
+                        .map(|letter| letter.to_string())
+                        .unwrap_or_else(|| mistake.option_id.clone());
+                    let misconception = convert_codeblock_tables_to_markdown(
+                        &normalize_math_delimiters(mistake.misconception.trim()),
+                    );
+                    output.push_str(&format!("- {}: {}\n", label, misconception));
+                }
+            }
+        }
+
+        output.push('\n');
     }
 
     Ok(output)
@@ -614,7 +712,9 @@ fn sanitize_filename(name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Answer;
+    use crate::{
+        Answer, CommonMistake, DistractorInfo, QuestionBankEntry, QuestionBankOption,
+    };
 
     #[test]
     fn test_export_txt() {
@@ -794,5 +894,95 @@ mod tests {
         assert!(
             result.contains(r#"<img src="https://learn.lcps.org/svc/latex/latex-to-svg?latex="#)
         );
+    }
+
+    #[test]
+    fn test_export_bank_md_explanations_and_distractors_toggle() {
+        let entries = vec![QuestionBankEntry {
+            id: "q1".to_string(),
+            text: "What does this return?".to_string(),
+            options: vec![
+                QuestionBankOption {
+                    id: "opt_a".to_string(),
+                    text: "42".to_string(),
+                    is_correct: true,
+                },
+                QuestionBankOption {
+                    id: "opt_b".to_string(),
+                    text: "24".to_string(),
+                    is_correct: false,
+                },
+            ],
+            explanation: "Because the loop runs exactly 42 times.".to_string(),
+            difficulty: "medium".to_string(),
+            cognitive_level: "apply".to_string(),
+            topics: vec!["loops".to_string()],
+            subtopics: None,
+            skills: vec!["trace code".to_string()],
+            distractors: DistractorInfo {
+                common_mistakes: vec![CommonMistake {
+                    option_id: "opt_b".to_string(),
+                    misconception: "Swapped operands in multiplication.".to_string(),
+                }],
+                common_errors: vec!["Off-by-one in loop bounds.".to_string()],
+            },
+        }];
+
+        let without_explanations = export_bank_md("Bank", &entries, false).unwrap();
+        assert!(!without_explanations.contains("**Explanation:**"));
+        assert!(!without_explanations.contains("**Distractors - Common errors:**"));
+        assert!(!without_explanations.contains("**Distractors - Misconceptions by option:**"));
+
+        let with_explanations = export_bank_md("Bank", &entries, true).unwrap();
+        assert!(with_explanations.contains("**Explanation:**"));
+        assert!(with_explanations.contains("Because the loop runs exactly 42 times."));
+        assert!(with_explanations.contains("**Distractors - Common errors:**"));
+        assert!(with_explanations.contains("Off-by-one in loop bounds."));
+        assert!(with_explanations.contains("**Distractors - Misconceptions by option:**"));
+        assert!(with_explanations.contains("B: Swapped operands in multiplication."));
+    }
+
+    #[test]
+    fn test_export_md_with_options_places_explanations_after_answers() {
+        let questions = vec![Question {
+            id: "q1".to_string(),
+            text: "What is 2 + 2?".to_string(),
+            explanation: Some("Add the two integers directly.".to_string()),
+            distractors: None,
+            subject: "Math".to_string(),
+            topics: vec!["arithmetic".to_string()],
+            answers: vec![
+                Answer {
+                    text: "4".to_string(),
+                    is_correct: true,
+                    explanation: None,
+                },
+                Answer {
+                    text: "5".to_string(),
+                    is_correct: false,
+                    explanation: None,
+                },
+            ],
+        }];
+
+        let without_explanations =
+            export_md_with_options("Quiz", &questions, ExportMdOptions::default()).unwrap();
+        assert!(!without_explanations.contains("## Explanations"));
+
+        let with_explanations = export_md_with_options(
+            "Quiz",
+            &questions,
+            ExportMdOptions {
+                include_explanations_section: true,
+            },
+        )
+        .unwrap();
+
+        let answers_idx = with_explanations.find("## Answers").unwrap();
+        let explanations_idx = with_explanations.find("## Explanations").unwrap();
+        assert!(explanations_idx > answers_idx);
+        assert!(with_explanations.contains("### Question 1"));
+        assert!(with_explanations.contains("Add the two integers directly."));
+        assert!(!with_explanations.contains("1. Add the two integers directly."));
     }
 }
