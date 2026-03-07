@@ -6,6 +6,7 @@ export interface Question {
   distractors?: string; // Why wrong answers are tempting
   subject?: string;
   topics?: string[];
+  difficulty?: string;
 }
 
 // Question bank (rich) entries

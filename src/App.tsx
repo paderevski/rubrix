@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
 import { open, save } from "@tauri-apps/api/dialog";
@@ -155,6 +155,10 @@ function parseSessionQuestions(raw: unknown): Question[] {
         distractors: coerceRichText(q.distractors),
         subject: typeof q.subject === "string" ? q.subject : undefined,
         topics,
+        difficulty:
+          typeof q.difficulty === "string" && q.difficulty.trim().length > 0
+            ? q.difficulty
+            : undefined,
       };
 
       return normalizedQuestion;
@@ -247,6 +251,7 @@ function parseMarkdownQuestions(content: string): Question[] {
       distractors: undefined,
       subject: undefined,
       topics: undefined,
+      difficulty: undefined,
     });
   });
 
@@ -287,7 +292,6 @@ function App() {
     const parsed = Number(saved);
     return Number.isFinite(parsed) ? parsed : null;
   });
-  const [appendMode, setAppendMode] = useState(true);
 
   // Zoom state (driven by native menu events)
   const [zoom, setZoom] = useState<number>(() => {
@@ -632,7 +636,7 @@ function App() {
     latestStreamingTextRef.current = "";
     setStreamingComplete(false);
     setShowPreview(true);
-    setStatus(appendMode ? "Adding more questions..." : "Generating questions...");
+    setStatus("Adding more questions...");
 
     try {
       const request: GenerationRequest = {
@@ -641,7 +645,7 @@ function App() {
         difficulty,
         count: questionCount,
         notes: notes || null,
-        append: appendMode,
+        append: true,
       };
 
       const allQuestions = await invoke<Question[]>("generate_questions", {
@@ -661,9 +665,7 @@ function App() {
         }
 
         if (streamSnapshot) {
-          const targets = appendMode
-            ? allQuestions.slice(previousQuestionCount)
-            : allQuestions;
+          const targets = allQuestions.slice(previousQuestionCount);
           for (const question of targets) {
             next[question.id] = streamSnapshot;
           }
@@ -672,11 +674,7 @@ function App() {
         return next;
       });
 
-      if (appendMode) {
-        setStatus(`Added ${questionCount} questions (${allQuestions.length} total)`);
-      } else {
-        setStatus(`Generated ${allQuestions.length} questions`);
-      }
+      setStatus(`Added ${questionCount} questions (${allQuestions.length} total)`);
     } catch (err) {
       console.error("Generation failed:", err);
       const errorMsg = String(err);
@@ -1074,6 +1072,16 @@ function App() {
 
   // Determine what to show in main area
   const showStreamingCard = isGenerating || (Boolean(streamingText) && !streamingComplete);
+  const topicMetaById = useMemo(() => {
+    const meta: Record<string, { label: string; kind: "topic" | "subtopic" }> = {};
+    for (const topic of topics) {
+      meta[topic.id] = { label: topic.name, kind: "topic" };
+      for (const child of topic.children ?? []) {
+        meta[child.id] = { label: child.name, kind: "subtopic" };
+      }
+    }
+    return meta;
+  }, [topics]);
   const selectedSubjectName = subjects.find((s) => s.id === selectedSubject)?.name ?? selectedSubject;
   const appHeading = `${selectedSubjectName || "Rubrix"} Question Generator`;
 
@@ -1105,8 +1113,6 @@ function App() {
           onQuestionCountChange={setQuestionCount}
           notes={notes}
           onNotesChange={setNotes}
-          appendMode={appendMode}
-          onAppendModeChange={setAppendMode}
           existingCount={questions.length}
           onGenerate={handleGenerate}
           isGenerating={isGenerating}
@@ -1130,6 +1136,7 @@ function App() {
               ) : (
                 <QuestionList
                   questions={questions}
+                  topicMetaById={topicMetaById}
                   rawTextByQuestionId={rawTextByQuestionId}
                   showStreamingCard={showStreamingCard}
                   streamingText={streamingText}

@@ -107,7 +107,9 @@ def build_hierarchical_schema(schema: dict) -> ConversionResult:
     )
 
 
-def append_units_to_question_bank_topics(question_bank: dict, topic_to_unit: Dict[str, str]) -> Tuple[int, int]:
+def append_units_to_question_bank_topics(
+    question_bank: dict, topic_to_unit: Dict[str, str]
+) -> Tuple[int, int]:
     updated_questions = 0
     appended_tags = 0
 
@@ -136,7 +138,9 @@ def append_units_to_question_bank_topics(question_bank: dict, topic_to_unit: Dic
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Convert Calculus schema to parser-friendly hierarchy")
+    parser = argparse.ArgumentParser(
+        description="Convert Calculus schema to parser-friendly hierarchy"
+    )
     parser.add_argument(
         "--schema",
         default="imports/knowledge/Calculus/question-schema.json",

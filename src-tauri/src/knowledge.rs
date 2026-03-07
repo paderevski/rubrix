@@ -322,7 +322,16 @@ impl KnowledgeBase {
                         .unwrap_or_default()
                         .into_iter()
                         .map(|mut child| {
-                            child.example_count = json_count;
+                            // Child count should reflect only this specific subtopic.
+                            child.example_count = subject_bank_entries
+                                .iter()
+                                .filter(|entry| {
+                                    entry.topics.iter().any(|t| t == &child.id)
+                                        || entry.subtopics.as_ref().map_or(false, |subs| {
+                                            subs.iter().any(|s| s == &child.id)
+                                        })
+                                })
+                                .count();
                             subject_topic_codes.insert(child.id.clone(), topic_codes.clone());
                             child
                         })

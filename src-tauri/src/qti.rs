@@ -737,6 +737,7 @@ mod tests {
             distractors: None,
             subject: "Test".to_string(),
             topics: vec!["Math".to_string()],
+            difficulty: String::new(),
             answers: vec![
                 Answer {
                     text: "4".to_string(),
@@ -797,6 +798,7 @@ mod tests {
             distractors: None,
             subject: "Calculus".to_string(),
             topics: vec!["Derivatives".to_string()],
+            difficulty: String::new(),
             answers: vec![],
         };
 
@@ -843,6 +845,7 @@ mod tests {
             distractors: None,
             subject: "Calculus".to_string(),
             topics: vec!["Derivatives".to_string()],
+            difficulty: String::new(),
             answers: vec![],
         };
 
@@ -887,6 +890,7 @@ mod tests {
             distractors: None,
             subject: "Calculus".to_string(),
             topics: vec!["Derivatives".to_string()],
+            difficulty: String::new(),
             answers: vec![],
         };
 
@@ -963,6 +967,7 @@ mod tests {
             distractors: None,
             subject: "Math".to_string(),
             topics: vec!["arithmetic".to_string()],
+            difficulty: String::new(),
             answers: vec![
                 Answer {
                     text: "4".to_string(),

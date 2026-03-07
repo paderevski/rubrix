@@ -16,10 +16,92 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::api::dialog::MessageDialogBuilder;
-use tauri::{AppHandle, CustomMenuItem, Manager, Menu, MenuItem, State, Submenu};
+use tauri::{AppHandle, CustomMenuItem, Manager, Menu, MenuItem, State, Submenu, WindowEvent};
 
 const BUILT_BUG_REPORT_URL: Option<&str> = option_env!("BUG_REPORT_URL");
 const BUILT_BUG_REPORT_API_KEY: Option<&str> = option_env!("BUG_REPORT_API_KEY");
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct PersistedWindowState {
+    width: u32,
+    height: u32,
+    x: i32,
+    y: i32,
+    maximized: bool,
+}
+
+fn window_state_path(app: &AppHandle) -> Option<PathBuf> {
+    app.path_resolver()
+        .app_local_data_dir()
+        .map(|dir| dir.join("window-state.json"))
+}
+
+fn save_window_state(window: &tauri::Window) {
+    let app = window.app_handle();
+    let Some(path) = window_state_path(&app) else {
+        return;
+    };
+
+    let Ok(size) = window.inner_size() else {
+        return;
+    };
+
+    let Ok(position) = window.outer_position() else {
+        return;
+    };
+
+    let maximized = window.is_maximized().unwrap_or(false);
+
+    let snapshot = PersistedWindowState {
+        width: size.width,
+        height: size.height,
+        x: position.x,
+        y: position.y,
+        maximized,
+    };
+
+    if let Some(parent) = path.parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+
+    if let Ok(json) = serde_json::to_string_pretty(&snapshot) {
+        let _ = fs::write(path, json);
+    }
+}
+
+fn restore_window_state(main_window: &tauri::Window) {
+    let app = main_window.app_handle();
+    let Some(path) = window_state_path(&app) else {
+        let _ = main_window.maximize();
+        return;
+    };
+
+    if !path.exists() {
+        // First run: open at full available size.
+        let _ = main_window.maximize();
+        return;
+    }
+
+    let Ok(raw) = fs::read_to_string(path) else {
+        return;
+    };
+
+    let Ok(state) = serde_json::from_str::<PersistedWindowState>(&raw) else {
+        return;
+    };
+
+    let _ = main_window.set_size(tauri::Size::Physical(tauri::PhysicalSize::new(
+        state.width,
+        state.height,
+    )));
+    let _ = main_window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(
+        state.x, state.y,
+    )));
+
+    if state.maximized {
+        let _ = main_window.maximize();
+    }
+}
 
 fn load_env_vars() {
     // Load local env files from src-tauri
@@ -131,6 +213,8 @@ pub struct Question {
     pub subject: String,
     #[serde(default)]
     pub topics: Vec<String>,
+    #[serde(default)]
+    pub difficulty: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -742,6 +826,7 @@ async fn generate_questions(
     for question in &mut new_questions {
         question.subject = request.subject.clone();
         question.topics = request.topics.clone();
+        question.difficulty = request.difficulty.clone();
     }
 
     // Store in state (append or replace)
@@ -840,6 +925,7 @@ async fn regenerate_question(
     new_question.id = current.id.clone();
     new_question.subject = current.subject.clone();
     new_question.topics = current.topics.clone();
+    new_question.difficulty = current.difficulty.clone();
 
     // Update in state
     let mut stored = state.questions.lock().unwrap();
@@ -871,6 +957,7 @@ fn add_question(state: State<AppState>) -> Question {
         distractors: None,
         subject: String::new(),
         topics: Vec::new(),
+        difficulty: String::new(),
         answers: vec![
             Answer {
                 text: "Correct answer".to_string(),
@@ -1498,6 +1585,12 @@ fn main() {
     tauri::Builder::default()
         .manage(state)
         .menu(menu)
+        .setup(|app| {
+            if let Some(main_window) = app.get_window("main") {
+                restore_window_state(&main_window);
+            }
+            Ok(())
+        })
         .on_menu_event(|event| {
             let id = event.menu_item_id();
             let payload = match id {
@@ -1545,6 +1638,12 @@ fn main() {
                     .show(|_| {});
                 return;
             }
+        })
+        .on_window_event(|event| match event.event() {
+            WindowEvent::Resized(_) | WindowEvent::Moved(_) | WindowEvent::CloseRequested { .. } => {
+                save_window_state(event.window());
+            }
+            _ => {}
         })
         .invoke_handler(tauri::generate_handler![
             get_subjects,

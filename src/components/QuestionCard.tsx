@@ -1,6 +1,6 @@
 import { Question } from "../types";
 import { RefreshCw, Pencil, Trash2, Check, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -13,6 +13,7 @@ import "katex/dist/katex.min.css";
 interface QuestionCardProps {
   question: Question;
   index: number;
+  topicMetaById?: Record<string, { label: string; kind: "topic" | "subtopic" }>;
   rawText?: string;
   onRegenerate: (instructions?: string) => void;
   onEdit: () => void;
@@ -22,9 +23,6 @@ interface QuestionCardProps {
 const questionMarkdownComponents = {
   p({ children }: any) {
     return <div className="prose-p:my-2">{children}</div>;
-  },
-  text({ children }: any) {
-    return <>{children}</>;
   },
   code(props: any) {
     const { inline, className, children, ...rest } = props;
@@ -97,9 +95,26 @@ function formatExplanation(content: string) {
   });
 }
 
+function inferTopicKind(id: string): "topic" | "subtopic" | null {
+  if (/^U\d+$/i.test(id) || /^TOPIC_?/i.test(id)) return "topic";
+  if (/^T\d+$/i.test(id) || /^SUBTOPIC_?/i.test(id)) return "subtopic";
+  return null;
+}
+
+function normalizeDifficultyLabel(value?: string): string | null {
+  if (!value) return null;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return null;
+  if (normalized === "easy" || normalized === "medium" || normalized === "hard") {
+    return normalized[0].toUpperCase() + normalized.slice(1);
+  }
+  return value;
+}
+
 export default function QuestionCard({
   question,
   index,
+  topicMetaById = {},
   rawText,
   onRegenerate,
   onEdit,
@@ -110,16 +125,30 @@ export default function QuestionCard({
   const [showExplanation, setShowExplanation] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
 
+  const iconButtonBase = "p-1.5 rounded transition-colors";
+  const iconButtonNeutral =
+    `${iconButtonBase} hover:bg-secondary text-muted-foreground hover:text-foreground`;
+
   const explanationContent = question.explanation?.trim() ?? "";
   const formattedExplanation = formatExplanation(explanationContent);
   const hasExplanation = Boolean(formattedExplanation);
   const hasRawText = Boolean(rawText && rawText.trim().length > 0);
 
-  useEffect(() => {
-    if (!question) return;
-    console.log("Debug:", question.explanation);
-    console.log("Formatted Explanation:", formattedExplanation);
-  }, [question, formattedExplanation]);
+  const topicIds = question.topics ?? [];
+  const topicCandidates = topicIds.map((id) => {
+    const meta = topicMetaById[id];
+    const kind = meta?.kind ?? inferTopicKind(id);
+    return {
+      id,
+      kind,
+      label: meta?.label ?? id,
+    };
+  });
+  const topicChip = topicCandidates.find((item) => item.kind === "topic") ?? topicCandidates[0] ?? null;
+  const subtopicChip = topicCandidates.find(
+    (item) => item.kind === "subtopic" && item.id !== topicChip?.id
+  ) ?? null;
+  const difficultyChip = normalizeDifficultyLabel(question.difficulty);
 
   const handleRegenerate = () => {
     const trimmed = instructions.trim();
@@ -135,94 +164,116 @@ export default function QuestionCard({
   return (
     <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-secondary/50 border-b">
-        <span className="font-medium text-foreground">
-          Question {index + 1}
-        </span>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setShowInstructions(!showInstructions)}
-            className={`p-1.5 rounded hover:bg-secondary transition-colors ${
-              showInstructions
-                ? "text-primary bg-secondary"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-            title="Add regeneration instructions"
-          >
-            {showInstructions ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
+      <div className="px-4 py-3 bg-secondary/50 border-b">
+        <div className="w-full max-w-4xl mx-auto flex items-center justify-between">
+          <span className="font-medium text-foreground">
+            Question {index + 1}
+          </span>
+          <div className="flex items-center gap-1.5 mr-auto ml-3">
+            {topicChip && (
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700">
+                Topic: {topicChip.label}
+              </span>
             )}
-          </button>
-          <button
-            onClick={handleRegenerate}
-            className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-            title="Regenerate"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-          {hasRawText && (
+            {subtopicChip && (
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700">
+                Subtopic: {subtopicChip.label}
+              </span>
+            )}
+            {difficultyChip && (
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700">
+                Difficulty: {difficultyChip}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
             <button
-              onClick={() => setShowRaw((prev) => !prev)}
+              onClick={() => setShowInstructions(!showInstructions)}
               className={`p-1.5 rounded hover:bg-secondary transition-colors ${
-                showRaw
+                showInstructions
                   ? "text-primary bg-secondary"
                   : "text-muted-foreground hover:text-foreground"
               }`}
-              title={showRaw ? "Show formatted view" : "Show raw view"}
+              title="Add regeneration instructions"
             >
-              {showRaw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showInstructions ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
             </button>
-          )}
-          <button
-            onClick={onEdit}
-            className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-            title="Edit"
-          >
-            <Pencil className="w-4 h-4" />
-          </button>
-          <button
-            onClick={onDelete}
-            className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-            title="Delete"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+            <button
+              onClick={handleRegenerate}
+              className={iconButtonNeutral}
+              title="Regenerate"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+            {hasRawText && (
+              <button
+                onClick={() => setShowRaw((prev) => !prev)}
+                className={`p-1.5 rounded hover:bg-secondary transition-colors ${
+                  showRaw
+                    ? "text-primary bg-secondary"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                title={showRaw ? "Show formatted view" : "Show raw view"}
+              >
+                {showRaw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            )}
+            <button
+              onClick={onEdit}
+              className={iconButtonNeutral}
+              title="Edit"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+            <button
+              onClick={onDelete}
+              className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+              title="Delete"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Collapsible Instructions Panel */}
       {showInstructions && (
         <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            Custom instructions for regeneration:
-          </label>
-          <textarea
-            value={instructions}
-            onChange={(e) => setInstructions(e.target.value)}
-            placeholder="e.g., Make it easier, focus on arrays instead of loops, add more steps in explanation..."
-            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-            rows={3}
-          />
-          <p className="text-xs text-slate-600 mt-1">
-            These instructions will be included when regenerating this question.
-          </p>
+          <div className="w-full max-w-4xl mx-auto">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Custom instructions for regeneration:
+            </label>
+            <textarea
+              value={instructions}
+              onChange={(e) => setInstructions(e.target.value)}
+              placeholder="e.g., Make it easier, focus on arrays instead of loops, add more steps in explanation..."
+              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+              rows={3}
+            />
+            <p className="text-xs text-slate-600 mt-1">
+              These instructions will be included when regenerating this question.
+            </p>
+          </div>
         </div>
       )}
 
       {/* Content */}
       <div className="p-4">
-        {showRaw && hasRawText ? (
-          <pre className="text-xs leading-relaxed max-h-80 overflow-auto bg-slate-950 text-slate-100 rounded-lg p-3 border border-slate-800 whitespace-pre-wrap">
-            {rawText}
-          </pre>
-        ) : (
-          <>
-        {/* Question Text (with HTML, Markdown, LaTeX, and code blocks) */}
-        <div className="prose mb-4">
-          <RichMarkdown content={question.text} />
-        </div>
+        <div className="w-full max-w-4xl mx-auto">
+          {showRaw && hasRawText ? (
+            <pre className="text-xs leading-relaxed max-h-80 overflow-auto bg-slate-950 text-slate-100 rounded-lg p-3 border border-slate-800 whitespace-pre-wrap">
+              {rawText}
+            </pre>
+          ) : (
+            <>
+          {/* Question Text (with HTML, Markdown, LaTeX, and code blocks) */}
+          <div className="prose max-w-none mb-4">
+            <RichMarkdown content={question.text} />
+          </div>
 
         {/* Answers */}
         <div className="space-y-2">
@@ -255,29 +306,30 @@ export default function QuestionCard({
           ))}
         </div>
 
-        {hasExplanation && (
-          <div className="mt-4 border border-slate-200 rounded-lg">
-            <button
-              type="button"
-              onClick={() => setShowExplanation((prev) => !prev)}
-              className="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-foreground bg-secondary/50 hover:bg-secondary transition-colors"
-            >
-              <span>Explanation</span>
-              {showExplanation ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
+          {hasExplanation && (
+            <div className="mt-4 border border-slate-200 rounded-lg">
+              <button
+                type="button"
+                onClick={() => setShowExplanation((prev) => !prev)}
+                className="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-foreground bg-secondary/50 hover:bg-secondary transition-colors"
+              >
+                <span>Explanation</span>
+                {showExplanation ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </button>
+              {showExplanation && (
+                <div className="prose px-4 py-3 border-t border-slate-200 bg-white">
+                  <RichMarkdown content={formattedExplanation} />
+                </div>
               )}
-            </button>
-            {showExplanation && (
-              <div className="prose px-4 py-3 border-t border-slate-200 bg-white">
-                <RichMarkdown content={formattedExplanation} />
-              </div>
-            )}
-          </div>
-        )}
-          </>
-        )}
+            </div>
+          )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
