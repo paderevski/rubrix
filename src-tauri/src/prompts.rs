@@ -216,12 +216,18 @@ pub fn build_regenerate_prompt(
     examples: &[QuestionBankEntry],
     user_instructions: Option<&str>,
     prompt_template: Option<&str>,
+    topics_label_override: Option<&str>,
 ) -> String {
-    let topics_label = if current.topics.is_empty() {
-        "(not specified)".to_string()
-    } else {
-        current.topics.join(", ")
-    };
+    let topics_label = topics_label_override
+        .filter(|s| !s.trim().is_empty())
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| {
+            if current.topics.is_empty() {
+                "(not specified)".to_string()
+            } else {
+                current.topics.join(", ")
+            }
+        });
 
     let subject_label = if current.subject.trim().is_empty() {
         "(not specified)".to_string()

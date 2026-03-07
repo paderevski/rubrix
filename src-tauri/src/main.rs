@@ -9,7 +9,7 @@ mod qti;
 
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs;
 use std::io::Write;
@@ -75,19 +75,35 @@ fn topic_labels_for_prompt(
     topic_ids: &[String],
     knowledge: &knowledge::KnowledgeBase,
 ) -> String {
-    let id_to_name: HashMap<String, String> = knowledge
-        .get_topics(subject)
-        .into_iter()
-        .map(|t| (t.id, t.name))
-        .collect();
+    let mut id_to_name: HashMap<String, String> = HashMap::new();
 
-    let mut labels: Vec<String> = topic_ids
-        .iter()
-        .map(|id| id_to_name.get(id).cloned().unwrap_or_else(|| id.clone()))
-        .collect();
+    for topic in knowledge.get_topics(subject) {
+        id_to_name.insert(topic.id.clone(), topic.name.clone());
 
-    labels.retain(|s| !s.is_empty());
-    labels.dedup();
+        for child in topic.children {
+            // Include parent context so subtopic labels are self-explanatory in prompts.
+            let child_label = if topic.name.trim().is_empty() {
+                child.name.clone()
+            } else {
+                format!("{} > {}", topic.name, child.name)
+            };
+            id_to_name.insert(child.id.clone(), child_label);
+        }
+    }
+
+    let mut labels: Vec<String> = Vec::new();
+    let mut seen: HashSet<String> = HashSet::new();
+
+    for id in topic_ids {
+        let label = id_to_name.get(id).cloned().unwrap_or_else(|| id.clone());
+        if label.is_empty() {
+            continue;
+        }
+        if seen.insert(label.clone()) {
+            labels.push(label);
+        }
+    }
+
     if labels.is_empty() {
         return topic_ids.join(", ");
     }
@@ -784,6 +800,7 @@ async fn regenerate_question(
 
     // Get regeneration prompt template for this subject
     let regeneration_prompt_template = state.knowledge.get_regeneration_prompt(subject);
+    let topics_label = topic_labels_for_prompt(subject, topics, &state.knowledge);
 
     // Build prompt for single question regeneration
     let prompt = prompts::build_regenerate_prompt(
@@ -792,6 +809,7 @@ async fn regenerate_question(
         &bank_examples,
         instructions.as_deref(),
         regeneration_prompt_template,
+        Some(&topics_label),
     );
 
     // Get cached API key from state
@@ -1341,24 +1359,24 @@ fn main() {
         credentials: Mutex::new(None),
     };
 
-    let open_session = CustomMenuItem::new("open_session", "Open Session…")
-        .accelerator("CmdOrCtrl+O");
-    let save_session = CustomMenuItem::new("save_session", "Save Session…")
-        .accelerator("CmdOrCtrl+S");
-    let export_md = CustomMenuItem::new("export_md", "Export Markdown…")
-        .accelerator("CmdOrCtrl+Shift+M");
-    let export_qti = CustomMenuItem::new("export_qti", "Export QTI…")
-        .accelerator("CmdOrCtrl+Shift+Q");
-    let export_word = CustomMenuItem::new("export_word", "Export Word…")
-        .accelerator("CmdOrCtrl+Shift+W");
+    let open_session =
+        CustomMenuItem::new("open_session", "Open Session…").accelerator("CmdOrCtrl+O");
+    let save_session =
+        CustomMenuItem::new("save_session", "Save Session…").accelerator("CmdOrCtrl+S");
+    let export_md =
+        CustomMenuItem::new("export_md", "Export Markdown…").accelerator("CmdOrCtrl+Shift+M");
+    let export_qti =
+        CustomMenuItem::new("export_qti", "Export QTI…").accelerator("CmdOrCtrl+Shift+Q");
+    let export_word =
+        CustomMenuItem::new("export_word", "Export Word…").accelerator("CmdOrCtrl+Shift+W");
+    let open_preferences =
+        CustomMenuItem::new("open_preferences", "Preferences…").accelerator("CmdOrCtrl+,");
 
-    let switch_generate = CustomMenuItem::new("switch_generate", "Generator")
-        .accelerator("CmdOrCtrl+1");
-    let switch_bank =
-        CustomMenuItem::new("switch_bank", "Bank Editor").accelerator("CmdOrCtrl+2");
-    let toggle_raw_preview =
-        CustomMenuItem::new("toggle_raw_preview", "Show/Hide Raw Preview")
-            .accelerator("CmdOrCtrl+\\");
+    let switch_generate =
+        CustomMenuItem::new("switch_generate", "Generator").accelerator("CmdOrCtrl+1");
+    let switch_bank = CustomMenuItem::new("switch_bank", "Bank Editor").accelerator("CmdOrCtrl+2");
+    let toggle_raw_preview = CustomMenuItem::new("toggle_raw_preview", "Show/Hide Raw Preview")
+        .accelerator("CmdOrCtrl+\\");
 
     let zoom_in = CustomMenuItem::new("zoom_in", "Zoom In").accelerator("CmdOrCtrl+=");
     let zoom_out = CustomMenuItem::new("zoom_out", "Zoom Out").accelerator("CmdOrCtrl+-");
@@ -1395,6 +1413,7 @@ fn main() {
             .add_native_item(MenuItem::Separator)
             .add_native_item(MenuItem::Quit),
     );
+    #[cfg(target_os = "macos")]
     let edit_menu = Submenu::new(
         "Edit",
         Menu::new()
@@ -1402,6 +1421,18 @@ fn main() {
             .add_native_item(MenuItem::Copy)
             .add_native_item(MenuItem::Paste)
             .add_native_item(MenuItem::SelectAll),
+    );
+
+    #[cfg(not(target_os = "macos"))]
+    let edit_menu = Submenu::new(
+        "Edit",
+        Menu::new()
+            .add_native_item(MenuItem::Cut)
+            .add_native_item(MenuItem::Copy)
+            .add_native_item(MenuItem::Paste)
+            .add_native_item(MenuItem::SelectAll)
+            .add_native_item(MenuItem::Separator)
+            .add_item(open_preferences.clone()),
     );
 
     let view_menu = Submenu::new(
@@ -1430,6 +1461,8 @@ fn main() {
         "Catie",
         Menu::new()
             .add_item(about_catie)
+            .add_native_item(MenuItem::Separator)
+            .add_item(open_preferences)
             .add_native_item(MenuItem::Separator)
             .add_native_item(MenuItem::Hide)
             .add_native_item(MenuItem::HideOthers)
@@ -1485,6 +1518,7 @@ fn main() {
                 "export_md" => Some("export_md"),
                 "export_qti" => Some("export_qti"),
                 "export_word" => Some("export_word"),
+                "open_preferences" => Some("open_preferences"),
                 "toggle_raw_preview" => Some("toggle_raw_preview"),
                 "switch_generate" => Some("switch_generate"),
                 "switch_bank" => Some("switch_bank"),

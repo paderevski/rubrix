@@ -11,6 +11,7 @@ import BankEditor from "./components/BankEditor";
 import LoginModal from "./components/LoginModal";
 import SubmitBugModal from "./components/SubmitBugModal";
 import ExportOptionsModal from "./components/ExportOptionsModal";
+import PreferencesModal from "./components/PreferencesModal";
 import {
   Question,
   TopicInfo,
@@ -36,6 +37,8 @@ interface StreamEvent {
 const sessionFileFilter = { name: "Catie Session", extensions: ["json", "md"] };
 const remainingTokensStorageKey = "remainingTokens";
 const exportPresetStorageKey = "exportPresets";
+const preferredSubjectStorageKey = "preferredSubject";
+const preferredDifficultyStorageKey = "preferredDifficulty";
 
 function parseSessionQuestions(raw: unknown): Question[] {
   const payload: unknown[] | null = Array.isArray(raw)
@@ -266,7 +269,11 @@ function App() {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [topics, setTopics] = useState<TopicInfo[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
-  const [difficulty, setDifficulty] = useState("medium");
+  const [difficulty, setDifficulty] = useState(() => {
+    if (typeof localStorage === "undefined") return "medium";
+    const saved = localStorage.getItem(preferredDifficultyStorageKey);
+    return saved === "easy" || saved === "hard" || saved === "medium" ? saved : "medium";
+  });
   const [questionCount, setQuestionCount] = useState(1);
   const [notes, setNotes] = useState("");
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -359,6 +366,7 @@ function App() {
   const [isDevMode, setIsDevMode] = useState(false);
   const [submitBugOpen, setSubmitBugOpen] = useState(false);
   const [isSubmittingBug, setIsSubmittingBug] = useState(false);
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
 
   const markdownPresetLabel =
     markdownPreset === "teacher_markdown" ? "Teacher Markdown" : "Student Markdown";
@@ -443,6 +451,18 @@ function App() {
     localStorage.setItem(exportPresetStorageKey, JSON.stringify(payload));
   }, [wordGeneratePreset, wordBankPreset, markdownPreset, qtiPreset]);
 
+  useEffect(() => {
+    if (typeof localStorage === "undefined") return;
+    if (!selectedSubject) return;
+    localStorage.setItem(preferredSubjectStorageKey, selectedSubject);
+  }, [selectedSubject]);
+
+  useEffect(() => {
+    if (typeof localStorage === "undefined") return;
+    if (difficulty !== "easy" && difficulty !== "medium" && difficulty !== "hard") return;
+    localStorage.setItem(preferredDifficultyStorageKey, difficulty);
+  }, [difficulty]);
+
   // Load topics when subject changes
   useEffect(() => {
     if (selectedSubject) {
@@ -504,6 +524,8 @@ function App() {
         openExportOptions("qti");
       } else if (action === "export_word") {
         openExportOptions("word");
+      } else if (action === "open_preferences") {
+        setPreferencesOpen(true);
       } else if (action === "switch_generate") {
         setActiveTab("generate");
       } else if (action === "switch_bank") {
@@ -539,11 +561,31 @@ function App() {
       const subjectList = await invoke<SubjectInfo[]>("get_subjects");
       setSubjects(subjectList);
       if (subjectList.length > 0) {
-        setSelectedSubject(subjectList[0].id);
+        const saved =
+          typeof localStorage !== "undefined"
+            ? localStorage.getItem(preferredSubjectStorageKey)
+            : null;
+        const hasSaved = saved && subjectList.some((s) => s.id === saved);
+        setSelectedSubject(hasSaved ? (saved as string) : subjectList[0].id);
       }
     } catch (err) {
       console.error("Failed to load subjects:", err);
     }
+  };
+
+  const handleSavePreferences = (subjectId: string, preferredDifficulty: string) => {
+    setSelectedSubject(subjectId);
+    if (
+      preferredDifficulty === "easy" ||
+      preferredDifficulty === "medium" ||
+      preferredDifficulty === "hard"
+    ) {
+      setDifficulty(preferredDifficulty);
+    }
+    setSelectedTopics([]);
+    setPreferencesOpen(false);
+    const label = subjects.find((s) => s.id === subjectId)?.name ?? subjectId;
+    setStatus(`Preferences saved • Subject: ${label} • Difficulty: ${preferredDifficulty}`);
   };
 
   const loadTopics = async (subject: string) => {
@@ -972,6 +1014,8 @@ function App() {
   // Determine what to show in main area
   const showStreamingPreview = isGenerating || (streamingText && !streamingComplete);
   const showQuestions = questions.length > 0 && !showStreamingPreview;
+  const selectedSubjectName = subjects.find((s) => s.id === selectedSubject)?.name ?? selectedSubject;
+  const appHeading = `${selectedSubjectName || "Rubrix"} Question Generator`;
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -983,22 +1027,15 @@ function App() {
 
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b bg-white">
-        <div className="flex flex-wrap gap-2 items-center">
-          <span className="inline-flex items-center gap-2 px-2 py-1 rounded border border-slate-200 bg-slate-50 text-xs text-slate-700">
-            Mode: {activeTab === "generate" ? "Generator" : "Bank Editor"}
-          </span>
-          <span className="text-xs text-muted-foreground px-2">
-            Switch modes in View menu (`CmdOrCtrl+1/2`). Session and export actions are in the OS menu bar.
-          </span>
-        </div>
+        <h1 className="text-lg font-semibold text-foreground">{appHeading}</h1>
+        <span className="text-xs text-muted-foreground">
+          Switch modes in View menu (`CmdOrCtrl+1/2`). Session and export actions are in the OS menu bar.
+        </span>
       </header>
 
       <div className="flex flex-1 min-h-0">
         {/* Sidebar */}
         <Sidebar
-          subjects={subjects}
-          selectedSubject={selectedSubject}
-          onSubjectChange={setSelectedSubject}
           topics={topics}
           selectedTopics={selectedTopics}
           onTopicsChange={setSelectedTopics}
@@ -1149,6 +1186,15 @@ function App() {
           setPendingExportKind(null);
         }}
         onConfirm={confirmExportFromOptions}
+      />
+
+      <PreferencesModal
+        isOpen={preferencesOpen}
+        subjects={subjects}
+        selectedSubject={selectedSubject}
+        selectedDifficulty={difficulty}
+        onSave={handleSavePreferences}
+        onClose={() => setPreferencesOpen(false)}
       />
     </div>
   );

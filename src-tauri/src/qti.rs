@@ -368,7 +368,8 @@ pub fn export_md_with_options(
                 .map(|value| value.trim())
                 .filter(|value| !value.is_empty())
             {
-                let normalized = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(explanation));
+                let normalized =
+                    convert_codeblock_tables_to_markdown(&normalize_math_delimiters(explanation));
                 explanation_key.push((i + 1, normalized));
             }
         }
@@ -725,9 +726,7 @@ fn sanitize_filename(name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        Answer, CommonMistake, DistractorInfo, QuestionBankEntry, QuestionBankOption,
-    };
+    use crate::{Answer, CommonMistake, DistractorInfo, QuestionBankEntry, QuestionBankOption};
 
     #[test]
     fn test_export_txt() {

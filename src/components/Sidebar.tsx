@@ -1,10 +1,16 @@
-import { Loader2, Sparkles, Plus, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { TopicInfo, SubjectInfo } from "../types";
+import { useEffect, useState } from "react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Loader2,
+  Sparkles,
+  Plus,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from "lucide-react";
+import { TopicInfo } from "../types";
 
 interface SidebarProps {
-  subjects: SubjectInfo[];
-  selectedSubject: string;
-  onSubjectChange: (subject: string) => void;
   topics: TopicInfo[];
   selectedTopics: string[];
   onTopicsChange: (topics: string[]) => void;
@@ -24,9 +30,6 @@ interface SidebarProps {
 }
 
 export default function Sidebar({
-  subjects,
-  selectedSubject,
-  onSubjectChange,
   topics,
   selectedTopics,
   onTopicsChange,
@@ -44,12 +47,35 @@ export default function Sidebar({
   collapsed = false,
   onToggleCollapsed,
 }: SidebarProps) {
+  const [expandedTopics, setExpandedTopics] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    setExpandedTopics((prev) => {
+      const next: Record<string, boolean> = {};
+      for (const topic of topics) {
+        const hasSelectedChild =
+          topic.children?.some((child) => selectedTopics.includes(child.id)) ?? false;
+        if (prev[topic.id] || hasSelectedChild) {
+          next[topic.id] = true;
+        }
+      }
+      return next;
+    });
+  }, [topics, selectedTopics]);
+
   const toggleTopic = (topicId: string) => {
     if (selectedTopics.includes(topicId)) {
       onTopicsChange(selectedTopics.filter((t) => t !== topicId));
     } else {
       onTopicsChange([...selectedTopics, topicId]);
     }
+  };
+
+  const toggleExpanded = (topicId: string) => {
+    setExpandedTopics((prev) => ({
+      ...prev,
+      [topicId]: !prev[topicId],
+    }));
   };
 
   if (collapsed) {
@@ -78,10 +104,10 @@ export default function Sidebar({
     <aside className="w-80 h-full border-r bg-card flex flex-col overflow-hidden">
       {/* Fixed-height Content */}
       <div className="flex-1 min-h-0 p-4 flex flex-col gap-4 overflow-hidden">
-        {/* Subject Selection */}
-        <div className="shrink-0">
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-foreground">Subject</label>
+        {/* Topics */}
+        <div className="flex-1 min-h-0 flex flex-col">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-foreground">Topics</h3>
             <button
               onClick={onToggleCollapsed}
               className="p-1.5 rounded-md border hover:bg-secondary"
@@ -90,42 +116,76 @@ export default function Sidebar({
               <PanelLeftClose className="w-4 h-4" />
             </button>
           </div>
-          <select
-            value={selectedSubject}
-            onChange={(e) => onSubjectChange(e.target.value)}
-            className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-          >
-            {subjects.map((subject) => (
-              <option key={subject.id} value={subject.id}>
-                {subject.name} ({subject.topic_count} topics)
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Topics */}
-        <div className="flex-1 min-h-0 flex flex-col">
-          <h3 className="text-sm font-medium text-foreground mb-3">Topics</h3>
           <div className="relative flex-1 min-h-0">
             <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-card to-transparent pointer-events-none z-10" />
             <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-card to-transparent pointer-events-none z-10" />
             <div className="h-full overflow-y-auto overscroll-contain pr-1 space-y-2">
               {topics.map((topic) => (
-                <label
-                  key={topic.id}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedTopics.includes(topic.id)}
-                    onChange={() => toggleTopic(topic.id)}
-                    className="rounded border-gray-300 text-primary focus:ring-primary"
-                  />
-                  <span className="text-sm">{topic.name}</span>
-                  <span className="text-xs text-muted-foreground ml-auto">
-                    {topic.example_count} examples
-                  </span>
-                </label>
+                <div key={topic.id} className="space-y-1">
+                  <div className="flex items-center gap-2 rounded-md px-1 py-1 hover:bg-secondary/60">
+                    {topic.children && topic.children.length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleExpanded(topic.id)}
+                        className="p-0.5 rounded hover:bg-secondary"
+                        title={expandedTopics[topic.id] ? "Collapse" : "Expand"}
+                      >
+                        {expandedTopics[topic.id] ? (
+                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        )}
+                      </button>
+                    ) : (
+                      <span className="w-5" />
+                    )}
+
+                    <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={selectedTopics.includes(topic.id)}
+                        onChange={() => toggleTopic(topic.id)}
+                        className="rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <span
+                        className="text-sm leading-5 line-clamp-2 break-words"
+                        title={topic.name}
+                      >
+                        {topic.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">
+                        {topic.example_count}
+                      </span>
+                    </label>
+                  </div>
+
+                  {topic.children && topic.children.length > 0 && expandedTopics[topic.id] && (
+                    <div className="ml-6 pl-3 border-l border-slate-200 space-y-1">
+                      {topic.children.map((child) => (
+                        <label
+                          key={child.id}
+                          className="flex items-center gap-2 cursor-pointer rounded-md px-1.5 py-1 hover:bg-secondary/50"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedTopics.includes(child.id)}
+                            onChange={() => toggleTopic(child.id)}
+                            className="rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <span
+                            className="text-sm leading-5 line-clamp-2 break-words"
+                            title={child.name}
+                          >
+                            {child.name}
+                          </span>
+                          <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">
+                            {child.example_count}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
