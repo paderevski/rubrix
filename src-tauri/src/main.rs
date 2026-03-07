@@ -172,6 +172,26 @@ pub struct WordExportOptions {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub struct MdExportOptions {
+    #[serde(default)]
+    pub include_explanations: bool,
+    #[serde(default = "default_true")]
+    pub include_answer_key: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct QtiExportOptions {
+    #[serde(default = "default_true")]
+    pub shuffle_choices: bool,
+}
+
+fn default_true() -> bool {
+    true
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub struct BugClientContext {
     pub selected_subject: Option<String>,
     pub selected_topics: Vec<String>,
@@ -350,10 +370,10 @@ pub struct CommonMistake {
 // ============================================================================
 
 pub struct AppState {
-    pub questions: Mutex<Vec<Question>>,
-    pub knowledge: knowledge::KnowledgeBase,
-    pub api_key: Mutex<Option<String>>, // Cached Bedrock API key
-    pub credentials: Mutex<Option<SavedCredentials>>,
+    questions: Mutex<Vec<Question>>,
+    knowledge: knowledge::KnowledgeBase,
+    api_key: Mutex<Option<String>>, // Cached Bedrock API key
+    credentials: Mutex<Option<SavedCredentials>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -993,6 +1013,40 @@ fn is_dev_mode() -> bool {
 }
 
 #[tauri::command]
+fn set_menu_state(
+    can_export_questions: bool,
+    can_export_word: bool,
+    can_save_session: bool,
+    has_raw_preview: bool,
+    app_handle: AppHandle,
+) -> Result<(), String> {
+    let window = app_handle
+        .get_window("main")
+        .or_else(|| app_handle.windows().values().next().cloned())
+        .ok_or_else(|| "No application window found".to_string())?;
+
+    let menu = window.menu_handle();
+
+    menu.get_item("save_session")
+        .set_enabled(can_save_session)
+        .map_err(|e| format!("Failed to set save_session state: {}", e))?;
+    menu.get_item("export_md")
+        .set_enabled(can_export_questions)
+        .map_err(|e| format!("Failed to set export_md state: {}", e))?;
+    menu.get_item("export_qti")
+        .set_enabled(can_export_questions)
+        .map_err(|e| format!("Failed to set export_qti state: {}", e))?;
+    menu.get_item("export_word")
+        .set_enabled(can_export_word)
+        .map_err(|e| format!("Failed to set export_word state: {}", e))?;
+    menu.get_item("toggle_raw_preview")
+        .set_enabled(has_raw_preview)
+        .map_err(|e| format!("Failed to set toggle_raw_preview state: {}", e))?;
+
+    Ok(())
+}
+
+#[tauri::command]
 async fn submit_bug_report(
     input: BugSubmissionInput,
     state: State<'_, AppState>,
@@ -1119,15 +1173,44 @@ fn export_to_txt(title: String, state: State<AppState>) -> Result<String, String
 }
 
 #[tauri::command]
-fn export_to_md(title: String, state: State<AppState>) -> Result<String, String> {
+fn export_to_md(
+    title: String,
+    options: Option<MdExportOptions>,
+    state: State<AppState>,
+) -> Result<String, String> {
     let questions = state.questions.lock().unwrap();
-    qti::export_md(&title, &questions)
+    let opts = options.unwrap_or(MdExportOptions {
+        include_explanations: false,
+        include_answer_key: true,
+    });
+
+    qti::export_md_with_options(
+        &title,
+        &questions,
+        qti::ExportMdOptions {
+            include_explanations_section: opts.include_explanations,
+            include_answer_key: opts.include_answer_key,
+        },
+    )
 }
 
 #[tauri::command]
-fn export_to_qti(title: String, state: State<AppState>) -> Result<Vec<u8>, String> {
+fn export_to_qti(
+    title: String,
+    options: Option<QtiExportOptions>,
+    state: State<AppState>,
+) -> Result<Vec<u8>, String> {
     let questions = state.questions.lock().unwrap();
-    qti::export_qti_zip(&title, &questions)
+    let opts = options.unwrap_or(QtiExportOptions {
+        shuffle_choices: true,
+    });
+    qti::export_qti_zip_with_options(
+        &title,
+        &questions,
+        qti::ExportQtiOptions {
+            shuffle_choices: opts.shuffle_choices,
+        },
+    )
 }
 
 #[tauri::command]
@@ -1148,6 +1231,7 @@ async fn export_to_docx(
                 .as_ref()
                 .map(|o| o.include_explanations)
                 .unwrap_or(false),
+            include_answer_key: true,
         },
     )?;
     convert_markdown_to_docx(markdown).await
@@ -1257,13 +1341,60 @@ fn main() {
         credentials: Mutex::new(None),
     };
 
+    let open_session = CustomMenuItem::new("open_session", "Open Session…")
+        .accelerator("CmdOrCtrl+O");
+    let save_session = CustomMenuItem::new("save_session", "Save Session…")
+        .accelerator("CmdOrCtrl+S");
+    let export_md = CustomMenuItem::new("export_md", "Export Markdown…")
+        .accelerator("CmdOrCtrl+Shift+M");
+    let export_qti = CustomMenuItem::new("export_qti", "Export QTI…")
+        .accelerator("CmdOrCtrl+Shift+Q");
+    let export_word = CustomMenuItem::new("export_word", "Export Word…")
+        .accelerator("CmdOrCtrl+Shift+W");
+
+    let switch_generate = CustomMenuItem::new("switch_generate", "Generator")
+        .accelerator("CmdOrCtrl+1");
+    let switch_bank =
+        CustomMenuItem::new("switch_bank", "Bank Editor").accelerator("CmdOrCtrl+2");
+    let toggle_raw_preview =
+        CustomMenuItem::new("toggle_raw_preview", "Show/Hide Raw Preview")
+            .accelerator("CmdOrCtrl+\\");
+
     let zoom_in = CustomMenuItem::new("zoom_in", "Zoom In").accelerator("CmdOrCtrl+=");
     let zoom_out = CustomMenuItem::new("zoom_out", "Zoom Out").accelerator("CmdOrCtrl+-");
     let zoom_reset = CustomMenuItem::new("zoom_reset", "Actual Size").accelerator("CmdOrCtrl+0");
     let about_catie = CustomMenuItem::new("about_catie", "About Catie");
     let submit_bug = CustomMenuItem::new("submit_bug", "Submit Bug");
 
-    let file_menu = Submenu::new("File", Menu::new().add_native_item(MenuItem::Quit));
+    let export_menu = Submenu::new(
+        "Export",
+        Menu::new()
+            .add_item(export_md)
+            .add_item(export_qti)
+            .add_item(export_word),
+    );
+
+    #[cfg(target_os = "macos")]
+    let file_menu = Submenu::new(
+        "File",
+        Menu::new()
+            .add_item(open_session)
+            .add_item(save_session)
+            .add_native_item(MenuItem::Separator)
+            .add_submenu(export_menu),
+    );
+
+    #[cfg(not(target_os = "macos"))]
+    let file_menu = Submenu::new(
+        "File",
+        Menu::new()
+            .add_item(open_session)
+            .add_item(save_session)
+            .add_native_item(MenuItem::Separator)
+            .add_submenu(export_menu)
+            .add_native_item(MenuItem::Separator)
+            .add_native_item(MenuItem::Quit),
+    );
     let edit_menu = Submenu::new(
         "Edit",
         Menu::new()
@@ -1276,15 +1407,55 @@ fn main() {
     let view_menu = Submenu::new(
         "View",
         Menu::new()
+            .add_item(toggle_raw_preview)
+            .add_native_item(MenuItem::Separator)
             .add_item(zoom_in)
             .add_item(zoom_out)
-            .add_item(zoom_reset),
+            .add_item(zoom_reset)
+            .add_native_item(MenuItem::Separator)
+            .add_item(switch_generate)
+            .add_item(switch_bank),
     );
+    #[cfg(target_os = "macos")]
+    let help_menu = Submenu::new("Help", Menu::new().add_item(submit_bug));
+
+    #[cfg(not(target_os = "macos"))]
     let help_menu = Submenu::new(
         "Help",
         Menu::new().add_item(about_catie).add_item(submit_bug),
     );
 
+    #[cfg(target_os = "macos")]
+    let app_menu = Submenu::new(
+        "Catie",
+        Menu::new()
+            .add_item(about_catie)
+            .add_native_item(MenuItem::Separator)
+            .add_native_item(MenuItem::Hide)
+            .add_native_item(MenuItem::HideOthers)
+            .add_native_item(MenuItem::ShowAll)
+            .add_native_item(MenuItem::Separator)
+            .add_native_item(MenuItem::Quit),
+    );
+
+    #[cfg(target_os = "macos")]
+    let window_menu = Submenu::new(
+        "Window",
+        Menu::new()
+            .add_native_item(MenuItem::Minimize)
+            .add_native_item(MenuItem::CloseWindow),
+    );
+
+    #[cfg(target_os = "macos")]
+    let menu = Menu::new()
+        .add_submenu(app_menu)
+        .add_submenu(file_menu)
+        .add_submenu(edit_menu)
+        .add_submenu(view_menu)
+        .add_submenu(window_menu)
+        .add_submenu(help_menu);
+
+    #[cfg(not(target_os = "macos"))]
     let menu = Menu::new()
         .add_submenu(file_menu)
         .add_submenu(edit_menu)
@@ -1308,6 +1479,24 @@ fn main() {
                 return;
             }
 
+            let action_payload = match id {
+                "open_session" => Some("open_session"),
+                "save_session" => Some("save_session"),
+                "export_md" => Some("export_md"),
+                "export_qti" => Some("export_qti"),
+                "export_word" => Some("export_word"),
+                "toggle_raw_preview" => Some("toggle_raw_preview"),
+                "switch_generate" => Some("switch_generate"),
+                "switch_bank" => Some("switch_bank"),
+                "submit_bug" => Some("submit_bug"),
+                _ => None,
+            };
+
+            if let Some(action) = action_payload {
+                let _ = event.window().app_handle().emit_all("app-action", action);
+                return;
+            }
+
             if id == "about_catie" {
                 let app = event.window().app_handle();
                 let package = app.package_info();
@@ -1321,13 +1510,6 @@ fn main() {
                     .kind(tauri::api::dialog::MessageDialogKind::Info)
                     .show(|_| {});
                 return;
-            }
-
-            if id == "submit_bug" {
-                let _ = event
-                    .window()
-                    .app_handle()
-                    .emit_all("app-action", "submit_bug");
             }
         })
         .invoke_handler(tauri::generate_handler![
@@ -1345,6 +1527,7 @@ fn main() {
             check_auth,
             clear_auth,
             is_dev_mode,
+            set_menu_state,
             submit_bug_report,
             export_to_txt,
             export_to_md,

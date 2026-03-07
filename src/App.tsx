@@ -10,6 +10,7 @@ import StreamingPreview from "./components/StreamingPreview";
 import BankEditor from "./components/BankEditor";
 import LoginModal from "./components/LoginModal";
 import SubmitBugModal from "./components/SubmitBugModal";
+import ExportOptionsModal from "./components/ExportOptionsModal";
 import {
   Question,
   TopicInfo,
@@ -21,13 +22,7 @@ import {
   SubmitBugResult,
 } from "./types";
 import {
-  FileDown,
-  FileText,
   Loader2,
-  Eye,
-  EyeOff,
-  Save as SaveIcon,
-  FolderOpen,
 } from "lucide-react";
 import AlertModal from "./components/AlertModal";
 
@@ -40,6 +35,7 @@ interface StreamEvent {
 
 const sessionFileFilter = { name: "Catie Session", extensions: ["json", "md"] };
 const remainingTokensStorageKey = "remainingTokens";
+const exportPresetStorageKey = "exportPresets";
 
 function parseSessionQuestions(raw: unknown): Question[] {
   const payload: unknown[] | null = Array.isArray(raw)
@@ -260,6 +256,11 @@ function parseMarkdownQuestions(content: string): Question[] {
 }
 
 function App() {
+  type ExportKind = "md" | "qti" | "word";
+  type WordPreset = "teacher_key" | "student_handout";
+  type MdPreset = "teacher_markdown" | "student_markdown";
+  type QtiPreset = "lms_quiz_package" | "lms_practice_package";
+
   // State
   const [subjects, setSubjects] = useState<SubjectInfo[]>([]);
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -297,8 +298,55 @@ function App() {
   const [showPreview, setShowPreview] = useState(true);
   const [activeTab, setActiveTab] = useState<"generate" | "bank">("generate");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [includeGenerateExplanationsInWord, setIncludeGenerateExplanationsInWord] = useState(false);
-  const [includeBankExplanationsInWord, setIncludeBankExplanationsInWord] = useState(false);
+  const [wordGeneratePreset, setWordGeneratePreset] = useState<WordPreset>(() => {
+    if (typeof localStorage === "undefined") return "teacher_key";
+    try {
+      const saved = localStorage.getItem(exportPresetStorageKey);
+      if (!saved) return "teacher_key";
+      const parsed = JSON.parse(saved);
+      return parsed.wordGeneratePreset === "student_handout" ? "student_handout" : "teacher_key";
+    } catch {
+      return "teacher_key";
+    }
+  });
+  const [wordBankPreset, setWordBankPreset] = useState<WordPreset>(() => {
+    if (typeof localStorage === "undefined") return "teacher_key";
+    try {
+      const saved = localStorage.getItem(exportPresetStorageKey);
+      if (!saved) return "teacher_key";
+      const parsed = JSON.parse(saved);
+      return parsed.wordBankPreset === "student_handout" ? "student_handout" : "teacher_key";
+    } catch {
+      return "teacher_key";
+    }
+  });
+  const [markdownPreset, setMarkdownPreset] = useState<MdPreset>(() => {
+    if (typeof localStorage === "undefined") return "teacher_markdown";
+    try {
+      const saved = localStorage.getItem(exportPresetStorageKey);
+      if (!saved) return "teacher_markdown";
+      const parsed = JSON.parse(saved);
+      return parsed.markdownPreset === "student_markdown" ? "student_markdown" : "teacher_markdown";
+    } catch {
+      return "teacher_markdown";
+    }
+  });
+  const [qtiPreset, setQtiPreset] = useState<QtiPreset>(() => {
+    if (typeof localStorage === "undefined") return "lms_quiz_package";
+    try {
+      const saved = localStorage.getItem(exportPresetStorageKey);
+      if (!saved) return "lms_quiz_package";
+      const parsed = JSON.parse(saved);
+      return parsed.qtiPreset === "lms_practice_package"
+        ? "lms_practice_package"
+        : "lms_quiz_package";
+    } catch {
+      return "lms_quiz_package";
+    }
+  });
+  const [exportOptionsOpen, setExportOptionsOpen] = useState(false);
+  const [pendingExportKind, setPendingExportKind] = useState<ExportKind | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Alert modal state
   const [alertOpen, setAlertOpen] = useState(false);
@@ -311,6 +359,15 @@ function App() {
   const [isDevMode, setIsDevMode] = useState(false);
   const [submitBugOpen, setSubmitBugOpen] = useState(false);
   const [isSubmittingBug, setIsSubmittingBug] = useState(false);
+
+  const markdownPresetLabel =
+    markdownPreset === "teacher_markdown" ? "Teacher Markdown" : "Student Markdown";
+  const qtiPresetLabel =
+    qtiPreset === "lms_quiz_package" ? "LMS Quiz Package" : "LMS Practice Package";
+  const wordGeneratePresetLabel =
+    wordGeneratePreset === "teacher_key" ? "Teacher Key" : "Student Handout";
+  const wordBankPresetLabel =
+    wordBankPreset === "teacher_key" ? "Teacher Key" : "Student Handout";
 
   // Load subjects and any previously generated questions on mount
   useEffect(() => {
@@ -375,6 +432,17 @@ function App() {
     localStorage.setItem(remainingTokensStorageKey, remainingTokens.toString());
   }, [remainingTokens]);
 
+  useEffect(() => {
+    if (typeof localStorage === "undefined") return;
+    const payload = {
+      wordGeneratePreset,
+      wordBankPreset,
+      markdownPreset,
+      qtiPreset,
+    };
+    localStorage.setItem(exportPresetStorageKey, JSON.stringify(payload));
+  }, [wordGeneratePreset, wordBankPreset, markdownPreset, qtiPreset]);
+
   // Load topics when subject changes
   useEffect(() => {
     if (selectedSubject) {
@@ -422,15 +490,49 @@ function App() {
   // Listen for general app actions from native menu
   useEffect(() => {
     const unlistenAction = listen<string>("app-action", (event) => {
-      if (event.payload === "submit_bug") {
+      const action = event.payload;
+
+      if (action === "submit_bug") {
         setSubmitBugOpen(true);
+      } else if (action === "open_session") {
+        void handleOpenSession();
+      } else if (action === "save_session") {
+        void handleSaveSession();
+      } else if (action === "export_md") {
+        openExportOptions("md");
+      } else if (action === "export_qti") {
+        openExportOptions("qti");
+      } else if (action === "export_word") {
+        openExportOptions("word");
+      } else if (action === "switch_generate") {
+        setActiveTab("generate");
+      } else if (action === "switch_bank") {
+        setActiveTab("bank");
+      } else if (action === "toggle_raw_preview") {
+        if (streamingText) {
+          setShowPreview((prev) => !prev);
+        } else {
+          setStatus("No raw stream available yet");
+        }
       }
     });
 
     return () => {
       unlistenAction.then((f) => f());
     };
-  }, []);
+  }, [streamingText, activeTab, questions.length, selectedSubject]);
+
+  useEffect(() => {
+    void invoke("set_menu_state", {
+      canExportQuestions: questions.length > 0,
+      canExportWord:
+        activeTab === "generate" ? questions.length > 0 : Boolean(selectedSubject),
+      canSaveSession: questions.length > 0,
+      hasRawPreview: Boolean(streamingText),
+    }).catch((err) => {
+      console.warn("Failed to sync menu state:", err);
+    });
+  }, [questions.length, activeTab, selectedSubject, streamingText]);
 
   const loadSubjects = async () => {
     try {
@@ -596,14 +698,22 @@ function App() {
     if (!filePath) return;
 
     try {
+      setIsExporting(true);
+      const options = {
+        include_explanations: markdownPreset === "teacher_markdown",
+        include_answer_key: markdownPreset === "teacher_markdown",
+      };
       const content = await invoke<string>("export_to_md", {
         title: "Quiz",
+        options,
       });
       await writeTextFile(filePath, content);
-      setStatus(`Exported to ${filePath}`);
+      setStatus(`Exported to ${filePath} • Preset: ${markdownPresetLabel}`);
     } catch (err) {
       console.error("Export failed:", err);
       setStatus(`Export error: ${err}`);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -616,11 +726,16 @@ function App() {
     if (!filePath) return;
 
     try {
+      setIsExporting(true);
+      const options = {
+        shuffle_choices: qtiPreset === "lms_quiz_package",
+      };
       const data = await invoke<number[]>("export_to_qti", {
         title: "Quiz",
+        options,
       });
       await writeBinaryFile(filePath, new Uint8Array(data));
-      setStatus(`Exported to ${filePath}`);
+      setStatus(`Exported to ${filePath} • Preset: ${qtiPresetLabel}`);
       setAlertMessage(
         `File saved to ${filePath}.\nYou can import this file into Schoology as an .imscc file.`
       );
@@ -628,6 +743,8 @@ function App() {
     } catch (err) {
       console.error("Export failed:", err);
       setStatus(`Export error: ${err}`);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -645,6 +762,7 @@ function App() {
     if (!filePath) return;
 
     try {
+      setIsExporting(true);
       if (exportingBank) {
         if (!selectedSubject) {
           setStatus("Select a subject before exporting the question bank");
@@ -653,7 +771,7 @@ function App() {
 
         setStatus("Converting question bank to Word document...");
         const options: WordExportOptions = {
-          include_explanations: includeBankExplanationsInWord,
+          include_explanations: wordBankPreset === "teacher_key",
         };
         const data = await invoke<number[]>("export_question_bank_to_docx", {
           subject: selectedSubject,
@@ -661,23 +779,70 @@ function App() {
           options,
         });
         await writeBinaryFile(filePath, new Uint8Array(data));
+        setStatus(`Exported to ${filePath} • Preset: ${wordBankPresetLabel}`);
       } else {
         setStatus("Converting to Word document...");
         const options: WordExportOptions = {
-          include_explanations: includeGenerateExplanationsInWord,
+          include_explanations: wordGeneratePreset === "teacher_key",
         };
         const data = await invoke<number[]>("export_to_docx", {
           title: "Quiz",
           options,
         });
         await writeBinaryFile(filePath, new Uint8Array(data));
+        setStatus(`Exported to ${filePath} • Preset: ${wordGeneratePresetLabel}`);
       }
-
-      setStatus(`Exported to ${filePath}`);
     } catch (err) {
       console.error("Export failed:", err);
       setStatus(`Export error: ${err}`);
+    } finally {
+      setIsExporting(false);
     }
+  };
+
+  const canRunExport = (kind: ExportKind): boolean => {
+    if (kind === "word") {
+      return activeTab === "generate" ? questions.length > 0 : Boolean(selectedSubject);
+    }
+    return questions.length > 0;
+  };
+
+  const openExportOptions = (kind: ExportKind) => {
+    if (!canRunExport(kind)) {
+      if (kind === "word") {
+        setStatus(
+          activeTab === "generate"
+            ? "Generate questions before exporting Word"
+            : "Select a subject before exporting the question bank"
+        );
+      } else {
+        setStatus("Generate questions before exporting");
+      }
+      return;
+    }
+
+    setPendingExportKind(kind);
+    setExportOptionsOpen(true);
+  };
+
+  const confirmExportFromOptions = async () => {
+    if (!pendingExportKind) return;
+
+    const kind = pendingExportKind;
+    setExportOptionsOpen(false);
+    setPendingExportKind(null);
+
+    if (kind === "md") {
+      await handleExportMd();
+      return;
+    }
+
+    if (kind === "qti") {
+      await handleExportQti();
+      return;
+    }
+
+    await handleExportDocx();
   };
 
   const handleSaveSession = async () => {
@@ -807,7 +972,6 @@ function App() {
   // Determine what to show in main area
   const showStreamingPreview = isGenerating || (streamingText && !streamingComplete);
   const showQuestions = questions.length > 0 && !showStreamingPreview;
-  const canExportWord = activeTab === "generate" ? questions.length > 0 : Boolean(selectedSubject);
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -819,128 +983,13 @@ function App() {
 
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b bg-white">
-
-
         <div className="flex flex-wrap gap-2 items-center">
-          {/* Dev mode indicator */}
-          {isDevMode && (
-            <div className="px-3 py-1 bg-yellow-50 border border-yellow-300 rounded-md text-sm text-yellow-800">
-              🔧 DEV MODE
-            </div>
-          )}
-
-          {/* Auth indicator */}
-          {isAuthenticated && (
-            <div className="flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-md text-sm text-green-700">
-              <span>🔐 Authenticated</span>
-              <button
-                onClick={handleLogout}
-                className="text-xs underline hover:no-underline"
-                title={isDevMode ? "Clears keychain cache" : "Clears session"}
-              >
-                Logout
-              </button>
-            </div>
-          )}
-
-          <div className="flex rounded border overflow-hidden">
-            <button
-              className={`px-3 py-2 text-sm ${
-                activeTab === "generate" ? "bg-primary text-white" : "bg-white"
-              }`}
-              onClick={() => setActiveTab("generate")}
-            >
-              Generate
-            </button>
-            <button
-              className={`px-3 py-2 text-sm ${
-                activeTab === "bank" ? "bg-primary text-white" : "bg-white"
-              }`}
-              onClick={() => setActiveTab("bank")}
-            >
-              Bank Editor
-            </button>
-          </div>
-          <button
-            onClick={handleOpenSession}
-            className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary"
-          >
-            <FolderOpen className="w-4 h-4" />
-            Open Session
-          </button>
-          <button
-            onClick={handleSaveSession}
-            disabled={questions.length === 0}
-            className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <SaveIcon className="w-4 h-4" />
-            Save Session
-          </button>
-          {/* Toggle Preview Button (when streaming is complete but still visible) */}
-          {streamingText && streamingComplete && (
-            <button
-              onClick={() => setShowPreview(!showPreview)}
-              className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary"
-            >
-              {showPreview ? (
-                <>
-                  <EyeOff className="w-4 h-4" />
-                  Hide Raw
-                </>
-              ) : (
-                <>
-                  <Eye className="w-4 h-4" />
-                  Show Raw
-                </>
-              )}
-            </button>
-          )}
-
-          {/* Export Buttons */}
-          <button
-            onClick={handleExportMd}
-            disabled={questions.length === 0}
-            className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FileText className="w-4 h-4" />
-            Export .md
-          </button>
-          <button
-            onClick={handleExportQti}
-            disabled={questions.length === 0}
-            className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FileDown className="w-4 h-4" />
-            Export QTI
-          </button>
-          {activeTab === "generate" && (
-            <label className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md bg-white">
-              <input
-                type="checkbox"
-                checked={includeGenerateExplanationsInWord}
-                onChange={(e) => setIncludeGenerateExplanationsInWord(e.target.checked)}
-              />
-              Include explanations after answer key (Word)
-            </label>
-          )}
-          {activeTab === "bank" && (
-            <label className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md bg-white">
-              <input
-                type="checkbox"
-                checked={includeBankExplanationsInWord}
-                onChange={(e) => setIncludeBankExplanationsInWord(e.target.checked)}
-              />
-              Include explanations + distractors (Word)
-            </label>
-          )}
-          <button
-            onClick={handleExportDocx}
-            disabled={!canExportWord}
-            className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FileDown className="w-4 h-4" />
-            Export Word
-          </button>
+          <span className="inline-flex items-center gap-2 px-2 py-1 rounded border border-slate-200 bg-slate-50 text-xs text-slate-700">
+            Mode: {activeTab === "generate" ? "Generator" : "Bank Editor"}
+          </span>
+          <span className="text-xs text-muted-foreground px-2">
+            Switch modes in View menu (`CmdOrCtrl+1/2`). Session and export actions are in the OS menu bar.
+          </span>
         </div>
       </header>
 
@@ -1022,15 +1071,34 @@ function App() {
           )}
 
           {/* Status Bar */}
-          <footer className="flex items-center justify-between px-6 py-2 border-t bg-white text-sm text-muted-foreground">
-            <span className="flex items-center gap-2">
+          <footer className="flex flex-wrap items-center justify-between gap-2 px-6 py-2 border-t bg-white text-sm text-muted-foreground">
+            <span className="flex items-center gap-2 min-w-0">
               {isGenerating && <Loader2 className="w-4 h-4 animate-spin" />}
-              {status}
+              <span className="truncate">{status}</span>
             </span>
-            <span>
-              {questions.length} questions
-              {` • ${remainingTokens !== null ? remainingTokens.toLocaleString() : "N/A"} tokens left`}
-            </span>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {isDevMode && (
+                <span className="px-2 py-0.5 rounded border border-yellow-300 bg-yellow-50 text-yellow-800 text-xs font-medium">
+                  DEV MODE
+                </span>
+              )}
+              {isAuthenticated && (
+                <span className="inline-flex items-center gap-2 px-2 py-0.5 rounded border border-green-200 bg-green-50 text-green-700 text-xs font-medium">
+                  Authenticated
+                  <button
+                    onClick={handleLogout}
+                    className="underline hover:no-underline"
+                    title={isDevMode ? "Clears keychain cache" : "Clears session"}
+                  >
+                    Logout
+                  </button>
+                </span>
+              )}
+              <span>
+                {questions.length} questions
+                {` • ${remainingTokens !== null ? remainingTokens.toLocaleString() : "N/A"} tokens left`}
+              </span>
+            </div>
           </footer>
         </div>
       </div>
@@ -1060,6 +1128,27 @@ function App() {
         isSubmitting={isSubmittingBug}
         onClose={() => setSubmitBugOpen(false)}
         onSubmit={handleSubmitBug}
+      />
+
+      <ExportOptionsModal
+        isOpen={exportOptionsOpen}
+        kind={pendingExportKind}
+        activeTab={activeTab}
+        isExporting={isExporting}
+        wordGeneratePreset={wordGeneratePreset}
+        wordBankPreset={wordBankPreset}
+        markdownPreset={markdownPreset}
+        qtiPreset={qtiPreset}
+        onChangeWordGeneratePreset={setWordGeneratePreset}
+        onChangeWordBankPreset={setWordBankPreset}
+        onChangeMarkdownPreset={setMarkdownPreset}
+        onChangeQtiPreset={setQtiPreset}
+        onCancel={() => {
+          if (isExporting) return;
+          setExportOptionsOpen(false);
+          setPendingExportKind(null);
+        }}
+        onConfirm={confirmExportFromOptions}
       />
     </div>
   );

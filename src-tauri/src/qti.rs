@@ -67,7 +67,7 @@ const QTI_ITEM_TEMPLATE: &str = r#"        <item ident="{item_id}">
                     <mattext texttype="text/html"><![CDATA[{question_html}]]></mattext>
                 </material>
                 <response_lid ident="{item_id}" rcardinality="Single">
-                    <render_choice shuffle="Yes">
+                    <render_choice shuffle="{shuffle_attr}">
 {choices}
                     </render_choice>
                 </response_lid>
@@ -203,23 +203,6 @@ fn is_markdown_table(body: &str) -> bool {
     }
 }
 
-fn indent_block(text: &str, first_prefix: &str, rest_prefix: &str) -> String {
-    let mut lines = text.lines();
-    if let Some(first) = lines.next() {
-        let mut out = String::new();
-        out.push_str(first_prefix);
-        out.push_str(first.trim());
-        for line in lines {
-            out.push('\n');
-            out.push_str(rest_prefix);
-            out.push_str(line.trim());
-        }
-        out
-    } else {
-        String::new()
-    }
-}
-
 fn normalize_math_delimiters(content: &str) -> String {
     if content.is_empty() {
         return String::new();
@@ -312,9 +295,32 @@ fn convert_answer_to_html(answer: &str) -> String {
 // Export Functions
 // ============================================================================
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy)]
 pub struct ExportMdOptions {
     pub include_explanations_section: bool,
+    pub include_answer_key: bool,
+}
+
+impl Default for ExportMdOptions {
+    fn default() -> Self {
+        Self {
+            include_explanations_section: false,
+            include_answer_key: true,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct ExportQtiOptions {
+    pub shuffle_choices: bool,
+}
+
+impl Default for ExportQtiOptions {
+    fn default() -> Self {
+        Self {
+            shuffle_choices: true,
+        }
+    }
 }
 
 /// Export questions to our intermediate .txt format
@@ -370,7 +376,7 @@ pub fn export_md_with_options(
         output.push('\n');
     }
 
-    if !answer_key.is_empty() {
+    if options.include_answer_key && !answer_key.is_empty() {
         output.push_str("## Answers\n\n");
         for (number, label) in answer_key {
             output.push_str(&format!("{}. {}\n", number, label));
@@ -457,12 +463,15 @@ pub fn export_txt(title: &str, questions: &[Question]) -> Result<String, String>
     export_md(title, questions)
 }
 
-/// Export questions to QTI ZIP format (ready for Schoology)
-pub fn export_qti_zip(title: &str, questions: &[Question]) -> Result<Vec<u8>, String> {
+pub fn export_qti_zip_with_options(
+    title: &str,
+    questions: &[Question],
+    options: ExportQtiOptions,
+) -> Result<Vec<u8>, String> {
     let xml_filename = format!("{}.xml", sanitize_filename(title));
 
     // Generate QTI XML
-    let qti_xml = generate_qti_xml(title, questions);
+    let qti_xml = generate_qti_xml(title, questions, options);
 
     // Generate manifest
     let manifest = MANIFEST_TEMPLATE
@@ -495,7 +504,7 @@ pub fn export_qti_zip(title: &str, questions: &[Question]) -> Result<Vec<u8>, St
 }
 
 /// Generate the QTI XML content
-fn generate_qti_xml(_title: &str, questions: &[Question]) -> String {
+fn generate_qti_xml(_title: &str, questions: &[Question], options: ExportQtiOptions) -> String {
     let mut items = Vec::new();
 
     for (i, q) in questions.iter().enumerate() {
@@ -528,6 +537,10 @@ fn generate_qti_xml(_title: &str, questions: &[Question]) -> String {
             .replace("{item_id}", &item_id)
             .replace("{question_html}", &question_html)
             .replace("{choices}", &choices.join("\n"))
+            .replace(
+                "{shuffle_attr}",
+                if options.shuffle_choices { "Yes" } else { "No" },
+            )
             .replace("{correct_id}", &correct_id);
 
         items.push(item);
@@ -974,6 +987,7 @@ mod tests {
             &questions,
             ExportMdOptions {
                 include_explanations_section: true,
+                include_answer_key: true,
             },
         )
         .unwrap();

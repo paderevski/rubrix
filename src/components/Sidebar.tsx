@@ -54,7 +54,7 @@ export default function Sidebar({
 
   if (collapsed) {
     return (
-      <aside className="w-14 border-r bg-card flex flex-col items-center gap-3 py-3">
+      <aside className="w-14 h-full border-r bg-card flex flex-col items-center gap-3 py-3">
         <button
           onClick={onToggleCollapsed}
           className="p-2 rounded-md border hover:bg-secondary"
@@ -75,11 +75,11 @@ export default function Sidebar({
   }
 
   return (
-    <aside className="w-80 border-r bg-card flex flex-col">
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-6">
+    <aside className="w-80 h-full border-r bg-card flex flex-col overflow-hidden">
+      {/* Fixed-height Content */}
+      <div className="flex-1 min-h-0 p-4 flex flex-col gap-4 overflow-hidden">
         {/* Subject Selection */}
-        <div>
+        <div className="shrink-0">
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-medium text-foreground">Subject</label>
             <button
@@ -104,31 +104,35 @@ export default function Sidebar({
         </div>
 
         {/* Topics */}
-        <div>
+        <div className="flex-1 min-h-0 flex flex-col">
           <h3 className="text-sm font-medium text-foreground mb-3">Topics</h3>
-          <div className="space-y-2">
-            {topics.map((topic) => (
-              <label
-                key={topic.id}
-                className="flex items-center gap-2 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedTopics.includes(topic.id)}
-                  onChange={() => toggleTopic(topic.id)}
-                  className="rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <span className="text-sm">{topic.name}</span>
-                <span className="text-xs text-muted-foreground ml-auto">
-                  {topic.example_count} examples
-                </span>
-              </label>
-            ))}
+          <div className="relative flex-1 min-h-0">
+            <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-card to-transparent pointer-events-none z-10" />
+            <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-card to-transparent pointer-events-none z-10" />
+            <div className="h-full overflow-y-auto overscroll-contain pr-1 space-y-2">
+              {topics.map((topic) => (
+                <label
+                  key={topic.id}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedTopics.includes(topic.id)}
+                    onChange={() => toggleTopic(topic.id)}
+                    className="rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <span className="text-sm">{topic.name}</span>
+                  <span className="text-xs text-muted-foreground ml-auto">
+                    {topic.example_count} examples
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Difficulty */}
-        <div>
+        <div className="shrink-0">
           <label className="text-sm font-medium text-foreground mb-2 block">
             Difficulty
           </label>
@@ -150,7 +154,7 @@ export default function Sidebar({
         </div>
 
         {/* Question Count */}
-        <div>
+        <div className="shrink-0">
           <label className="text-sm font-medium text-foreground mb-2 block">
             Questions: {questionCount}
           </label>
@@ -169,7 +173,7 @@ export default function Sidebar({
         </div>
 
         {/* Notes */}
-        <div>
+        <div className="shrink-0">
           <label className="text-sm font-medium text-foreground mb-2 block">
             Additional Notes
           </label>
@@ -183,7 +187,7 @@ export default function Sidebar({
 
         {/* Append Mode Toggle */}
         {existingCount > 0 && (
-          <div className="p-3 bg-secondary/50 rounded-lg">
+          <div className="shrink-0 p-3 bg-secondary/50 rounded-lg">
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -206,7 +210,7 @@ export default function Sidebar({
       </div>
 
       {/* Generate Button */}
-      <div className="p-4 border-t">
+      <div className="p-4 border-t shrink-0">
         <button
           onClick={onGenerate}
           disabled={isGenerating || selectedTopics.length === 0}
