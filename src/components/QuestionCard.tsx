@@ -1,5 +1,5 @@
 import { Question } from "../types";
-import { RefreshCw, Pencil, Trash2, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { RefreshCw, Pencil, Trash2, Check, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -13,6 +13,7 @@ import "katex/dist/katex.min.css";
 interface QuestionCardProps {
   question: Question;
   index: number;
+  rawText?: string;
   onRegenerate: (instructions?: string) => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -99,6 +100,7 @@ function formatExplanation(content: string) {
 export default function QuestionCard({
   question,
   index,
+  rawText,
   onRegenerate,
   onEdit,
   onDelete,
@@ -106,10 +108,12 @@ export default function QuestionCard({
   const [showInstructions, setShowInstructions] = useState(false);
   const [instructions, setInstructions] = useState("");
   const [showExplanation, setShowExplanation] = useState(false);
+  const [showRaw, setShowRaw] = useState(false);
 
   const explanationContent = question.explanation?.trim() ?? "";
   const formattedExplanation = formatExplanation(explanationContent);
   const hasExplanation = Boolean(formattedExplanation);
+  const hasRawText = Boolean(rawText && rawText.trim().length > 0);
 
   useEffect(() => {
     if (!question) return;
@@ -158,6 +162,19 @@ export default function QuestionCard({
           >
             <RefreshCw className="w-4 h-4" />
           </button>
+          {hasRawText && (
+            <button
+              onClick={() => setShowRaw((prev) => !prev)}
+              className={`p-1.5 rounded hover:bg-secondary transition-colors ${
+                showRaw
+                  ? "text-primary bg-secondary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              title={showRaw ? "Show formatted view" : "Show raw view"}
+            >
+              {showRaw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          )}
           <button
             onClick={onEdit}
             className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
@@ -196,6 +213,12 @@ export default function QuestionCard({
 
       {/* Content */}
       <div className="p-4">
+        {showRaw && hasRawText ? (
+          <pre className="text-xs leading-relaxed max-h-80 overflow-auto bg-slate-950 text-slate-100 rounded-lg p-3 border border-slate-800 whitespace-pre-wrap">
+            {rawText}
+          </pre>
+        ) : (
+          <>
         {/* Question Text (with HTML, Markdown, LaTeX, and code blocks) */}
         <div className="prose mb-4">
           <RichMarkdown content={question.text} />
@@ -252,6 +275,8 @@ export default function QuestionCard({
               </div>
             )}
           </div>
+        )}
+          </>
         )}
       </div>
     </div>

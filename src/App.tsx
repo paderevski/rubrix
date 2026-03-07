@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
 import { open, save } from "@tauri-apps/api/dialog";
@@ -6,7 +6,6 @@ import { writeBinaryFile, writeTextFile, readTextFile } from "@tauri-apps/api/fs
 import Sidebar from "./components/Sidebar";
 import QuestionList from "./components/QuestionList";
 import EditModal from "./components/EditModal";
-import StreamingPreview from "./components/StreamingPreview";
 import BankEditor from "./components/BankEditor";
 import LoginModal from "./components/LoginModal";
 import SubmitBugModal from "./components/SubmitBugModal";
@@ -277,6 +276,7 @@ function App() {
   const [questionCount, setQuestionCount] = useState(1);
   const [notes, setNotes] = useState("");
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [rawTextByQuestionId, setRawTextByQuestionId] = useState<Record<string, string>>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [status, setStatus] = useState("Ready");
@@ -303,6 +303,7 @@ function App() {
   const [streamingText, setStreamingText] = useState("");
   const [streamingComplete, setStreamingComplete] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
+  const latestStreamingTextRef = useRef("");
   const [activeTab, setActiveTab] = useState<"generate" | "bank">("generate");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [wordGeneratePreset, setWordGeneratePreset] = useState<WordPreset>(() => {
@@ -474,6 +475,7 @@ function App() {
   useEffect(() => {
     const unlisten = listen<StreamEvent>("llm-stream", (event) => {
       setStreamingText(event.payload.text);
+      latestStreamingTextRef.current = event.payload.text;
       setStreamingComplete(event.payload.done);
       if (typeof event.payload.remaining_tokens === "number") {
         setRemainingTokens(event.payload.remaining_tokens);
@@ -603,6 +605,7 @@ function App() {
       const stored = await invoke<Question[]>("get_questions");
       if (stored.length > 0) {
         setQuestions(stored);
+        setRawTextByQuestionId({});
         setStatus(`Restored ${stored.length} question${stored.length === 1 ? "" : "s"}`);
       }
     } catch (err) {
@@ -624,7 +627,9 @@ function App() {
     }
 
     setIsGenerating(true);
+    const previousQuestionCount = questions.length;
     setStreamingText("");
+    latestStreamingTextRef.current = "";
     setStreamingComplete(false);
     setShowPreview(true);
     setStatus(appendMode ? "Adding more questions..." : "Generating questions...");
@@ -643,6 +648,29 @@ function App() {
         request,
       });
       setQuestions(allQuestions);
+      const streamSnapshot = latestStreamingTextRef.current.trim();
+      setRawTextByQuestionId((prev) => {
+        const next: Record<string, string> = {};
+
+        // Keep existing raw text only for IDs still present.
+        for (const question of allQuestions) {
+          const existing = prev[question.id];
+          if (existing) {
+            next[question.id] = existing;
+          }
+        }
+
+        if (streamSnapshot) {
+          const targets = appendMode
+            ? allQuestions.slice(previousQuestionCount)
+            : allQuestions;
+          for (const question of targets) {
+            next[question.id] = streamSnapshot;
+          }
+        }
+
+        return next;
+      });
 
       if (appendMode) {
         setStatus(`Added ${questionCount} questions (${allQuestions.length} total)`);
@@ -667,7 +695,9 @@ function App() {
 
   const handleRegenerate = async (index: number, instructions?: string) => {
     setStatus(`Regenerating question ${index + 1}...`);
+    const previousQuestionId = questions[index]?.id;
     setStreamingText("");
+    latestStreamingTextRef.current = "";
     setStreamingComplete(false);
     setShowPreview(true);
 
@@ -680,6 +710,17 @@ function App() {
         const updated = [...prev];
         updated[index] = newQuestion;
         return updated;
+      });
+      const streamSnapshot = latestStreamingTextRef.current.trim();
+      setRawTextByQuestionId((prev) => {
+        const next = { ...prev };
+        if (previousQuestionId && previousQuestionId !== newQuestion.id) {
+          delete next[previousQuestionId];
+        }
+        if (streamSnapshot) {
+          next[newQuestion.id] = streamSnapshot;
+        }
+        return next;
       });
       setStatus("Question regenerated");
     } catch (err) {
@@ -694,6 +735,7 @@ function App() {
 
   const handleSaveEdit = async (question: Question) => {
     if (editingIndex === null) return;
+    const previousId = questions[editingIndex]?.id;
 
     try {
       await invoke("update_question", { index: editingIndex, question });
@@ -702,6 +744,16 @@ function App() {
         updated[editingIndex] = question;
         return updated;
       });
+      if (previousId && previousId !== question.id) {
+        setRawTextByQuestionId((rawPrev) => {
+          const next = { ...rawPrev };
+          if (rawPrev[previousId]) {
+            next[question.id] = rawPrev[previousId];
+          }
+          delete next[previousId];
+          return next;
+        });
+      }
       setEditingIndex(null);
       setStatus("Question updated");
     } catch (err) {
@@ -712,8 +764,16 @@ function App() {
 
   const handleDelete = async (index: number) => {
     try {
+      const deletedId = questions[index]?.id;
       await invoke("delete_question", { index });
       setQuestions((prev) => prev.filter((_, i) => i !== index));
+      if (deletedId) {
+        setRawTextByQuestionId((prev) => {
+          const next = { ...prev };
+          delete next[deletedId];
+          return next;
+        });
+      }
       setStatus("Question deleted");
     } catch (err) {
       console.error("Delete failed:", err);
@@ -937,6 +997,7 @@ function App() {
       }
 
       setQuestions(parsed);
+      setRawTextByQuestionId({});
       await invoke("set_questions", { newQuestions: parsed });
       setStatus(
         `Loaded ${parsed.length} question${parsed.length === 1 ? "" : "s"} from session`
@@ -1012,8 +1073,7 @@ function App() {
   };
 
   // Determine what to show in main area
-  const showStreamingPreview = isGenerating || (streamingText && !streamingComplete);
-  const showQuestions = questions.length > 0 && !showStreamingPreview;
+  const showStreamingCard = isGenerating || (Boolean(streamingText) && !streamingComplete);
   const selectedSubjectName = subjects.find((s) => s.id === selectedSubject)?.name ?? selectedSubject;
   const appHeading = `${selectedSubjectName || "Rubrix"} Question Generator`;
 
@@ -1058,25 +1118,8 @@ function App() {
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Main Area - Either streaming preview/questions or Bank Editor */}
           {activeTab === "generate" ? (
-            <main className="flex-1 overflow-hidden flex">
-              {/* Streaming Preview Panel */}
-              {showPreview && streamingText && (
-                <div
-                  className={`border-r bg-slate-50 overflow-hidden flex flex-col ${
-                    showQuestions ? "w-1/2" : "flex-1"
-                  }`}
-                >
-                  <StreamingPreview text={streamingText} isComplete={streamingComplete} />
-                </div>
-              )}
-
-              {/* Questions Panel */}
-              <div
-                className={`overflow-auto overscroll-contain p-6 ${
-                  showPreview && streamingText ? "flex-1" : "flex-1"
-                }`}
-              >
-                {questions.length === 0 && !isGenerating ? (
+            <main className="flex-1 overflow-auto overscroll-contain p-6">
+              {questions.length === 0 && !showStreamingCard ? (
                   <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                     <div className="text-6xl mb-4">📚</div>
                     <p className="text-lg">No questions yet</p>
@@ -1084,22 +1127,21 @@ function App() {
                       Select topics and click "Generate Questions" to get started
                     </p>
                   </div>
-                ) : questions.length === 0 && isGenerating ? (
-                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                    <Loader2 className="w-8 h-8 animate-spin mb-4" />
-                    <p className="text-lg">Generating questions...</p>
-                    <p className="text-sm">Watch the live output on the left</p>
-                  </div>
-                ) : (
-                  <QuestionList
-                    questions={questions}
-                    onRegenerate={handleRegenerate}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onAdd={handleAddQuestion}
-                  />
-                )}
-              </div>
+              ) : (
+                <QuestionList
+                  questions={questions}
+                  rawTextByQuestionId={rawTextByQuestionId}
+                  showStreamingCard={showStreamingCard}
+                  streamingText={streamingText}
+                  streamingComplete={streamingComplete}
+                  showRawStream={showPreview}
+                  onToggleRawStream={() => setShowPreview((prev) => !prev)}
+                  onRegenerate={handleRegenerate}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onAdd={handleAddQuestion}
+                />
+              )}
             </main>
           ) : (
             <main className="flex-1 overflow-auto overscroll-contain p-6">
