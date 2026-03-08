@@ -1431,6 +1431,21 @@ fn save_question_bank(
     Ok(())
 }
 
+#[tauri::command]
+fn read_document_file(path: String) -> Result<String, String> {
+    fs::read_to_string(&path).map_err(|e| format!("Failed to read {}: {}", path, e))
+}
+
+#[tauri::command]
+fn write_document_file(path: String, content: String) -> Result<(), String> {
+    if let Some(parent) = PathBuf::from(&path).parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create parent dirs for {}: {}", path, e))?;
+    }
+
+    fs::write(&path, content).map_err(|e| format!("Failed to write {}: {}", path, e))
+}
+
 // ============================================================================
 // Main
 // ============================================================================
@@ -1446,10 +1461,14 @@ fn main() {
         credentials: Mutex::new(None),
     };
 
-    let open_session =
-        CustomMenuItem::new("open_session", "Open Session…").accelerator("CmdOrCtrl+O");
-    let save_session =
-        CustomMenuItem::new("save_session", "Save Session…").accelerator("CmdOrCtrl+S");
+    let new_document = CustomMenuItem::new("new_document", "New").accelerator("CmdOrCtrl+N");
+    let add_custom_question = CustomMenuItem::new("add_custom_question", "Add Custom Question...")
+        .accelerator("CmdOrCtrl+Shift+N");
+    let open_session = CustomMenuItem::new("open_session", "Open…").accelerator("CmdOrCtrl+O");
+    let open_recent =
+        CustomMenuItem::new("open_recent", "Open Recent…").accelerator("CmdOrCtrl+Shift+O");
+    let save_session = CustomMenuItem::new("save_session", "Save").accelerator("CmdOrCtrl+S");
+    let close_document = CustomMenuItem::new("close_document", "Close").accelerator("CmdOrCtrl+W");
     let export_md =
         CustomMenuItem::new("export_md", "Export Markdown…").accelerator("CmdOrCtrl+Shift+M");
     let export_qti =
@@ -1483,20 +1502,30 @@ fn main() {
     let file_menu = Submenu::new(
         "File",
         Menu::new()
+            .add_item(new_document.clone())
             .add_item(open_session)
+            .add_item(open_recent.clone())
             .add_item(save_session)
+            .add_item(close_document.clone())
             .add_native_item(MenuItem::Separator)
-            .add_submenu(export_menu),
+            .add_submenu(export_menu)
+            .add_native_item(MenuItem::Separator)
+            .add_item(add_custom_question.clone()),
     );
 
     #[cfg(not(target_os = "macos"))]
     let file_menu = Submenu::new(
         "File",
         Menu::new()
+            .add_item(new_document)
             .add_item(open_session)
+            .add_item(open_recent)
             .add_item(save_session)
+            .add_item(close_document)
             .add_native_item(MenuItem::Separator)
             .add_submenu(export_menu)
+            .add_native_item(MenuItem::Separator)
+            .add_item(add_custom_question)
             .add_native_item(MenuItem::Separator)
             .add_native_item(MenuItem::Quit),
     );
@@ -1563,7 +1592,7 @@ fn main() {
         "Window",
         Menu::new()
             .add_native_item(MenuItem::Minimize)
-            .add_native_item(MenuItem::CloseWindow),
+            .add_item(close_document),
     );
 
     #[cfg(target_os = "macos")]
@@ -1606,8 +1635,12 @@ fn main() {
             }
 
             let action_payload = match id {
+                "new_document" => Some("new_document"),
+                "add_custom_question" => Some("add_custom_question"),
                 "open_session" => Some("open_session"),
+                "open_recent" => Some("open_recent"),
                 "save_session" => Some("save_session"),
+                "close_document" => Some("close_document"),
                 "export_md" => Some("export_md"),
                 "export_qti" => Some("export_qti"),
                 "export_word" => Some("export_word"),
@@ -1669,6 +1702,8 @@ fn main() {
             export_question_bank_to_docx,
             load_question_bank,
             save_question_bank,
+            read_document_file,
+            write_document_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

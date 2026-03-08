@@ -1,12 +1,14 @@
 import { Question } from "../types";
 import QuestionCard from "./QuestionCard";
-import { Plus } from "lucide-react";
 import StreamingQuestionCard from "./StreamingQuestionCard";
 
 interface QuestionListProps {
   questions: Question[];
   topicMetaById?: Record<string, { label: string; kind: "topic" | "subtopic" }>;
   rawTextByQuestionId?: Record<string, string>;
+  regeneratingQuestionId?: string | null;
+  regenerationStreamingText?: string;
+  regenerationStreamingComplete?: boolean;
   showStreamingCard?: boolean;
   streamingText?: string;
   streamingComplete?: boolean;
@@ -15,13 +17,15 @@ interface QuestionListProps {
   onRegenerate: (index: number, instructions?: string) => void;
   onEdit: (index: number) => void;
   onDelete: (index: number) => void;
-  onAdd: () => void;
 }
 
 export default function QuestionList({
   questions,
   topicMetaById = {},
   rawTextByQuestionId = {},
+  regeneratingQuestionId = null,
+  regenerationStreamingText = "",
+  regenerationStreamingComplete = true,
   showStreamingCard = false,
   streamingText = "",
   streamingComplete = false,
@@ -30,7 +34,6 @@ export default function QuestionList({
   onRegenerate,
   onEdit,
   onDelete,
-  onAdd,
 }: QuestionListProps) {
   const centeredContainerClass = "w-full max-w-5xl mx-auto";
 
@@ -43,6 +46,10 @@ export default function QuestionList({
             index={index}
             topicMetaById={topicMetaById}
             rawText={rawTextByQuestionId[question.id]}
+            liveRawText={question.id === regeneratingQuestionId ? regenerationStreamingText : undefined}
+            isRegenerating={
+              question.id === regeneratingQuestionId && !regenerationStreamingComplete
+            }
             onRegenerate={(instructions) => onRegenerate(index, instructions)}
             onEdit={() => onEdit(index)}
             onDelete={() => onDelete(index)}
@@ -58,19 +65,6 @@ export default function QuestionList({
             showRaw={showRawStream}
             onToggleRaw={() => onToggleRawStream?.()}
           />
-        </div>
-      )}
-
-      {/* Add Question Button */}
-      {questions.length > 0 && (
-        <div className={centeredContainerClass}>
-          <button
-            onClick={onAdd}
-            className="w-full flex items-center justify-center gap-2 px-4 py-4 border-2 border-dashed rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Add Question
-          </button>
         </div>
       )}
     </div>

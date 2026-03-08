@@ -15,6 +15,8 @@ interface QuestionCardProps {
   index: number;
   topicMetaById?: Record<string, { label: string; kind: "topic" | "subtopic" }>;
   rawText?: string;
+  liveRawText?: string;
+  isRegenerating?: boolean;
   onRegenerate: (instructions?: string) => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -116,6 +118,8 @@ export default function QuestionCard({
   index,
   topicMetaById = {},
   rawText,
+  liveRawText,
+  isRegenerating = false,
   onRegenerate,
   onEdit,
   onDelete,
@@ -132,7 +136,10 @@ export default function QuestionCard({
   const explanationContent = question.explanation?.trim() ?? "";
   const formattedExplanation = formatExplanation(explanationContent);
   const hasExplanation = Boolean(formattedExplanation);
-  const hasRawText = Boolean(rawText && rawText.trim().length > 0);
+  const liveRaw = liveRawText?.trim() ?? "";
+  const storedRaw = rawText?.trim() ?? "";
+  const activeRaw = liveRaw || storedRaw;
+  const hasRawText = Boolean(activeRaw);
 
   const topicIds = question.topics ?? [];
   const topicCandidates = topicIds.map((id) => {
@@ -164,7 +171,7 @@ export default function QuestionCard({
   return (
     <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="px-4 py-3 bg-secondary/50 border-b">
+      <div className="px-4 py-3 bg-sky-50/70 border-b border-sky-100">
         <div className="w-full max-w-4xl mx-auto flex items-center justify-between">
           <span className="font-medium text-foreground">
             Question {index + 1}
@@ -207,7 +214,7 @@ export default function QuestionCard({
               className={iconButtonNeutral}
               title="Regenerate"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className={`w-4 h-4 ${isRegenerating ? "animate-spin" : ""}`} />
             </button>
             {hasRawText && (
               <button
@@ -266,7 +273,7 @@ export default function QuestionCard({
         <div className="w-full max-w-4xl mx-auto">
           {showRaw && hasRawText ? (
             <pre className="text-xs leading-relaxed max-h-80 overflow-auto bg-slate-950 text-slate-100 rounded-lg p-3 border border-slate-800 whitespace-pre-wrap">
-              {rawText}
+              {activeRaw}
             </pre>
           ) : (
             <>

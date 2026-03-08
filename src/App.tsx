@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
 import { open, save } from "@tauri-apps/api/dialog";
-import { writeBinaryFile, writeTextFile, readTextFile } from "@tauri-apps/api/fs";
+import { writeBinaryFile, writeTextFile } from "@tauri-apps/api/fs";
 import Sidebar from "./components/Sidebar";
 import QuestionList from "./components/QuestionList";
 import EditModal from "./components/EditModal";
@@ -11,6 +11,8 @@ import LoginModal from "./components/LoginModal";
 import SubmitBugModal from "./components/SubmitBugModal";
 import ExportOptionsModal from "./components/ExportOptionsModal";
 import PreferencesModal from "./components/PreferencesModal";
+import OpenRecentModal from "./components/OpenRecentModal";
+import SaveChangesModal from "./components/SaveChangesModal";
 import {
   Question,
   TopicInfo,
@@ -23,6 +25,7 @@ import {
 } from "./types";
 import {
   Loader2,
+  X,
 } from "lucide-react";
 import AlertModal from "./components/AlertModal";
 
@@ -33,11 +36,13 @@ interface StreamEvent {
   remaining_tokens?: number;
 }
 
-const sessionFileFilter = { name: "Catie Session", extensions: ["json", "md"] };
+const catieFileFilter = { name: "Catie Document", extensions: ["kt"] };
+const legacySessionFileFilter = { name: "Legacy Session", extensions: ["json", "md"] };
 const remainingTokensStorageKey = "remainingTokens";
 const exportPresetStorageKey = "exportPresets";
 const preferredSubjectStorageKey = "preferredSubject";
 const preferredDifficultyStorageKey = "preferredDifficulty";
+const recentDocumentsStorageKey = "recentDocuments";
 
 function parseSessionQuestions(raw: unknown): Question[] {
   const payload: unknown[] | null = Array.isArray(raw)
@@ -52,9 +57,9 @@ function parseSessionQuestions(raw: unknown): Question[] {
 
   const warn = (message: string, meta?: unknown) => {
     if (meta !== undefined) {
-      console.warn(`[Rubrix Session] ${message}`, meta);
+      console.warn(`[Catie Session] ${message}`, meta);
     } else {
-      console.warn(`[Rubrix Session] ${message}`);
+      console.warn(`[Catie Session] ${message}`);
     }
   };
 
@@ -174,7 +179,7 @@ function parseSessionQuestions(raw: unknown): Question[] {
 
 function parseMarkdownQuestions(content: string): Question[] {
   const warn = (message: string) => {
-    console.warn(`[Rubrix Markdown] ${message}`);
+    console.warn(`[Catie Markdown] ${message}`);
   };
 
   // Split by numbered questions (1., 2., 3., etc.)
@@ -267,6 +272,7 @@ function App() {
   type WordPreset = "teacher_key" | "student_handout";
   type MdPreset = "teacher_markdown" | "student_markdown";
   type QtiPreset = "lms_quiz_package" | "lms_practice_package";
+  type DocumentMode = "blank" | "new" | "open";
 
   // State
   const [subjects, setSubjects] = useState<SubjectInfo[]>([]);
@@ -285,6 +291,23 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [status, setStatus] = useState("Ready");
+  const [currentDocumentPath, setCurrentDocumentPath] = useState<string | null>(null);
+  const [documentMode, setDocumentMode] = useState<DocumentMode>("blank");
+  const [openRecentOpen, setOpenRecentOpen] = useState(false);
+  const [saveChangesOpen, setSaveChangesOpen] = useState(false);
+  const [recentDocuments, setRecentDocuments] = useState<string[]>(() => {
+    if (typeof localStorage === "undefined") return [];
+    try {
+      const raw = localStorage.getItem(recentDocumentsStorageKey);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed)
+        ? parsed.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+        : [];
+    } catch {
+      return [];
+    }
+  });
   const [remainingTokens, setRemainingTokens] = useState<number | null>(() => {
     if (typeof localStorage === "undefined") return null;
     const saved = localStorage.getItem(remainingTokensStorageKey);
@@ -307,6 +330,7 @@ function App() {
   const [streamingText, setStreamingText] = useState("");
   const [streamingComplete, setStreamingComplete] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
+  const [regeneratingQuestionId, setRegeneratingQuestionId] = useState<string | null>(null);
   const latestStreamingTextRef = useRef("");
   const [activeTab, setActiveTab] = useState<"generate" | "bank">("generate");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -372,6 +396,20 @@ function App() {
   const [submitBugOpen, setSubmitBugOpen] = useState(false);
   const [isSubmittingBug, setIsSubmittingBug] = useState(false);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [savedQuestionsSnapshot, setSavedQuestionsSnapshot] = useState<string | null>(null);
+
+  const documentName = currentDocumentPath
+    ? currentDocumentPath.split(/[/\\]/).pop() || currentDocumentPath
+    : documentMode === "new"
+    ? "Untitled.kt"
+    : null;
+  const questionsSnapshot = useMemo(() => JSON.stringify(questions), [questions]);
+  const isDocumentDirty = useMemo(() => {
+    if (documentMode === "blank") return false;
+    if (documentMode === "new") return questions.length > 0;
+    if (savedQuestionsSnapshot === null) return false;
+    return questionsSnapshot !== savedQuestionsSnapshot;
+  }, [documentMode, questions.length, questionsSnapshot, savedQuestionsSnapshot]);
 
   const markdownPresetLabel =
     markdownPreset === "teacher_markdown" ? "Teacher Markdown" : "Student Markdown";
@@ -387,8 +425,15 @@ function App() {
     checkDevMode();
     checkAuthentication();
     loadSubjects();
-    loadExistingQuestions();
+    void invoke("set_questions", { newQuestions: [] as Question[] }).catch((err) => {
+      console.warn("Failed to initialize empty document state:", err);
+    });
   }, []);
+
+  useEffect(() => {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(recentDocumentsStorageKey, JSON.stringify(recentDocuments.slice(0, 10)));
+  }, [recentDocuments]);
 
   const checkDevMode = async () => {
     try {
@@ -520,10 +565,19 @@ function App() {
 
       if (action === "submit_bug") {
         setSubmitBugOpen(true);
+      } else if (action === "new_document") {
+        void handleNewDocument();
+      } else if (action === "add_custom_question") {
+        setActiveTab("generate");
+        void handleAddQuestion();
+      } else if (action === "close_document") {
+        void handleCloseDocumentRequest();
       } else if (action === "open_session") {
-        void handleOpenSession();
+        void handleOpenDocument();
+      } else if (action === "open_recent") {
+        setOpenRecentOpen(true);
       } else if (action === "save_session") {
-        void handleSaveSession();
+        void handleSaveDocument();
       } else if (action === "export_md") {
         openExportOptions("md");
       } else if (action === "export_qti") {
@@ -604,19 +658,6 @@ function App() {
     }
   };
 
-  const loadExistingQuestions = async () => {
-    try {
-      const stored = await invoke<Question[]>("get_questions");
-      if (stored.length > 0) {
-        setQuestions(stored);
-        setRawTextByQuestionId({});
-        setStatus(`Restored ${stored.length} question${stored.length === 1 ? "" : "s"}`);
-      }
-    } catch (err) {
-      console.error("Failed to restore questions:", err);
-    }
-  };
-
   const handleGenerate = async () => {
     if (selectedTopics.length === 0) {
       setStatus("Please select at least one topic");
@@ -636,6 +677,7 @@ function App() {
     latestStreamingTextRef.current = "";
     setStreamingComplete(false);
     setShowPreview(true);
+    setRegeneratingQuestionId(null);
     setStatus("Adding more questions...");
 
     try {
@@ -652,6 +694,9 @@ function App() {
         request,
       });
       setQuestions(allQuestions);
+      if (documentMode === "blank") {
+        setDocumentMode("new");
+      }
       const streamSnapshot = latestStreamingTextRef.current.trim();
       setRawTextByQuestionId((prev) => {
         const next: Record<string, string> = {};
@@ -694,6 +739,7 @@ function App() {
   const handleRegenerate = async (index: number, instructions?: string) => {
     setStatus(`Regenerating question ${index + 1}...`);
     const previousQuestionId = questions[index]?.id;
+    setRegeneratingQuestionId(previousQuestionId ?? null);
     setStreamingText("");
     latestStreamingTextRef.current = "";
     setStreamingComplete(false);
@@ -724,6 +770,8 @@ function App() {
     } catch (err) {
       console.error("Regeneration failed:", err);
       setStatus(`Error: ${err}`);
+    } finally {
+      setRegeneratingQuestionId(null);
     }
   };
 
@@ -783,6 +831,9 @@ function App() {
     try {
       const newQuestion = await invoke<Question>("add_question");
       setQuestions((prev) => [...prev, newQuestion]);
+      if (documentMode === "blank") {
+        setDocumentMode("new");
+      }
       setEditingIndex(questions.length);
     } catch (err) {
       console.error("Add failed:", err);
@@ -945,18 +996,109 @@ function App() {
     await handleExportDocx();
   };
 
-  const handleSaveSession = async () => {
-    if (questions.length === 0) {
-      setStatus("No questions to save");
+  const updateRecentDocuments = (filePath: string) => {
+    setRecentDocuments((prev) => [filePath, ...prev.filter((p) => p !== filePath)].slice(0, 10));
+  };
+
+  const resetToBlankState = async () => {
+    setQuestions([]);
+    setRawTextByQuestionId({});
+    setStreamingText("");
+    latestStreamingTextRef.current = "";
+    setStreamingComplete(false);
+    setRegeneratingQuestionId(null);
+    setCurrentDocumentPath(null);
+    setDocumentMode("blank");
+    setSavedQuestionsSnapshot(null);
+    setActiveTab("generate");
+    setStatus("Ready");
+    try {
+      await invoke("set_questions", { newQuestions: [] as Question[] });
+    } catch (err) {
+      console.error("Failed to clear backend question state:", err);
+    }
+  };
+
+  const handleCloseDocumentRequest = async () => {
+    if (documentMode === "blank") return;
+    if (isDocumentDirty) {
+      setSaveChangesOpen(true);
       return;
     }
+    await resetToBlankState();
+  };
 
-    const filePath = await save({
-      defaultPath: "catie-session.json",
-      filters: [sessionFileFilter],
-    });
+  const handleNewDocument = async () => {
+    setQuestions([]);
+    setRawTextByQuestionId({});
+    setStreamingText("");
+    latestStreamingTextRef.current = "";
+    setStreamingComplete(false);
+    setRegeneratingQuestionId(null);
+    setCurrentDocumentPath(null);
+    setDocumentMode("new");
+    setSavedQuestionsSnapshot(JSON.stringify([]));
+    setStatus("New document • Unsaved (Untitled.kt)");
+    try {
+      await invoke("set_questions", { newQuestions: [] as Question[] });
+    } catch (err) {
+      console.error("Failed to clear backend question state:", err);
+    }
+  };
 
-    if (!filePath) return;
+  const openDocumentFromPath = async (filePath: string) => {
+    const content = await invoke<string>("read_document_file", { path: filePath });
+
+    // Detect file type and parse accordingly
+    let parsed: Question[];
+    if (filePath.toLowerCase().endsWith(".md")) {
+      parsed = parseMarkdownQuestions(content);
+    } else {
+      parsed = parseSessionQuestions(JSON.parse(content));
+    }
+
+    setQuestions(parsed);
+    setRawTextByQuestionId({});
+    setCurrentDocumentPath(filePath);
+    setDocumentMode("open");
+    setSavedQuestionsSnapshot(JSON.stringify(parsed));
+    updateRecentDocuments(filePath);
+    await invoke("set_questions", { newQuestions: parsed });
+    setStatus(`Opened ${parsed.length} question${parsed.length === 1 ? "" : "s"} from ${filePath}`);
+  };
+
+  const handleOpenRecentPath = async (filePath: string) => {
+    try {
+      await openDocumentFromPath(filePath);
+      setOpenRecentOpen(false);
+    } catch (err) {
+      console.error("Open recent failed:", err);
+      setRecentDocuments((prev) => prev.filter((p) => p !== filePath));
+      setStatus(`Open recent error: ${err}`);
+    }
+  };
+
+  const handleClearRecent = () => {
+    setRecentDocuments([]);
+    setStatus("Cleared recent documents");
+  };
+
+  const handleSaveDocument = async (): Promise<boolean> => {
+    if (questions.length === 0) {
+      setStatus("No questions to save");
+      return false;
+    }
+
+    let filePath = currentDocumentPath;
+
+    if (!filePath) {
+      filePath = await save({
+        defaultPath: "untitled.kt",
+        filters: [catieFileFilter],
+      });
+    }
+
+    if (!filePath) return false;
 
     try {
       const payload = {
@@ -964,18 +1106,27 @@ function App() {
         savedAt: new Date().toISOString(),
         questions,
       };
-      await writeTextFile(filePath, JSON.stringify(payload, null, 2));
-      setStatus(`Session saved to ${filePath}`);
+      await invoke("write_document_file", {
+        path: filePath,
+        content: JSON.stringify(payload, null, 2),
+      });
+      setCurrentDocumentPath(filePath);
+      setDocumentMode("open");
+      setSavedQuestionsSnapshot(JSON.stringify(questions));
+      updateRecentDocuments(filePath);
+      setStatus(`Saved ${filePath}`);
+      return true;
     } catch (err) {
       console.error("Save session failed:", err);
       setStatus(`Save session error: ${err}`);
+      return false;
     }
   };
 
-  const handleOpenSession = async () => {
+  const handleOpenDocument = async () => {
     const selection = await open({
       multiple: false,
-      filters: [sessionFileFilter],
+      filters: [catieFileFilter, legacySessionFileFilter],
     });
 
     if (!selection) return;
@@ -984,22 +1135,7 @@ function App() {
     if (!filePath) return;
 
     try {
-      const content = await readTextFile(filePath);
-
-      // Detect file type and parse accordingly
-      let parsed: Question[];
-      if (filePath.toLowerCase().endsWith('.md')) {
-        parsed = parseMarkdownQuestions(content);
-      } else {
-        parsed = parseSessionQuestions(JSON.parse(content));
-      }
-
-      setQuestions(parsed);
-      setRawTextByQuestionId({});
-      await invoke("set_questions", { newQuestions: parsed });
-      setStatus(
-        `Loaded ${parsed.length} question${parsed.length === 1 ? "" : "s"} from session`
-      );
+      await openDocumentFromPath(filePath);
     } catch (err) {
       console.error("Open session failed:", err);
       setStatus(`Open session error: ${err}`);
@@ -1071,7 +1207,7 @@ function App() {
   };
 
   // Determine what to show in main area
-  const showStreamingCard = isGenerating || (Boolean(streamingText) && !streamingComplete);
+  const showStreamingCard = isGenerating;
   const topicMetaById = useMemo(() => {
     const meta: Record<string, { label: string; kind: "topic" | "subtopic" }> = {};
     for (const topic of topics) {
@@ -1083,7 +1219,7 @@ function App() {
     return meta;
   }, [topics]);
   const selectedSubjectName = subjects.find((s) => s.id === selectedSubject)?.name ?? selectedSubject;
-  const appHeading = `${selectedSubjectName || "Rubrix"} Question Generator`;
+  const appHeading = `${selectedSubjectName || "Catie"} Question Generator`;
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -1092,45 +1228,99 @@ function App() {
         message={alertMessage}
         onClose={() => setAlertOpen(false)}
       />
+      <OpenRecentModal
+        open={openRecentOpen}
+        recentPaths={recentDocuments}
+        onOpenPath={handleOpenRecentPath}
+        onClear={handleClearRecent}
+        onClose={() => setOpenRecentOpen(false)}
+      />
+      <SaveChangesModal
+        open={saveChangesOpen}
+        documentName={documentName ?? "Untitled.kt"}
+        onCancel={() => setSaveChangesOpen(false)}
+        onDontSave={() => {
+          setSaveChangesOpen(false);
+          void resetToBlankState();
+        }}
+        onSave={() => {
+          void (async () => {
+            const saved = await handleSaveDocument();
+            if (!saved) return;
+            setSaveChangesOpen(false);
+            await resetToBlankState();
+          })();
+        }}
+      />
 
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b bg-white">
         <h1 className="text-lg font-semibold text-foreground">{appHeading}</h1>
         <span className="text-xs text-muted-foreground">
-          Switch modes in View menu (`CmdOrCtrl+1/2`). Session and export actions are in the OS menu bar.
+          Start with File &gt; New or Open. Switch modes in View menu (`CmdOrCtrl+1/2`).
         </span>
       </header>
 
       <div className="flex flex-1 min-h-0">
         {/* Sidebar */}
-        <Sidebar
-          topics={topics}
-          selectedTopics={selectedTopics}
-          onTopicsChange={setSelectedTopics}
-          difficulty={difficulty}
-          onDifficultyChange={setDifficulty}
-          questionCount={questionCount}
-          onQuestionCountChange={setQuestionCount}
-          notes={notes}
-          onNotesChange={setNotes}
-          existingCount={questions.length}
-          onGenerate={handleGenerate}
-          isGenerating={isGenerating}
-          collapsed={sidebarCollapsed}
-          onToggleCollapsed={() => setSidebarCollapsed((prev) => !prev)}
-        />
+        <div
+          className={documentMode === "blank" ? "pointer-events-none opacity-50" : ""}
+          aria-disabled={documentMode === "blank"}
+        >
+          <Sidebar
+            topics={topics}
+            selectedTopics={selectedTopics}
+            onTopicsChange={setSelectedTopics}
+            difficulty={difficulty}
+            onDifficultyChange={setDifficulty}
+            questionCount={questionCount}
+            onQuestionCountChange={setQuestionCount}
+            notes={notes}
+            onNotesChange={setNotes}
+            existingCount={questions.length}
+            onGenerate={handleGenerate}
+            isGenerating={isGenerating}
+            collapsed={sidebarCollapsed}
+            onToggleCollapsed={() => setSidebarCollapsed((prev) => !prev)}
+          />
+        </div>
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="border-b bg-slate-50/80 px-4 pt-2">
+            <div className="min-h-9 flex items-end">
+              {documentName ? (
+                <div className="inline-flex items-center gap-2 rounded-t-md border border-b-0 bg-white px-3 py-1.5 text-sm shadow-sm max-w-full">
+                  <span className="truncate max-w-[22rem]" title={documentName}>
+                    {documentName}
+                    {isDocumentDirty ? " *" : ""}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void handleCloseDocumentRequest();
+                    }}
+                    className="rounded p-0.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    title="Close document"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <span className="px-2 py-1.5 text-xs text-muted-foreground">No document open</span>
+              )}
+            </div>
+          </div>
+
           {/* Main Area - Either streaming preview/questions or Bank Editor */}
           {activeTab === "generate" ? (
             <main className="flex-1 overflow-auto overscroll-contain p-6">
               {questions.length === 0 && !showStreamingCard ? (
-                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                    <div className="text-6xl mb-4">📚</div>
-                    <p className="text-lg">No questions yet</p>
+                  <div className="h-full flex items-center justify-center text-muted-foreground">
                     <p className="text-sm">
-                      Select topics and click "Generate Questions" to get started
+                      {documentMode === "blank"
+                        ? "Choose File > New or Open to get started."
+                        : "Add a question to get started."}
                     </p>
                   </div>
               ) : (
@@ -1138,6 +1328,9 @@ function App() {
                   questions={questions}
                   topicMetaById={topicMetaById}
                   rawTextByQuestionId={rawTextByQuestionId}
+                  regeneratingQuestionId={regeneratingQuestionId}
+                  regenerationStreamingText={streamingText}
+                  regenerationStreamingComplete={streamingComplete}
                   showStreamingCard={showStreamingCard}
                   streamingText={streamingText}
                   streamingComplete={streamingComplete}
@@ -1146,7 +1339,6 @@ function App() {
                   onRegenerate={handleRegenerate}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
-                  onAdd={handleAddQuestion}
                 />
               )}
             </main>
