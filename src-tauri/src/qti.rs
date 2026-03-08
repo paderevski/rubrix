@@ -299,6 +299,9 @@ fn convert_answer_to_html(answer: &str) -> String {
 pub struct ExportMdOptions {
     pub include_explanations_section: bool,
     pub include_answer_key: bool,
+    pub include_choices: bool,
+    pub shuffle_choices: bool,
+    pub shuffle_questions: bool,
 }
 
 impl Default for ExportMdOptions {
@@ -306,6 +309,28 @@ impl Default for ExportMdOptions {
         Self {
             include_explanations_section: false,
             include_answer_key: true,
+            include_choices: true,
+            shuffle_choices: true,
+            shuffle_questions: false,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct ExportBankMdOptions {
+    pub include_explanations: bool,
+    pub include_choices: bool,
+    pub shuffle_choices: bool,
+    pub shuffle_questions: bool,
+}
+
+impl Default for ExportBankMdOptions {
+    fn default() -> Self {
+        Self {
+            include_explanations: false,
+            include_choices: true,
+            shuffle_choices: false,
+            shuffle_questions: false,
         }
     }
 }
@@ -337,28 +362,39 @@ pub fn export_md_with_options(
     let mut rng = thread_rng();
     let mut answer_key: Vec<(usize, char)> = Vec::new();
     let mut explanation_key: Vec<(usize, String)> = Vec::new();
+    let mut ordered_questions = questions.to_vec();
 
-    for (i, q) in questions.iter().enumerate() {
+    if options.shuffle_questions {
+        ordered_questions.shuffle(&mut rng);
+    }
+
+    for (i, q) in ordered_questions.iter().enumerate() {
         let question_text =
             convert_codeblock_tables_to_markdown(&normalize_math_delimiters(q.text.trim()));
         output.push_str(&format!("**Question {}.** {}\n\n", i + 1, question_text));
 
         let mut answers = q.answers.clone();
-        answers.shuffle(&mut rng);
-
-        for (idx, answer) in answers.iter().enumerate() {
-            let label = (b'A' + idx as u8) as char;
-            let body = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(
-                answer.text.trim(),
-            ));
-            let formatted = format!("{}) {}", label, body);
-            output.push_str(&formatted);
-            output.push('\n');
+        if options.shuffle_choices {
+            answers.shuffle(&mut rng);
         }
 
-        if let Some((idx, _)) = answers.iter().enumerate().find(|(_, a)| a.is_correct) {
-            let label = (b'A' + idx as u8) as char;
-            answer_key.push((i + 1, label));
+        if options.include_choices {
+            for (idx, answer) in answers.iter().enumerate() {
+                let label = (b'A' + idx as u8) as char;
+                let body = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(
+                    answer.text.trim(),
+                ));
+                let formatted = format!("{}) {}", label, body);
+                output.push_str(&formatted);
+                output.push('\n');
+            }
+        }
+
+        if options.include_choices {
+            if let Some((idx, _)) = answers.iter().enumerate().find(|(_, a)| a.is_correct) {
+                let label = (b'A' + idx as u8) as char;
+                answer_key.push((i + 1, label));
+            }
         }
 
         if options.include_explanations_section {
@@ -377,7 +413,7 @@ pub fn export_md_with_options(
         output.push('\n');
     }
 
-    if options.include_answer_key && !answer_key.is_empty() {
+    if options.include_answer_key && options.include_choices && !answer_key.is_empty() {
         output.push_str("## Answers\n\n");
         for (number, label) in answer_key {
             output.push_str(&format!("{}. {}\n", number, label));
@@ -394,28 +430,40 @@ pub fn export_md_with_options(
     Ok(output)
 }
 
-/// Export question-bank entries to markdown for downstream Word conversion.
-pub fn export_bank_md(
+pub fn export_bank_md_with_options(
     title: &str,
     entries: &[QuestionBankEntry],
-    include_explanations: bool,
+    options: ExportBankMdOptions,
 ) -> Result<String, String> {
     let mut output = format!("# {}\n\n", title);
+    let mut rng = thread_rng();
+    let mut ordered_entries = entries.to_vec();
 
-    for (i, entry) in entries.iter().enumerate() {
+    if options.shuffle_questions {
+        ordered_entries.shuffle(&mut rng);
+    }
+
+    for (i, entry) in ordered_entries.iter().enumerate() {
         let question_text =
             convert_codeblock_tables_to_markdown(&normalize_math_delimiters(entry.text.trim()));
         output.push_str(&format!("**Question {}.** {}\n\n", i + 1, question_text));
 
-        for (idx, option) in entry.options.iter().enumerate() {
-            let label = (b'A' + idx as u8) as char;
-            let body = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(
-                option.text.trim(),
-            ));
-            output.push_str(&format!("{}) {}\n", label, body));
+        let mut ordered_options = entry.options.clone();
+        if options.include_choices && options.shuffle_choices {
+            ordered_options.shuffle(&mut rng);
         }
 
-        if include_explanations {
+        if options.include_choices {
+            for (idx, option) in ordered_options.iter().enumerate() {
+                let label = (b'A' + idx as u8) as char;
+                let body = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(
+                    option.text.trim(),
+                ));
+                output.push_str(&format!("{}) {}\n", label, body));
+            }
+        }
+
+        if options.include_explanations {
             if !entry.explanation.trim().is_empty() {
                 let explanation = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(
                     entry.explanation.trim(),
@@ -437,8 +485,7 @@ pub fn export_bank_md(
             if !entry.distractors.common_mistakes.is_empty() {
                 output.push_str("\n**Distractors - Misconceptions by option:**\n");
                 for mistake in &entry.distractors.common_mistakes {
-                    let label = entry
-                        .options
+                    let label = ordered_options
                         .iter()
                         .enumerate()
                         .find(|(_, option)| option.id == mistake.option_id)

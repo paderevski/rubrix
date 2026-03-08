@@ -380,6 +380,52 @@ function App() {
       return "lms_quiz_package";
     }
   });
+  const [wordIncludeChoices, setWordIncludeChoices] = useState<boolean>(() => {
+    if (typeof localStorage === "undefined") return true;
+    try {
+      const saved = localStorage.getItem(exportPresetStorageKey);
+      if (!saved) return true;
+      const parsed = JSON.parse(saved);
+      return parsed.wordIncludeChoices !== false;
+    } catch {
+      return true;
+    }
+  });
+  const [wordVersionCount, setWordVersionCount] = useState<number>(() => {
+    if (typeof localStorage === "undefined") return 1;
+    try {
+      const saved = localStorage.getItem(exportPresetStorageKey);
+      if (!saved) return 1;
+      const parsed = JSON.parse(saved);
+      const value = Number.parseInt(String(parsed.wordVersionCount ?? 1), 10);
+      if (!Number.isFinite(value)) return 1;
+      return Math.min(Math.max(value, 1), 20);
+    } catch {
+      return 1;
+    }
+  });
+  const [wordShuffleChoices, setWordShuffleChoices] = useState<boolean>(() => {
+    if (typeof localStorage === "undefined") return false;
+    try {
+      const saved = localStorage.getItem(exportPresetStorageKey);
+      if (!saved) return false;
+      const parsed = JSON.parse(saved);
+      return parsed.wordShuffleChoices === true;
+    } catch {
+      return false;
+    }
+  });
+  const [wordShuffleQuestions, setWordShuffleQuestions] = useState<boolean>(() => {
+    if (typeof localStorage === "undefined") return false;
+    try {
+      const saved = localStorage.getItem(exportPresetStorageKey);
+      if (!saved) return false;
+      const parsed = JSON.parse(saved);
+      return parsed.wordShuffleQuestions === true;
+    } catch {
+      return false;
+    }
+  });
   const [exportOptionsOpen, setExportOptionsOpen] = useState(false);
   const [pendingExportKind, setPendingExportKind] = useState<ExportKind | null>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -497,9 +543,22 @@ function App() {
       wordBankPreset,
       markdownPreset,
       qtiPreset,
+      wordIncludeChoices,
+      wordVersionCount,
+      wordShuffleChoices,
+      wordShuffleQuestions,
     };
     localStorage.setItem(exportPresetStorageKey, JSON.stringify(payload));
-  }, [wordGeneratePreset, wordBankPreset, markdownPreset, qtiPreset]);
+  }, [
+    wordGeneratePreset,
+    wordBankPreset,
+    markdownPreset,
+    qtiPreset,
+    wordIncludeChoices,
+    wordVersionCount,
+    wordShuffleChoices,
+    wordShuffleQuestions,
+  ]);
 
   useEffect(() => {
     if (typeof localStorage === "undefined") return;
@@ -914,6 +973,11 @@ function App() {
 
     try {
       setIsExporting(true);
+      const normalizedVersionCount = Math.min(Math.max(wordVersionCount, 1), 20);
+      const includeChoices = wordIncludeChoices;
+      const useChoiceShuffle = includeChoices && normalizedVersionCount > 1 && wordShuffleChoices;
+      const useQuestionShuffle = normalizedVersionCount > 1 && wordShuffleQuestions;
+
       if (exportingBank) {
         if (!selectedSubject) {
           setStatus("Select a subject before exporting the question bank");
@@ -923,6 +987,10 @@ function App() {
         setStatus("Converting question bank to Word document...");
         const options: WordExportOptions = {
           include_explanations: wordBankPreset === "teacher_key",
+          include_choices: includeChoices,
+          version_count: normalizedVersionCount,
+          shuffle_choices: useChoiceShuffle,
+          shuffle_questions: useQuestionShuffle,
         };
         const data = await invoke<number[]>("export_question_bank_to_docx", {
           subject: selectedSubject,
@@ -930,18 +998,26 @@ function App() {
           options,
         });
         await writeBinaryFile(filePath, new Uint8Array(data));
-        setStatus(`Exported to ${filePath} • Preset: ${wordBankPresetLabel}`);
+        setStatus(
+          `Exported to ${filePath} • Preset: ${wordBankPresetLabel} • Versions: ${normalizedVersionCount}`
+        );
       } else {
         setStatus("Converting to Word document...");
         const options: WordExportOptions = {
           include_explanations: wordGeneratePreset === "teacher_key",
+          include_choices: includeChoices,
+          version_count: normalizedVersionCount,
+          shuffle_choices: useChoiceShuffle,
+          shuffle_questions: useQuestionShuffle,
         };
         const data = await invoke<number[]>("export_to_docx", {
           title: "Quiz",
           options,
         });
         await writeBinaryFile(filePath, new Uint8Array(data));
-        setStatus(`Exported to ${filePath} • Preset: ${wordGeneratePresetLabel}`);
+        setStatus(
+          `Exported to ${filePath} • Preset: ${wordGeneratePresetLabel} • Versions: ${normalizedVersionCount}`
+        );
       }
     } catch (err) {
       console.error("Export failed:", err);
@@ -1417,10 +1493,18 @@ function App() {
         wordBankPreset={wordBankPreset}
         markdownPreset={markdownPreset}
         qtiPreset={qtiPreset}
+        wordIncludeChoices={wordIncludeChoices}
+        wordVersionCount={wordVersionCount}
+        wordShuffleChoices={wordShuffleChoices}
+        wordShuffleQuestions={wordShuffleQuestions}
         onChangeWordGeneratePreset={setWordGeneratePreset}
         onChangeWordBankPreset={setWordBankPreset}
         onChangeMarkdownPreset={setMarkdownPreset}
         onChangeQtiPreset={setQtiPreset}
+        onChangeWordIncludeChoices={setWordIncludeChoices}
+        onChangeWordVersionCount={setWordVersionCount}
+        onChangeWordShuffleChoices={setWordShuffleChoices}
+        onChangeWordShuffleQuestions={setWordShuffleQuestions}
         onCancel={() => {
           if (isExporting) return;
           setExportOptionsOpen(false);

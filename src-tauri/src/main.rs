@@ -268,6 +268,14 @@ pub struct GenerationRequest {
 pub struct WordExportOptions {
     #[serde(default)]
     pub include_explanations: bool,
+    #[serde(default = "default_true")]
+    pub include_choices: bool,
+    #[serde(default = "default_one")]
+    pub version_count: u32,
+    #[serde(default)]
+    pub shuffle_choices: bool,
+    #[serde(default)]
+    pub shuffle_questions: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -288,6 +296,10 @@ pub struct QtiExportOptions {
 
 fn default_true() -> bool {
     true
+}
+
+fn default_one() -> u32 {
+    1
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1295,6 +1307,9 @@ fn export_to_md(
         qti::ExportMdOptions {
             include_explanations_section: opts.include_explanations,
             include_answer_key: opts.include_answer_key,
+            include_choices: true,
+            shuffle_choices: true,
+            shuffle_questions: false,
         },
     )
 }
@@ -1326,19 +1341,53 @@ async fn export_to_docx(
 ) -> Result<Vec<u8>, String> {
     // Get questions and process them for Word export using the markdown pipeline
     let questions = state.questions.lock().unwrap().clone();
+    let opts = options.unwrap_or(WordExportOptions {
+        include_explanations: false,
+        include_choices: true,
+        version_count: 1,
+        shuffle_choices: false,
+        shuffle_questions: false,
+    });
 
-    // Reuse markdown export (shuffle + answer key)
-    let markdown = qti::export_md_with_options(
-        &title,
-        &questions,
-        qti::ExportMdOptions {
-            include_explanations_section: options
-                .as_ref()
-                .map(|o| o.include_explanations)
-                .unwrap_or(false),
-            include_answer_key: true,
-        },
-    )?;
+    let version_count = opts.version_count.clamp(1, 20);
+    let include_choices = opts.include_choices;
+    let shuffle_choices = include_choices && version_count > 1 && opts.shuffle_choices;
+    let shuffle_questions = version_count > 1 && opts.shuffle_questions;
+
+    let markdown = if version_count == 1 {
+        qti::export_md_with_options(
+            &title,
+            &questions,
+            qti::ExportMdOptions {
+                include_explanations_section: opts.include_explanations,
+                include_answer_key: include_choices,
+                include_choices,
+                shuffle_choices,
+                shuffle_questions,
+            },
+        )?
+    } else {
+        let mut sections: Vec<String> = Vec::new();
+
+        for version in 1..=version_count {
+            let section_title = format!("{} - Version {}", title, version);
+            let section = qti::export_md_with_options(
+                &section_title,
+                &questions,
+                qti::ExportMdOptions {
+                    include_explanations_section: opts.include_explanations,
+                    include_answer_key: include_choices,
+                    include_choices,
+                    shuffle_choices,
+                    shuffle_questions,
+                },
+            )?;
+            sections.push(section);
+        }
+
+        sections.join("\n\n---\n\n")
+    };
+
     convert_markdown_to_docx(markdown).await
 }
 
@@ -1351,11 +1400,50 @@ async fn export_question_bank_to_docx(
     app_handle: AppHandle,
 ) -> Result<Vec<u8>, String> {
     let entries = load_question_bank_entries(&subject, &state, &app_handle)?;
-    let include_explanations = options
-        .as_ref()
-        .map(|o| o.include_explanations)
-        .unwrap_or(false);
-    let markdown = qti::export_bank_md(&title, &entries, include_explanations)?;
+    let opts = options.unwrap_or(WordExportOptions {
+        include_explanations: false,
+        include_choices: true,
+        version_count: 1,
+        shuffle_choices: false,
+        shuffle_questions: false,
+    });
+
+    let version_count = opts.version_count.clamp(1, 20);
+    let include_choices = opts.include_choices;
+    let shuffle_choices = include_choices && version_count > 1 && opts.shuffle_choices;
+    let shuffle_questions = version_count > 1 && opts.shuffle_questions;
+
+    let markdown = if version_count == 1 {
+        qti::export_bank_md_with_options(
+            &title,
+            &entries,
+            qti::ExportBankMdOptions {
+                include_explanations: opts.include_explanations,
+                include_choices,
+                shuffle_choices,
+                shuffle_questions,
+            },
+        )?
+    } else {
+        let mut sections: Vec<String> = Vec::new();
+
+        for version in 1..=version_count {
+            let section_title = format!("{} - Version {}", title, version);
+            let section = qti::export_bank_md_with_options(
+                &section_title,
+                &entries,
+                qti::ExportBankMdOptions {
+                    include_explanations: opts.include_explanations,
+                    include_choices,
+                    shuffle_choices,
+                    shuffle_questions,
+                },
+            )?;
+            sections.push(section);
+        }
+
+        sections.join("\n\n---\n\n")
+    };
     convert_markdown_to_docx(markdown).await
 }
 

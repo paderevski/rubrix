@@ -14,10 +14,18 @@ interface ExportOptionsModalProps {
   wordBankPreset: WordPreset;
   markdownPreset: MdPreset;
   qtiPreset: QtiPreset;
+  wordIncludeChoices: boolean;
+  wordVersionCount: number;
+  wordShuffleChoices: boolean;
+  wordShuffleQuestions: boolean;
   onChangeWordGeneratePreset: (preset: WordPreset) => void;
   onChangeWordBankPreset: (preset: WordPreset) => void;
   onChangeMarkdownPreset: (preset: MdPreset) => void;
   onChangeQtiPreset: (preset: QtiPreset) => void;
+  onChangeWordIncludeChoices: (value: boolean) => void;
+  onChangeWordVersionCount: (value: number) => void;
+  onChangeWordShuffleChoices: (value: boolean) => void;
+  onChangeWordShuffleQuestions: (value: boolean) => void;
   onCancel: () => void;
   onConfirm: () => Promise<void>;
 }
@@ -43,10 +51,18 @@ export default function ExportOptionsModal({
   wordBankPreset,
   markdownPreset,
   qtiPreset,
+  wordIncludeChoices,
+  wordVersionCount,
+  wordShuffleChoices,
+  wordShuffleQuestions,
   onChangeWordGeneratePreset,
   onChangeWordBankPreset,
   onChangeMarkdownPreset,
   onChangeQtiPreset,
+  onChangeWordIncludeChoices,
+  onChangeWordVersionCount,
+  onChangeWordShuffleChoices,
+  onChangeWordShuffleQuestions,
   onCancel,
   onConfirm,
 }: ExportOptionsModalProps) {
@@ -62,6 +78,20 @@ export default function ExportOptionsModal({
   const isQti = kind === "qti";
   const activeWordPreset = activeTab === "generate" ? wordGeneratePreset : wordBankPreset;
   const includeExplanations = activeWordPreset === "teacher_key";
+  const isMultiVersion = wordVersionCount > 1;
+  const summaryChoices = wordIncludeChoices ? "choices on" : "choices off";
+  const summaryChoiceShuffle =
+    isMultiVersion && wordIncludeChoices
+      ? wordShuffleChoices
+        ? "choice shuffle on"
+        : "choice shuffle off"
+      : "choice shuffle n/a";
+  const summaryQuestionShuffle =
+    isMultiVersion
+      ? wordShuffleQuestions
+        ? "question shuffle on"
+        : "question shuffle off"
+      : "question shuffle n/a";
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -98,6 +128,65 @@ export default function ExportOptionsModal({
                   : includeExplanations
                   ? "This export includes explanations and distractors for bank review."
                   : "This export omits explanations and distractors for cleaner distribution."}
+              </div>
+
+              <label className="flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={wordIncludeChoices}
+                  onChange={(e) => onChangeWordIncludeChoices(e.target.checked)}
+                  disabled={isExporting}
+                />
+                Include answer choices
+              </label>
+
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700">Number of versions</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  step={1}
+                  value={wordVersionCount}
+                  onChange={(e) => {
+                    const parsed = Number.parseInt(e.target.value, 10);
+                    const clamped = Number.isFinite(parsed) ? Math.min(Math.max(parsed, 1), 20) : 1;
+                    onChangeWordVersionCount(clamped);
+                  }}
+                  disabled={isExporting}
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-md"
+                />
+                <p className="text-xs text-gray-500">Create 1 to 20 versions in a single document.</p>
+              </div>
+
+              {isMultiVersion ? (
+                <div className="space-y-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-3">
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={wordShuffleChoices}
+                      onChange={(e) => onChangeWordShuffleChoices(e.target.checked)}
+                      disabled={isExporting || !wordIncludeChoices}
+                    />
+                    Shuffle choices in each version
+                  </label>
+                  {!wordIncludeChoices ? (
+                    <p className="text-xs text-gray-500">Enable answer choices to use choice shuffling.</p>
+                  ) : null}
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={wordShuffleQuestions}
+                      onChange={(e) => onChangeWordShuffleQuestions(e.target.checked)}
+                      disabled={isExporting}
+                    />
+                    Shuffle question order in each version
+                  </label>
+                </div>
+              ) : null}
+
+              <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
+                Output: {wordVersionCount} version{wordVersionCount === 1 ? "" : "s"}, {summaryChoices}, {summaryChoiceShuffle}, {summaryQuestionShuffle}.
               </div>
             </div>
           ) : isMarkdown ? (

@@ -78,6 +78,10 @@ export interface GenerationRequest {
 
 export interface WordExportOptions {
   include_explanations: boolean;
+  include_choices: boolean;
+  version_count: number;
+  shuffle_choices: boolean;
+  shuffle_questions: boolean;
 }
 
 export type BugSeverity = "low" | "medium" | "high" | "critical";
