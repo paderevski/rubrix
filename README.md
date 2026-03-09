@@ -9,8 +9,8 @@ An AI-powered multiple choice question generator for AP Computer Science A and C
 - 📚 **Multi-Subject Support** - AP Computer Science A and Calculus
 - 🎯 **Topic Selection** - Choose from multiple topics per subject
 - 🎚️ **Difficulty Control** - Easy, Medium, or Hard questions
-- 🤖 **AI Generation** - Powered by AWS Bedrock via secure authentication
-- 🔐 **Dev Mode Credentials** - Auto-cached tokens in development for seamless restarts
+- 🤖 **AI Generation** - Powered by AWS Bedrock through a secure gateway
+- 🔐 **Gateway Authentication** - Username/password login with credential validation
 - 🔢 **LaTeX Rendering** - Full mathematical notation support with KaTeX
 - ✏️ **Edit Questions** - Modify generated questions before export
 - 🔄 **Smart Regeneration** - Regenerate questions with context awareness
@@ -30,7 +30,7 @@ An AI-powered multiple choice question generator for AP Computer Science A and C
 # Install dependencies
 npm install
 
-# Run in development mode (with auto-cached credentials)
+# Run in development mode
 npm run tauri dev
 
 # Build for production
@@ -38,22 +38,23 @@ npm run tauri build
 ```
 
 ### First Run
-On first launch in dev mode, you'll be prompted to authenticate. Your credentials will be securely cached in your system keychain for future sessions. See [QUICKSTART_CREDENTIALS.md](QUICKSTART_CREDENTIALS.md) for details.
+On first launch, you'll be prompted to authenticate against the configured gateway. Credentials are stored in app-local storage for automatic login. See [QUICKSTART_CREDENTIALS.md](QUICKSTART_CREDENTIALS.md) for details.
 
 ## Configuration
 
-### Development Credentials
-For development convenience, credentials are automatically cached in your system keychain after first login.
+### Gateway Configuration
+Rubrix is gateway-only. Set the gateway URL in `src-tauri/.env` (or bake it at build time):
 
-**Quick setup options:**
-1. **Auto-cache (recommended)**: Just log in once, credentials persist across restarts
-2. **Environment variable**: Set `DEV_AWS_TOKEN` in `src-tauri/.env`
-3. **Mock mode**: Run without credentials for UI testing
+```bash
+BEDROCK_GATEWAY_URL=https://your-api.example.com/generate
+```
 
-See [docs/CREDENTIALS.md](docs/CREDENTIALS.md) for full documentation.
+Without this setting, generation and authentication are disabled.
+
+See [docs/BEDROCK_GATEWAY_CONTRACT.md](docs/BEDROCK_GATEWAY_CONTRACT.md) for request/response details.
 
 ### Production Builds
-Release builds require authentication each session and never persist credentials.
+Release builds require gateway configuration and user authentication.
 
 ### Bug Reporting Endpoint
 The app supports a standardized bug submission workflow (`Help -> Submit Bug`) that posts JSON to your server.

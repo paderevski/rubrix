@@ -52,7 +52,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, error }: LoginMod
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
         <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
         <p className="text-gray-600 mb-6">
-          Please log in to retrieve your AWS Bedrock API key from the secure store.
+          Please log in to authenticate with the Bedrock gateway.
         </p>
 
         <form onSubmit={handleSubmit}>

@@ -484,7 +484,6 @@ pub struct CommonMistake {
 pub struct AppState {
     questions: Mutex<Vec<Question>>,
     knowledge: knowledge::KnowledgeBase,
-    api_key: Mutex<Option<String>>, // Cached Bedrock API key
     credentials: Mutex<Option<SavedCredentials>>,
 }
 
@@ -816,24 +815,18 @@ async fn generate_questions(
     let prompt =
         prompts::build_generation_prompt(&request, &bank_examples, prompt_template, &topics_label);
 
-    // Get cached API key from state
-    let api_key = state.api_key.lock().unwrap().clone();
-    let gateway_auth = if llm::gateway_url().is_some() {
-        state
-            .credentials
-            .lock()
-            .unwrap()
-            .clone()
-            .map(|creds| llm::GatewayAuth {
-                user: creds.username,
-                password_hash: auth::hash_password(&creds.password),
-            })
-    } else {
-        None
-    };
+    let gateway_auth = state
+        .credentials
+        .lock()
+        .unwrap()
+        .clone()
+        .map(|creds| llm::GatewayAuth {
+            user: creds.username,
+            password_hash: auth::hash_password(&creds.password),
+        });
 
     // Call LLM with streaming
-    let response = llm::generate(&prompt, Some(app_handle), api_key, gateway_auth).await?;
+    let response = llm::generate(&prompt, Some(app_handle), gateway_auth).await?;
 
     // Parse response into questions
     let mut new_questions = prompts::parse_llm_response(&response)?;
@@ -913,23 +906,17 @@ async fn regenerate_question(
         Some(&topics_label),
     );
 
-    // Get cached API key from state
-    let api_key = state.api_key.lock().unwrap().clone();
-    let gateway_auth = if llm::gateway_url().is_some() {
-        state
-            .credentials
-            .lock()
-            .unwrap()
-            .clone()
-            .map(|creds| llm::GatewayAuth {
-                user: creds.username,
-                password_hash: auth::hash_password(&creds.password),
-            })
-    } else {
-        None
-    };
+    let gateway_auth = state
+        .credentials
+        .lock()
+        .unwrap()
+        .clone()
+        .map(|creds| llm::GatewayAuth {
+            user: creds.username,
+            password_hash: auth::hash_password(&creds.password),
+        });
 
-    let response = llm::generate(&prompt, Some(app_handle), api_key, gateway_auth).await?;
+    let response = llm::generate(&prompt, Some(app_handle), gateway_auth).await?;
 
     // Parse the single question
     let mut new_questions = prompts::parse_llm_response(&response)?;
@@ -1026,7 +1013,7 @@ fn get_questions(state: State<AppState>) -> Vec<Question> {
     state.questions.lock().unwrap().clone()
 }
 
-/// Authenticate with Lambda and cache the API key
+/// Authenticate with the gateway and cache user credentials.
 #[tauri::command]
 async fn authenticate(
     username: String,
@@ -1034,27 +1021,19 @@ async fn authenticate(
     state: State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<(), String> {
-    if llm::gateway_url().is_some() {
-        let password_hash = auth::hash_password(&password);
-        llm::validate_gateway_credentials(&username, &password_hash).await?;
-
-        let creds = SavedCredentials { username, password };
-        let mut cached_creds = state.credentials.lock().unwrap();
-        *cached_creds = Some(creds.clone());
-        save_saved_credentials(&app_handle, &creds)?;
-        return Ok(());
+    if llm::gateway_url().is_none() {
+        return Err(
+            "Gateway mode is required, but BEDROCK_GATEWAY_URL is not configured.".to_string(),
+        );
     }
 
-    // Call Lambda to get the Bedrock API key
-    let api_key = auth::get_bedrock_api_key(&username, &password)
-        .await
-        .map_err(|e| e.to_string())?;
-
-    // Cache the key in state (memory)
-    let mut cached_key = state.api_key.lock().unwrap();
-    *cached_key = Some(api_key.clone());
+    let password_hash = auth::hash_password(&password);
+    llm::validate_gateway_credentials(&username, &password_hash).await?;
 
     save_saved_credentials(&app_handle, &SavedCredentials { username, password })?;
+
+    let mut cached_creds = state.credentials.lock().unwrap();
+    *cached_creds = load_saved_credentials(&app_handle)?;
 
     Ok(())
 }
@@ -1065,67 +1044,44 @@ async fn auto_authenticate(
     state: State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<bool, String> {
-    if llm::gateway_url().is_some() {
-        let cached_creds = { state.credentials.lock().unwrap().clone() };
-        if let Some(creds) = cached_creds {
-            let password_hash = auth::hash_password(&creds.password);
-            if llm::validate_gateway_credentials(&creds.username, &password_hash)
-                .await
-                .is_ok()
-            {
-                return Ok(true);
-            }
-
-            let mut cached_creds = state.credentials.lock().unwrap();
-            *cached_creds = None;
-        }
-
-        if let Some(creds) = load_saved_credentials(&app_handle)? {
-            let password_hash = auth::hash_password(&creds.password);
-            if llm::validate_gateway_credentials(&creds.username, &password_hash)
-                .await
-                .is_ok()
-            {
-                let mut cached_creds = state.credentials.lock().unwrap();
-                *cached_creds = Some(creds);
-                return Ok(true);
-            }
-
-            let _ = clear_saved_credentials(&app_handle);
-        }
-
+    if llm::gateway_url().is_none() {
         return Ok(false);
     }
 
-    if state.api_key.lock().unwrap().is_some() {
-        return Ok(true);
+    let cached_creds = { state.credentials.lock().unwrap().clone() };
+    if let Some(creds) = cached_creds {
+        let password_hash = auth::hash_password(&creds.password);
+        if llm::validate_gateway_credentials(&creds.username, &password_hash)
+            .await
+            .is_ok()
+        {
+            return Ok(true);
+        }
+
+        let mut cached_creds = state.credentials.lock().unwrap();
+        *cached_creds = None;
     }
 
     if let Some(creds) = load_saved_credentials(&app_handle)? {
-        match auth::get_bedrock_api_key(&creds.username, &creds.password).await {
-            Ok(api_key) => {
-                let mut cached_key = state.api_key.lock().unwrap();
-                *cached_key = Some(api_key);
-                return Ok(true);
-            }
-            Err(err) => {
-                eprintln!("WARN: Auto-auth failed: {}", err);
-                let _ = clear_saved_credentials(&app_handle);
-            }
+        let password_hash = auth::hash_password(&creds.password);
+        if llm::validate_gateway_credentials(&creds.username, &password_hash)
+            .await
+            .is_ok()
+        {
+            let mut cached_creds = state.credentials.lock().unwrap();
+            *cached_creds = Some(creds);
+            return Ok(true);
         }
+
+        let _ = clear_saved_credentials(&app_handle);
     }
 
     Ok(false)
 }
 
-/// Check if we have a cached API key
+/// Check if we have cached credentials.
 #[tauri::command]
 fn check_auth(state: State<AppState>) -> bool {
-    // Check memory cache first
-    if state.api_key.lock().unwrap().is_some() {
-        return true;
-    }
-
     if state.credentials.lock().unwrap().is_some() {
         return true;
     }
@@ -1133,13 +1089,9 @@ fn check_auth(state: State<AppState>) -> bool {
     false
 }
 
-/// Clear the cached API key (logout) - clears memory and saved credentials
+/// Clear cached authentication (logout) - clears memory and saved credentials
 #[tauri::command]
 fn clear_auth(state: State<AppState>, app_handle: AppHandle) -> Result<(), String> {
-    // Clear memory cache
-    let mut cached_key = state.api_key.lock().unwrap();
-    *cached_key = None;
-
     let mut cached_creds = state.credentials.lock().unwrap();
     *cached_creds = None;
 
@@ -1583,7 +1535,6 @@ fn main() {
     let state = AppState {
         questions: Mutex::new(Vec::new()),
         knowledge,
-        api_key: Mutex::new(None), // Start with no cached key
         credentials: Mutex::new(None),
     };
 

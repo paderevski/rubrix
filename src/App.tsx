@@ -512,7 +512,11 @@ function App() {
     if (lower.includes("failed to connect") || lower.includes("network") || lower.includes("timeout")) {
       return "Unable to reach authentication server. Please retry.";
     }
-    if (lower.includes("lambda_url not set") || lower.includes("no gateway credentials")) {
+    if (
+      lower.includes("bedrock_gateway_url") ||
+      lower.includes("gateway mode is required") ||
+      lower.includes("no gateway credentials")
+    ) {
       return "Authentication service is not configured. Contact support.";
     }
     if (lower.includes("login did not complete")) {
@@ -817,7 +821,11 @@ function App() {
       const errorMsg = String(err);
 
       // If error suggests missing auth, show login modal
-      if (errorMsg.includes("LAMBDA_URL") || errorMsg.includes("auth")) {
+      if (
+        errorMsg.includes("BEDROCK_GATEWAY_URL") ||
+        errorMsg.toLowerCase().includes("gateway") ||
+        errorMsg.toLowerCase().includes("auth")
+      ) {
         setLoginModalOpen(true);
         setStatus("Authentication required");
       } else {
@@ -1475,7 +1483,7 @@ function App() {
                   <button
                     onClick={handleLogout}
                     className="underline hover:no-underline"
-                    title={isDevMode ? "Clears keychain cache" : "Clears session"}
+                    title="Clears saved login"
                   >
                     Logout
                   </button>

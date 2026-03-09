@@ -1,93 +1,6 @@
-//! Authentication module for retrieving AWS Bedrock API keys from Lambda
+//! Authentication helpers for gateway credential hashing.
 
-use reqwest;
-use serde::{Deserialize, Serialize};
-use serde_json;
 use sha2::{Digest, Sha256};
-use std::env;
-
-const BUILT_LAMBDA_URL: Option<&str> = option_env!("LAMBDA_URL");
-
-#[derive(Serialize)]
-struct SecretRequest {
-    user: String,
-    password_hash: String,
-}
-
-#[derive(Deserialize)]
-struct SecretResponse {
-    secret: String,
-}
-
-#[derive(Deserialize)]
-struct ErrorResponse {
-    error: String,
-}
-
-/// Authenticate with Lambda and retrieve the Bedrock API key
-pub async fn get_bedrock_api_key(
-    user: &str,
-    password: &str,
-) -> Result<String, Box<dyn std::error::Error>> {
-    let lambda_url = match env::var("LAMBDA_URL") {
-        Ok(url) => url,
-        Err(_) => BUILT_LAMBDA_URL.map(|url| url.to_string()).ok_or_else(|| {
-            "LAMBDA_URL not set. Configure the environment variable or bake it at build time."
-        })?,
-    };
-
-    // Hash password client-side (SHA256)
-    let mut hasher = Sha256::new();
-    hasher.update(password.as_bytes());
-    let password_hash = format!("{:x}", hasher.finalize());
-
-    // Call Lambda
-    let client = reqwest::Client::new();
-    let request = SecretRequest {
-        user: user.to_string(),
-        password_hash: password_hash.clone(),
-    };
-
-    eprintln!("DEBUG AUTH: sending auth request to configured endpoint");
-
-    let response = client
-        .post(&lambda_url)
-        .json(&request)
-        .send()
-        .await
-        .map_err(|e| format!("Failed to connect to authentication server: {}", e))?;
-
-    let status = response.status();
-    eprintln!("DEBUG AUTH: response status: {}", status);
-
-    match status.as_u16() {
-        200 => {
-            let secret_response: SecretResponse = response
-                .json()
-                .await
-                .map_err(|e| format!("Failed to parse response: {}", e))?;
-            eprintln!("DEBUG AUTH: authentication successful");
-            Ok(secret_response.secret)
-        }
-        401 => {
-            eprintln!("DEBUG AUTH: 401 - Invalid password");
-            Err("Invalid password".into())
-        }
-        404 => {
-            eprintln!("DEBUG AUTH: 404 - User not found");
-            Err("User not found".into())
-        }
-        _ => {
-            let error_text = response.text().await.unwrap_or_default();
-            eprintln!("DEBUG AUTH: error response: {}", error_text);
-            let error_response: Result<ErrorResponse, _> = serde_json::from_str(&error_text);
-            match error_response {
-                Ok(err) => Err(err.error.into()),
-                Err(_) => Err(format!("Server error: {}", error_text).into()),
-            }
-        }
-    }
-}
 
 pub fn hash_password(password: &str) -> String {
     let mut hasher = Sha256::new();
@@ -98,12 +11,6 @@ pub fn hash_password(password: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn hash_password(password: &str) -> String {
-        let mut hasher = Sha256::new();
-        hasher.update(password.as_bytes());
-        format!("{:x}", hasher.finalize())
-    }
 
     #[test]
     fn test_hash_matches_python() {
@@ -135,7 +42,6 @@ mod tests {
                 "Hash mismatch for password '{}': got {}, expected {}",
                 password, result, expected
             );
-            println!("✓ Password '{}' hashes correctly", password);
         }
     }
 }
