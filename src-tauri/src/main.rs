@@ -654,6 +654,10 @@ async fn convert_markdown_to_docx(markdown: String) -> Result<Vec<u8>, String> {
     Ok(docx_bytes.to_vec())
 }
 
+fn docx_page_break_marker() -> &'static str {
+    "```{=openxml}\n<w:p><w:r><w:br w:type=\"page\"/></w:r></w:p>\n```"
+}
+
 fn load_question_bank_entries(
     subject: &str,
     state: &AppState,
@@ -1371,7 +1375,7 @@ async fn export_to_docx(
 
         for version in 1..=version_count {
             let section_title = format!("{} - Version {}", title, version);
-            let section = qti::export_md_with_options(
+            let mut section = qti::export_md_with_options(
                 &section_title,
                 &questions,
                 qti::ExportMdOptions {
@@ -1382,10 +1386,23 @@ async fn export_to_docx(
                     shuffle_questions,
                 },
             )?;
+
+            if include_choices {
+                section = section.replacen(
+                    "## Answers",
+                    &format!(
+                        "{}\n\n## Quiz Key -- Version {}",
+                        docx_page_break_marker(),
+                        version
+                    ),
+                    1,
+                );
+            }
+
             sections.push(section);
         }
 
-        sections.join("\n\n---\n\n")
+        sections.join(&format!("\n\n{}\n\n", docx_page_break_marker()))
     };
 
     convert_markdown_to_docx(markdown).await
@@ -1442,7 +1459,7 @@ async fn export_question_bank_to_docx(
             sections.push(section);
         }
 
-        sections.join("\n\n---\n\n")
+        sections.join(&format!("\n\n{}\n\n", docx_page_break_marker()))
     };
     convert_markdown_to_docx(markdown).await
 }
