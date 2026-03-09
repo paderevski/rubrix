@@ -151,6 +151,7 @@ struct GatewayStreamChunk {
 #[derive(Deserialize)]
 struct GatewayErrorResponse {
     error: Option<String>,
+    status: Option<u16>,
 }
 
 pub fn gateway_url() -> Option<String> {
@@ -181,12 +182,39 @@ pub async fn validate_gateway_credentials(user: &str, password_hash: &str) -> Re
         .await
         .map_err(|e| format!("Failed to connect to authentication server: {}", e))?;
 
-    if response.status().is_success() {
+    let status = response.status().as_u16();
+    let content_type = response
+        .headers()
+        .get(CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok())
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+    let body = response.text().await.unwrap_or_default();
+    let trimmed = body.trim();
+
+    // In Lambda stream mode, errors may come back as JSON with HTTP 200.
+    let looks_like_json_error = content_type.contains("application/json") || trimmed.starts_with('{');
+    if looks_like_json_error {
+        let parsed: Result<GatewayErrorResponse, _> = serde_json::from_str(trimmed);
+        if let Ok(err) = parsed {
+            let effective_status = err.status.unwrap_or(status);
+            if let Some(message) = err.error.filter(|msg| !msg.trim().is_empty()) {
+                return match effective_status {
+                    401 => Err("Invalid password".to_string()),
+                    404 => Err("User not found".to_string()),
+                    _ => Err(format!("Authentication failed: {}", message)),
+                };
+            }
+            if effective_status >= 400 {
+                return Err(format!("Authentication failed (status {})", effective_status));
+            }
+        }
+    }
+
+    if status < 400 {
         return Ok(());
     }
 
-    let status = response.status().as_u16();
-    let body = response.text().await.unwrap_or_default();
     let parsed: Result<GatewayErrorResponse, _> = serde_json::from_str(&body);
     let message = parsed
         .ok()
