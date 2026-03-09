@@ -17,9 +17,7 @@ fn load_dotenv() -> Option<PathBuf> {
 }
 
 fn main() {
-    // Pass the API token from environment to compile-time
-    // This allows GitHub Actions secrets and local shell env to work
-    println!("cargo:rerun-if-env-changed=REPLICATE_API_TOKEN");
+    // Track compile-time vars used by the desktop app.
     println!("cargo:rerun-if-env-changed=LAMBDA_URL");
     println!("cargo:rerun-if-env-changed=BEDROCK_GATEWAY_URL");
 

@@ -41,9 +41,6 @@ pub async fn get_bedrock_api_key(
     hasher.update(password.as_bytes());
     let password_hash = format!("{:x}", hasher.finalize());
 
-    eprintln!("DEBUG AUTH: user={}, password_len={}", user, password.len());
-    eprintln!("DEBUG AUTH: password_hash={}", password_hash);
-
     // Call Lambda
     let client = reqwest::Client::new();
     let request = SecretRequest {
@@ -51,11 +48,7 @@ pub async fn get_bedrock_api_key(
         password_hash: password_hash.clone(),
     };
 
-    eprintln!("DEBUG AUTH: sending request to {}", lambda_url);
-    eprintln!(
-        "DEBUG AUTH: request body: user={}, password_hash={}",
-        user, password_hash
-    );
+    eprintln!("DEBUG AUTH: sending auth request to configured endpoint");
 
     let response = client
         .post(&lambda_url)
@@ -73,7 +66,7 @@ pub async fn get_bedrock_api_key(
                 .json()
                 .await
                 .map_err(|e| format!("Failed to parse response: {}", e))?;
-            eprintln!("DEBUG AUTH: authentication successful, received secret");
+            eprintln!("DEBUG AUTH: authentication successful");
             Ok(secret_response.secret)
         }
         401 => {

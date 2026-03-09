@@ -162,7 +162,6 @@ fn get_api_token(provided_token: Option<String>) -> Result<String, String> {
     // 1. Use explicitly provided token (from auth command)
     if let Some(token) = provided_token {
         eprintln!("INFO: Using provided API token (length={})", token.len());
-        eprintln!("DEBUG: Token value: {}", token);
         return Ok(token);
     }
 
@@ -170,7 +169,6 @@ fn get_api_token(provided_token: Option<String>) -> Result<String, String> {
     if config::is_dev_mode() {
         if let Ok(token) = env::var("DEV_AWS_TOKEN") {
             eprintln!("INFO: Using DEV_AWS_TOKEN from environment");
-            eprintln!("DEBUG: Token value: {}", token);
             return Ok(token);
         }
     }
@@ -178,7 +176,6 @@ fn get_api_token(provided_token: Option<String>) -> Result<String, String> {
     // 3. Try production env var (both dev and release)
     if let Ok(token) = env::var("AWS_BEARER_TOKEN_BEDROCK") {
         eprintln!("INFO: Using AWS_BEARER_TOKEN_BEDROCK from environment");
-        eprintln!("DEBUG: Token value: {}", token);
         return Ok(token);
     }
 
