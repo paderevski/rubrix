@@ -148,11 +148,58 @@ struct GatewayStreamChunk {
     remaining_tokens: Option<u64>,
 }
 
+#[derive(Deserialize)]
+struct GatewayErrorResponse {
+    error: Option<String>,
+}
+
 pub fn gateway_url() -> Option<String> {
     let _ = dotenvy::dotenv();
     std::env::var("BEDROCK_GATEWAY_URL")
         .ok()
         .or_else(|| BUILT_GATEWAY_URL.map(|url| url.to_string()))
+}
+
+pub async fn validate_gateway_credentials(user: &str, password_hash: &str) -> Result<(), String> {
+    let url = gateway_url().ok_or_else(|| "Authentication gateway is not configured".to_string())?;
+    let client = Client::builder()
+        .timeout(Duration::from_secs(15))
+        .build()
+        .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
+
+    // Minimal request to force gateway auth check before accepting a login.
+    let request = GatewayRequest {
+        user: user.to_string(),
+        password_hash: password_hash.to_string(),
+        prompt: "auth_check".to_string(),
+    };
+
+    let response = client
+        .post(&url)
+        .json(&request)
+        .send()
+        .await
+        .map_err(|e| format!("Failed to connect to authentication server: {}", e))?;
+
+    if response.status().is_success() {
+        return Ok(());
+    }
+
+    let status = response.status().as_u16();
+    let body = response.text().await.unwrap_or_default();
+    let parsed: Result<GatewayErrorResponse, _> = serde_json::from_str(&body);
+    let message = parsed
+        .ok()
+        .and_then(|err| err.error)
+        .filter(|msg| !msg.trim().is_empty())
+        .unwrap_or_else(|| body.clone());
+
+    match status {
+        401 => Err("Invalid password".to_string()),
+        404 => Err("User not found".to_string()),
+        _ if !message.trim().is_empty() => Err(format!("Authentication failed: {}", message)),
+        _ => Err(format!("Authentication failed (status {})", status)),
+    }
 }
 
 /// Resolve API token from multiple sources with priority order

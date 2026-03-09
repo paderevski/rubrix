@@ -1035,6 +1035,9 @@ async fn authenticate(
     app_handle: AppHandle,
 ) -> Result<(), String> {
     if llm::gateway_url().is_some() {
+        let password_hash = auth::hash_password(&password);
+        llm::validate_gateway_credentials(&username, &password_hash).await?;
+
         let creds = SavedCredentials { username, password };
         let mut cached_creds = state.credentials.lock().unwrap();
         *cached_creds = Some(creds.clone());
@@ -1063,14 +1066,32 @@ async fn auto_authenticate(
     app_handle: AppHandle,
 ) -> Result<bool, String> {
     if llm::gateway_url().is_some() {
-        if state.credentials.lock().unwrap().is_some() {
-            return Ok(true);
+        let cached_creds = { state.credentials.lock().unwrap().clone() };
+        if let Some(creds) = cached_creds {
+            let password_hash = auth::hash_password(&creds.password);
+            if llm::validate_gateway_credentials(&creds.username, &password_hash)
+                .await
+                .is_ok()
+            {
+                return Ok(true);
+            }
+
+            let mut cached_creds = state.credentials.lock().unwrap();
+            *cached_creds = None;
         }
 
         if let Some(creds) = load_saved_credentials(&app_handle)? {
-            let mut cached_creds = state.credentials.lock().unwrap();
-            *cached_creds = Some(creds);
-            return Ok(true);
+            let password_hash = auth::hash_password(&creds.password);
+            if llm::validate_gateway_credentials(&creds.username, &password_hash)
+                .await
+                .is_ok()
+            {
+                let mut cached_creds = state.credentials.lock().unwrap();
+                *cached_creds = Some(creds);
+                return Ok(true);
+            }
+
+            let _ = clear_saved_credentials(&app_handle);
         }
 
         return Ok(false);

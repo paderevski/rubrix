@@ -499,15 +499,48 @@ function App() {
     }
   };
 
+  const normalizeAuthError = (raw: string): string => {
+    const text = raw.trim();
+    const lower = text.toLowerCase();
+
+    if (lower.includes("user not found") || lower.includes("404")) {
+      return "User not recognized. Check your username and try again.";
+    }
+    if (lower.includes("invalid password") || lower.includes("401")) {
+      return "Password incorrect. Please retry.";
+    }
+    if (lower.includes("failed to connect") || lower.includes("network") || lower.includes("timeout")) {
+      return "Unable to reach authentication server. Please retry.";
+    }
+    if (lower.includes("lambda_url not set") || lower.includes("no gateway credentials")) {
+      return "Authentication service is not configured. Contact support.";
+    }
+    if (lower.includes("login did not complete")) {
+      return "Login did not complete. Please retry.";
+    }
+
+    return text || "Authentication failed. Please retry.";
+  };
+
   const handleLogin = async (username: string, password: string) => {
     setAuthError("");
     try {
       await invoke("authenticate", { username, password });
+
+      // Authenticate only counts as success if backend confirms cached auth state.
+      const confirmed = await invoke<boolean>("check_auth");
+      if (!confirmed) {
+        throw new Error("Login did not complete. Please retry.");
+      }
+
       setIsAuthenticated(true);
-      setLoginModalOpen(false);
+      setStatus("Login successful");
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : String(err);
+      const rawMsg = err instanceof Error ? err.message : String(err);
+      const errorMsg = normalizeAuthError(rawMsg);
       setAuthError(errorMsg);
+      setIsAuthenticated(false);
+      setStatus(`Login failed: ${errorMsg}`);
       throw new Error(errorMsg);
     }
   };

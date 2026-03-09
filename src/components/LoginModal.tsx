@@ -12,12 +12,14 @@ export default function LoginModal({ isOpen, onClose, onLogin, error }: LoginMod
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [localError, setLocalError] = useState('');
+  const [localSuccess, setLocalSuccess] = useState('');
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError('');
+    setLocalSuccess('');
 
     if (!username.trim() || !password.trim()) {
       setLocalError('Please enter both username and password');
@@ -30,6 +32,12 @@ export default function LoginModal({ isOpen, onClose, onLogin, error }: LoginMod
       // Clear form on success
       setUsername('');
       setPassword('');
+      setLocalSuccess('Login successful.');
+      // Close only after success is visible to the user.
+      window.setTimeout(() => {
+        setLocalSuccess('');
+        onClose();
+      }, 650);
     } catch (err) {
       setLocalError(err instanceof Error ? err.message : 'Authentication failed');
     } finally {
@@ -83,13 +91,19 @@ export default function LoginModal({ isOpen, onClose, onLogin, error }: LoginMod
             </div>
           )}
 
+          {localSuccess && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-sm text-green-800">{localSuccess}</p>
+            </div>
+          )}
+
           <div className="flex gap-3">
             <button
               type="submit"
               disabled={isLoading}
               className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
-              {isLoading ? 'Authenticating...' : 'Login'}
+              {isLoading ? 'Authenticating...' : displayError ? 'Retry Login' : 'Login'}
             </button>
             <button
               type="button"

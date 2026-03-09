@@ -35,7 +35,7 @@ python verify_user.py <username> [password]
 python verify_user.py alice
 
 # Verify password matches
-python verify_user.py alice mypassword123
+python verify_user.py alice "mypassword123"
 ```
 
 ### list_users.py
@@ -54,12 +54,12 @@ python list_users.py
 
 ### 1. Add a new user
 ```bash
-python add_user.py bob secretpass123 "ABSKQmVkcm9ja0FQSUtleS0..."
+python add_user.py bob "secretpass123" "ABSKQmVkcm9ja0FQSUtleS0..."
 ```
 
 ### 2. Verify it worked
 ```bash
-python verify_user.py bob secretpass123
+python verify_user.py bob "secretpass123"
 ```
 
 ### 3. List all users
