@@ -14,6 +14,14 @@ export default function LoginModal({ isOpen, onClose, onLogin, error }: LoginMod
   const [localError, setLocalError] = useState('');
   const [localSuccess, setLocalSuccess] = useState('');
 
+  const normalizeUsername = (raw: string): string => {
+    const sanitized = raw.replace(/[^A-Za-z0-9._-]/g, '_');
+    if (!sanitized) {
+      return '';
+    }
+    return /^ssm/i.test(sanitized) ? `user_${sanitized}` : sanitized;
+  };
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,14 +29,25 @@ export default function LoginModal({ isOpen, onClose, onLogin, error }: LoginMod
     setLocalError('');
     setLocalSuccess('');
 
-    if (!username.trim() || !password.trim()) {
+    const trimmedUsername = username.trim();
+    if (!trimmedUsername || !password.trim()) {
       setLocalError('Please enter both username and password');
       return;
     }
 
+    const normalizedUsername = normalizeUsername(trimmedUsername);
+    if (!normalizedUsername) {
+      setLocalError('Username must contain at least one valid character');
+      return;
+    }
+
+    if (normalizedUsername !== username) {
+      setUsername(normalizedUsername);
+    }
+
     setIsLoading(true);
     try {
-      await onLogin(username, password);
+      await onLogin(normalizedUsername, password);
       // Clear form on success
       setUsername('');
       setPassword('');
