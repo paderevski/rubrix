@@ -30,7 +30,23 @@ const markdownComponents = {
 
 function normalizeMathDelimiters(content: string) {
   if (!content) return "";
-  return content
+  const envPattern =
+    /(^|\n)([ \t]*)(\\{1,2}begin\{(align\*?|aligned|alignat\*?|gather\*?|multline\*?|split|eqnarray\*?|array|cases)\}[\s\S]*?\\{1,2}end\{\4\})(?=\n|$)/g;
+
+  const wrapBareMathEnvironments = (input: string) =>
+    input.replace(envPattern, (fullMatch, lineStart, indent, block, _envName, offset, source) => {
+      const before = source.slice(0, offset).trimEnd();
+      const after = source.slice(offset + fullMatch.length).trimStart();
+
+      // If this block is already inside a $$...$$ region, keep it unchanged.
+      if (before.endsWith("$$") && after.startsWith("$$")) {
+        return fullMatch;
+      }
+
+      return `${lineStart}${indent}$$\n${block}\n$$`;
+    });
+
+  return wrapBareMathEnvironments(content)
     .replace(/\\\(/g, "$")
     .replace(/\\\)/g, "$")
     .replace(/(^|[^\\])\\\[/g, "$1$$")
