@@ -61,25 +61,27 @@ For EACH question you write:
 - Write the explanation showing the step-by-step solution
 - Write the distractors analysis explaining the error patterns
 
-**Output Format (JSON Array):**
+**Output Format (Tagged JSON Array):**
 
-Return your response as a JSON array containing {count} question object(s). Each question should follow this structure:
+Return your response wrapped in `<question>` and `</question>` tags, with the JSON array inside. The JSON should contain {count} question object(s). Each question should follow this structure:
 
-```json
+```text
+<question>
 [
-  {{
+  {
     "text": "Question text here with markdown formatting like **bold** or `code`. Can include code blocks:\n\n```java\nSystem.out.println(\"Hello\");\n```",
     "explanation": "Step-by-step walkthrough of how to arrive at the correct answer. Verify correct answer. Design distractors.",
     "distractors": "Analysis of why each wrong answer is tempting and what misconception leads to it",
     "answers": [
-      {{"text": "Answer text (use markdown like `42` for code)", "is_correct": false, "explanation": "Why this is wrong"}},
-      {{"text": "Another answer", "is_correct": true, "explanation": "Why this is correct"}},
-      {{"text": "Third answer", "is_correct": false, "explanation": "Common misconception"}},
-      {{"text": "Fourth answer", "is_correct": false, "explanation": "Off-by-one error"}},
-      {{"text": "Fifth answer", "is_correct": false, "explanation": "Calculation mistake"}}
+      {"text": "Answer text (use markdown like `42` for code)", "is_correct": false, "explanation": "Why this is wrong"},
+      {"text": "Another answer", "is_correct": true, "explanation": "Why this is correct"},
+      {"text": "Third answer", "is_correct": false, "explanation": "Common misconception"},
+      {"text": "Fourth answer", "is_correct": false, "explanation": "Off-by-one error"},
+      {"text": "Fifth answer", "is_correct": false, "explanation": "Calculation mistake"}
     ]
-  }}
+  }
 ]
+</question>
 ```
 
 **Field Guidelines:**
@@ -98,9 +100,9 @@ Return your response as a JSON array containing {count} question object(s). Each
 - ✓ Is your code syntactically correct Java?
 - ✓ Are all inline code references wrapped in backticks?
 - ✓ Is your explanation clear, accurate, and step-by-step?
-- ✓ Did you return ONLY the JSON array with no extra text?
+- ✓ Did you return ONLY the `<question>...</question>` block with no extra text outside the tags?
 
 *** User instructions
 {user_instructions}
 
-**Output Now:** Return a single JSON array with {count} question(s) following the schema.
+**Output Now:** Return a single `<question>...</question>` block containing a JSON array with {count} question(s) following the schema.

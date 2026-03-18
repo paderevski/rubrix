@@ -347,6 +347,72 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
     // - leading/trailing prose
     // - ```json fences
     // - models that accidentally output multiple arrays
+    fn extract_question_tag_contents(s: &str) -> Vec<String> {
+        fn find_tag(
+            lowered: &str,
+            mut search_start: usize,
+            prefix: &str,
+        ) -> Option<(usize, usize)> {
+            // Returns (tag_start, tag_end_exclusive)
+            while let Some(rel_idx) = lowered[search_start..].find(prefix) {
+                let tag_start = search_start + rel_idx;
+                let mut i = tag_start + prefix.len();
+                let bytes = lowered.as_bytes();
+
+                // Ensure `<question` does not match `<questionnaire`
+                if i < bytes.len() && !bytes[i].is_ascii_whitespace() && bytes[i] != b'>' {
+                    search_start = tag_start + 1;
+                    continue;
+                }
+
+                while i < bytes.len() && bytes[i].is_ascii_whitespace() {
+                    i += 1;
+                }
+
+                if i < bytes.len() && bytes[i] == b'>' {
+                    return Some((tag_start, i + 1));
+                }
+
+                search_start = tag_start + 1;
+            }
+
+            None
+        }
+
+        let lowered = s.to_ascii_lowercase();
+        let mut search_start = 0;
+        let mut open_stack: Vec<usize> = Vec::new();
+        let mut contents: Vec<String> = Vec::new();
+
+        loop {
+            let next_open = find_tag(&lowered, search_start, "<question");
+            let next_close = find_tag(&lowered, search_start, "</question");
+
+            let (is_open, tag_start, tag_end) = match (next_open, next_close) {
+                (Some((os, oe)), Some((cs, ce))) => {
+                    if os <= cs {
+                        (true, os, oe)
+                    } else {
+                        (false, cs, ce)
+                    }
+                }
+                (Some((os, oe)), None) => (true, os, oe),
+                (None, Some((cs, ce))) => (false, cs, ce),
+                (None, None) => break,
+            };
+
+            if is_open {
+                open_stack.push(tag_end);
+            } else if let Some(open_end) = open_stack.pop() {
+                contents.push(s[open_end..tag_start].trim().to_string());
+            }
+
+            search_start = tag_end;
+        }
+
+        contents
+    }
+
     fn extract_first_json_array(s: &str) -> Option<String> {
         let bytes = s.as_bytes();
         let mut array_depth: i32 = 0;
@@ -426,11 +492,58 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
         None
     }
 
-    let json_str = extract_first_json_array(trimmed).ok_or_else(|| {
-        eprintln!("ERROR: No JSON array found in response");
-        eprintln!("Response text: {}", &trimmed[..trimmed.len().min(1000)]);
-        "No JSON array found in response".to_string()
-    })?;
+    let tagged_contents = extract_question_tag_contents(trimmed);
+
+    let mut parse_source = "response_fallback";
+
+    let json_str = if !tagged_contents.is_empty() {
+        eprintln!(
+            "Found {} complete <question> tag block(s), parsing tagged content first",
+            tagged_contents.len()
+        );
+
+        let mut tagged_json: Option<String> = None;
+        for (idx, content) in tagged_contents.iter().enumerate().rev() {
+            if let Some(json) = extract_first_json_array(content) {
+                eprintln!(
+                    "Using tagged block #{} from the response ({} chars)",
+                    idx + 1,
+                    content.len()
+                );
+                parse_source = "question_tag";
+                tagged_json = Some(json);
+                break;
+            }
+        }
+
+        if let Some(json) = tagged_json {
+            json
+        } else {
+            eprintln!(
+                "WARNING: Found <question> tag blocks, but none contained a JSON array. Falling back to whole-response scan."
+            );
+
+            match extract_first_json_array(trimmed) {
+                Some(json) => json,
+                None => {
+                    eprintln!("ERROR: No JSON array found in response");
+                    eprintln!("Response text: {}", &trimmed[..trimmed.len().min(1000)]);
+                    return Err(
+                        "No JSON array found inside <question>...</question> blocks and none found in response"
+                            .to_string(),
+                    );
+                }
+            }
+        }
+    } else {
+        extract_first_json_array(trimmed).ok_or_else(|| {
+            eprintln!("ERROR: No JSON array found in response");
+            eprintln!("Response text: {}", &trimmed[..trimmed.len().min(1000)]);
+            "No JSON array found in response".to_string()
+        })?
+    };
+
+    eprintln!("Parse source: {}", parse_source);
 
     eprintln!("Extracted JSON array ({} chars)", json_str.len());
 
@@ -851,7 +964,8 @@ Line 2",
     #[test]
     fn test_parse_handles_latex_escape_sequences() {
         // LLMs often generate invalid JSON escapes like \(, \), \[, \] for LaTeX
-        // Our sanitizer should fix these by adding an extra backslash
+        // Our sanitizer should preserve content and normalization should convert
+        // escaped delimiters to markdown math delimiters.
         let input = r#"[
     {
         "text": "Function \\(f(x)=x^2\\) on interval \\[0,2\\]",
@@ -865,8 +979,111 @@ Line 2",
 
         let questions = parse_llm_response(input).unwrap();
         assert_eq!(questions.len(), 1);
-        // The output should preserve the LaTeX delimiters
-        assert!(questions[0].text.contains("\\(f(x)=x^2\\)"));
-        assert!(questions[0].text.contains("\\[0,2\\]"));
+        // Escaped delimiters are normalized to $...$ and $$...$$
+        assert!(questions[0].text.contains("$f(x)=x^2$"));
+        assert!(questions[0].text.contains("$$0,2$$"));
+        assert!(
+            questions[0]
+                .explanation
+                .as_deref()
+                .unwrap_or("")
+                .contains("$$f(x) = x^2$$")
+        );
     }
+
+        #[test]
+        fn test_parse_prefers_question_tag_block_over_outer_arrays() {
+                let input = r#"Some accidental array before the tagged payload:
+[
+    {"text": "Not a question object"}
+]
+
+<question>
+[
+    {
+        "text": "Tagged question",
+        "answers": [
+            {"text": "A", "is_correct": true},
+            {"text": "B", "is_correct": false}
+        ]
+    }
+]
+</question>
+"#;
+
+                let questions = parse_llm_response(input).unwrap();
+                assert_eq!(questions.len(), 1);
+                assert_eq!(questions[0].text, "Tagged question");
+                assert_eq!(questions[0].answers.len(), 2);
+                assert!(questions[0].answers[0].is_correct);
+        }
+
+        #[test]
+        fn test_parse_errors_when_question_tags_have_no_json_array() {
+                let input = r#"<question>no json here</question>"#;
+                let err = parse_llm_response(input).unwrap_err();
+                assert!(err.contains("<question>...</question>"));
+        }
+
+        #[test]
+        fn test_parse_handles_question_tag_case_and_whitespace() {
+                let input = r#"<QUESTION   >
+[
+    {
+        "text": "Case insensitive tagged question",
+        "answers": [
+            {"text": "A", "is_correct": true}
+        ]
+    }
+]
+</Question   >"#;
+
+                let questions = parse_llm_response(input).unwrap();
+                assert_eq!(questions.len(), 1);
+                assert_eq!(questions[0].text, "Case insensitive tagged question");
+        }
+
+        #[test]
+        fn test_parse_ignores_non_question_similar_tag_name() {
+                let input = r#"<questionnaire>ignore me</questionnaire>
+<question>
+[
+    {
+        "text": "Real tagged question",
+        "answers": [
+            {"text": "A", "is_correct": true}
+        ]
+    }
+]
+</question>"#;
+
+                let questions = parse_llm_response(input).unwrap();
+                assert_eq!(questions.len(), 1);
+                assert_eq!(questions[0].text, "Real tagged question");
+        }
+
+        #[test]
+        fn test_parse_handles_unpaired_reasoning_tag_before_final_answer_tag() {
+                let input = r#"Reasoning stream token: <question>
+Some scratch text and partial structures.
+
+Assistant final:
+<question>
+[
+    {
+        "text": "Final tagged question",
+        "answers": [
+            {"text": "A", "is_correct": true},
+            {"text": "B", "is_correct": false}
+        ]
+    }
+]
+</question>"#;
+
+                let questions = parse_llm_response(input).unwrap();
+                assert_eq!(questions.len(), 1);
+                assert_eq!(questions[0].text, "Final tagged question");
+                assert_eq!(questions[0].answers.len(), 2);
+                assert!(questions[0].answers[0].is_correct);
+        }
 }

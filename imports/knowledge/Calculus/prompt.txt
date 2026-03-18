@@ -30,8 +30,8 @@ Study these examples carefully. Pay special attention to:
    - Now look at the correct answer and produce two more wrong answers from simple algebraic or numerical transformations (such as making it negative, off-by-one, etc)
    - You will end up with one correct and four wrong answer choices.
 3. **Write Output**
-  - Return a **single JSON array** of question objects.
-  - Output JSON only. Do not include any text before or after the array.
+  - Return a **single `<question>...</question>` block** containing a JSON array of question objects.
+  - Do not include any text before or after the `<question>...</question>` block.
    - **Formatting Rules**
      * Use ONLY `$...$` for inline math and `$$...$$` for display math.
      * No HTML tags.
@@ -39,11 +39,12 @@ Study these examples carefully. Pay special attention to:
 *** User instructions
 {user_instructions}
 
-**Output Format (JSON Array):**
+**Output Format (Tagged JSON Array):**
 
-Return your response as a JSON array containing {count} question object(s). Each question should follow this structure:
+Return your response wrapped in `<question>` and `</question>` tags, with the JSON array inside. The JSON should contain {count} question object(s). Each question should follow this structure:
 
-```json
+```text
+<question>
 [
   {
     "text": "Question text here with markdown formatting like **bold** or `code`. Can include code blocks:\n\n```java\nSystem.out.println(\"Hello\");\n```",
@@ -58,5 +59,6 @@ Return your response as a JSON array containing {count} question object(s). Each
     ]
   }
 ]
+</question>
 ```
 *** User instructions

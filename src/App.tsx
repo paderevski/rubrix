@@ -36,6 +36,19 @@ interface StreamEvent {
   remaining_tokens?: number;
 }
 
+interface RegenerateAllQuestionResult {
+  index: number;
+  question?: Question | null;
+  error?: string | null;
+}
+
+interface RegenerateAllProgressEvent {
+  completed: number;
+  total: number;
+  index: number;
+  success: boolean;
+}
+
 const catieFileFilter = { name: "Catie Document", extensions: ["kt"] };
 const legacySessionFileFilter = { name: "Legacy Session", extensions: ["json", "md"] };
 const remainingTokensStorageKey = "remainingTokens";
@@ -331,6 +344,7 @@ function App() {
   const [streamingComplete, setStreamingComplete] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [regeneratingQuestionId, setRegeneratingQuestionId] = useState<string | null>(null);
+  const [isRegeneratingAll, setIsRegeneratingAll] = useState(false);
   const latestStreamingTextRef = useRef("");
   const [activeTab, setActiveTab] = useState<"generate" | "bank">("generate");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -632,6 +646,26 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const unlisten = listen<RegenerateAllProgressEvent>("regenerate-all-progress", (event) => {
+      if (!isRegeneratingAll) {
+        return;
+      }
+
+      const completed = Math.max(0, event.payload.completed || 0);
+      const total = Math.max(0, event.payload.total || 0);
+      const remaining = Math.max(total - completed, 0);
+
+      if (total > 0) {
+        setStatus(`Regenerating ${total} questions... ${remaining} remaining (${completed}/${total})`);
+      }
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, [isRegeneratingAll]);
+
   // Listen for zoom events from the native menu
   useEffect(() => {
     const clamp = (v: number) => Math.min(Math.max(v, 0.85), 1.3);
@@ -692,13 +726,19 @@ function App() {
         } else {
           setStatus("No raw stream available yet");
         }
+      } else if (action === "regenerate_all_questions") {
+        if (activeTab !== "generate") {
+          setStatus("Switch to Generator tab to regenerate questions");
+        } else {
+          void handleRegenerateAll();
+        }
       }
     });
 
     return () => {
       unlistenAction.then((f) => f());
     };
-  }, [streamingText, activeTab, questions.length, selectedSubject]);
+  }, [streamingText, activeTab, questions.length, selectedSubject, isGenerating, isRegeneratingAll, isAuthenticated]);
 
   useEffect(() => {
     void invoke("set_menu_state", {
@@ -707,10 +747,12 @@ function App() {
         activeTab === "generate" ? questions.length > 0 : Boolean(selectedSubject),
       canSaveSession: questions.length > 0,
       hasRawPreview: Boolean(streamingText),
+      canRegenerateAll:
+        activeTab === "generate" && questions.length > 0 && !isGenerating && !isRegeneratingAll,
     }).catch((err) => {
       console.warn("Failed to sync menu state:", err);
     });
-  }, [questions.length, activeTab, selectedSubject, streamingText]);
+  }, [questions.length, activeTab, selectedSubject, streamingText, isGenerating, isRegeneratingAll]);
 
   const loadSubjects = async () => {
     try {
@@ -755,6 +797,11 @@ function App() {
   };
 
   const handleGenerate = async () => {
+    if (isRegeneratingAll) {
+      setStatus("Please wait for Regenerate All to finish");
+      return;
+    }
+
     if (selectedTopics.length === 0) {
       setStatus("Please select at least one topic");
       return;
@@ -837,6 +884,10 @@ function App() {
   };
 
   const handleRegenerate = async (index: number, instructions?: string) => {
+    if (isGenerating || isRegeneratingAll) {
+      return;
+    }
+
     setStatus(`Regenerating question ${index + 1}...`);
     const previousQuestionId = questions[index]?.id;
     setRegeneratingQuestionId(previousQuestionId ?? null);
@@ -872,6 +923,100 @@ function App() {
       setStatus(`Error: ${err}`);
     } finally {
       setRegeneratingQuestionId(null);
+    }
+  };
+
+  const handleRegenerateAll = async () => {
+    if (isGenerating || isRegeneratingAll) {
+      return;
+    }
+
+    if (questions.length === 0) {
+      setStatus("No questions to regenerate");
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setLoginModalOpen(true);
+      setStatus("Authentication required");
+      return;
+    }
+
+    setIsRegeneratingAll(true);
+    const total = questions.length;
+    const previousQuestionIds = questions.map((question) => question.id);
+    setRegeneratingQuestionId(null);
+    setStreamingText("");
+    latestStreamingTextRef.current = "";
+    setStreamingComplete(true);
+    setShowPreview(false);
+    setStatus(`Regenerating ${total} questions...`);
+
+    try {
+      const results = await invoke<RegenerateAllQuestionResult[]>(
+        "regenerate_all_questions_parallel",
+        {
+          maxConcurrency: 3,
+        }
+      );
+
+      const succeededIndexes = results
+        .filter((item): item is RegenerateAllQuestionResult & { question: Question } => Boolean(item.question))
+        .map((item) => item.index);
+      const failedResults = results.filter((item) => !item.question);
+
+      setQuestions((prev) => {
+        const updated = [...prev];
+        for (const item of results) {
+          if (!item.question) continue;
+          if (item.index < 0 || item.index >= updated.length) continue;
+          updated[item.index] = item.question;
+        }
+        return updated;
+      });
+
+      setRawTextByQuestionId((prev) => {
+        const next = { ...prev };
+        for (const index of succeededIndexes) {
+          const questionId = previousQuestionIds[index];
+          if (questionId) {
+            delete next[questionId];
+          }
+        }
+        return next;
+      });
+
+      const successCount = succeededIndexes.length;
+      const failureCount = failedResults.length;
+
+      if (failureCount === 0) {
+        setStatus(`Regenerated all ${successCount} questions`);
+      } else {
+        console.error("Regenerate all partial failures:", failedResults);
+
+        const failedLabels = failedResults.map((item) => `Q${item.index + 1}`);
+        const maxInline = 8;
+        const visible = failedLabels.slice(0, maxInline);
+        const overflow = failedLabels.length - visible.length;
+        const failedInline =
+          overflow > 0 ? `${visible.join(", ")}, +${overflow} more` : visible.join(", ");
+
+        setStatus(
+          `Regenerated ${successCount}/${total} questions (${failureCount} failed: ${failedInline})`
+        );
+
+        const detailLines = failedResults.map(
+          (item) => `Q${item.index + 1}: ${(item.error || "Unknown error").trim()}`
+        );
+        setAlertMessage(`Some questions failed to regenerate:\n\n${detailLines.join("\n")}`);
+        setAlertOpen(true);
+      }
+    } catch (err) {
+      console.error("Regenerate all failed:", err);
+      setStatus(`Error: ${err}`);
+    } finally {
+      setRegeneratingQuestionId(null);
+      setIsRegeneratingAll(false);
     }
   };
 
@@ -1446,6 +1591,7 @@ function App() {
                   topicMetaById={topicMetaById}
                   rawTextByQuestionId={rawTextByQuestionId}
                   regeneratingQuestionId={regeneratingQuestionId}
+                  isRegeneratingAll={isRegeneratingAll}
                   regenerationStreamingText={streamingText}
                   regenerationStreamingComplete={streamingComplete}
                   showStreamingCard={showStreamingCard}
@@ -1468,7 +1614,7 @@ function App() {
           {/* Status Bar */}
           <footer className="flex flex-wrap items-center justify-between gap-2 px-6 py-2 border-t bg-white text-sm text-muted-foreground">
             <span className="flex items-center gap-2 min-w-0">
-              {isGenerating && <Loader2 className="w-4 h-4 animate-spin" />}
+              {(isGenerating || isRegeneratingAll) && <Loader2 className="w-4 h-4 animate-spin" />}
               <span className="truncate">{status}</span>
             </span>
             <div className="flex flex-wrap items-center justify-end gap-2">

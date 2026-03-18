@@ -7,6 +7,7 @@ mod llm;
 mod prompts;
 mod qti;
 
+use futures_util::stream::{self, StreamExt};
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -14,7 +15,8 @@ use std::env;
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex};
 use tauri::api::dialog::MessageDialogBuilder;
 use tauri::{AppHandle, CustomMenuItem, Manager, Menu, MenuItem, State, Submenu, WindowEvent};
 
@@ -106,6 +108,61 @@ fn restore_window_state(main_window: &tauri::Window) {
 fn load_env_vars() {
     // Load local env files from src-tauri
     let _ = dotenvy::dotenv();
+}
+
+fn has_nonempty_env(name: &str) -> bool {
+    env::var(name)
+        .ok()
+        .map(|value| value.trim().trim_matches('"').to_string())
+        .map(|value| !value.is_empty())
+        .unwrap_or(false)
+}
+
+fn log_startup_env_diagnostics() {
+    let gateway_configured = llm::gateway_url().is_some();
+    let bug_url_configured = bug_report_url().is_some();
+    let bug_api_key_configured = bug_report_api_key().is_some();
+    let bug_bearer_configured = has_nonempty_env("BUG_REPORT_BEARER_TOKEN");
+    let knowledge_override = env::var("RUBRIX_KNOWLEDGE_DIR").ok();
+
+    eprintln!("[Startup] Configuration diagnostics:");
+    eprintln!(
+        "[Startup] BEDROCK_GATEWAY_URL: {}",
+        if gateway_configured { "configured" } else { "missing" }
+    );
+
+    if !gateway_configured {
+        eprintln!(
+            "[Startup] Warning: Gateway auth/generation disabled until BEDROCK_GATEWAY_URL is set (src-tauri/.env or build-time env)."
+        );
+    }
+
+    eprintln!(
+        "[Startup] BUG_REPORT_URL: {}",
+        if bug_url_configured { "configured" } else { "missing (bug submit disabled)" }
+    );
+    eprintln!(
+        "[Startup] BUG_REPORT_API_KEY: {}",
+        if bug_api_key_configured { "configured" } else { "not set" }
+    );
+    eprintln!(
+        "[Startup] BUG_REPORT_BEARER_TOKEN: {}",
+        if bug_bearer_configured { "configured" } else { "not set" }
+    );
+
+    if let Some(path_str) = knowledge_override {
+        let path = PathBuf::from(&path_str);
+        if path.exists() {
+            eprintln!("[Startup] RUBRIX_KNOWLEDGE_DIR: configured ({})", path.display());
+        } else {
+            eprintln!(
+                "[Startup] RUBRIX_KNOWLEDGE_DIR: configured but path not found ({})",
+                path.display()
+            );
+        }
+    } else {
+        eprintln!("[Startup] RUBRIX_KNOWLEDGE_DIR: not set (using app local data dir)");
+    }
 }
 
 fn de_opt_string_or_json<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
@@ -261,6 +318,21 @@ pub struct GenerationRequest {
     pub notes: Option<String>,
     #[serde(default)]
     pub append: bool, // If true, append to existing questions
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegenerateAllQuestionResult {
+    pub index: usize,
+    pub question: Option<Question>,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct RegenerateAllProgressEvent {
+    pub completed: usize,
+    pub total: usize,
+    pub index: usize,
+    pub success: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -938,6 +1010,136 @@ async fn regenerate_question(
 }
 
 #[tauri::command]
+async fn regenerate_all_questions_parallel(
+    max_concurrency: Option<usize>,
+    state: State<'_, AppState>,
+    app_handle: AppHandle,
+) -> Result<Vec<RegenerateAllQuestionResult>, String> {
+    let snapshot = state.questions.lock().unwrap().clone();
+
+    if snapshot.is_empty() {
+        return Err("No questions to regenerate".to_string());
+    }
+
+    let total = snapshot.len();
+    let concurrency = max_concurrency.unwrap_or(35).clamp(1, 40);
+
+    let gateway_auth = state
+        .credentials
+        .lock()
+        .unwrap()
+        .clone()
+        .map(|creds| llm::GatewayAuth {
+            user: creds.username,
+            password_hash: auth::hash_password(&creds.password),
+        });
+
+    let knowledge = &state.knowledge;
+    let all_questions = snapshot.clone();
+    let completed_counter = Arc::new(AtomicUsize::new(0));
+
+    let mut results: Vec<RegenerateAllQuestionResult> = stream::iter(
+        snapshot
+            .into_iter()
+            .enumerate()
+            .map(|(index, current)| {
+                let gateway_auth = gateway_auth.clone();
+                let all_questions = all_questions.clone();
+                let app_handle = app_handle.clone();
+                let completed_counter = Arc::clone(&completed_counter);
+                async move {
+                    let subject = if !current.subject.is_empty() {
+                        current.subject.clone()
+                    } else {
+                        "Computer Science".to_string()
+                    };
+
+                    let topics: Vec<String> = if !current.topics.is_empty() {
+                        current.topics.clone()
+                    } else {
+                        vec!["recursion".to_string()]
+                    };
+
+                    let bank_examples = knowledge.get_bank_examples(&subject, &topics, None, 1);
+                    let regeneration_prompt_template = knowledge.get_regeneration_prompt(&subject);
+                    let topics_label = topic_labels_for_prompt(&subject, &topics, knowledge);
+
+                    let prompt = prompts::build_regenerate_prompt(
+                        &current,
+                        &all_questions,
+                        &bank_examples,
+                        None,
+                        regeneration_prompt_template,
+                        Some(&topics_label),
+                    );
+
+                    let result = match llm::generate(&prompt, None, gateway_auth).await {
+                        Ok(response) => match prompts::parse_llm_response(&response) {
+                            Ok(mut new_questions) if !new_questions.is_empty() => {
+                                let mut new_question = new_questions.remove(0);
+                                new_question.id = current.id.clone();
+                                new_question.subject = current.subject.clone();
+                                new_question.topics = current.topics.clone();
+                                new_question.difficulty = current.difficulty.clone();
+
+                                RegenerateAllQuestionResult {
+                                    index,
+                                    question: Some(new_question),
+                                    error: None,
+                                }
+                            }
+                            Ok(_) => RegenerateAllQuestionResult {
+                                index,
+                                question: None,
+                                error: Some("Failed to generate replacement question".to_string()),
+                            },
+                            Err(err) => RegenerateAllQuestionResult {
+                                index,
+                                question: None,
+                                error: Some(err),
+                            },
+                        },
+                        Err(err) => RegenerateAllQuestionResult {
+                            index,
+                            question: None,
+                            error: Some(err),
+                        },
+                    };
+
+                    let completed = completed_counter.fetch_add(1, Ordering::SeqCst) + 1;
+                    let _ = app_handle.emit_all(
+                        "regenerate-all-progress",
+                        RegenerateAllProgressEvent {
+                            completed,
+                            total,
+                            index,
+                            success: result.question.is_some(),
+                        },
+                    );
+
+                    result
+                }
+            }),
+    )
+    .buffer_unordered(concurrency)
+    .collect()
+    .await;
+
+    results.sort_by_key(|item| item.index);
+
+    let mut stored = state.questions.lock().unwrap();
+    for item in &results {
+        if let Some(question) = &item.question {
+            if item.index < stored.len() {
+                stored[item.index] = question.clone();
+            }
+        }
+    }
+
+    Ok(results)
+}
+
+#[tauri::command]
 fn update_question(index: usize, question: Question, state: State<AppState>) -> Result<(), String> {
     let mut stored = state.questions.lock().unwrap();
 
@@ -1112,6 +1314,7 @@ fn set_menu_state(
     can_export_word: bool,
     can_save_session: bool,
     has_raw_preview: bool,
+    can_regenerate_all: bool,
     app_handle: AppHandle,
 ) -> Result<(), String> {
     let window = app_handle
@@ -1136,6 +1339,9 @@ fn set_menu_state(
     menu.get_item("toggle_raw_preview")
         .set_enabled(has_raw_preview)
         .map_err(|e| format!("Failed to set toggle_raw_preview state: {}", e))?;
+    menu.get_item("regenerate_all_questions")
+        .set_enabled(can_regenerate_all)
+        .map_err(|e| format!("Failed to set regenerate_all_questions state: {}", e))?;
 
     Ok(())
 }
@@ -1530,6 +1736,7 @@ fn write_document_file(path: String, content: String) -> Result<(), String> {
 
 fn main() {
     load_env_vars();
+    log_startup_env_diagnostics();
     let knowledge = knowledge::KnowledgeBase::load();
 
     let state = AppState {
@@ -1546,6 +1753,9 @@ fn main() {
         CustomMenuItem::new("open_recent", "Open Recent…").accelerator("CmdOrCtrl+Shift+O");
     let save_session = CustomMenuItem::new("save_session", "Save").accelerator("CmdOrCtrl+S");
     let close_document = CustomMenuItem::new("close_document", "Close").accelerator("CmdOrCtrl+W");
+    let regenerate_all_questions =
+        CustomMenuItem::new("regenerate_all_questions", "Regenerate All Questions")
+            .accelerator("CmdOrCtrl+Shift+R");
     let export_md =
         CustomMenuItem::new("export_md", "Export Markdown…").accelerator("CmdOrCtrl+Shift+M");
     let export_qti =
@@ -1584,6 +1794,7 @@ fn main() {
             .add_item(open_recent.clone())
             .add_item(save_session)
             .add_item(close_document.clone())
+            .add_item(regenerate_all_questions.clone())
             .add_native_item(MenuItem::Separator)
             .add_submenu(export_menu)
             .add_native_item(MenuItem::Separator)
@@ -1599,6 +1810,7 @@ fn main() {
             .add_item(open_recent)
             .add_item(save_session)
             .add_item(close_document)
+            .add_item(regenerate_all_questions)
             .add_native_item(MenuItem::Separator)
             .add_submenu(export_menu)
             .add_native_item(MenuItem::Separator)
@@ -1718,6 +1930,7 @@ fn main() {
                 "open_recent" => Some("open_recent"),
                 "save_session" => Some("save_session"),
                 "close_document" => Some("close_document"),
+                "regenerate_all_questions" => Some("regenerate_all_questions"),
                 "export_md" => Some("export_md"),
                 "export_qti" => Some("export_qti"),
                 "export_word" => Some("export_word"),
@@ -1760,6 +1973,7 @@ fn main() {
             get_topics,
             generate_questions,
             regenerate_question,
+            regenerate_all_questions_parallel,
             update_question,
             add_question,
             delete_question,

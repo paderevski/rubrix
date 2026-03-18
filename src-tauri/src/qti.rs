@@ -511,6 +511,22 @@ pub fn export_txt(title: &str, questions: &[Question]) -> Result<String, String>
     export_md(title, questions)
 }
 
+/// Convenience wrapper for bank markdown export with include_explanations toggle.
+pub fn export_bank_md(
+    title: &str,
+    entries: &[QuestionBankEntry],
+    include_explanations: bool,
+) -> Result<String, String> {
+    export_bank_md_with_options(
+        title,
+        entries,
+        ExportBankMdOptions {
+            include_explanations,
+            ..ExportBankMdOptions::default()
+        },
+    )
+}
+
 pub fn export_qti_zip_with_options(
     title: &str,
     questions: &[Question],
@@ -1039,6 +1055,7 @@ mod tests {
             ExportMdOptions {
                 include_explanations_section: true,
                 include_answer_key: true,
+                ..ExportMdOptions::default()
             },
         )
         .unwrap();

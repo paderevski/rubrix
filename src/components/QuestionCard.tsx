@@ -17,6 +17,7 @@ interface QuestionCardProps {
   rawText?: string;
   liveRawText?: string;
   isRegenerating?: boolean;
+  isRegenerationDisabled?: boolean;
   onRegenerate: (instructions?: string) => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -120,6 +121,7 @@ export default function QuestionCard({
   rawText,
   liveRawText,
   isRegenerating = false,
+  isRegenerationDisabled = false,
   onRegenerate,
   onEdit,
   onDelete,
@@ -211,6 +213,7 @@ export default function QuestionCard({
             </button>
             <button
               onClick={handleRegenerate}
+              disabled={isRegenerationDisabled}
               className={iconButtonNeutral}
               title="Regenerate"
             >

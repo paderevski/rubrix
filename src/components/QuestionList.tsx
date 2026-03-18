@@ -7,6 +7,7 @@ interface QuestionListProps {
   topicMetaById?: Record<string, { label: string; kind: "topic" | "subtopic" }>;
   rawTextByQuestionId?: Record<string, string>;
   regeneratingQuestionId?: string | null;
+  isRegeneratingAll?: boolean;
   regenerationStreamingText?: string;
   regenerationStreamingComplete?: boolean;
   showStreamingCard?: boolean;
@@ -24,6 +25,7 @@ export default function QuestionList({
   topicMetaById = {},
   rawTextByQuestionId = {},
   regeneratingQuestionId = null,
+  isRegeneratingAll = false,
   regenerationStreamingText = "",
   regenerationStreamingComplete = true,
   showStreamingCard = false,
@@ -50,6 +52,7 @@ export default function QuestionList({
             isRegenerating={
               question.id === regeneratingQuestionId && !regenerationStreamingComplete
             }
+            isRegenerationDisabled={isRegeneratingAll}
             onRegenerate={(instructions) => onRegenerate(index, instructions)}
             onEdit={() => onEdit(index)}
             onDelete={() => onDelete(index)}

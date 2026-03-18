@@ -19,7 +19,7 @@ Additional human instructions (optional):
 {user_instructions}
 
 Required guards:
-1) Return ONLY a JSON array with exactly 1 question object.
+1) Return ONLY a single `<question>...</question>` block containing a JSON array with exactly 1 question object.
 2) Preserve schema exactly:
    - text (string)
    - explanation (string)
@@ -28,9 +28,10 @@ Required guards:
 3) Include exactly one correct answer (`is_correct: true`).
 4) Keep explanations internally consistent with the marked correct answer.
 5) Use standard markdown math delimiters (`$...$`, `$$...$$`) when needed.
-6) Do not include markdown fences or extra prose in output.
+6) Do not include markdown fences or extra prose outside the `<question>...</question>` block.
 
 Strict output format:
+<question>
 [
   {
     "text": "...",
@@ -42,3 +43,4 @@ Strict output format:
     ]
   }
 ]
+</question>
