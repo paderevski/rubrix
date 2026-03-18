@@ -492,6 +492,88 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
         None
     }
 
+    fn extract_top_level_json_objects(array_json: &str) -> Vec<String> {
+        let bytes = array_json.as_bytes();
+        let mut objects = Vec::new();
+
+        let mut in_string = false;
+        let mut escape = false;
+        let mut array_depth: i32 = 0;
+        let mut object_depth: i32 = 0;
+        let mut object_start: Option<usize> = None;
+
+        let mut i = 0;
+        while i < bytes.len() {
+            let b = bytes[i];
+
+            if in_string {
+                if escape {
+                    escape = false;
+                    i += 1;
+                    continue;
+                }
+                if b == b'\\' {
+                    escape = true;
+                    i += 1;
+                    continue;
+                }
+                if b == b'"' {
+                    in_string = false;
+                }
+                i += 1;
+                continue;
+            }
+
+            if b == b'"' {
+                in_string = true;
+                i += 1;
+                continue;
+            }
+
+            if b == b'[' {
+                array_depth += 1;
+                i += 1;
+                continue;
+            }
+
+            if b == b']' {
+                if array_depth > 0 {
+                    array_depth -= 1;
+                }
+                i += 1;
+                continue;
+            }
+
+            if b == b'{' {
+                // Start tracking a top-level array object, then keep counting nested
+                // object braces until that top-level object is complete.
+                if array_depth == 1 && object_depth == 0 {
+                    object_start = Some(i);
+                }
+                if object_start.is_some() {
+                    object_depth += 1;
+                }
+                i += 1;
+                continue;
+            }
+
+            if b == b'}' && object_depth > 0 {
+                object_depth -= 1;
+                if object_depth == 0 {
+                    if let Some(start) = object_start.take() {
+                        objects.push(array_json[start..=i].to_string());
+                    }
+                }
+                i += 1;
+                continue;
+            }
+
+            i += 1;
+        }
+
+        objects
+    }
+
     let tagged_contents = extract_question_tag_contents(trimmed);
 
     let mut parse_source = "response_fallback";
@@ -549,18 +631,58 @@ pub fn parse_llm_response(response: &str) -> Result<Vec<Question>, String> {
 
     let sanitized_json = sanitize_json_string(&json_str);
 
-    let mut questions: Vec<Question> = serde_json::from_str(&sanitized_json).map_err(|e| {
-        eprintln!("ERROR: Failed to parse JSON: {}", e);
-        eprintln!(
-            "JSON string: {}",
-            &sanitized_json[..sanitized_json.len().min(500)]
-        );
-        format!(
-            "Failed to parse JSON response: {}. JSON: {}",
-            e,
-            &sanitized_json[..sanitized_json.len().min(500)]
-        )
-    })?;
+    let mut questions: Vec<Question> = match serde_json::from_str(&sanitized_json) {
+        Ok(parsed) => parsed,
+        Err(e) => {
+            eprintln!("ERROR: Failed to parse full JSON array: {}", e);
+            eprintln!(
+                "JSON string: {}",
+                &sanitized_json[..sanitized_json.len().min(500)]
+            );
+
+            // Salvage path: parse each top-level object independently so one malformed
+            // question does not discard all valid questions in the batch.
+            let object_chunks = extract_top_level_json_objects(&sanitized_json);
+            if object_chunks.is_empty() {
+                return Err(format!(
+                    "Failed to parse JSON response: {}. JSON: {}",
+                    e,
+                    &sanitized_json[..sanitized_json.len().min(500)]
+                ));
+            }
+
+            let mut recovered = Vec::new();
+            let mut failures = Vec::new();
+
+            for (idx, chunk) in object_chunks.iter().enumerate() {
+                match serde_json::from_str::<Question>(chunk) {
+                    Ok(q) => recovered.push(q),
+                    Err(err) => failures.push(format!("item {}: {}", idx + 1, err)),
+                }
+            }
+
+            if recovered.is_empty() {
+                return Err(format!(
+                    "Failed to parse JSON response: {}. Salvage failed for all {} item(s): {}",
+                    e,
+                    object_chunks.len(),
+                    failures.join(" | ")
+                ));
+            }
+
+            eprintln!(
+                "WARNING: Recovered {}/{} question(s) via per-item salvage parsing; dropped {} malformed item(s)",
+                recovered.len(),
+                object_chunks.len(),
+                object_chunks.len() - recovered.len()
+            );
+            if !failures.is_empty() {
+                eprintln!("Dropped item parse errors: {}", failures.join(" | "));
+            }
+
+            recovered
+        }
+    };
 
     for question in &mut questions {
         normalize_question_text(question);
@@ -1085,5 +1207,36 @@ Assistant final:
                 assert_eq!(questions[0].text, "Final tagged question");
                 assert_eq!(questions[0].answers.len(), 2);
                 assert!(questions[0].answers[0].is_correct);
+        }
+
+        #[test]
+        fn test_parse_salvages_valid_items_when_one_object_is_malformed() {
+                let input = r#"[
+    {
+        "text": "Valid question 1",
+        "answers": [
+            {"text": "A", "is_correct": true},
+            {"text": "B", "is_correct": false}
+        ]
+    },
+    {
+        "text", "Malformed question",
+        "answers": [
+            {"text": "X", "is_correct": true}
+        ]
+    },
+    {
+        "text": "Valid question 2",
+        "answers": [
+            {"text": "C", "is_correct": false},
+            {"text": "D", "is_correct": true}
+        ]
+    }
+]"#;
+
+                let questions = parse_llm_response(input).unwrap();
+                assert_eq!(questions.len(), 2);
+                assert_eq!(questions[0].text, "Valid question 1");
+                assert_eq!(questions[1].text, "Valid question 2");
         }
 }

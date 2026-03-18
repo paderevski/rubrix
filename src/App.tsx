@@ -862,7 +862,18 @@ function App() {
         return next;
       });
 
-      setStatus(`Added ${questionCount} questions (${allQuestions.length} total)`);
+      const addedCount = Math.max(allQuestions.length - previousQuestionCount, 0);
+      const failedCount = Math.max(questionCount - addedCount, 0);
+
+      if (failedCount > 0) {
+        const qLabel = questionCount === 1 ? "question" : "questions";
+        const failLabel = failedCount === 1 ? "failed" : "failed";
+        setStatus(
+          `Generated ${addedCount} of ${questionCount} ${qLabel}, ${failedCount} ${failLabel} (${allQuestions.length} total)`
+        );
+      } else {
+        setStatus(`Added ${addedCount} questions (${allQuestions.length} total)`);
+      }
     } catch (err) {
       console.error("Generation failed:", err);
       const errorMsg = String(err);
