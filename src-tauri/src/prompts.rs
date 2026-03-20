@@ -1266,4 +1266,47 @@ Assistant final:
         assert_eq!(questions[0].text, "Valid question 1");
         assert_eq!(questions[1].text, "Valid question 2");
     }
+
+    #[test]
+    fn test_normalize_single_backslash_n_to_newline() {
+        let input = r#"Line 1\nLine 2"#;
+        let out = normalize_escaped_math_and_newlines(input);
+        assert_eq!(out, "Line 1\nLine 2");
+    }
+
+    #[test]
+    fn test_normalize_double_backslash_n_to_newline() {
+        let input = r#"Line 1\\nLine 2"#;
+        let out = normalize_escaped_math_and_newlines(input);
+        assert_eq!(out, "Line 1\nLine 2");
+    }
+
+    #[test]
+    fn test_normalize_preserves_latex_n_commands() {
+        let input = r#"$a \neq b$, $\\nabla f$, and \\newcommand{\\mycmd}{x}$"#;
+        let out = normalize_escaped_math_and_newlines(input);
+
+        // We should preserve LaTeX commands that start with \n...
+        assert!(out.contains(r#"\neq"#));
+        assert!(out.contains(r#"\\nabla"#) || out.contains(r#"\nabla"#));
+        assert!(out.contains(r#"\\newcommand"#) || out.contains(r#"\newcommand"#));
+
+        // Should not accidentally insert newline characters in these commands.
+        assert!(!out.contains("\nabla f"));
+        assert!(!out.contains("\newcommand"));
+    }
+
+    #[test]
+    fn test_normalize_mixed_newlines_and_latex_commands() {
+        let input = r#"First\\nSecond\\neqThird\\nFourth\\newlinecmd"#;
+        let out = normalize_escaped_math_and_newlines(input);
+
+        // First and last escaped newlines convert.
+        assert!(out.starts_with("First\nSecond"));
+        assert!(out.contains("Third\nFourth"));
+
+        // \neq and \newline-like command tokens should remain escaped, not converted.
+        assert!(out.contains(r#"\\neq"#) || out.contains(r#"\neq"#));
+        assert!(out.contains(r#"\\newlinecmd"#) || out.contains(r#"\newlinecmd"#));
+    }
 }

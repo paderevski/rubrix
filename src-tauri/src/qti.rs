@@ -797,6 +797,7 @@ mod tests {
             id: "1".to_string(),
             text: "What is 2+2?".to_string(),
             explanation: None,
+            rubric: None,
             distractors: None,
             subject: "Test".to_string(),
             topics: vec!["Math".to_string()],
@@ -816,9 +817,11 @@ mod tests {
         }];
 
         let result = export_txt("Test", &questions).unwrap();
-        assert!(result.contains("Title: Test"));
-        assert!(result.contains("1. What is 2+2?"));
-        assert!(result.contains("a. 4"));
+        assert!(result.contains("# Test"));
+        assert!(result.contains("**Question 1.** What is 2+2?"));
+        assert!(result.contains("4"));
+        assert!(result.contains("3"));
+        assert!(result.contains("## Answers"));
     }
 
     #[test]
@@ -858,6 +861,7 @@ mod tests {
             id: "1".to_string(),
             text: "Find $F'(x)$ and $g''(t)$".to_string(),
             explanation: None,
+            rubric: None,
             distractors: None,
             subject: "Calculus".to_string(),
             topics: vec!["Derivatives".to_string()],
@@ -905,6 +909,7 @@ mod tests {
             id: "1".to_string(),
             text: "Find $F'(x)$ here".to_string(),
             explanation: None,
+            rubric: None,
             distractors: None,
             subject: "Calculus".to_string(),
             topics: vec!["Derivatives".to_string()],
@@ -950,6 +955,7 @@ mod tests {
             id: "1".to_string(),
             text: "Here is an equation: $$F'(x) = 2x$$ and more text".to_string(),
             explanation: None,
+            rubric: None,
             distractors: None,
             subject: "Calculus".to_string(),
             topics: vec!["Derivatives".to_string()],
@@ -1027,6 +1033,7 @@ mod tests {
             id: "q1".to_string(),
             text: "What is 2 + 2?".to_string(),
             explanation: Some("Add the two integers directly.".to_string()),
+            rubric: None,
             distractors: None,
             subject: "Math".to_string(),
             topics: vec!["arithmetic".to_string()],
