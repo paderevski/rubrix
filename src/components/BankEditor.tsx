@@ -30,6 +30,7 @@ const markdownComponents = {
 
 function normalizeMathDelimiters(content: string) {
   if (!content) return "";
+  const normalizedEscapes = content.replace(/\\\\(?=[A-Za-z])/g, "\\");
   const envPattern =
     /(^|\n)([ \t]*)(\\{1,2}begin\{(align\*?|aligned|alignat\*?|gather\*?|multline\*?|split|eqnarray\*?|array|cases)\}[\s\S]*?\\{1,2}end\{\4\})(?=\n|$)/g;
 
@@ -46,7 +47,7 @@ function normalizeMathDelimiters(content: string) {
       return `${lineStart}${indent}$$\n${block}\n$$`;
     });
 
-  return wrapBareMathEnvironments(content)
+  return wrapBareMathEnvironments(normalizedEscapes)
     .replace(/\\\(/g, "$")
     .replace(/\\\)/g, "$")
     .replace(/(^|[^\\])\\\[/g, "$1$$")

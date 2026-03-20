@@ -737,6 +737,31 @@ fn normalize_escaped_math_and_newlines(input: &str) -> String {
     let mut i = 0;
 
     while i < chars.len() {
+        // Convert escaped newline sequences into real newlines.
+        // Handle both runtime forms:
+        // 1) "\\n" (single backslash + n) after JSON parsing of "\\\\n"
+        // 2) "\\\\n" (double backslash + n), which some model outputs include directly
+        if chars[i] == '\\' && i + 1 < chars.len() && chars[i + 1] == 'n' {
+            let mut is_exception = false;
+            for exception in DOUBLE_BACKSLASH_N_EXCEPTIONS.iter() {
+                let end = i + 2 + exception.len();
+                if end <= chars.len() && chars[i + 2..end].iter().copied().eq(exception.chars()) {
+                    is_exception = true;
+                    break;
+                }
+            }
+
+            if is_exception {
+                output.push(chars[i]);
+                output.push(chars[i + 1]);
+            } else {
+                output.push('\n');
+            }
+
+            i += 2;
+            continue;
+        }
+
         if chars[i] == '\\' && i + 2 < chars.len() && chars[i + 1] == '\\' && chars[i + 2] == 'n' {
             let mut is_exception = false;
             for exception in DOUBLE_BACKSLASH_N_EXCEPTIONS.iter() {

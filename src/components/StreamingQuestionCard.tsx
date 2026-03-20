@@ -28,7 +28,9 @@ export default function StreamingQuestionCard({
   return (
     <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 bg-secondary/50 border-b">
-        <span className="font-medium text-foreground">Generating Question(s)</span>
+        <div>
+          <span className="font-medium text-foreground">Generating Question(s)</span>
+        </div>
         <div className="flex items-center gap-2">
           {!isComplete && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
           <button

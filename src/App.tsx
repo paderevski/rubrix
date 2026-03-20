@@ -678,6 +678,18 @@ function App() {
             hasInsertedReasoningEndMarkerRef.current = true;
           }
         } else {
+          if (
+            blockType === "response" &&
+            lastStreamBlockTypeRef.current === "reasoning" &&
+            !hasInsertedReasoningEndMarkerRef.current
+          ) {
+            if (nextText.trim().length > 0) {
+              nextText += "\n";
+            }
+            nextText += "[REASONING DONE]\n";
+            hasInsertedReasoningEndMarkerRef.current = true;
+          }
+
           if (lastStreamBlockTypeRef.current !== blockType) {
             if (nextText.trim().length > 0) {
               nextText += "\n\n";

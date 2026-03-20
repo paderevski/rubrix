@@ -55,6 +55,7 @@ const questionMarkdownComponents = {
 
 function normalizeMathDelimiters(content: string) {
   if (!content) return "";
+  const normalizedEscapes = content.replace(/\\\\(?=[A-Za-z])/g, "\\");
   const envPattern =
     /(^|\n)([ \t]*)(\\{1,2}begin\{(align\*?|aligned|alignat\*?|gather\*?|multline\*?|split|eqnarray\*?|array|cases)\}[\s\S]*?\\{1,2}end\{\4\})(?=\n|$)/g;
 
@@ -73,7 +74,7 @@ function normalizeMathDelimiters(content: string) {
 
   // Only turn escaped newlines into real newlines when they are not the start of a LaTeX command
   // (e.g., `\ne` should stay as not-equal, not become a newline).
-  return wrapBareMathEnvironments(content)
+  return wrapBareMathEnvironments(normalizedEscapes)
     .replace(/\\\(/g, "$")
     .replace(/\\\)/g, "$")
     .replace(/(^|[^\\])\\\[/g, "$1$$")
