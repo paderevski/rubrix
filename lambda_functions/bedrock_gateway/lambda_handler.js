@@ -23,6 +23,10 @@ const usageRegion = "us-east-1";
 const usageDb = new DynamoDBClient({ region: usageRegion });
 
 const MODEL_ID = process.env.BEDROCK_MODEL_ID || "openai.gpt-oss-120b-1:0";
+const FRQ_MODEL_ID =
+  process.env.BEDROCK_MODEL_ID_FRQ ||
+  process.env.BEDROCK_FRQ_MODEL_ID ||
+  "deepseek.v3-1:0";
 const REASONING_EFFORT = process.env.BEDROCK_REASONING_EFFORT || "medium";
 const MAX_TOKENS = process.env.BEDROCK_MAX_TOKENS
   ? Number(process.env.BEDROCK_MAX_TOKENS)
@@ -444,6 +448,11 @@ const streamingHandler = async (event, responseStream) => {
   const safeUser = normalizeUser(user);
   const passwordHash = body.password_hash;
   const prompt = body.prompt;
+  const questionType =
+    typeof body.question_type === "string"
+      ? body.question_type.trim().toLowerCase()
+      : "";
+  const selectedModelId = questionType === "frq" ? FRQ_MODEL_ID : MODEL_ID;
 
   if (!user || !safeUser || !passwordHash || !prompt) {
     return buildErrorResponse(
@@ -556,8 +565,8 @@ const streamingHandler = async (event, responseStream) => {
 
   const additionalModelRequestFields = {};
   if (
-    typeof MODEL_ID === "string" &&
-    MODEL_ID.startsWith("openai.gpt-oss") &&
+    typeof selectedModelId === "string" &&
+    selectedModelId.startsWith("openai.gpt-oss") &&
     typeof REASONING_EFFORT === "string" &&
     REASONING_EFFORT.trim()
   ) {
@@ -565,7 +574,7 @@ const streamingHandler = async (event, responseStream) => {
   }
 
   const requestBody = {
-    modelId: MODEL_ID,
+    modelId: selectedModelId,
     messages: [
       {
         role: "user",
@@ -615,7 +624,16 @@ const streamingHandler = async (event, responseStream) => {
       usageRecord,
       usageState.tokens,
     );
-    responseStream.write(sseEvent("", true, projectedRemaining));
+    if (usageState.responseParts.length === 0) {
+      responseStream.write(
+        sseEvent("", true, projectedRemaining, {
+          error: "Model returned an empty response",
+          error_type: "EmptyModelResponse",
+        }),
+      );
+    } else {
+      responseStream.write(sseEvent("", true, projectedRemaining));
+    }
     responseStream.end();
   } catch (error) {
     console.error("Bedrock invoke error", error);
@@ -623,7 +641,18 @@ const streamingHandler = async (event, responseStream) => {
       usageRecord,
       usageState.tokens,
     );
-    responseStream.write(sseEvent("", true, projectedRemaining));
+    const message =
+      (error && typeof error.message === "string" && error.message.trim()) ||
+      "Bedrock invocation failed";
+    const name =
+      (error && typeof error.name === "string" && error.name.trim()) ||
+      "BedrockInvokeError";
+    responseStream.write(
+      sseEvent("", true, projectedRemaining, {
+        error: message,
+        error_type: name,
+      }),
+    );
     responseStream.end();
   } finally {
     const responseText = usageState.responseParts.join("");
