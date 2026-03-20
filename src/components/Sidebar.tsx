@@ -12,6 +12,12 @@ import { TopicInfo } from "../types";
 
 interface SidebarProps {
   topics: TopicInfo[];
+  questionType: string;
+  questionTypeOptions: { value: string; label: string }[];
+  onQuestionTypeChange: (questionType: string) => void;
+  frqQuestionType: string;
+  frqQuestionTypeOptions: { value: string; label: string }[];
+  onFrqQuestionTypeChange: (questionType: string) => void;
   selectedTopics: string[];
   onTopicsChange: (topics: string[]) => void;
   difficulty: string;
@@ -29,6 +35,12 @@ interface SidebarProps {
 
 export default function Sidebar({
   topics,
+  questionType,
+  questionTypeOptions,
+  onQuestionTypeChange,
+  frqQuestionType,
+  frqQuestionTypeOptions,
+  onFrqQuestionTypeChange,
   selectedTopics,
   onTopicsChange,
   difficulty,
@@ -44,7 +56,8 @@ export default function Sidebar({
   onToggleCollapsed,
 }: SidebarProps) {
   const [expandedTopics, setExpandedTopics] = useState<Record<string, boolean>>({});
-  const generateDisabled = isGenerating || selectedTopics.length === 0;
+  const isFrqSelected = questionType === "frq";
+  const generateDisabled = isGenerating || (!isFrqSelected && selectedTopics.length === 0);
 
   useEffect(() => {
     setExpandedTopics((prev) => {
@@ -101,10 +114,49 @@ export default function Sidebar({
     <aside className="w-80 h-full border-r bg-card flex flex-col overflow-hidden">
       {/* Fixed-height Content */}
       <div className="flex-1 min-h-0 p-4 flex flex-col gap-4 overflow-hidden">
-        {/* Topics */}
+        {/* Question Type */}
+        <div className="shrink-0">
+          <label className="text-sm font-medium text-foreground mb-2 block">
+            Question Format
+          </label>
+          <select
+            value={questionType}
+            onChange={(e) => onQuestionTypeChange(e.target.value)}
+            className="w-full px-3 py-2 text-sm border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            {questionTypeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {questionType === "frq" && (
+          <div className="shrink-0">
+            <label className="text-sm font-medium text-foreground mb-2 block">
+              FRQ Question Type
+            </label>
+            <select
+              value={frqQuestionType}
+              onChange={(e) => onFrqQuestionTypeChange(e.target.value)}
+              className="w-full px-3 py-2 text-sm border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {frqQuestionTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Topics / FRQ panel */}
         <div className="flex-1 min-h-0 flex flex-col">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-foreground">Topics</h3>
+            <h3 className="text-sm font-medium text-foreground">
+              {isFrqSelected ? "FRQ Panel" : "Topics"}
+            </h3>
             <button
               onClick={onToggleCollapsed}
               className="p-1.5 rounded-md border hover:bg-secondary"
@@ -113,84 +165,92 @@ export default function Sidebar({
               <PanelLeftClose className="w-4 h-4" />
             </button>
           </div>
-          <div className="relative flex-1 min-h-0">
-            <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-card to-transparent pointer-events-none z-10" />
-            <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-card to-transparent pointer-events-none z-10" />
-            <div className="h-full overflow-y-auto overscroll-contain pr-1 space-y-2">
-              {topics.map((topic) => {
-                const children = topic.children ?? [];
-                const hasChildren = children.length > 0;
 
-                return (
-                  <div key={topic.id} className="space-y-1">
-                    <div className="flex items-center gap-2 rounded-md px-1 py-1 hover:bg-secondary/60">
-                      {hasChildren ? (
-                        <button
-                          type="button"
-                          onClick={() => toggleExpanded(topic.id)}
-                          className="p-0.5 rounded hover:bg-secondary"
-                          title={expandedTopics[topic.id] ? "Collapse" : "Expand"}
-                        >
-                          {expandedTopics[topic.id] ? (
-                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                          ) : (
-                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                          )}
-                        </button>
-                      ) : (
-                        <span className="w-5" />
-                      )}
-
-                      <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
-                        <input
-                          type="checkbox"
-                          checked={selectedTopics.includes(topic.id)}
-                          onChange={() => toggleTopic(topic.id)}
-                          className="rounded border-gray-300 text-primary focus:ring-primary"
-                        />
-                        <span
-                          className="text-sm leading-5 line-clamp-2 break-words"
-                          title={topic.name}
-                        >
-                          {topic.name}
-                        </span>
-                        <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">
-                          {topic.example_count}
-                        </span>
-                      </label>
-                    </div>
-
-                    {hasChildren && expandedTopics[topic.id] && (
-                      <div className="ml-6 pl-3 border-l border-slate-200 space-y-1">
-                        {children.map((child) => (
-                          <label
-                            key={child.id}
-                            className="flex items-center gap-2 cursor-pointer rounded-md px-1.5 py-1 hover:bg-secondary/50"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selectedTopics.includes(child.id)}
-                              onChange={() => toggleTopic(child.id)}
-                              className="rounded border-gray-300 text-primary focus:ring-primary"
-                            />
-                            <span
-                              className="text-sm leading-5 line-clamp-2 break-words"
-                              title={child.name}
-                            >
-                              {child.name}
-                            </span>
-                            <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">
-                              {child.example_count}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+          {isFrqSelected ? (
+            <div className="rounded-md border bg-secondary/30 px-3 py-2 text-sm text-muted-foreground">
+              FRQ mode is using the selected FRQ Question Type right now.
+              Replace this panel later with your FRQ-specific topic picker when ready.
             </div>
-          </div>
+          ) : (
+            <div className="relative flex-1 min-h-0">
+              <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-card to-transparent pointer-events-none z-10" />
+              <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-card to-transparent pointer-events-none z-10" />
+              <div className="h-full overflow-y-auto overscroll-contain pr-1 space-y-2">
+                {topics.map((topic) => {
+                  const children = topic.children ?? [];
+                  const hasChildren = children.length > 0;
+
+                  return (
+                    <div key={topic.id} className="space-y-1">
+                      <div className="flex items-center gap-2 rounded-md px-1 py-1 hover:bg-secondary/60">
+                        {hasChildren ? (
+                          <button
+                            type="button"
+                            onClick={() => toggleExpanded(topic.id)}
+                            className="p-0.5 rounded hover:bg-secondary"
+                            title={expandedTopics[topic.id] ? "Collapse" : "Expand"}
+                          >
+                            {expandedTopics[topic.id] ? (
+                              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </button>
+                        ) : (
+                          <span className="w-5" />
+                        )}
+
+                        <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
+                          <input
+                            type="checkbox"
+                            checked={selectedTopics.includes(topic.id)}
+                            onChange={() => toggleTopic(topic.id)}
+                            className="rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <span
+                            className="text-sm leading-5 line-clamp-2 break-words"
+                            title={topic.name}
+                          >
+                            {topic.name}
+                          </span>
+                          <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">
+                            {topic.example_count}
+                          </span>
+                        </label>
+                      </div>
+
+                      {hasChildren && expandedTopics[topic.id] && (
+                        <div className="ml-6 pl-3 border-l border-slate-200 space-y-1">
+                          {children.map((child) => (
+                            <label
+                              key={child.id}
+                              className="flex items-center gap-2 cursor-pointer rounded-md px-1.5 py-1 hover:bg-secondary/50"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedTopics.includes(child.id)}
+                                onChange={() => toggleTopic(child.id)}
+                                className="rounded border-gray-300 text-primary focus:ring-primary"
+                              />
+                              <span
+                                className="text-sm leading-5 line-clamp-2 break-words"
+                                title={child.name}
+                              >
+                                {child.name}
+                              </span>
+                              <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">
+                                {child.example_count}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Difficulty */}
@@ -216,7 +276,7 @@ export default function Sidebar({
         </div>
 
         {/* Question Count */}
-        <div className="shrink-0">
+        <div className={`shrink-0 ${isFrqSelected ? "opacity-50" : ""}`}>
           <label className="text-sm font-medium text-foreground mb-2 block">
             Questions: {questionCount}
           </label>
@@ -226,12 +286,18 @@ export default function Sidebar({
             max="8"
             value={questionCount}
             onChange={(e) => onQuestionCountChange(parseInt(e.target.value, 10))}
+            disabled={isFrqSelected}
             className="w-full accent-primary"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>1</span>
             <span>8</span>
           </div>
+          {isFrqSelected && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              FRQ currently generates one question at a time.
+            </p>
+          )}
         </div>
 
         {/* Notes */}

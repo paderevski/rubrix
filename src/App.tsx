@@ -149,12 +149,11 @@ function parseSessionQuestions(raw: unknown): Question[] {
       const text =
         typeof q.text === "string" && q.text.trim().length > 0
           ? q.text
+          : typeof q.question === "string" && q.question.trim().length > 0
+          ? q.question
           : stringifyValue(q.text) ?? "Untitled question";
 
       const answers = coerceAnswers(q, questionIndex);
-      if (answers.length === 0) {
-        warn(`Question ${questionIndex + 1} has no valid answers; it may fail to render.`);
-      }
 
       const topics = Array.isArray(q.topics)
         ? (q.topics as unknown[]).filter(
@@ -169,7 +168,8 @@ function parseSessionQuestions(raw: unknown): Question[] {
             : `q${questionIndex + 1}`,
         text,
         answers,
-        explanation: coerceRichText(q.explanation),
+        explanation: coerceRichText(q.explanation) ?? coerceRichText(q.solution),
+        rubric: coerceRichText(q.rubric),
         distractors: coerceRichText(q.distractors),
         subject: typeof q.subject === "string" ? q.subject : undefined,
         topics,
@@ -266,6 +266,7 @@ function parseMarkdownQuestions(content: string): Question[] {
       text: questionText,
       answers,
       explanation: undefined,
+      rubric: undefined,
       distractors: undefined,
       subject: undefined,
       topics: undefined,
@@ -292,6 +293,20 @@ function App() {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [topics, setTopics] = useState<TopicInfo[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [questionType, setQuestionType] = useState("multiple_choice");
+  const [frqQuestionType, setFrqQuestionType] = useState("series");
+  const questionTypeOptions = [
+    { value: "multiple_choice", label: "Multiple Choice" },
+    { value: "frq", label: "FRQ" },
+  ];
+  const frqQuestionTypeOptions = [
+    { value: "series", label: "Series" },
+    { value: "polar", label: "Polar" },
+    { value: "particle_motion", label: "Particle Motion" },
+    { value: "parametric", label: "Parametric" },
+    { value: "differential_equations", label: "Differential Equations" },
+    { value: "limits_continuity", label: "Limits and Continuity" },
+  ];
   const [difficulty, setDifficulty] = useState(() => {
     if (typeof localStorage === "undefined") return "medium";
     const saved = localStorage.getItem(preferredDifficultyStorageKey);
@@ -630,6 +645,12 @@ function App() {
     }
   }, [selectedSubject]);
 
+  useEffect(() => {
+    if (questionType === "frq" && questionCount !== 1) {
+      setQuestionCount(1);
+    }
+  }, [questionType, questionCount]);
+
   // Listen for streaming events from backend
   useEffect(() => {
     const unlisten = listen<StreamEvent>("llm-stream", (event) => {
@@ -802,7 +823,7 @@ function App() {
       return;
     }
 
-    if (selectedTopics.length === 0) {
+    if (questionType !== "frq" && selectedTopics.length === 0) {
       setStatus("Please select at least one topic");
       return;
     }
@@ -831,6 +852,8 @@ function App() {
         count: questionCount,
         notes: notes || null,
         append: true,
+        question_type: questionType,
+        frq_question_type: questionType === "frq" ? frqQuestionType : undefined,
       };
 
       const allQuestions = await invoke<Question[]>("generate_questions", {
@@ -1542,6 +1565,12 @@ function App() {
         >
           <Sidebar
             topics={topics}
+            questionType={questionType}
+            questionTypeOptions={questionTypeOptions}
+            onQuestionTypeChange={setQuestionType}
+            frqQuestionType={frqQuestionType}
+            frqQuestionTypeOptions={frqQuestionTypeOptions}
+            onFrqQuestionTypeChange={setFrqQuestionType}
             selectedTopics={selectedTopics}
             onTopicsChange={setSelectedTopics}
             difficulty={difficulty}

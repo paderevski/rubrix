@@ -128,7 +128,11 @@ fn log_startup_env_diagnostics() {
     eprintln!("[Startup] Configuration diagnostics:");
     eprintln!(
         "[Startup] BEDROCK_GATEWAY_URL: {}",
-        if gateway_configured { "configured" } else { "missing" }
+        if gateway_configured {
+            "configured"
+        } else {
+            "missing"
+        }
     );
 
     if !gateway_configured {
@@ -139,21 +143,36 @@ fn log_startup_env_diagnostics() {
 
     eprintln!(
         "[Startup] BUG_REPORT_URL: {}",
-        if bug_url_configured { "configured" } else { "missing (bug submit disabled)" }
+        if bug_url_configured {
+            "configured"
+        } else {
+            "missing (bug submit disabled)"
+        }
     );
     eprintln!(
         "[Startup] BUG_REPORT_API_KEY: {}",
-        if bug_api_key_configured { "configured" } else { "not set" }
+        if bug_api_key_configured {
+            "configured"
+        } else {
+            "not set"
+        }
     );
     eprintln!(
         "[Startup] BUG_REPORT_BEARER_TOKEN: {}",
-        if bug_bearer_configured { "configured" } else { "not set" }
+        if bug_bearer_configured {
+            "configured"
+        } else {
+            "not set"
+        }
     );
 
     if let Some(path_str) = knowledge_override {
         let path = PathBuf::from(&path_str);
         if path.exists() {
-            eprintln!("[Startup] RUBRIX_KNOWLEDGE_DIR: configured ({})", path.display());
+            eprintln!(
+                "[Startup] RUBRIX_KNOWLEDGE_DIR: configured ({})",
+                path.display()
+            );
         } else {
             eprintln!(
                 "[Startup] RUBRIX_KNOWLEDGE_DIR: configured but path not found ({})",
@@ -258,12 +277,18 @@ fn topic_labels_for_prompt(
 pub struct Question {
     #[serde(default)]
     pub id: String,
-    #[serde(default)]
+    #[serde(default, alias = "question")]
     pub text: String, // Question text in markdown format (may include code blocks)
-    #[serde(alias = "options")]
+    #[serde(default, alias = "options")]
     pub answers: Vec<Answer>,
-    #[serde(default, deserialize_with = "de_opt_string_or_json")]
+    #[serde(
+        default,
+        alias = "solution",
+        deserialize_with = "de_opt_string_or_json"
+    )]
     pub explanation: Option<String>, // Correct answer explanation
+    #[serde(default, deserialize_with = "de_opt_string_or_json")]
+    pub rubric: Option<String>, // Optional scoring rubric (primarily FRQ)
     #[serde(default, deserialize_with = "de_opt_string_or_json")]
     pub distractors: Option<String>, // Why wrong answers are tempting
     #[serde(default)]
@@ -318,6 +343,10 @@ pub struct GenerationRequest {
     pub notes: Option<String>,
     #[serde(default)]
     pub append: bool, // If true, append to existing questions
+    #[serde(default)]
+    pub question_type: String, // "multiple_choice" | "frq"
+    #[serde(default)]
+    pub frq_question_type: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -877,15 +906,42 @@ async fn generate_questions(
         3, // Get up to 3 examples
     );
 
-    // Get prompt template for this subject
-    let prompt_template = state.knowledge.get_prompt(&request.subject);
-
     // Convert selected topic IDs to display names for the prompt while keeping IDs for retrieval
     let topics_label = topic_labels_for_prompt(&request.subject, &request.topics, &state.knowledge);
 
-    // Build prompt with JSON examples
-    let prompt =
-        prompts::build_generation_prompt(&request, &bank_examples, prompt_template, &topics_label);
+    // Build prompt based on generation mode.
+    let prompt = if request.question_type == "frq" {
+        let base_frq_prompt = state
+            .knowledge
+            .get_frq_prompt(&request.subject)
+            .or_else(|| state.knowledge.get_frq_prompt("Calculus"))
+            .unwrap_or(
+                "Generate exactly 1 Calculus FRQ about Taylor or Maclaurin series. Return exactly one <question>...</question> block containing ONLY a JSON array with fields: question, solution, rubric, subject, topics, difficulty.",
+            )
+            .to_string();
+
+        let mut frq_prompt = base_frq_prompt;
+
+        if let Some(frq_type) = request.frq_question_type.as_ref() {
+            if !frq_type.trim().is_empty() {
+                frq_prompt.push_str("\n\nRequested FRQ type: ");
+                frq_prompt.push_str(frq_type.trim());
+            }
+        }
+
+        if let Some(notes) = request.notes.as_ref() {
+            if !notes.trim().is_empty() {
+                frq_prompt.push_str("\n\nAdditional Instructions from User:\n");
+                frq_prompt.push_str(notes.trim());
+            }
+        }
+
+        frq_prompt
+    } else {
+        // Get prompt template for this subject
+        let prompt_template = state.knowledge.get_prompt(&request.subject);
+        prompts::build_generation_prompt(&request, &bank_examples, prompt_template, &topics_label)
+    };
 
     let gateway_auth = state
         .credentials
@@ -1038,92 +1094,88 @@ async fn regenerate_all_questions_parallel(
     let all_questions = snapshot.clone();
     let completed_counter = Arc::new(AtomicUsize::new(0));
 
-    let mut results: Vec<RegenerateAllQuestionResult> = stream::iter(
-        snapshot
-            .into_iter()
-            .enumerate()
-            .map(|(index, current)| {
-                let gateway_auth = gateway_auth.clone();
-                let all_questions = all_questions.clone();
-                let app_handle = app_handle.clone();
-                let completed_counter = Arc::clone(&completed_counter);
-                async move {
-                    let subject = if !current.subject.is_empty() {
-                        current.subject.clone()
-                    } else {
-                        "Computer Science".to_string()
-                    };
+    let mut results: Vec<RegenerateAllQuestionResult> =
+        stream::iter(snapshot.into_iter().enumerate().map(|(index, current)| {
+            let gateway_auth = gateway_auth.clone();
+            let all_questions = all_questions.clone();
+            let app_handle = app_handle.clone();
+            let completed_counter = Arc::clone(&completed_counter);
+            async move {
+                let subject = if !current.subject.is_empty() {
+                    current.subject.clone()
+                } else {
+                    "Computer Science".to_string()
+                };
 
-                    let topics: Vec<String> = if !current.topics.is_empty() {
-                        current.topics.clone()
-                    } else {
-                        vec!["recursion".to_string()]
-                    };
+                let topics: Vec<String> = if !current.topics.is_empty() {
+                    current.topics.clone()
+                } else {
+                    vec!["recursion".to_string()]
+                };
 
-                    let bank_examples = knowledge.get_bank_examples(&subject, &topics, None, 1);
-                    let regeneration_prompt_template = knowledge.get_regeneration_prompt(&subject);
-                    let topics_label = topic_labels_for_prompt(&subject, &topics, knowledge);
+                let bank_examples = knowledge.get_bank_examples(&subject, &topics, None, 1);
+                let regeneration_prompt_template = knowledge.get_regeneration_prompt(&subject);
+                let topics_label = topic_labels_for_prompt(&subject, &topics, knowledge);
 
-                    let prompt = prompts::build_regenerate_prompt(
-                        &current,
-                        &all_questions,
-                        &bank_examples,
-                        None,
-                        regeneration_prompt_template,
-                        Some(&topics_label),
-                    );
+                let prompt = prompts::build_regenerate_prompt(
+                    &current,
+                    &all_questions,
+                    &bank_examples,
+                    None,
+                    regeneration_prompt_template,
+                    Some(&topics_label),
+                );
 
-                    let result = match llm::generate(&prompt, None, gateway_auth).await {
-                        Ok(response) => match prompts::parse_llm_response(&response) {
-                            Ok(mut new_questions) if !new_questions.is_empty() => {
-                                let mut new_question = new_questions.remove(0);
-                                new_question.id = current.id.clone();
-                                new_question.subject = current.subject.clone();
-                                new_question.topics = current.topics.clone();
-                                new_question.difficulty = current.difficulty.clone();
+                let result = match llm::generate(&prompt, None, gateway_auth).await {
+                    Ok(response) => match prompts::parse_llm_response(&response) {
+                        Ok(mut new_questions) if !new_questions.is_empty() => {
+                            let mut new_question = new_questions.remove(0);
+                            new_question.id = current.id.clone();
+                            new_question.subject = current.subject.clone();
+                            new_question.topics = current.topics.clone();
+                            new_question.difficulty = current.difficulty.clone();
 
-                                RegenerateAllQuestionResult {
-                                    index,
-                                    question: Some(new_question),
-                                    error: None,
-                                }
+                            RegenerateAllQuestionResult {
+                                index,
+                                question: Some(new_question),
+                                error: None,
                             }
-                            Ok(_) => RegenerateAllQuestionResult {
-                                index,
-                                question: None,
-                                error: Some("Failed to generate replacement question".to_string()),
-                            },
-                            Err(err) => RegenerateAllQuestionResult {
-                                index,
-                                question: None,
-                                error: Some(err),
-                            },
+                        }
+                        Ok(_) => RegenerateAllQuestionResult {
+                            index,
+                            question: None,
+                            error: Some("Failed to generate replacement question".to_string()),
                         },
                         Err(err) => RegenerateAllQuestionResult {
                             index,
                             question: None,
                             error: Some(err),
                         },
-                    };
+                    },
+                    Err(err) => RegenerateAllQuestionResult {
+                        index,
+                        question: None,
+                        error: Some(err),
+                    },
+                };
 
-                    let completed = completed_counter.fetch_add(1, Ordering::SeqCst) + 1;
-                    let _ = app_handle.emit_all(
-                        "regenerate-all-progress",
-                        RegenerateAllProgressEvent {
-                            completed,
-                            total,
-                            index,
-                            success: result.question.is_some(),
-                        },
-                    );
+                let completed = completed_counter.fetch_add(1, Ordering::SeqCst) + 1;
+                let _ = app_handle.emit_all(
+                    "regenerate-all-progress",
+                    RegenerateAllProgressEvent {
+                        completed,
+                        total,
+                        index,
+                        success: result.question.is_some(),
+                    },
+                );
 
-                    result
-                }
-            }),
-    )
-    .buffer_unordered(concurrency)
-    .collect()
-    .await;
+                result
+            }
+        }))
+        .buffer_unordered(concurrency)
+        .collect()
+        .await;
 
     results.sort_by_key(|item| item.index);
 
@@ -1159,6 +1211,7 @@ fn add_question(state: State<AppState>) -> Question {
         id: format!("q{}", stored.len() + 1),
         text: "New question".to_string(),
         explanation: None,
+        rubric: None,
         distractors: None,
         subject: String::new(),
         topics: Vec::new(),

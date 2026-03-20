@@ -154,6 +154,8 @@ pub struct KnowledgeBase {
     pub prompts: HashMap<String, String>,
     /// Regeneration prompt templates for each subject
     pub regeneration_prompts: HashMap<String, String>,
+    /// FRQ generation prompt templates for each subject
+    pub frq_prompts: HashMap<String, String>,
 }
 
 impl KnowledgeBase {
@@ -162,6 +164,7 @@ impl KnowledgeBase {
         let mut subjects: HashMap<String, Vec<TopicInfo>> = HashMap::new();
         let mut prompts: HashMap<String, String> = HashMap::new();
         let mut regeneration_prompts: HashMap<String, String> = HashMap::new();
+        let mut frq_prompts: HashMap<String, String> = HashMap::new();
         let mut bank_entries: HashMap<String, Vec<QuestionBankEntry>> = HashMap::new();
         let mut topic_code_mappings: HashMap<String, HashMap<String, Vec<String>>> = HashMap::new();
 
@@ -373,6 +376,12 @@ impl KnowledgeBase {
                     subject_name
                 );
             }
+
+            // Load optional FRQ prompt template for this subject
+            let frq_prompt_filename = format!("{}/frq-test-prompt.txt", subject_name);
+            if let Some(content) = load_knowledge_file(&frq_prompt_filename) {
+                frq_prompts.insert(subject_name.to_string(), content);
+            }
         }
 
         println!("Loaded {} subjects", subjects.len());
@@ -386,6 +395,7 @@ impl KnowledgeBase {
             topic_code_mappings,
             prompts,
             regeneration_prompts,
+            frq_prompts,
         }
     }
 
@@ -505,5 +515,10 @@ impl KnowledgeBase {
     /// Get regeneration prompt template for a subject
     pub fn get_regeneration_prompt(&self, subject: &str) -> Option<&str> {
         self.regeneration_prompts.get(subject).map(|s| s.as_str())
+    }
+
+    /// Get FRQ prompt template for a subject
+    pub fn get_frq_prompt(&self, subject: &str) -> Option<&str> {
+        self.frq_prompts.get(subject).map(|s| s.as_str())
     }
 }

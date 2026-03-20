@@ -3,6 +3,7 @@ export interface Question {
   text: string; // Question text in markdown format (may include code blocks)
   answers: Answer[];
   explanation?: string; // Correct answer explanation
+  rubric?: string; // Optional rubric (primarily used for FRQ)
   distractors?: string; // Why wrong answers are tempting
   subject?: string;
   topics?: string[];
@@ -74,6 +75,8 @@ export interface GenerationRequest {
   count: number;
   notes: string | null;
   append: boolean;
+  question_type?: string;
+  frq_question_type?: string;
 }
 
 export interface WordExportOptions {

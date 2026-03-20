@@ -715,6 +715,10 @@ fn normalize_question_text(question: &mut Question) {
         question.explanation = Some(normalize_escaped_math_and_newlines(explanation));
     }
 
+    if let Some(rubric) = question.rubric.as_ref() {
+        question.rubric = Some(normalize_escaped_math_and_newlines(rubric));
+    }
+
     if let Some(distractors) = question.distractors.as_ref() {
         question.distractors = Some(normalize_escaped_math_and_newlines(distractors));
     }
@@ -1104,18 +1108,16 @@ Line 2",
         // Escaped delimiters are normalized to $...$ and $$...$$
         assert!(questions[0].text.contains("$f(x)=x^2$"));
         assert!(questions[0].text.contains("$$0,2$$"));
-        assert!(
-            questions[0]
-                .explanation
-                .as_deref()
-                .unwrap_or("")
-                .contains("$$f(x) = x^2$$")
-        );
+        assert!(questions[0]
+            .explanation
+            .as_deref()
+            .unwrap_or("")
+            .contains("$$f(x) = x^2$$"));
     }
 
-        #[test]
-        fn test_parse_prefers_question_tag_block_over_outer_arrays() {
-                let input = r#"Some accidental array before the tagged payload:
+    #[test]
+    fn test_parse_prefers_question_tag_block_over_outer_arrays() {
+        let input = r#"Some accidental array before the tagged payload:
 [
     {"text": "Not a question object"}
 ]
@@ -1133,23 +1135,23 @@ Line 2",
 </question>
 "#;
 
-                let questions = parse_llm_response(input).unwrap();
-                assert_eq!(questions.len(), 1);
-                assert_eq!(questions[0].text, "Tagged question");
-                assert_eq!(questions[0].answers.len(), 2);
-                assert!(questions[0].answers[0].is_correct);
-        }
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert_eq!(questions[0].text, "Tagged question");
+        assert_eq!(questions[0].answers.len(), 2);
+        assert!(questions[0].answers[0].is_correct);
+    }
 
-        #[test]
-        fn test_parse_errors_when_question_tags_have_no_json_array() {
-                let input = r#"<question>no json here</question>"#;
-                let err = parse_llm_response(input).unwrap_err();
-                assert!(err.contains("<question>...</question>"));
-        }
+    #[test]
+    fn test_parse_errors_when_question_tags_have_no_json_array() {
+        let input = r#"<question>no json here</question>"#;
+        let err = parse_llm_response(input).unwrap_err();
+        assert!(err.contains("<question>...</question>"));
+    }
 
-        #[test]
-        fn test_parse_handles_question_tag_case_and_whitespace() {
-                let input = r#"<QUESTION   >
+    #[test]
+    fn test_parse_handles_question_tag_case_and_whitespace() {
+        let input = r#"<QUESTION   >
 [
     {
         "text": "Case insensitive tagged question",
@@ -1160,14 +1162,14 @@ Line 2",
 ]
 </Question   >"#;
 
-                let questions = parse_llm_response(input).unwrap();
-                assert_eq!(questions.len(), 1);
-                assert_eq!(questions[0].text, "Case insensitive tagged question");
-        }
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert_eq!(questions[0].text, "Case insensitive tagged question");
+    }
 
-        #[test]
-        fn test_parse_ignores_non_question_similar_tag_name() {
-                let input = r#"<questionnaire>ignore me</questionnaire>
+    #[test]
+    fn test_parse_ignores_non_question_similar_tag_name() {
+        let input = r#"<questionnaire>ignore me</questionnaire>
 <question>
 [
     {
@@ -1179,14 +1181,14 @@ Line 2",
 ]
 </question>"#;
 
-                let questions = parse_llm_response(input).unwrap();
-                assert_eq!(questions.len(), 1);
-                assert_eq!(questions[0].text, "Real tagged question");
-        }
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert_eq!(questions[0].text, "Real tagged question");
+    }
 
-        #[test]
-        fn test_parse_handles_unpaired_reasoning_tag_before_final_answer_tag() {
-                let input = r#"Reasoning stream token: <question>
+    #[test]
+    fn test_parse_handles_unpaired_reasoning_tag_before_final_answer_tag() {
+        let input = r#"Reasoning stream token: <question>
 Some scratch text and partial structures.
 
 Assistant final:
@@ -1202,16 +1204,16 @@ Assistant final:
 ]
 </question>"#;
 
-                let questions = parse_llm_response(input).unwrap();
-                assert_eq!(questions.len(), 1);
-                assert_eq!(questions[0].text, "Final tagged question");
-                assert_eq!(questions[0].answers.len(), 2);
-                assert!(questions[0].answers[0].is_correct);
-        }
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert_eq!(questions[0].text, "Final tagged question");
+        assert_eq!(questions[0].answers.len(), 2);
+        assert!(questions[0].answers[0].is_correct);
+    }
 
-        #[test]
-        fn test_parse_salvages_valid_items_when_one_object_is_malformed() {
-                let input = r#"[
+    #[test]
+    fn test_parse_salvages_valid_items_when_one_object_is_malformed() {
+        let input = r#"[
     {
         "text": "Valid question 1",
         "answers": [
@@ -1234,9 +1236,9 @@ Assistant final:
     }
 ]"#;
 
-                let questions = parse_llm_response(input).unwrap();
-                assert_eq!(questions.len(), 2);
-                assert_eq!(questions[0].text, "Valid question 1");
-                assert_eq!(questions[1].text, "Valid question 2");
-        }
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 2);
+        assert_eq!(questions[0].text, "Valid question 1");
+        assert_eq!(questions[1].text, "Valid question 2");
+    }
 }

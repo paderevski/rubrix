@@ -145,6 +145,7 @@ export default function QuestionCard({
   const [showInstructions, setShowInstructions] = useState(false);
   const [instructions, setInstructions] = useState("");
   const [showExplanation, setShowExplanation] = useState(false);
+  const [showRubric, setShowRubric] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
 
   const iconButtonBase = "p-1.5 rounded transition-colors";
@@ -153,7 +154,10 @@ export default function QuestionCard({
 
   const explanationContent = question.explanation?.trim() ?? "";
   const formattedExplanation = formatExplanation(explanationContent);
-  const hasExplanation = Boolean(formattedExplanation);
+  const hasSolution = Boolean(formattedExplanation);
+  const rubricContent = question.rubric?.trim() ?? "";
+  const hasRubric = Boolean(rubricContent);
+  const hasAnswers = Array.isArray(question.answers) && question.answers.length > 0;
   const liveRaw = liveRawText?.trim() ?? "";
   const storedRaw = rawText?.trim() ?? "";
   const activeRaw = liveRaw || storedRaw;
@@ -301,45 +305,47 @@ export default function QuestionCard({
             <RichMarkdown content={question.text} />
           </div>
 
-        {/* Answers */}
-        <div className="space-y-2">
-          {question.answers.map((answer, i) => (
-            <div
-              key={i}
-              className={`flex items-start gap-2 px-3 py-2 rounded-md ${
-                answer.is_correct
-                  ? "bg-green-50 border border-green-200"
-                  : "bg-secondary/50"
-              }`}
-            >
-              <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium bg-white border">
-                {String.fromCharCode(65 + i)}
-              </span>
-              <div className="flex-1 text-sm">
-                <RichMarkdown
-                  content={answer.text}
-                  components={{
-                    p({ children }: any) {
-                      return <>{children}</>;
-                    },
-                  }}
-                />
+        {/* Answers (MCQ) */}
+        {hasAnswers && (
+          <div className="space-y-2">
+            {question.answers.map((answer, i) => (
+              <div
+                key={i}
+                className={`flex items-start gap-2 px-3 py-2 rounded-md ${
+                  answer.is_correct
+                    ? "bg-green-50 border border-green-200"
+                    : "bg-secondary/50"
+                }`}
+              >
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium bg-white border">
+                  {String.fromCharCode(65 + i)}
+                </span>
+                <div className="flex-1 text-sm">
+                  <RichMarkdown
+                    content={answer.text}
+                    components={{
+                      p({ children }: any) {
+                        return <>{children}</>;
+                      },
+                    }}
+                  />
+                </div>
+                {answer.is_correct && (
+                  <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+                )}
               </div>
-              {answer.is_correct && (
-                <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
-              )}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-          {hasExplanation && (
+          {hasSolution && (
             <div className="mt-4 border border-slate-200 rounded-lg">
               <button
                 type="button"
                 onClick={() => setShowExplanation((prev) => !prev)}
                 className="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-foreground bg-secondary/50 hover:bg-secondary transition-colors"
               >
-                <span>Explanation</span>
+                <span>Solution</span>
                 {showExplanation ? (
                   <ChevronUp className="w-4 h-4" />
                 ) : (
@@ -349,6 +355,28 @@ export default function QuestionCard({
               {showExplanation && (
                 <div className="prose px-4 py-3 border-t border-slate-200 bg-white">
                   <RichMarkdown content={formattedExplanation} />
+                </div>
+              )}
+            </div>
+          )}
+
+          {hasRubric && (
+            <div className="mt-4 border border-slate-200 rounded-lg">
+              <button
+                type="button"
+                onClick={() => setShowRubric((prev) => !prev)}
+                className="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-foreground bg-secondary/50 hover:bg-secondary transition-colors"
+              >
+                <span>Rubric</span>
+                {showRubric ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </button>
+              {showRubric && (
+                <div className="prose px-4 py-3 border-t border-slate-200 bg-white">
+                  <RichMarkdown content={rubricContent} />
                 </div>
               )}
             </div>
