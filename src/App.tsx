@@ -664,6 +664,14 @@ function App() {
       if (blockType) {
         let nextText = latestStreamingTextRef.current;
 
+        if (payload.reasoning_done && !hasInsertedReasoningEndMarkerRef.current) {
+          if (nextText.trim().length > 0) {
+            nextText += "\n\n";
+          }
+          nextText += "[REASONING DONE]\n\n";
+          hasInsertedReasoningEndMarkerRef.current = true;
+        }
+
         if (blockType === "reasoning_end") {
           if (!hasInsertedReasoningEndMarkerRef.current) {
             nextText += "\n\n[REASONING DONE]\n\n";
@@ -687,8 +695,18 @@ function App() {
         latestStreamingTextRef.current = nextText;
       } else {
         // Backward compatibility for legacy emitters that send full-buffer text.
-        setStreamingText(payload.text);
-        latestStreamingTextRef.current = payload.text;
+        // Ignore empty payloads so final done events do not wipe visible stream text.
+        if (payload.text) {
+          setStreamingText(payload.text);
+          latestStreamingTextRef.current = payload.text;
+        }
+
+        if (payload.reasoning_done && !hasInsertedReasoningEndMarkerRef.current) {
+          const nextText = `${latestStreamingTextRef.current}\n\n[REASONING DONE]\n\n`;
+          setStreamingText(nextText);
+          latestStreamingTextRef.current = nextText;
+          hasInsertedReasoningEndMarkerRef.current = true;
+        }
       }
 
       setStreamingComplete(event.payload.done);
