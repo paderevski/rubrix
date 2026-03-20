@@ -3,10 +3,9 @@ const streamifyResponse =
   typeof globalThis.awslambda.streamifyResponse === "function"
     ? globalThis.awslambda.streamifyResponse
     : null;
-const { TextDecoder } = require("util");
 const {
   BedrockRuntimeClient,
-  InvokeModelWithResponseStreamCommand,
+  ConverseStreamCommand,
 } = require("@aws-sdk/client-bedrock-runtime");
 const { SSMClient, GetParameterCommand } = require("@aws-sdk/client-ssm");
 const {
@@ -28,6 +27,17 @@ const REASONING_EFFORT = process.env.BEDROCK_REASONING_EFFORT || "medium";
 const MAX_TOKENS = process.env.BEDROCK_MAX_TOKENS
   ? Number(process.env.BEDROCK_MAX_TOKENS)
   : 20480;
+const TEMPERATURE = process.env.BEDROCK_TEMPERATURE
+  ? Number(process.env.BEDROCK_TEMPERATURE)
+  : undefined;
+const TOP_P = process.env.BEDROCK_TOP_P
+  ? Number(process.env.BEDROCK_TOP_P)
+  : undefined;
+const STOP_SEQUENCES = process.env.BEDROCK_STOP_SEQUENCES
+  ? process.env.BEDROCK_STOP_SEQUENCES.split(",")
+      .map((item) => item.trim())
+      .filter(Boolean)
+  : [];
 const USAGE_TABLE_NAME = "catieBedrockUsage";
 const USAGE_DEFAULT_BUDGET = 1000000;
 const USAGE_MAX_TEXT_BYTES = 300000;
@@ -51,10 +61,13 @@ function normalizeUser(user) {
   return sanitized;
 }
 
-function sseEvent(text, done, remainingTokens = null) {
+function sseEvent(text, done, remainingTokens = null, meta = null) {
   const payload = { text, done };
   if (Number.isFinite(remainingTokens)) {
     payload.remaining_tokens = remainingTokens;
+  }
+  if (meta && typeof meta === "object") {
+    Object.assign(payload, meta);
   }
   return `data: ${JSON.stringify(payload)}\n\n`;
 }
@@ -71,61 +84,207 @@ function computeProjectedRemainingTokens(usageRecord, usageTokens) {
   return Math.max(currentRemaining - usedTokens, 0);
 }
 
-function extractTextFromPayload(payload) {
-  if (!payload || typeof payload !== "object") {
+function detectBlockTypeFromStart(start) {
+  if (!start || typeof start !== "object") {
     return null;
   }
 
-  if (Array.isArray(payload.choices) && payload.choices.length > 0) {
-    const choice = payload.choices[0];
-    if (choice && typeof choice === "object") {
-      const delta = choice.delta || {};
-      if (delta && typeof delta === "object" && delta.content) {
-        return delta.content;
-      }
-      const message = choice.message || {};
-      if (message && typeof message === "object" && message.content) {
-        return message.content;
-      }
-      if (choice.text) {
-        return choice.text;
-      }
-    }
+  if (
+    typeof start.reasoningText === "string" ||
+    typeof start.reasoningContent?.text === "string" ||
+    typeof start.reasoningContent?.reasoningText?.text === "string" ||
+    start.reasoningContent
+  ) {
+    return "reasoning";
   }
 
-  if (typeof payload.content === "string") {
-    return payload.content;
-  }
-
-  if (Array.isArray(payload.content)) {
-    return payload.content.filter((part) => typeof part === "string").join("");
+  if (typeof start.text === "string") {
+    return "response";
   }
 
   return null;
 }
 
-function extractUsageFromPayload(payload) {
-  if (!payload || typeof payload !== "object") {
+function extractTextFromConverseEvent(eventChunk, usageState) {
+  if (!eventChunk || typeof eventChunk !== "object") {
     return null;
   }
 
-  const usage = payload.usage;
-  if (usage && typeof usage === "object") {
-    const promptTokens = Number.isFinite(usage.prompt_tokens)
-      ? usage.prompt_tokens
-      : null;
-    const completionTokens = Number.isFinite(usage.completion_tokens)
-      ? usage.completion_tokens
-      : null;
-    const cachedTokens = Number.isFinite(usage.cached_tokens)
-      ? usage.cached_tokens
-      : null;
-    if (Number.isFinite(usage.total_tokens)) {
+  const deltaEvent = eventChunk.contentBlockDelta;
+  const delta = deltaEvent?.delta;
+  if (delta && typeof delta === "object") {
+    if (typeof delta.text === "string" && delta.text.length > 0) {
       return {
-        totalTokens: usage.total_tokens,
+        text: delta.text,
+        blockType: "response",
+        contentBlockIndex: Number.isInteger(deltaEvent?.contentBlockIndex)
+          ? deltaEvent.contentBlockIndex
+          : null,
+      };
+    }
+
+    // Some reasoning-capable models can emit reasoning text blocks.
+    const reasoningText = delta.reasoningContent?.reasoningText?.text;
+    if (typeof reasoningText === "string" && reasoningText.length > 0) {
+      return {
+        text: reasoningText,
+        blockType: "reasoning",
+        contentBlockIndex: Number.isInteger(deltaEvent?.contentBlockIndex)
+          ? deltaEvent.contentBlockIndex
+          : null,
+      };
+    }
+
+    // Some providers emit reasoning text directly on reasoningContent.text.
+    const reasoningContentText = delta.reasoningContent?.text;
+    if (
+      typeof reasoningContentText === "string" &&
+      reasoningContentText.length > 0
+    ) {
+      return {
+        text: reasoningContentText,
+        blockType: "reasoning",
+        contentBlockIndex: Number.isInteger(deltaEvent?.contentBlockIndex)
+          ? deltaEvent.contentBlockIndex
+          : null,
+      };
+    }
+
+    if (
+      typeof delta.reasoningText === "string" &&
+      delta.reasoningText.length > 0
+    ) {
+      return {
+        text: delta.reasoningText,
+        blockType: "reasoning",
+        contentBlockIndex: Number.isInteger(deltaEvent?.contentBlockIndex)
+          ? deltaEvent.contentBlockIndex
+          : null,
+      };
+    }
+  }
+
+  const startEvent = eventChunk.contentBlockStart;
+  const start = startEvent?.start;
+  if (start && typeof start === "object" && typeof start.text === "string") {
+    return {
+      text: start.text,
+      blockType: "response",
+      contentBlockIndex: Number.isInteger(startEvent?.contentBlockIndex)
+        ? startEvent.contentBlockIndex
+        : null,
+    };
+  }
+
+  const startReasoningText = start?.reasoningContent?.reasoningText?.text;
+  if (typeof startReasoningText === "string" && startReasoningText.length > 0) {
+    return {
+      text: startReasoningText,
+      blockType: "reasoning",
+      contentBlockIndex: Number.isInteger(startEvent?.contentBlockIndex)
+        ? startEvent.contentBlockIndex
+        : null,
+    };
+  }
+
+  const startReasoningContentText = start?.reasoningContent?.text;
+  if (
+    typeof startReasoningContentText === "string" &&
+    startReasoningContentText.length > 0
+  ) {
+    return {
+      text: startReasoningContentText,
+      blockType: "reasoning",
+      contentBlockIndex: Number.isInteger(startEvent?.contentBlockIndex)
+        ? startEvent.contentBlockIndex
+        : null,
+    };
+  }
+
+  const outputMessage = eventChunk.messageStart?.message;
+  if (outputMessage && Array.isArray(outputMessage.content)) {
+    for (const part of outputMessage.content) {
+      if (!part || typeof part !== "object") {
+        continue;
+      }
+      if (typeof part.text === "string" && part.text.length > 0) {
+        return {
+          text: part.text,
+          blockType: "response",
+          contentBlockIndex: null,
+        };
+      }
+      if (
+        typeof part.reasoningText === "string" &&
+        part.reasoningText.length > 0
+      ) {
+        return {
+          text: part.reasoningText,
+          blockType: "reasoning",
+          contentBlockIndex: null,
+        };
+      }
+      if (
+        typeof part.reasoningContent?.text === "string" &&
+        part.reasoningContent.text.length > 0
+      ) {
+        return {
+          text: part.reasoningContent.text,
+          blockType: "reasoning",
+          contentBlockIndex: null,
+        };
+      }
+      if (
+        typeof part.reasoningContent?.reasoningText?.text === "string" &&
+        part.reasoningContent.reasoningText.text.length > 0
+      ) {
+        return {
+          text: part.reasoningContent.reasoningText.text,
+          blockType: "reasoning",
+          contentBlockIndex: null,
+        };
+      }
+    }
+  }
+
+  const deltaIndex = Number.isInteger(deltaEvent?.contentBlockIndex)
+    ? deltaEvent.contentBlockIndex
+    : null;
+  if (
+    deltaIndex !== null &&
+    usageState &&
+    usageState.blockTypesByIndex &&
+    usageState.blockTypesByIndex[deltaIndex]
+  ) {
+    return {
+      text: null,
+      blockType: usageState.blockTypesByIndex[deltaIndex],
+      contentBlockIndex: deltaIndex,
+    };
+  }
+
+  return null;
+}
+
+function extractUsageFromConverseEvent(eventChunk) {
+  if (!eventChunk || typeof eventChunk !== "object") {
+    return null;
+  }
+
+  const usage = eventChunk.metadata?.usage || eventChunk.usage;
+  if (usage && typeof usage === "object") {
+    const promptTokens = Number.isFinite(usage.inputTokens)
+      ? usage.inputTokens
+      : null;
+    const completionTokens = Number.isFinite(usage.outputTokens)
+      ? usage.outputTokens
+      : null;
+    if (Number.isFinite(usage.totalTokens)) {
+      return {
+        totalTokens: usage.totalTokens,
         promptTokens,
         completionTokens,
-        cachedTokens,
+        cachedTokens: null,
       };
     }
     const promptValue = Number.isFinite(promptTokens) ? promptTokens : 0;
@@ -138,7 +297,7 @@ function extractUsageFromPayload(payload) {
         totalTokens: total,
         promptTokens,
         completionTokens,
-        cachedTokens,
+        cachedTokens: null,
       };
     }
   }
@@ -199,55 +358,74 @@ function appendChunkWithLimit(state, chunk) {
   state.responseTruncated = true;
 }
 
-function handleRawChunk(rawText, responseStream, usageState) {
-  const lines = rawText.split(/\r?\n/);
-  let handled = false;
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith("data:")) {
-      continue;
-    }
-
-    handled = true;
-    const payloadText = trimmed.slice(5).trim();
-    if (!payloadText || payloadText === "[DONE]") {
-      continue;
-    }
-
-    try {
-      const payload = JSON.parse(payloadText);
-      const usageTokens = extractUsageFromPayload(payload);
-      if (usageTokens && Number.isFinite(usageTokens.totalTokens)) {
-        usageState.tokens = usageTokens;
+function handleConverseEvent(eventChunk, responseStream, usageState) {
+  const startEvent = eventChunk?.contentBlockStart;
+  if (startEvent && Number.isInteger(startEvent.contentBlockIndex)) {
+    const blockType = detectBlockTypeFromStart(startEvent.start);
+    if (blockType) {
+      usageState.blockTypesByIndex[startEvent.contentBlockIndex] = blockType;
+      if (blockType === "reasoning") {
+        usageState.reasoningSeen = true;
+        usageState.activeReasoningBlocks += 1;
       }
-      const text = extractTextFromPayload(payload);
-      if (text) {
-        responseStream.write(sseEvent(text, false));
-        appendChunkWithLimit(usageState, text);
-      }
-    } catch (error) {
-      console.warn("Failed to parse Bedrock chunk", error);
     }
   }
 
-  if (handled) {
-    return;
+  const stopEvent = eventChunk?.contentBlockStop;
+  if (stopEvent && Number.isInteger(stopEvent.contentBlockIndex)) {
+    const blockType = usageState.blockTypesByIndex[stopEvent.contentBlockIndex];
+    if (blockType === "reasoning") {
+      usageState.activeReasoningBlocks = Math.max(
+        usageState.activeReasoningBlocks - 1,
+        0,
+      );
+      if (
+        usageState.reasoningSeen &&
+        usageState.activeReasoningBlocks === 0 &&
+        !usageState.reasoningEndSent
+      ) {
+        usageState.reasoningEndSent = true;
+        responseStream.write(
+          sseEvent("", false, null, {
+            block_type: "reasoning_end",
+            reasoning_done: true,
+          }),
+        );
+      }
+    }
+    delete usageState.blockTypesByIndex[stopEvent.contentBlockIndex];
   }
 
-  try {
-    const payload = JSON.parse(rawText);
-    const usageTokens = extractUsageFromPayload(payload);
-    if (usageTokens && Number.isFinite(usageTokens.totalTokens)) {
-      usageState.tokens = usageTokens;
+  const usageTokens = extractUsageFromConverseEvent(eventChunk);
+  if (usageTokens && Number.isFinite(usageTokens.totalTokens)) {
+    usageState.tokens = usageTokens;
+  }
+
+  const extracted = extractTextFromConverseEvent(eventChunk, usageState);
+  if (extracted && extracted.text) {
+    const blockType = extracted.blockType || "response";
+
+    if (
+      blockType === "response" &&
+      usageState.reasoningSeen &&
+      !usageState.reasoningEndSent
+    ) {
+      usageState.reasoningEndSent = true;
+      responseStream.write(
+        sseEvent("", false, null, {
+          block_type: "reasoning_end",
+          reasoning_done: true,
+        }),
+      );
     }
-    const text = extractTextFromPayload(payload);
-    if (text) {
-      responseStream.write(sseEvent(text, false));
-      appendChunkWithLimit(usageState, text);
-    }
-  } catch (error) {
-    console.warn("Failed to parse Bedrock payload", error);
+
+    responseStream.write(
+      sseEvent(extracted.text, false, null, {
+        block_type: blockType,
+        reasoning_done: usageState.reasoningEndSent,
+      }),
+    );
+    appendChunkWithLimit(usageState, extracted.text);
   }
 }
 
@@ -362,17 +540,43 @@ const streamingHandler = async (event, responseStream) => {
     }
   }
 
-  const requestBody = {
-    model: MODEL_ID,
-    messages: [{ role: "user", content: prompt }],
-    reasoning_effort: REASONING_EFFORT,
-    stream: true,
-    stream_options: { include_usage: true },
-  };
-
+  const inferenceConfig = {};
   if (Number.isFinite(MAX_TOKENS)) {
-    requestBody.max_tokens = MAX_TOKENS;
+    inferenceConfig.maxTokens = MAX_TOKENS;
   }
+  if (Number.isFinite(TEMPERATURE)) {
+    inferenceConfig.temperature = TEMPERATURE;
+  }
+  if (Number.isFinite(TOP_P)) {
+    inferenceConfig.topP = TOP_P;
+  }
+  if (STOP_SEQUENCES.length > 0) {
+    inferenceConfig.stopSequences = STOP_SEQUENCES;
+  }
+
+  const additionalModelRequestFields = {};
+  if (
+    typeof MODEL_ID === "string" &&
+    MODEL_ID.startsWith("openai.gpt-oss") &&
+    typeof REASONING_EFFORT === "string" &&
+    REASONING_EFFORT.trim()
+  ) {
+    additionalModelRequestFields.reasoning_effort = REASONING_EFFORT.trim();
+  }
+
+  const requestBody = {
+    modelId: MODEL_ID,
+    messages: [
+      {
+        role: "user",
+        content: [{ text: prompt }],
+      },
+    ],
+    ...(Object.keys(inferenceConfig).length > 0 ? { inferenceConfig } : {}),
+    ...(Object.keys(additionalModelRequestFields).length > 0
+      ? { additionalModelRequestFields }
+      : {}),
+  };
 
   if (typeof responseStream.setContentType === "function") {
     responseStream.setContentType("text/event-stream");
@@ -393,28 +597,18 @@ const streamingHandler = async (event, responseStream) => {
     prompt: promptResult.text,
     promptBytes: promptResult.bytes,
     promptTruncated: promptResult.truncated,
+    blockTypesByIndex: {},
+    activeReasoningBlocks: 0,
+    reasoningSeen: false,
+    reasoningEndSent: false,
   };
 
   try {
-    const command = new InvokeModelWithResponseStreamCommand({
-      modelId: MODEL_ID,
-      contentType: "application/json",
-      accept: "application/json",
-      body: JSON.stringify(requestBody),
-    });
+    const command = new ConverseStreamCommand(requestBody);
     const response = await bedrock.send(command);
 
-    const decoder = new TextDecoder("utf-8");
-
-    for await (const eventChunk of response.body) {
-      const chunk = eventChunk.chunk;
-      if (!chunk || !chunk.bytes) {
-        continue;
-      }
-      const rawText = decoder.decode(chunk.bytes, { stream: false }).trim();
-      if (rawText) {
-        handleRawChunk(rawText, responseStream, usageState);
-      }
+    for await (const eventChunk of response.stream || []) {
+      handleConverseEvent(eventChunk, responseStream, usageState);
     }
 
     const projectedRemaining = computeProjectedRemainingTokens(

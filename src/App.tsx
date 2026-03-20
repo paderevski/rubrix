@@ -34,6 +34,8 @@ interface StreamEvent {
   text: string;
   done: boolean;
   remaining_tokens?: number;
+  block_type?: "reasoning" | "response" | "reasoning_end";
+  reasoning_done?: boolean;
 }
 
 interface RegenerateAllQuestionResult {
@@ -361,6 +363,8 @@ function App() {
   const [regeneratingQuestionId, setRegeneratingQuestionId] = useState<string | null>(null);
   const [isRegeneratingAll, setIsRegeneratingAll] = useState(false);
   const latestStreamingTextRef = useRef("");
+  const lastStreamBlockTypeRef = useRef<"reasoning" | "response" | null>(null);
+  const hasInsertedReasoningEndMarkerRef = useRef(false);
   const [activeTab, setActiveTab] = useState<"generate" | "bank">("generate");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [wordGeneratePreset, setWordGeneratePreset] = useState<WordPreset>(() => {
@@ -654,8 +658,39 @@ function App() {
   // Listen for streaming events from backend
   useEffect(() => {
     const unlisten = listen<StreamEvent>("llm-stream", (event) => {
-      setStreamingText(event.payload.text);
-      latestStreamingTextRef.current = event.payload.text;
+      const payload = event.payload;
+      const blockType = payload.block_type;
+
+      if (blockType) {
+        let nextText = latestStreamingTextRef.current;
+
+        if (blockType === "reasoning_end") {
+          if (!hasInsertedReasoningEndMarkerRef.current) {
+            nextText += "\n\n[REASONING DONE]\n\n";
+            hasInsertedReasoningEndMarkerRef.current = true;
+          }
+        } else {
+          if (lastStreamBlockTypeRef.current !== blockType) {
+            if (nextText.trim().length > 0) {
+              nextText += "\n\n";
+            }
+            nextText += blockType === "reasoning" ? "[REASONING]\n" : "[RESPONSE]\n";
+            lastStreamBlockTypeRef.current = blockType;
+          }
+
+          if (payload.text) {
+            nextText += payload.text;
+          }
+        }
+
+        setStreamingText(nextText);
+        latestStreamingTextRef.current = nextText;
+      } else {
+        // Backward compatibility for legacy emitters that send full-buffer text.
+        setStreamingText(payload.text);
+        latestStreamingTextRef.current = payload.text;
+      }
+
       setStreamingComplete(event.payload.done);
       if (typeof event.payload.remaining_tokens === "number") {
         setRemainingTokens(event.payload.remaining_tokens);
@@ -839,6 +874,8 @@ function App() {
     const previousQuestionCount = questions.length;
     setStreamingText("");
     latestStreamingTextRef.current = "";
+    lastStreamBlockTypeRef.current = null;
+    hasInsertedReasoningEndMarkerRef.current = false;
     setStreamingComplete(false);
     setShowPreview(true);
     setRegeneratingQuestionId(null);
@@ -927,6 +964,8 @@ function App() {
     setRegeneratingQuestionId(previousQuestionId ?? null);
     setStreamingText("");
     latestStreamingTextRef.current = "";
+    lastStreamBlockTypeRef.current = null;
+    hasInsertedReasoningEndMarkerRef.current = false;
     setStreamingComplete(false);
     setShowPreview(true);
 
@@ -982,6 +1021,8 @@ function App() {
     setRegeneratingQuestionId(null);
     setStreamingText("");
     latestStreamingTextRef.current = "";
+    lastStreamBlockTypeRef.current = null;
+    hasInsertedReasoningEndMarkerRef.current = false;
     setStreamingComplete(true);
     setShowPreview(false);
     setStatus(`Regenerating ${total} questions...`);
@@ -1301,6 +1342,8 @@ function App() {
     setRawTextByQuestionId({});
     setStreamingText("");
     latestStreamingTextRef.current = "";
+    lastStreamBlockTypeRef.current = null;
+    hasInsertedReasoningEndMarkerRef.current = false;
     setStreamingComplete(false);
     setRegeneratingQuestionId(null);
     setCurrentDocumentPath(null);
@@ -1329,6 +1372,8 @@ function App() {
     setRawTextByQuestionId({});
     setStreamingText("");
     latestStreamingTextRef.current = "";
+    lastStreamBlockTypeRef.current = null;
+    hasInsertedReasoningEndMarkerRef.current = false;
     setStreamingComplete(false);
     setRegeneratingQuestionId(null);
     setCurrentDocumentPath(null);
