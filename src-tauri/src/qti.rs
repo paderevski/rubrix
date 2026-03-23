@@ -361,7 +361,7 @@ pub fn export_md_with_options(
     let mut output = format!("# {}\n\n", title);
     let mut rng = thread_rng();
     let mut answer_key: Vec<(usize, char)> = Vec::new();
-    let mut explanation_key: Vec<(usize, String)> = Vec::new();
+    let mut solution_key: Vec<(usize, Option<String>, Option<String>)> = Vec::new();
     let mut ordered_questions = questions.to_vec();
 
     if options.shuffle_questions {
@@ -398,15 +398,26 @@ pub fn export_md_with_options(
         }
 
         if options.include_explanations_section {
-            if let Some(explanation) = q
+            let explanation = q
                 .explanation
                 .as_ref()
                 .map(|value| value.trim())
                 .filter(|value| !value.is_empty())
-            {
-                let normalized =
-                    convert_codeblock_tables_to_markdown(&normalize_math_delimiters(explanation));
-                explanation_key.push((i + 1, normalized));
+                .map(|value| {
+                    convert_codeblock_tables_to_markdown(&normalize_math_delimiters(value))
+                });
+
+            let rubric = q
+                .rubric
+                .as_ref()
+                .map(|value| value.trim())
+                .filter(|value| !value.is_empty())
+                .map(|value| {
+                    convert_codeblock_tables_to_markdown(&normalize_math_delimiters(value))
+                });
+
+            if explanation.is_some() || rubric.is_some() {
+                solution_key.push((i + 1, explanation, rubric));
             }
         }
 
@@ -420,10 +431,19 @@ pub fn export_md_with_options(
         }
     }
 
-    if options.include_explanations_section && !explanation_key.is_empty() {
-        output.push_str("\n## Explanations\n\n");
-        for (number, explanation) in explanation_key {
-            output.push_str(&format!("### Question {}\n\n{}\n\n", number, explanation));
+    if options.include_explanations_section && !solution_key.is_empty() {
+        output.push_str("\n## Solutions and Rubrics\n\n");
+        for (number, explanation, rubric) in solution_key {
+            output.push_str(&format!("### Question {}\n\n", number));
+
+            if let Some(explanation) = explanation {
+                output.push_str(&format!("{}\n\n", explanation));
+            }
+
+            if let Some(rubric) = rubric {
+                output.push_str("**Rubric:**\n\n");
+                output.push_str(&format!("{}\n\n", rubric));
+            }
         }
     }
 
