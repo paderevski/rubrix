@@ -17,8 +17,12 @@ const {
 const { marshall, unmarshall } = require("@aws-sdk/util-dynamodb");
 
 const AWS_REGION = "us-east-1";
+const BEDROCK_REGION_US_WEST_2 = "us-west-2";
 const ssm = new SSMClient({ region: AWS_REGION });
 const bedrock = new BedrockRuntimeClient({ region: AWS_REGION });
+const bedrockUsWest2 = new BedrockRuntimeClient({
+  region: BEDROCK_REGION_US_WEST_2,
+});
 const usageRegion = "us-east-1";
 const usageDb = new DynamoDBClient({ region: usageRegion });
 
@@ -26,7 +30,7 @@ const MODEL_ID = process.env.BEDROCK_MODEL_ID || "openai.gpt-oss-120b-1:0";
 const FRQ_MODEL_ID =
   process.env.BEDROCK_MODEL_ID_FRQ ||
   process.env.BEDROCK_FRQ_MODEL_ID ||
-  "deepseek.v3-1:0";
+  "us.deepseek.r1-v1:0";
 const REASONING_EFFORT = process.env.BEDROCK_REASONING_EFFORT || "medium";
 const MAX_TOKENS = process.env.BEDROCK_MAX_TOKENS
   ? Number(process.env.BEDROCK_MAX_TOKENS)
@@ -46,7 +50,40 @@ const USAGE_TABLE_NAME = "catieBedrockUsage";
 const USAGE_DEFAULT_BUDGET = 1000000;
 const USAGE_MAX_TEXT_BYTES = 300000;
 
-function buildErrorResponse(responseStream, statusCode, message) {
+function logGatewayError(code, message, details = null) {
+  const entry = {
+    level: "error",
+    source: "bedrock_gateway",
+    timestamp: new Date().toISOString(),
+    code,
+    message,
+    ...(details && typeof details === "object" ? { details } : {}),
+  };
+
+  const serialized = JSON.stringify(entry);
+
+  // CloudWatch captures console.error as stderr and console.log as stdout.
+  console.error(serialized);
+  console.log(serialized);
+
+  if (typeof process?.stderr?.write === "function") {
+    process.stderr.write(`${serialized}\n`);
+  }
+  if (typeof process?.stdout?.write === "function") {
+    process.stdout.write(`${serialized}\n`);
+  }
+}
+
+function buildErrorResponse(
+  responseStream,
+  statusCode,
+  message,
+  details = null,
+) {
+  logGatewayError("gateway_http_error", message, {
+    statusCode,
+    ...(details && typeof details === "object" ? details : {}),
+  });
   if (responseStream && typeof responseStream.setContentType === "function") {
     responseStream.setContentType("application/json");
   }
@@ -441,7 +478,10 @@ const streamingHandler = async (event, responseStream) => {
       : event.body || "{}";
     body = JSON.parse(rawBody);
   } catch (error) {
-    return buildErrorResponse(responseStream, 400, "Invalid JSON");
+    return buildErrorResponse(responseStream, 400, "Invalid JSON", {
+      error_name: error?.name,
+      error_message: error?.message,
+    });
   }
 
   const user = body.user;
@@ -459,6 +499,11 @@ const streamingHandler = async (event, responseStream) => {
       responseStream,
       400,
       "Missing user, password_hash, or prompt",
+      {
+        has_user: Boolean(user),
+        has_password_hash: Boolean(passwordHash),
+        has_prompt: Boolean(prompt),
+      },
     );
   }
 
@@ -467,6 +512,10 @@ const streamingHandler = async (event, responseStream) => {
       responseStream,
       500,
       "Usage control is not configured",
+      {
+        usage_table_name: USAGE_TABLE_NAME,
+        default_budget_valid: Number.isFinite(USAGE_DEFAULT_BUDGET),
+      },
     );
   }
 
@@ -479,14 +528,25 @@ const streamingHandler = async (event, responseStream) => {
     );
     const storedHash = storedHashParam.Parameter.Value;
     if (passwordHash !== storedHash) {
-      return buildErrorResponse(responseStream, 401, "Invalid credentials");
+      return buildErrorResponse(responseStream, 401, "Invalid credentials", {
+        safe_user: safeUser,
+      });
     }
   } catch (error) {
     if (error.name === "ParameterNotFound") {
-      return buildErrorResponse(responseStream, 404, "User not found");
+      return buildErrorResponse(responseStream, 404, "User not found", {
+        safe_user: safeUser,
+      });
     }
-    console.error("Auth error", error);
-    return buildErrorResponse(responseStream, 500, "Internal server error");
+    logGatewayError("auth_error", "Authentication lookup failed", {
+      safe_user: safeUser,
+      error_name: error?.name,
+      error_message: error?.message,
+      stack: error?.stack,
+    });
+    return buildErrorResponse(responseStream, 500, "Internal server error", {
+      safe_user: safeUser,
+    });
   }
 
   let usageRecord;
@@ -531,12 +591,35 @@ const streamingHandler = async (event, responseStream) => {
           usageRecord = unmarshall(usageResponse.Item);
         }
       } catch (retryError) {
-        console.error("Usage lookup retry error", retryError);
-        return buildErrorResponse(responseStream, 500, "Internal server error");
+        logGatewayError(
+          "usage_lookup_retry_error",
+          "Usage lookup retry failed",
+          {
+            safe_user: safeUser,
+            error_name: retryError?.name,
+            error_message: retryError?.message,
+            stack: retryError?.stack,
+          },
+        );
+        return buildErrorResponse(
+          responseStream,
+          500,
+          "Internal server error",
+          {
+            safe_user: safeUser,
+          },
+        );
       }
     } else {
-      console.error("Usage lookup error", error);
-      return buildErrorResponse(responseStream, 500, "Internal server error");
+      logGatewayError("usage_lookup_error", "Usage lookup failed", {
+        safe_user: safeUser,
+        error_name: error?.name,
+        error_message: error?.message,
+        stack: error?.stack,
+      });
+      return buildErrorResponse(responseStream, 500, "Internal server error", {
+        safe_user: safeUser,
+      });
     }
   }
 
@@ -545,7 +628,10 @@ const streamingHandler = async (event, responseStream) => {
       ? usageRecord.remaining_tokens
       : USAGE_DEFAULT_BUDGET;
     if (remaining <= 0) {
-      return buildErrorResponse(responseStream, 429, "Usage budget exceeded");
+      return buildErrorResponse(responseStream, 429, "Usage budget exceeded", {
+        safe_user: safeUser,
+        remaining,
+      });
     }
   }
 
@@ -564,14 +650,35 @@ const streamingHandler = async (event, responseStream) => {
   }
 
   const additionalModelRequestFields = {};
-  if (
+  const supportsReasoningEffort =
     typeof selectedModelId === "string" &&
-    selectedModelId.startsWith("openai.gpt-oss") &&
+    (selectedModelId.startsWith("openai.gpt-oss") ||
+      selectedModelId.startsWith("deepseek.v3"));
+  if (
+    supportsReasoningEffort &&
     typeof REASONING_EFFORT === "string" &&
     REASONING_EFFORT.trim()
   ) {
     additionalModelRequestFields.reasoning_effort = REASONING_EFFORT.trim();
   }
+
+  const selectedBedrockRegion =
+    selectedModelId === "deepseek.v3-v1:0"
+      ? BEDROCK_REGION_US_WEST_2
+      : AWS_REGION;
+  console.log(
+    JSON.stringify({
+      level: "info",
+      source: "bedrock_gateway",
+      code: "request_model_selection",
+      timestamp: new Date().toISOString(),
+      safe_user: safeUser,
+      question_type: questionType || null,
+      selected_model_id: selectedModelId,
+      selected_bedrock_region: selectedBedrockRegion,
+      reasoning_effort: additionalModelRequestFields.reasoning_effort || null,
+    }),
+  );
 
   const requestBody = {
     modelId: selectedModelId,
@@ -586,6 +693,9 @@ const streamingHandler = async (event, responseStream) => {
       ? { additionalModelRequestFields }
       : {}),
   };
+
+  const bedrockClient =
+    selectedModelId === "deepseek.v3-v1:0" ? bedrockUsWest2 : bedrock;
 
   if (typeof responseStream.setContentType === "function") {
     responseStream.setContentType("text/event-stream");
@@ -614,7 +724,7 @@ const streamingHandler = async (event, responseStream) => {
 
   try {
     const command = new ConverseStreamCommand(requestBody);
-    const response = await bedrock.send(command);
+    const response = await bedrockClient.send(command);
 
     for await (const eventChunk of response.stream || []) {
       handleConverseEvent(eventChunk, responseStream, usageState);
@@ -625,6 +735,16 @@ const streamingHandler = async (event, responseStream) => {
       usageState.tokens,
     );
     if (usageState.responseParts.length === 0) {
+      logGatewayError(
+        "empty_model_response",
+        "Model returned an empty response",
+        {
+          safe_user: safeUser,
+          selected_model_id: selectedModelId,
+          question_type: questionType || null,
+          projected_remaining_tokens: projectedRemaining,
+        },
+      );
       responseStream.write(
         sseEvent("", true, projectedRemaining, {
           error: "Model returned an empty response",
@@ -636,7 +756,6 @@ const streamingHandler = async (event, responseStream) => {
     }
     responseStream.end();
   } catch (error) {
-    console.error("Bedrock invoke error", error);
     const projectedRemaining = computeProjectedRemainingTokens(
       usageRecord,
       usageState.tokens,
@@ -647,6 +766,14 @@ const streamingHandler = async (event, responseStream) => {
     const name =
       (error && typeof error.name === "string" && error.name.trim()) ||
       "BedrockInvokeError";
+    logGatewayError("bedrock_invoke_error", message, {
+      safe_user: safeUser,
+      selected_model_id: selectedModelId,
+      question_type: questionType || null,
+      error_name: name,
+      stack: error?.stack,
+      projected_remaining_tokens: projectedRemaining,
+    });
     responseStream.write(
       sseEvent("", true, projectedRemaining, {
         error: message,
@@ -687,7 +814,16 @@ const streamingHandler = async (event, responseStream) => {
           }),
         );
       } catch (error) {
-        console.error("Usage update error", error);
+        logGatewayError(
+          "usage_update_error",
+          "Failed to update usage summary",
+          {
+            safe_user: safeUser,
+            error_name: error?.name,
+            error_message: error?.message,
+            stack: error?.stack,
+          },
+        );
       }
     }
 
@@ -721,7 +857,17 @@ const streamingHandler = async (event, responseStream) => {
         }),
       );
     } catch (error) {
-      console.error("Usage detail insert error", error);
+      logGatewayError(
+        "usage_detail_insert_error",
+        "Failed to insert usage detail record",
+        {
+          safe_user: safeUser,
+          request_id: requestId,
+          error_name: error?.name,
+          error_message: error?.message,
+          stack: error?.stack,
+        },
+      );
     }
   }
 };

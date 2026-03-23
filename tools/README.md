@@ -45,6 +45,43 @@ List all configured users and their status.
 python list_users.py
 ```
 
+### check_balance.sh
+Check a user's current token balance from DynamoDB usage table (`record_id=summary`).
+
+```bash
+./check_balance.sh <username>
+```
+
+Optional environment variables:
+- `AWS_REGION` (default `us-east-1`)
+- `USAGE_TABLE_NAME` (default `catieBedrockUsage`)
+
+### add_tokens.sh
+Add tokens to a user's account in DynamoDB (`record_id=summary`).
+
+```bash
+./add_tokens.sh <username> <tokens_to_add>
+```
+
+Optional environment variables:
+- `AWS_REGION` (default `us-east-1`)
+- `USAGE_TABLE_NAME` (default `catieBedrockUsage`)
+
+### set_balance.sh
+Set a user's remaining token balance to an absolute value in DynamoDB (`record_id=summary`).
+
+```bash
+./set_balance.sh <username> <new_remaining_tokens> [--sync-budget]
+```
+
+Notes:
+- By default this sets `remaining_tokens` only and keeps existing `budget_tokens` (or initializes it if missing).
+- Use `--sync-budget` to also set `budget_tokens` to the same value.
+
+Optional environment variables:
+- `AWS_REGION` (default `us-east-1`)
+- `USAGE_TABLE_NAME` (default `catieBedrockUsage`)
+
 ### Legacy Scripts
 
 - `store_secret.py` - Store Bedrock API key only (use `add_user.py` instead)
@@ -84,6 +121,12 @@ Configure AWS credentials:
 ```bash
 aws configure
 # or set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION
+```
+
+Also ensure AWS CLI is installed:
+
+```bash
+aws --version
 ```
 
 ## Security Notes

@@ -47,9 +47,15 @@ Rubrix is gateway-only. Set the gateway URL in `src-tauri/.env` (or bake it at b
 
 ```bash
 BEDROCK_GATEWAY_URL=https://your-api.example.com/generate
+
+# Optional: model routing overrides in gateway Lambda
+BEDROCK_MODEL_ID=openai.gpt-oss-120b-1:0
+BEDROCK_MODEL_ID_FRQ=deepseek.v3.2
 ```
 
 Without this setting, generation and authentication are disabled.
+
+FRQ requests include `question_type=frq` and can be routed to the FRQ model in the gateway.
 
 See [docs/BEDROCK_GATEWAY_CONTRACT.md](docs/BEDROCK_GATEWAY_CONTRACT.md) for request/response details.
 

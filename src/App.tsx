@@ -559,6 +559,19 @@ function App() {
     return text || "Authentication failed. Please retry.";
   };
 
+  const shouldPromptLoginForGenerationError = (raw: string): boolean => {
+    const lower = raw.trim().toLowerCase();
+    return (
+      lower.includes("invalid password") ||
+      lower.includes("invalid credentials") ||
+      lower.includes("user not found") ||
+      lower.includes("authentication required") ||
+      lower.includes("no gateway credentials") ||
+      lower.includes("status 401") ||
+      lower.includes("status 404")
+    );
+  };
+
   const handleLogin = async (username: string, password: string) => {
     setAuthError("");
     try {
@@ -968,14 +981,15 @@ function App() {
       console.error("Generation failed:", err);
       const errorMsg = String(err);
 
-      // If error suggests missing auth, show login modal
-      if (
-        errorMsg.includes("BEDROCK_GATEWAY_URL") ||
-        errorMsg.toLowerCase().includes("gateway") ||
-        errorMsg.toLowerCase().includes("auth")
-      ) {
+      // Only prompt for login on clear credential/session errors.
+      if (shouldPromptLoginForGenerationError(errorMsg)) {
         setLoginModalOpen(true);
         setStatus("Authentication required");
+      } else if (
+        errorMsg.includes("BEDROCK_GATEWAY_URL") ||
+        errorMsg.toLowerCase().includes("gateway mode is required")
+      ) {
+        setStatus("Error: Gateway is not configured");
       } else {
         setStatus(`Error: ${err}`);
       }

@@ -1,6 +1,184 @@
-Generate exactly 1 AP Calculus free-response question focused on Taylor or Maclaurin series.
+Read the following questions
 
-The problem should be multi-part (for example, parts a, b, c) and suitable for a classroom FRQ.
+# AP Calculus BC Series Free Response Questions
+
+A collection of 6 Series questions from AP Calculus BC exams (2015–2022).
+
+**Topics Covered:**
+- Ratio Test
+- Interval/Radius of Convergence
+- Taylor & Maclaurin Polynomials
+- Alternating Series Error Bound
+- Lagrange Error Bound
+- Geometric Series
+- Power Series Derivatives & Integrals
+
+---
+
+## 2022 BC #6
+
+**NO CALCULATOR ALLOWED**
+
+The function $f$ is defined by the power series
+
+$$f(x) = x - \frac{x^3}{3} + \frac{x^5}{5} - \frac{x^7}{7} + \cdots + \frac{(-1)^n x^{2n+1}}{2n+1} + \cdots$$
+
+for all real numbers $x$ for which the series converges.
+
+**(a)** Using the ratio test, find the interval of convergence of the power series for $f$. Justify your answer.
+
+**(b)** Show that $\displaystyle \left| f\left(\frac{1}{2}\right) - \frac{1}{2} \right| < \frac{1}{10}$. Justify your answer.
+
+**(c)** Write the first four nonzero terms and the general term for an infinite series that represents $f'(x)$.
+
+**(d)** Use the result from part (c) to find the value of $\displaystyle f'\left(\frac{1}{6}\right)$.
+
+---
+
+## 2021 BC #6
+
+**NO CALCULATOR ALLOWED**
+
+The function $g$ has derivatives of all orders for all real numbers. The Maclaurin series for $g$ is given by
+
+$$g(x) = \sum_{n=0}^{\infty} \frac{(-1)^n x^n}{e^{2n+3}}$$
+
+on its interval of convergence.
+
+**(a)** State the conditions necessary to use the integral test to determine convergence of the series $\displaystyle \sum_{n=0}^{\infty} \frac{1}{e^n}$. Use the integral test to show that $\displaystyle \sum_{n=0}^{\infty} \frac{1}{e^n}$ converges.
+
+**(b)** Use the limit comparison test with the series $\displaystyle \sum_{n=0}^{\infty} \frac{1}{e^n}$ to show that the series $\displaystyle g(1) = \sum_{n=0}^{\infty} \frac{(-1)^n}{e^{2n+3}}$ converges absolutely.
+
+**(c)** Determine the radius of convergence of the Maclaurin series for $g$.
+
+**(d)** The first two terms of the series $\displaystyle \sum_{n=0}^{\infty} \frac{(-1)^n}{e^{2n+3}}$ are used to approximate $g(1)$. Use the alternating series error bound to determine an upper bound on the error of the approximation.
+
+---
+
+## 2018 BC #6
+
+**NO CALCULATOR ALLOWED**
+
+The Maclaurin series for $\ln(1 + x)$ is given by
+
+$$\ln(1+x) = x - \frac{x^2}{2} + \frac{x^3}{3} - \frac{x^4}{4} + \cdots + \frac{(-1)^{n+1} x^n}{n} + \cdots$$
+
+On its interval of convergence, this series converges to $\ln(1+x)$. Let $f$ be the function defined by $f(x) = x \ln(1 + x^3)$.
+
+**(a)** Write the first four nonzero terms and the general term of the Maclaurin series for $f$.
+
+**(b)** Determine the interval of convergence of the Maclaurin series for $f$. Show the work that leads to your answer.
+
+**(c)** Let $P_4(x)$ be the fourth-degree Taylor polynomial for $f$ about $x = 0$. Use the alternating series error bound to find an upper bound for $|P_4(2) - f(2)|$.
+
+---
+
+## 2017 BC #6
+
+**NO CALCULATOR ALLOWED**
+
+A function $f$ has derivatives of all orders for $-1 < x < 1$. The derivatives of $f$ satisfy the conditions:
+- $f(0) = 0$
+- $f'(0) = 1$
+- $f^{(n)}(0) = (-1)^n \cdot n!$ for all $n \geq 1$
+
+The Maclaurin series for $f$ converges to $f(x)$ for $|x| < 1$.
+
+**(a)** Show that the first four nonzero terms of the Maclaurin series for $f$ are $\displaystyle x - \frac{x^2}{2} + \frac{x^3}{3} - \frac{x^4}{4}$, and write the general term of the Maclaurin series for $f$.
+
+**(b)** Determine whether the Maclaurin series described in part (a) converges absolutely, converges conditionally, or diverges at $x = 1$. Explain your reasoning.
+
+**(c)** Write the first four nonzero terms and the general term of the Maclaurin series for $\displaystyle g(x) = \int_0^x f(t) \, dt$.
+
+**(d)** Let $P_n\left(\frac{1}{2}\right)$ represent the $n$th-degree Taylor polynomial for $g$ about $x = 0$ evaluated at $x = \frac{1}{2}$, where $g$ is the function defined in part (c). Use the alternating series error bound to show that $\displaystyle \left| P_4\left(\frac{1}{2}\right) - g\left(\frac{1}{2}\right) \right| < \frac{1}{500}$.
+
+---
+
+## 2016 BC #6
+
+**NO CALCULATOR ALLOWED**
+
+The function $f$ has a Taylor series about $x = 1$ that converges to $f(x)$ for all $x$ in the interval of convergence. It is known that:
+- $f(1) = 1$
+- $f'(1) = -\frac{1}{2}$
+- The $n$th derivative of $f$ at $x = 1$ is given by $\displaystyle f^{(n)}(1) = \frac{(-1)^n \cdot n!}{2^n}$ for $n \geq 2$
+
+**(a)** Write the first four nonzero terms and the general term of the Taylor series for $f$ about $x = 1$.
+
+**(b)** The Taylor series for $f$ about $x = 1$ has a radius of convergence of 2. Find the interval of convergence. Show the work that leads to your answer.
+
+**(c)** The Taylor series for $f$ about $x = 1$ can be used to represent $f(1.2)$ as an alternating series. Use the first three nonzero terms of the alternating series to approximate $f(1.2)$.
+
+**(d)** Show that the approximation found in part (c) is within 0.001 of the exact value of $f(1.2)$.
+
+---
+
+## 2015 BC #6
+
+**NO CALCULATOR ALLOWED**
+
+The Maclaurin series for a function $f$ is given by
+
+$$\sum_{n=1}^{\infty} \frac{(-1)^{n+1} x^n}{3^n \cdot n} = \frac{x}{3} - \frac{x^2}{3^2 \cdot 2} + \frac{x^3}{3^3 \cdot 3} - \cdots$$
+
+and converges to $f(x)$ for $|x| \leq R$, where $R$ is the radius of convergence of the Maclaurin series.
+
+**(a)** Use the ratio test to find $R$.
+
+**(b)** Write the first four nonzero terms of the Maclaurin series for $f'$, the derivative of $f$. Express $f'$ as a rational function for $|x| < R$.
+
+**(c)** Write the first four nonzero terms of the Maclaurin series for $e^x$. Use the Maclaurin series for $e^x$ to write the third-degree Taylor polynomial for $g(x) = e^x \cdot f(x)$ about $x = 0$.
+
+---
+Now consider this taxonomy:
+
+
+## **1. Taxonomy of Series Types in AP Calculus BC**
+
+| Type | Description | General Form Example | Convergence Behavior |
+|------|-------------|----------------------|----------------------|
+| **Geometric** | Constant ratio between terms | \( \sum ar^n \) | Converges if \( \|r\|<1 \) |
+| **"sin-like"** | Alternating odd powers, factorial denominator | \( \sum \frac{(-1)^n x^{2n+1}}{(2n+1)!} \) | Converges for all \( x \) |
+| **"cos-like"** | Alternating even powers, factorial denominator | \( \sum \frac{(-1)^n x^{2n}}{(2n)!} \) | Converges for all \( x \) |
+| **"log-like"** | Alternating or positive powers, denominator \( n \) | \( \sum \frac{(-1)^{n+1} x^n}{n} \) | Converges for \( -1 < x \leq 1 \) |
+| **"arctan-like"** | Alternating odd powers, denominator \( 2n+1 \) | \( \sum \frac{(-1)^n x^{2n+1}}{2n+1} \) | Converges for \( -1 \leq x \leq 1 \) |
+| **"exp-like"** | Positive powers, factorial denominator | \( \sum \frac{x^n}{n!} \) | Converges for all \( x \) |
+| **Binomial** | Binomial coefficients, fractional powers | \( \sum \binom{k}{n} x^n \) | Radius depends on \( k \) |
+| **Other** | Hybrids, products, compositions | e.g., \( x e^{x^2} \), \( \sin(x^3) \) | Varies |
+
+---
+
+## **2. Taxonomy of Question Types**
+
+| Category | Specific Task |
+|----------|---------------|
+| **Convergence** | Find interval/radius using Ratio Test, check endpoints |
+| **Manipulation** | Differentiate or integrate term-by-term |
+| **Approximation** | Use partial sum to approximate function value |
+| **Error Bound** | Alternating Series Error Bound, Lagrange Error Bound |
+| **Identification** | Recognize series as known function (geometric, etc.) |
+| **Construction** | Write Taylor/Maclaurin series given derivatives |
+| **Application** | Use series to solve differential equation, find limit |
+
+---
+
+I would like you to write a new question in this fashion:
+
+Then plan one new FRQ:
+
+3. Formulate one original question by randomly choosing one series type and 3-4 task types (one per part) from the taxonomy above.
+4. Sketch a short plan that maps each part to the chosen task type. Use the examples provided as guides.
+5. Refine by fully working each part. If a part is inconsistent, revise the plan and continue.
+6. Produce a 9-point AP-style scoring guide.
+
+Visibility requirement:
+- Include a brief visible section at the top of the solution called "Planning Snapshot" that lists:
+  - selected series type
+  - part-to-task mapping for parts (a)-(d)
+
+Finally:
+
+Generate exactly 1 AP Calculus free-response question focused on Taylor and/or Maclaurin series.
 
 Return exactly one complete block wrapped in <question> and </question> tags.
 Inside those tags, return ONLY a JSON array with exactly one object and this structure:
@@ -11,7 +189,7 @@ Inside those tags, return ONLY a JSON array with exactly one object and this str
     "solution": "Step-by-step solution in markdown",
     "rubric": "Scoring rubric in markdown with point breakdown",
     "subject": "Calculus",
-    "topics": ["Taylor Series", "Maclaurin Series"],
+    "topics": ["Taylor Series"],
     "difficulty": "hard"
   }
 ]
@@ -19,26 +197,35 @@ Inside those tags, return ONLY a JSON array with exactly one object and this str
 
 Rules:
 1. Output must contain exactly one complete <question>...</question> block.
-2. Inside the tags, output must be valid JSON only. No prose.
+2. Inside the tags, output must be valid JSON only. No prose outside JSON.
 3. Use markdown-friendly formatting inside question, solution, and rubric.
 4. Use LaTeX math in markdown with proper delimiters:
   - Inline math must use $...$
   - Display math must use $$...$$
   - Do not use plain-text math when an expression is mathematical
   - Do not use \\(...\\) or \\[...\\]
-4. Rubric should be specific and scoreable (for example, 0-1 or 0-2 point items per part).
-5. Keep terminology aligned with AP Calculus conventions.
+5. Rubric should be specific and scoreable (for example, 0-1 or 0-2 point items per part), totaling 9 points.
+6. Keep terminology aligned with AP Calculus conventions.
+7. In "topics", include one or both from this allowed set: "Taylor Series", "Maclaurin Series".
+8. Source-priority rule: treat the six AP FRQs above as the primary style/content source. The example below is for output shape only.
+9. Final-output self-check before returning:
+  - Check A: exactly one <question>...</question> block exists.
+  - Check B: content inside the tags parses as valid JSON.
+  - Check C: there is zero text before <question> and zero text after </question>.
+  - If any check fails, regenerate and return only a corrected block.
 
-Example of correct output format (style reference based on a real AP Calculus FRQ):
+Example of correct output format (schema-only template; do not copy content):
 <question>
 [
   {
-    "question": "An invasive species of plant appears in a fruit grove at time $t=0$ and begins to spread. The function $C$ defined by $C(t)=7.6\\arctan(0.2t)$ models the number of acres affected $t$ weeks after the species appears. It can be shown that $$C'(t)=\\frac{38}{25+t^2}.$$\\n\\n### Part (a)\\nFind the average number of acres affected from $t=0$ to $t=4$ weeks. Show setup.\\n\\n### Part (b)\\nFind the time $t$ when the instantaneous rate $C'(t)$ equals the average rate of change of $C$ on $0\\le t\\le 4$. Show setup.\\n\\n### Part (c)\\nWrite a limit expression that describes the end behavior of $C'(t)$ as $t\\to\\infty$, and evaluate the limit.\\n\\n### Part (d)\\nFor $4\\le t\\le 36$, let $$A(t)=C(t)-\\int_4^t 0.1\\ln(x)\\,dx.$$ Determine when $A$ attains a maximum on $[4,36]$. Justify your answer.",
-    "solution": "(a) Average rate is $$\\frac{C(4)-C(0)}{4}.$$\\n\\n(b) Solve $$C'(t)=\\frac{C(4)-C(0)}{4}$$ for $t\\in[0,4]$.\\n\\n(c) Evaluate $$\\lim_{t\\to\\infty} \\frac{38}{25+t^2}=0.$$\\n\\n(d) Compute $$A'(t)=C'(t)-0.1\\ln(t),$$ find critical points where $A'(t)=0$ on $[4,36]$, then compare endpoint and critical-point values to identify the absolute maximum.",
-    "rubric": "Part (a): 1 pt correct average-rate setup, 1 pt correct value.\\nPart (b): 1 pt correct equation setup, 1 pt valid solving process, 1 pt correct t value.\\nPart (c): 1 pt correct limit expression, 1 pt correct limit value with justification.\\nPart (d): 1 pt correct derivative and critical-point condition, 1 pt proper endpoint/critical comparison, 1 pt justified maximum conclusion.",
+    "question": "<full FRQ prompt in markdown with parts (a)-(d)>",
+    "solution": "### Planning Snapshot\\n- Series type: <chosen type>\\n- Part mapping: (a) <task>, (b) <task>, (c) <task>, (d) <task>\\n- Source coverage: <cite at least 3 distinct AP-style elements from the six prompts>\\n\\n<step-by-step solution in markdown>",
+    "rubric": "<AP-style scoring guide totaling 9 points>",
     "subject": "Calculus",
-    "topics": ["Rates of Change", "Applications of Derivatives", "Integrals"],
+    "topics": ["Taylor Series"],
     "difficulty": "hard"
   }
 ]
 </question>
+
+Now: make a plan and complete the question, solution, and scoring guide.

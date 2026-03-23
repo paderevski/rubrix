@@ -954,7 +954,18 @@ async fn generate_questions(
         });
 
     // Call LLM with streaming
-    let response = llm::generate(&prompt, Some(app_handle), gateway_auth).await?;
+    let question_type = request.question_type.trim();
+    let response = llm::generate(
+        &prompt,
+        Some(app_handle),
+        gateway_auth,
+        if question_type.is_empty() {
+            None
+        } else {
+            Some(question_type)
+        },
+    )
+    .await?;
 
     // Parse response into questions
     let mut new_questions = prompts::parse_llm_response(&response)?;
@@ -1044,7 +1055,19 @@ async fn regenerate_question(
             password_hash: auth::hash_password(&creds.password),
         });
 
-    let response = llm::generate(&prompt, Some(app_handle), gateway_auth).await?;
+    let inferred_question_type = if current.rubric.is_some() {
+        Some("frq")
+    } else {
+        Some("multiple_choice")
+    };
+
+    let response = llm::generate(
+        &prompt,
+        Some(app_handle),
+        gateway_auth,
+        inferred_question_type,
+    )
+    .await?;
 
     // Parse the single question
     let mut new_questions = prompts::parse_llm_response(&response)?;
@@ -1126,7 +1149,20 @@ async fn regenerate_all_questions_parallel(
                     Some(&topics_label),
                 );
 
-                let result = match llm::generate(&prompt, None, gateway_auth).await {
+                let inferred_question_type = if current.rubric.is_some() {
+                    Some("frq")
+                } else {
+                    Some("multiple_choice")
+                };
+
+                let result = match llm::generate(
+                    &prompt,
+                    None,
+                    gateway_auth,
+                    inferred_question_type,
+                )
+                .await
+                {
                     Ok(response) => match prompts::parse_llm_response(&response) {
                         Ok(mut new_questions) if !new_questions.is_empty() => {
                             let mut new_question = new_questions.remove(0);

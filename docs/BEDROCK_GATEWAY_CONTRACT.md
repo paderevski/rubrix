@@ -18,6 +18,7 @@ must match the existing `llm-stream` event format.
   "user": "string",
   "password_hash": "string",
   "prompt": "string",
+  "question_type": "multiple_choice | frq",
   "meta": {
     "subject": "string",
     "topics": ["string"],
@@ -33,8 +34,25 @@ must match the existing `llm-stream` event format.
 - `user`: Username.
 - `password_hash`: SHA256 hex digest of the user's password.
 - `prompt`: Fully rendered prompt text sent to Bedrock.
+- `question_type`: Optional generation type hint. Supported values currently include `multiple_choice` and `frq`.
+  - When omitted, gateway defaults to standard model routing.
 - `meta`: Optional request metadata for logging or usage tracking.
   - The gateway should accept unknown keys and ignore them.
+
+## Model Routing
+
+The gateway can route by `question_type`:
+
+- `frq` requests: FRQ model
+- all other values: default model
+
+Environment variables:
+
+- `BEDROCK_MODEL_ID` (default model, fallback `openai.gpt-oss-120b-1:0`)
+- `BEDROCK_MODEL_ID_FRQ` (preferred FRQ model override)
+- `BEDROCK_FRQ_MODEL_ID` (legacy FRQ model override alias)
+
+Current FRQ fallback model ID: `deepseek.v3.2`.
 
 ## Response (SSE)
 - Content-Type: text/event-stream

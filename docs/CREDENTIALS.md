@@ -60,6 +60,9 @@ Frontend auth messaging maps common backend/gateway errors to user-friendly text
 | Variable | Required | Purpose |
 |---|---|---|
 | `BEDROCK_GATEWAY_URL` | Yes | Gateway endpoint for auth and streaming generation |
+| `BEDROCK_MODEL_ID` | No | Default Bedrock model used by gateway for non-FRQ requests |
+| `BEDROCK_MODEL_ID_FRQ` | No | FRQ Bedrock model override (used when `question_type=frq`) |
+| `BEDROCK_FRQ_MODEL_ID` | No | Legacy alias for `BEDROCK_MODEL_ID_FRQ` |
 | `RUBRIX_KNOWLEDGE_DIR` | No | Override knowledge base directory |
 | `BUG_REPORT_URL` | No | Bug report intake endpoint |
 | `BUG_REPORT_API_KEY` | No | Optional API key header for bug reports |

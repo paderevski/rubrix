@@ -46,6 +46,14 @@ TIMESTAMP: {}
     }
 }
 
+fn log_gateway_error(stage: &str, prompt: Option<&str>, details: &str) {
+    eprintln!("GATEWAY_ERROR [{}]: {}", stage, details);
+    if let Some(p) = prompt {
+        let response = format!("[GATEWAY_ERROR][{}] {}", stage, details);
+        log_llm_interaction(p, &response);
+    }
+}
+
 /// Streaming event payload consumed by the frontend.
 #[derive(Clone, Serialize)]
 pub struct StreamEvent {
@@ -70,6 +78,8 @@ struct GatewayRequest {
     user: String,
     password_hash: String,
     prompt: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    question_type: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -82,6 +92,10 @@ struct GatewayStreamChunk {
     block_type: Option<String>,
     #[serde(default)]
     reasoning_done: Option<bool>,
+    #[serde(default)]
+    error: Option<String>,
+    #[serde(default)]
+    error_type: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -110,6 +124,7 @@ pub async fn validate_gateway_credentials(user: &str, password_hash: &str) -> Re
         password_hash: password_hash.to_string(),
         // Minimal prompt to force auth check.
         prompt: "auth_check".to_string(),
+        question_type: None,
     };
 
     let response = client
@@ -169,6 +184,7 @@ pub async fn generate(
     prompt: &str,
     app_handle: Option<tauri::AppHandle>,
     gateway_auth: Option<GatewayAuth>,
+    question_type: Option<&str>,
 ) -> Result<String, String> {
     let gateway_url = gateway_url().ok_or_else(|| {
         "Gateway mode is required, but BEDROCK_GATEWAY_URL is not configured.".to_string()
@@ -187,6 +203,10 @@ pub async fn generate(
         user: gateway_auth.user,
         password_hash: gateway_auth.password_hash,
         prompt: prompt.to_string(),
+        question_type: question_type
+            .map(|value| value.trim())
+            .filter(|value| !value.is_empty())
+            .map(|value| value.to_string()),
     };
 
     let response = client
@@ -209,6 +229,15 @@ pub async fn generate(
         let trimmed = body.trim();
         if let Ok(err) = serde_json::from_str::<GatewayErrorResponse>(trimmed) {
             if let Some(message) = err.error.filter(|msg| !msg.trim().is_empty()) {
+                log_gateway_error(
+                    "gateway_json_error",
+                    Some(prompt),
+                    &format!(
+                        "Gateway error ({}): {}",
+                        err.status.unwrap_or(status.as_u16()),
+                        message
+                    ),
+                );
                 return Err(format!(
                     "Gateway error ({}): {}",
                     err.status.unwrap_or(status.as_u16()),
@@ -216,15 +245,35 @@ pub async fn generate(
                 ));
             }
             if let Some(code) = err.status {
+                log_gateway_error(
+                    "gateway_json_error",
+                    Some(prompt),
+                    &format!("Gateway error ({})", code),
+                );
                 return Err(format!("Gateway error ({})", code));
             }
         }
         if !status.is_success() {
+            log_gateway_error(
+                "gateway_http_error",
+                Some(prompt),
+                &format!("Gateway error ({}): {}", status.as_u16(), body),
+            );
             return Err(format!("Gateway error ({}): {}", status.as_u16(), body));
         }
+        log_gateway_error(
+            "gateway_protocol_error",
+            Some(prompt),
+            "Gateway returned JSON instead of stream.",
+        );
         return Err("Gateway returned JSON instead of stream.".to_string());
     } else if !status.is_success() {
         let body = response.text().await.unwrap_or_default();
+        log_gateway_error(
+            "gateway_http_error",
+            Some(prompt),
+            &format!("Gateway error ({}): {}", status.as_u16(), body),
+        );
         return Err(format!("Gateway error ({}): {}", status.as_u16(), body));
     }
 
@@ -233,7 +282,14 @@ pub async fn generate(
     let mut accumulated = String::new();
 
     while let Some(chunk) = stream.next().await {
-        let chunk = chunk.map_err(|e| format!("Gateway stream error: {}", e))?;
+        let chunk = match chunk {
+            Ok(value) => value,
+            Err(e) => {
+                let msg = format!("Gateway stream error: {}", e);
+                log_gateway_error("gateway_stream_error", Some(prompt), &msg);
+                return Err(msg);
+            }
+        };
         let text = String::from_utf8_lossy(&chunk);
         buffer.push_str(&text);
 
@@ -252,6 +308,26 @@ pub async fn generate(
                 }
 
                 if let Ok(chunk) = serde_json::from_str::<GatewayStreamChunk>(payload) {
+                    if let Some(err_msg) = chunk
+                        .error
+                        .as_ref()
+                        .map(|msg| msg.trim())
+                        .filter(|msg| !msg.is_empty())
+                    {
+                        let err_type = chunk
+                            .error_type
+                            .as_ref()
+                            .map(|s| s.trim())
+                            .filter(|s| !s.is_empty())
+                            .unwrap_or("GatewayStreamError");
+                        log_gateway_error(
+                            "gateway_stream_chunk_error",
+                            Some(prompt),
+                            &format!("{}: {}", err_type, err_msg),
+                        );
+                        return Err(format!("{}: {}", err_type, err_msg));
+                    }
+
                     let cleaned = chunk
                         .text
                         .replace("<reasoning>", "")
@@ -280,6 +356,16 @@ pub async fn generate(
                     }
 
                     if chunk.done {
+                        if accumulated.trim().is_empty() {
+                            log_gateway_error(
+                                "empty_model_response",
+                                Some(prompt),
+                                "Gateway returned an empty response from the model",
+                            );
+                            return Err(
+                                "Gateway returned an empty response from the model".to_string()
+                            );
+                        }
                         emit_stream(
                             &app_handle,
                             "",
