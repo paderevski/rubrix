@@ -5,20 +5,13 @@ Here is the current question JSON (full object):
 {current_question_json}
 ```
 
-It is a level {difficulty} question about {topics}.
-Metadata:
-- subject: {subject}
-- style/cognitive target: {style}
-
-
-
 ## Your Task
 
 Generate 1 NEW question that:
 
 1. Tests the specified topic(s) at the target difficulty
 2. Use SIMILAR BUT DISTINCT code and scenarios to the current question
-3. Each wrong answer must exploit a specific student misconception
+3. Each wrong answer must exploit a specific student misconception. These are called 'distractors'
 4. Match the quality and style shown in the examples
 5. Have internally consistent, mathematically correct answers that you've verified
 
@@ -38,13 +31,20 @@ For the question you write:
 - For each misconception, calculate what wrong answer it would produce
 - Make sure each distractor comes from a real error pattern (off-by-one, wrong operator, pass-by-value confusion, loop bound errors, etc.)
 
-**Step 3: Write the Question (Now you can start writing JSON)**
+**Step 3: Question quality verification (Also in the explanation section)**
+- Review the question text and solution text for any extraneous comments or explanations
+- Remove any comments or text that gives away the solution of the question. For example any comment that says what a line of code does should be removed
+- Verify and function names do not give away a question solution. For example do not call a reverseList(a) if the goal is to determine what the function does (it reverses a list)
+- Also clean up any errors in latex or markdown formatting
+- Double-check that all of the answer choices are distinct. If not, regenerate ones that are identical.
+
+**Step 4: Write the Question (Now you can start writing JSON)**
 - Only NOW should you write the stem and code
 - Write ALL answer choices (correct + distractors) with their explanations
 - Write the explanation showing the step-by-step solution
 - Write the distractors analysis explaining the error patterns
 
-** Additional human instructions (optional): **
+**Additional human instructions (IMPORTANT PRIORITY):**
 {user_instructions}
 
 ** Required guards **
@@ -57,6 +57,7 @@ For the question you write:
 3) Include exactly one correct answer (`is_correct: true`).
 4) Keep explanations internally consistent with the marked correct answer.
 5) Do not include markdown fences or extra prose outside the `<question>...</question>` block.
+6) All code or keywords or code references within the "answers" field *must* be fenced with inline code or code block indicators appropriate for markdown formatting.
 
 ** Strict output format: **
 <question>
