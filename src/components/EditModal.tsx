@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { Question, Answer } from "../types";
 import { X, Plus, Trash2 } from "lucide-react";
 
@@ -9,13 +9,37 @@ interface EditModalProps {
 }
 
 export default function EditModal({ question, onSave, onClose }: EditModalProps) {
+  const MAX_ANSWER_HEIGHT_PX = 192;
   const [content, setContent] = useState(question.text);
-  const [answers, setAnswers] = useState<Answer[]>(question.answers);
+  const [answers, setAnswers] = useState<Answer[]>(
+    question.answers.map((answer) => ({
+      ...answer,
+      // Normalize escaped newlines so they edit as real line breaks.
+      text: answer.text.replace(/\\n/g, "\n"),
+    }))
+  );
+  const answerRefs = useRef<Array<HTMLTextAreaElement | null>>([]);
+
+  const resizeAnswerTextarea = (el: HTMLTextAreaElement | null) => {
+    if (!el) return;
+    el.style.height = "auto";
+    const nextHeight = Math.min(el.scrollHeight, MAX_ANSWER_HEIGHT_PX);
+    el.style.height = `${nextHeight}px`;
+    el.style.overflowY = el.scrollHeight > MAX_ANSWER_HEIGHT_PX ? "auto" : "hidden";
+  };
+
+  useLayoutEffect(() => {
+    answerRefs.current.forEach((el) => resizeAnswerTextarea(el));
+  }, [answers]);
 
   const handleAnswerChange = (index: number, newText: string) => {
     setAnswers((prev) =>
       prev.map((a, i) => (i === index ? { ...a, text: newText } : a))
     );
+  };
+
+  const handleAnswerInput = (e: FormEvent<HTMLTextAreaElement>) => {
+    resizeAnswerTextarea(e.currentTarget);
   };
 
   const handleCorrectChange = (index: number) => {
@@ -99,26 +123,30 @@ You can also use tables, \`inline code\`, **bold**, etc.`}
             </label>
             <div className="space-y-2">
               {answers.map((answer, index) => (
-                <div key={index} className="flex items-center gap-2">
+                <div key={index} className="flex items-start gap-2">
                   <input
                     type="radio"
                     name="correct"
                     checked={answer.is_correct}
                     onChange={() => handleCorrectChange(index)}
-                    className="w-4 h-4 text-primary"
+                    className="w-4 h-4 text-primary mt-2"
                     title="Mark as correct"
                   />
-                  <input
-                    type="text"
+                  <textarea
+                    ref={(el) => {
+                      answerRefs.current[index] = el;
+                    }}
                     value={answer.text}
                     onChange={(e) => handleAnswerChange(index, e.target.value)}
-                    className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                    onInput={handleAnswerInput}
+                    rows={3}
+                    className="flex-1 min-h-[76px] max-h-48 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary resize-y"
                     placeholder={`Answer ${String.fromCharCode(65 + index)}`}
                   />
                   <button
                     onClick={() => handleRemoveAnswer(index)}
                     disabled={answers.length <= 2}
-                    className="p-2 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive disabled:opacity-30 disabled:cursor-not-allowed transition-colors mt-1"
                     title="Remove answer"
                   >
                     <Trash2 className="w-4 h-4" />

@@ -216,10 +216,24 @@ fn normalize_math_delimiters(content: &str) -> String {
 
 /// Convert answer text to HTML with proper escaping and line break preservation
 fn convert_answer_to_html(answer: &str) -> String {
+    let fenced_code_re = Regex::new(r"```(?:[a-zA-Z0-9_+\-]+)?\n([\s\S]*?)\n```").unwrap();
     let display_latex_re = Regex::new(r"\$\$([^\$]+)\$\$").unwrap();
     let inline_latex_re = Regex::new(r"\$([^\$]+)\$").unwrap();
 
-    let lines: Vec<&str> = answer.lines().collect();
+    let mut code_block_index = 0usize;
+    let mut code_blocks: Vec<(String, String)> = Vec::new();
+    let answer_with_placeholders = fenced_code_re
+        .replace_all(answer, |caps: &regex::Captures| {
+            let code = caps.get(1).map(|m| m.as_str()).unwrap_or("");
+            let token = format!("__RUBRIX_ANSWER_CODE_BLOCK_{}__", code_block_index);
+            let html = format!("<pre>{}</pre>", htmlescape::encode_minimal(code.trim_end()));
+            code_blocks.push((token.clone(), html));
+            code_block_index += 1;
+            token
+        })
+        .to_string();
+
+    let lines: Vec<&str> = answer_with_placeholders.lines().collect();
     let mut html_lines = Vec::new();
 
     for line in lines {
@@ -288,7 +302,14 @@ fn convert_answer_to_html(answer: &str) -> String {
     }
 
     // Join with <br /> for line breaks
-    html_lines.join("<br />")
+    let mut html = html_lines.join("<br />");
+
+    // Reinsert fenced code blocks as block-level preformatted sections.
+    for (token, block_html) in code_blocks {
+        html = html.replace(&token, &block_html);
+    }
+
+    html
 }
 
 // ============================================================================
@@ -920,6 +941,18 @@ mod tests {
 
         // The alt and formula attributes should contain the raw LaTeX
         assert!(result.contains(r#"alt="f'(x) = 2x""#));
+    }
+
+    #[test]
+    fn test_answer_fenced_java_code_block_to_pre() {
+        let input = "Before\n```java\nSystem.out.println(\"Hello\");\n```\nAfter";
+        let result = convert_answer_to_html(input);
+
+        assert!(result.contains("Before"));
+        assert!(result.contains("After"));
+        assert!(result.contains("<pre>"));
+        assert!(result.contains("</pre>"));
+        assert!(result.contains("System.out.println"));
     }
 
     #[test]
