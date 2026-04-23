@@ -7,6 +7,7 @@ mod llm;
 mod prompts;
 mod qti;
 
+use base64::Engine as _;
 use futures_util::stream::{self, StreamExt};
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
@@ -377,6 +378,8 @@ pub struct WordExportOptions {
     pub shuffle_choices: bool,
     #[serde(default)]
     pub shuffle_questions: bool,
+    #[serde(default)]
+    pub template_docx_path: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -728,11 +731,20 @@ fn latest_llm_log_snapshot() -> Option<(String, String, String)> {
     Some((prompt, response, source))
 }
 
-async fn convert_markdown_to_docx(markdown: String) -> Result<Vec<u8>, String> {
-    let payload = serde_json::json!({
+async fn convert_markdown_to_docx(
+    markdown: String,
+    template_docx_base64: Option<String>,
+) -> Result<Vec<u8>, String> {
+    let mut payload = serde_json::json!({
         "markdown": markdown,
         "format": "docx"
     });
+
+    if let Some(template_b64) = template_docx_base64 {
+        // Include a couple common keys for compatibility with simple pandoc wrappers.
+        payload["template_docx_base64"] = serde_json::Value::String(template_b64.clone());
+        payload["reference_docx_base64"] = serde_json::Value::String(template_b64);
+    }
 
     let client = reqwest::Client::new();
     let response = client
@@ -756,6 +768,45 @@ async fn convert_markdown_to_docx(markdown: String) -> Result<Vec<u8>, String> {
 
 fn docx_page_break_marker() -> &'static str {
     "```{=openxml}\n<w:p><w:r><w:br w:type=\"page\"/></w:r></w:p>\n```"
+}
+
+fn sanitize_filename_component(input: &str) -> String {
+    let mut out = String::with_capacity(input.len());
+    for ch in input.chars() {
+        if ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.') {
+            out.push(ch);
+        } else if ch.is_whitespace() {
+            out.push('_');
+        }
+    }
+
+    let trimmed = out.trim_matches('_');
+    if trimmed.is_empty() {
+        "untitled".to_string()
+    } else {
+        trimmed.to_string()
+    }
+}
+
+fn save_intermediate_docx_markdown_if_dev(label: &str, markdown: &str) -> Result<(), String> {
+    if !config::is_dev_mode() {
+        return Ok(());
+    }
+
+    let dir = PathBuf::from("exports").join("dev-docx-markdown");
+    fs::create_dir_all(&dir).map_err(|e| format!("Failed to create {}: {}", dir.display(), e))?;
+
+    let timestamp = chrono::Local::now().format("%Y%m%d_%H%M%S");
+    let safe_label = sanitize_filename_component(label);
+    let path = dir.join(format!("{}_{}.md", timestamp, safe_label));
+
+    fs::write(&path, markdown).map_err(|e| format!("Failed to write {}: {}", path.display(), e))?;
+
+    eprintln!(
+        "[DOCX DEV] Saved intermediate markdown snapshot: {}",
+        path.display()
+    );
+    Ok(())
 }
 
 fn load_question_bank_entries(
@@ -1619,7 +1670,20 @@ async fn export_to_docx(
         version_count: 1,
         shuffle_choices: false,
         shuffle_questions: false,
+        template_docx_path: None,
     });
+
+    let template_docx_base64 = if let Some(path) = opts.template_docx_path.as_ref() {
+        if path.trim().is_empty() {
+            None
+        } else {
+            let bytes = fs::read(path)
+                .map_err(|e| format!("Failed to read template DOCX at {}: {}", path, e))?;
+            Some(base64::engine::general_purpose::STANDARD.encode(bytes))
+        }
+    } else {
+        None
+    };
 
     let version_count = opts.version_count.clamp(1, 20);
     let include_choices = opts.include_choices;
@@ -1673,7 +1737,13 @@ async fn export_to_docx(
         sections.join(&format!("\n\n{}\n\n", docx_page_break_marker()))
     };
 
-    convert_markdown_to_docx(markdown).await
+    if let Err(err) =
+        save_intermediate_docx_markdown_if_dev(&format!("generated_{}", title), &markdown)
+    {
+        eprintln!("[DOCX DEV] Warning: {}", err);
+    }
+
+    convert_markdown_to_docx(markdown, template_docx_base64).await
 }
 
 #[tauri::command]
@@ -1691,7 +1761,20 @@ async fn export_question_bank_to_docx(
         version_count: 1,
         shuffle_choices: false,
         shuffle_questions: false,
+        template_docx_path: None,
     });
+
+    let template_docx_base64 = if let Some(path) = opts.template_docx_path.as_ref() {
+        if path.trim().is_empty() {
+            None
+        } else {
+            let bytes = fs::read(path)
+                .map_err(|e| format!("Failed to read template DOCX at {}: {}", path, e))?;
+            Some(base64::engine::general_purpose::STANDARD.encode(bytes))
+        }
+    } else {
+        None
+    };
 
     let version_count = opts.version_count.clamp(1, 20);
     let include_choices = opts.include_choices;
@@ -1729,7 +1812,13 @@ async fn export_question_bank_to_docx(
 
         sections.join(&format!("\n\n{}\n\n", docx_page_break_marker()))
     };
-    convert_markdown_to_docx(markdown).await
+    if let Err(err) =
+        save_intermediate_docx_markdown_if_dev(&format!("bank_{}_{}", subject, title), &markdown)
+    {
+        eprintln!("[DOCX DEV] Warning: {}", err);
+    }
+
+    convert_markdown_to_docx(markdown, template_docx_base64).await
 }
 
 /// Load question bank JSON for a subject from disk

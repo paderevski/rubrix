@@ -374,6 +374,27 @@ pub fn export_md(title: &str, questions: &[Question]) -> Result<String, String> 
     export_md_with_options(title, questions, ExportMdOptions::default())
 }
 
+fn format_markdown_choice(label: char, body: &str) -> String {
+    // If the answer contains fenced code, emit a list-style block where the fence
+    // is indented under the label so pandoc keeps both label and code association.
+    if body.contains("```") {
+        let indented = body
+            .lines()
+            .map(|line| {
+                if line.trim().is_empty() {
+                    String::new()
+                } else {
+                    format!("    {}", line)
+                }
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
+        format!("{})\n{}\n", label, indented)
+    } else {
+        format!("{}) {}\n", label, body)
+    }
+}
+
 pub fn export_md_with_options(
     title: &str,
     questions: &[Question],
@@ -405,9 +426,7 @@ pub fn export_md_with_options(
                 let body = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(
                     answer.text.trim(),
                 ));
-                let formatted = format!("{}) {}", label, body);
-                output.push_str(&formatted);
-                output.push('\n');
+                output.push_str(&format_markdown_choice(label, &body));
             }
         }
 
@@ -500,7 +519,7 @@ pub fn export_bank_md_with_options(
                 let body = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(
                     option.text.trim(),
                 ));
-                output.push_str(&format!("{}) {}\n", label, body));
+                output.push_str(&format_markdown_choice(label, &body));
             }
         }
 
@@ -1126,5 +1145,94 @@ mod tests {
         assert!(with_explanations.contains("### Question 1"));
         assert!(with_explanations.contains("Add the two integers directly."));
         assert!(!with_explanations.contains("1. Add the two integers directly."));
+    }
+
+    #[test]
+    fn test_export_md_with_fenced_choice_uses_indented_list_block_layout() {
+        let questions = vec![Question {
+            id: "q1".to_string(),
+            text: "Choose the output.".to_string(),
+            explanation: None,
+            rubric: None,
+            distractors: None,
+            subject: "Computer Science".to_string(),
+            topics: vec!["control_flow".to_string()],
+            difficulty: String::new(),
+            answers: vec![
+                Answer {
+                    text: "```java\nSystem.out.println(\"A\");\n```".to_string(),
+                    is_correct: true,
+                    explanation: None,
+                },
+                Answer {
+                    text: "Plain text".to_string(),
+                    is_correct: false,
+                    explanation: None,
+                },
+            ],
+        }];
+
+        let result = export_md_with_options(
+            "Quiz",
+            &questions,
+            ExportMdOptions {
+                include_explanations_section: false,
+                include_answer_key: true,
+                include_choices: true,
+                shuffle_choices: false,
+                shuffle_questions: false,
+            },
+        )
+        .unwrap();
+
+        assert!(result.contains("A)\n    ```java"));
+        assert!(!result.contains("A) ```java"));
+        assert!(result.contains("B) Plain text"));
+    }
+
+    #[test]
+    fn test_export_bank_md_with_fenced_choice_uses_indented_list_block_layout() {
+        let entries = vec![QuestionBankEntry {
+            id: "q1".to_string(),
+            text: "Choose the output.".to_string(),
+            options: vec![
+                QuestionBankOption {
+                    id: "opt_a".to_string(),
+                    text: "```java\nSystem.out.println(\"A\");\n```".to_string(),
+                    is_correct: true,
+                },
+                QuestionBankOption {
+                    id: "opt_b".to_string(),
+                    text: "Plain text".to_string(),
+                    is_correct: false,
+                },
+            ],
+            explanation: String::new(),
+            difficulty: "medium".to_string(),
+            cognitive_level: "apply".to_string(),
+            topics: vec!["control_flow".to_string()],
+            subtopics: None,
+            skills: vec![],
+            distractors: DistractorInfo {
+                common_mistakes: vec![],
+                common_errors: vec![],
+            },
+        }];
+
+        let result = export_bank_md_with_options(
+            "Bank",
+            &entries,
+            ExportBankMdOptions {
+                include_explanations: false,
+                include_choices: true,
+                shuffle_choices: false,
+                shuffle_questions: false,
+            },
+        )
+        .unwrap();
+
+        assert!(result.contains("A)\n    ```java"));
+        assert!(!result.contains("A) ```java"));
+        assert!(result.contains("B) Plain text"));
     }
 }

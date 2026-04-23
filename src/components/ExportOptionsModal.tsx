@@ -18,6 +18,7 @@ interface ExportOptionsModalProps {
   wordVersionCount: number;
   wordShuffleChoices: boolean;
   wordShuffleQuestions: boolean;
+  wordTemplateDocxPath: string;
   onChangeWordGeneratePreset: (preset: WordPreset) => void;
   onChangeWordBankPreset: (preset: WordPreset) => void;
   onChangeMarkdownPreset: (preset: MdPreset) => void;
@@ -26,6 +27,8 @@ interface ExportOptionsModalProps {
   onChangeWordVersionCount: (value: number) => void;
   onChangeWordShuffleChoices: (value: boolean) => void;
   onChangeWordShuffleQuestions: (value: boolean) => void;
+  onPickWordTemplate: () => Promise<void>;
+  onClearWordTemplate: () => void;
   onCancel: () => void;
   onConfirm: () => Promise<void>;
 }
@@ -55,6 +58,7 @@ export default function ExportOptionsModal({
   wordVersionCount,
   wordShuffleChoices,
   wordShuffleQuestions,
+  wordTemplateDocxPath,
   onChangeWordGeneratePreset,
   onChangeWordBankPreset,
   onChangeMarkdownPreset,
@@ -63,6 +67,8 @@ export default function ExportOptionsModal({
   onChangeWordVersionCount,
   onChangeWordShuffleChoices,
   onChangeWordShuffleQuestions,
+  onPickWordTemplate,
+  onClearWordTemplate,
   onCancel,
   onConfirm,
 }: ExportOptionsModalProps) {
@@ -187,6 +193,35 @@ export default function ExportOptionsModal({
 
               <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
                 Output: {wordVersionCount} version{wordVersionCount === 1 ? "" : "s"}, {summaryChoices}, {summaryChoiceShuffle}, {summaryQuestionShuffle}.
+              </div>
+
+              <div className="space-y-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium text-gray-700">Optional template DOCX</span>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void onPickWordTemplate();
+                      }}
+                      disabled={isExporting}
+                      className="px-2 py-1 text-xs border border-gray-300 rounded-md hover:bg-white disabled:bg-gray-100"
+                    >
+                      Choose
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onClearWordTemplate}
+                      disabled={isExporting || !wordTemplateDocxPath}
+                      className="px-2 py-1 text-xs border border-gray-300 rounded-md hover:bg-white disabled:bg-gray-100"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600 break-all">
+                  {wordTemplateDocxPath || "No template selected. Default converter style will be used."}
+                </p>
               </div>
             </div>
           ) : isMarkdown ? (

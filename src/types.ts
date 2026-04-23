@@ -85,6 +85,7 @@ export interface WordExportOptions {
   version_count: number;
   shuffle_choices: boolean;
   shuffle_questions: boolean;
+  template_docx_path?: string;
 }
 
 export type BugSeverity = "low" | "medium" | "high" | "critical";

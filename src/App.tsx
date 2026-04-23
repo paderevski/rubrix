@@ -459,6 +459,17 @@ function App() {
       return false;
     }
   });
+  const [wordTemplateDocxPath, setWordTemplateDocxPath] = useState<string>(() => {
+    if (typeof localStorage === "undefined") return "";
+    try {
+      const saved = localStorage.getItem(exportPresetStorageKey);
+      if (!saved) return "";
+      const parsed = JSON.parse(saved);
+      return typeof parsed.wordTemplateDocxPath === "string" ? parsed.wordTemplateDocxPath : "";
+    } catch {
+      return "";
+    }
+  });
   const [exportOptionsOpen, setExportOptionsOpen] = useState(false);
   const [pendingExportKind, setPendingExportKind] = useState<ExportKind | null>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -630,6 +641,7 @@ function App() {
       wordVersionCount,
       wordShuffleChoices,
       wordShuffleQuestions,
+      wordTemplateDocxPath,
     };
     localStorage.setItem(exportPresetStorageKey, JSON.stringify(payload));
   }, [
@@ -641,6 +653,7 @@ function App() {
     wordVersionCount,
     wordShuffleChoices,
     wordShuffleQuestions,
+    wordTemplateDocxPath,
   ]);
 
   useEffect(() => {
@@ -1296,6 +1309,7 @@ function App() {
           version_count: normalizedVersionCount,
           shuffle_choices: useChoiceShuffle,
           shuffle_questions: useQuestionShuffle,
+          template_docx_path: wordTemplateDocxPath || undefined,
         };
         const data = await invoke<number[]>("export_question_bank_to_docx", {
           subject: selectedSubject,
@@ -1314,6 +1328,7 @@ function App() {
           version_count: normalizedVersionCount,
           shuffle_choices: useChoiceShuffle,
           shuffle_questions: useQuestionShuffle,
+          template_docx_path: wordTemplateDocxPath || undefined,
         };
         const data = await invoke<number[]>("export_to_docx", {
           title: "Quiz",
@@ -1375,6 +1390,21 @@ function App() {
     }
 
     await handleExportDocx();
+  };
+
+  const handlePickWordTemplate = async () => {
+    const picked = await open({
+      multiple: false,
+      filters: [{ name: "Word Template", extensions: ["docx"] }],
+    });
+
+    if (!picked) return;
+    if (Array.isArray(picked)) {
+      setWordTemplateDocxPath(picked[0] ?? "");
+      return;
+    }
+
+    setWordTemplateDocxPath(picked);
   };
 
   const updateRecentDocuments = (filePath: string) => {
@@ -1813,6 +1843,7 @@ function App() {
         wordVersionCount={wordVersionCount}
         wordShuffleChoices={wordShuffleChoices}
         wordShuffleQuestions={wordShuffleQuestions}
+        wordTemplateDocxPath={wordTemplateDocxPath}
         onChangeWordGeneratePreset={setWordGeneratePreset}
         onChangeWordBankPreset={setWordBankPreset}
         onChangeMarkdownPreset={setMarkdownPreset}
@@ -1821,6 +1852,8 @@ function App() {
         onChangeWordVersionCount={setWordVersionCount}
         onChangeWordShuffleChoices={setWordShuffleChoices}
         onChangeWordShuffleQuestions={setWordShuffleQuestions}
+        onPickWordTemplate={handlePickWordTemplate}
+        onClearWordTemplate={() => setWordTemplateDocxPath("")}
         onCancel={() => {
           if (isExporting) return;
           setExportOptionsOpen(false);
