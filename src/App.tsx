@@ -470,6 +470,17 @@ function App() {
       return "";
     }
   });
+  const [wordExportTitle, setWordExportTitle] = useState<string>(() => {
+    if (typeof localStorage === "undefined") return "";
+    try {
+      const saved = localStorage.getItem(exportPresetStorageKey);
+      if (!saved) return "";
+      const parsed = JSON.parse(saved);
+      return typeof parsed.wordExportTitle === "string" ? parsed.wordExportTitle : "";
+    } catch {
+      return "";
+    }
+  });
   const [exportOptionsOpen, setExportOptionsOpen] = useState(false);
   const [pendingExportKind, setPendingExportKind] = useState<ExportKind | null>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -493,6 +504,15 @@ function App() {
     : documentMode === "new"
     ? "Untitled.kt"
     : null;
+  const defaultWordExportTitle = useMemo(() => {
+    if (activeTab === "bank") {
+      return selectedSubject ? `${selectedSubject} Question Bank` : "Question Bank";
+    }
+
+    const rawName = documentName ?? "Quiz";
+    const withoutExtension = rawName.replace(/\.[^/.]+$/, "").trim();
+    return withoutExtension || "Quiz";
+  }, [activeTab, documentName, selectedSubject]);
   const questionsSnapshot = useMemo(() => JSON.stringify(questions), [questions]);
   const isDocumentDirty = useMemo(() => {
     if (documentMode === "blank") return false;
@@ -642,6 +662,7 @@ function App() {
       wordShuffleChoices,
       wordShuffleQuestions,
       wordTemplateDocxPath,
+      wordExportTitle,
     };
     localStorage.setItem(exportPresetStorageKey, JSON.stringify(payload));
   }, [
@@ -654,6 +675,7 @@ function App() {
     wordShuffleChoices,
     wordShuffleQuestions,
     wordTemplateDocxPath,
+    wordExportTitle,
   ]);
 
   useEffect(() => {
@@ -1278,9 +1300,9 @@ function App() {
 
   const handleExportDocx = async () => {
     const exportingBank = activeTab === "bank";
-    const defaultName = exportingBank
-      ? `${selectedSubject || "question-bank"}.docx`
-      : "questions.docx";
+    const exportTitle = wordExportTitle.trim() || defaultWordExportTitle;
+    const sanitizedTitle = exportTitle.replace(/[/\\:*?"<>|]/g, "").trim() || "questions";
+    const defaultName = `${sanitizedTitle}.docx`;
 
     const filePath = await save({
       defaultPath: defaultName,
@@ -1291,6 +1313,7 @@ function App() {
 
     try {
       setIsExporting(true);
+      setWordExportTitle(exportTitle);
       const normalizedVersionCount = Math.min(Math.max(wordVersionCount, 1), 20);
       const includeChoices = wordIncludeChoices;
       const useChoiceShuffle = includeChoices && normalizedVersionCount > 1 && wordShuffleChoices;
@@ -1313,7 +1336,7 @@ function App() {
         };
         const data = await invoke<number[]>("export_question_bank_to_docx", {
           subject: selectedSubject,
-          title: `${selectedSubject} Question Bank`,
+          title: exportTitle,
           options,
         });
         await writeBinaryFile(filePath, new Uint8Array(data));
@@ -1331,7 +1354,7 @@ function App() {
           template_docx_path: wordTemplateDocxPath || undefined,
         };
         const data = await invoke<number[]>("export_to_docx", {
-          title: "Quiz",
+          title: exportTitle,
           options,
         });
         await writeBinaryFile(filePath, new Uint8Array(data));
@@ -1366,6 +1389,10 @@ function App() {
         setStatus("Generate questions before exporting");
       }
       return;
+    }
+
+    if (kind === "word") {
+      setWordExportTitle((prev) => (prev.trim().length > 0 ? prev : defaultWordExportTitle));
     }
 
     setPendingExportKind(kind);
@@ -1844,6 +1871,8 @@ function App() {
         wordShuffleChoices={wordShuffleChoices}
         wordShuffleQuestions={wordShuffleQuestions}
         wordTemplateDocxPath={wordTemplateDocxPath}
+        wordExportTitle={wordExportTitle}
+        defaultWordExportTitle={defaultWordExportTitle}
         onChangeWordGeneratePreset={setWordGeneratePreset}
         onChangeWordBankPreset={setWordBankPreset}
         onChangeMarkdownPreset={setMarkdownPreset}
@@ -1852,6 +1881,7 @@ function App() {
         onChangeWordVersionCount={setWordVersionCount}
         onChangeWordShuffleChoices={setWordShuffleChoices}
         onChangeWordShuffleQuestions={setWordShuffleQuestions}
+        onChangeWordExportTitle={setWordExportTitle}
         onPickWordTemplate={handlePickWordTemplate}
         onClearWordTemplate={() => setWordTemplateDocxPath("")}
         onCancel={() => {

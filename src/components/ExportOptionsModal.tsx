@@ -19,6 +19,8 @@ interface ExportOptionsModalProps {
   wordShuffleChoices: boolean;
   wordShuffleQuestions: boolean;
   wordTemplateDocxPath: string;
+  wordExportTitle: string;
+  defaultWordExportTitle: string;
   onChangeWordGeneratePreset: (preset: WordPreset) => void;
   onChangeWordBankPreset: (preset: WordPreset) => void;
   onChangeMarkdownPreset: (preset: MdPreset) => void;
@@ -27,6 +29,7 @@ interface ExportOptionsModalProps {
   onChangeWordVersionCount: (value: number) => void;
   onChangeWordShuffleChoices: (value: boolean) => void;
   onChangeWordShuffleQuestions: (value: boolean) => void;
+  onChangeWordExportTitle: (value: string) => void;
   onPickWordTemplate: () => Promise<void>;
   onClearWordTemplate: () => void;
   onCancel: () => void;
@@ -59,6 +62,8 @@ export default function ExportOptionsModal({
   wordShuffleChoices,
   wordShuffleQuestions,
   wordTemplateDocxPath,
+  wordExportTitle,
+  defaultWordExportTitle,
   onChangeWordGeneratePreset,
   onChangeWordBankPreset,
   onChangeMarkdownPreset,
@@ -67,6 +72,7 @@ export default function ExportOptionsModal({
   onChangeWordVersionCount,
   onChangeWordShuffleChoices,
   onChangeWordShuffleQuestions,
+  onChangeWordExportTitle,
   onPickWordTemplate,
   onClearWordTemplate,
   onCancel,
@@ -108,6 +114,21 @@ export default function ExportOptionsModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           {isWord ? (
             <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700">Document title</label>
+                <input
+                  type="text"
+                  value={wordExportTitle}
+                  onChange={(e) => onChangeWordExportTitle(e.target.value)}
+                  placeholder={defaultWordExportTitle}
+                  disabled={isExporting}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+                <p className="text-xs text-gray-500">
+                  Used for the Word document heading (`# Title`). Leave blank to use {defaultWordExportTitle}.
+                </p>
+              </div>
+
               <label className="block text-sm font-medium text-gray-700">Preset</label>
               <select
                 value={activeWordPreset}
