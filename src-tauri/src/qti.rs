@@ -323,6 +323,9 @@ pub struct ExportMdOptions {
     pub include_choices: bool,
     pub shuffle_choices: bool,
     pub shuffle_questions: bool,
+    /// Wrap the "Question N." label in a Pandoc custom-style div so Word
+    /// can apply a paragraph border (or other style) to exactly one line.
+    pub pandoc_docx_styles: bool,
 }
 
 impl Default for ExportMdOptions {
@@ -333,6 +336,7 @@ impl Default for ExportMdOptions {
             include_choices: true,
             shuffle_choices: true,
             shuffle_questions: false,
+            pandoc_docx_styles: false,
         }
     }
 }
@@ -343,6 +347,9 @@ pub struct ExportBankMdOptions {
     pub include_choices: bool,
     pub shuffle_choices: bool,
     pub shuffle_questions: bool,
+    /// Wrap the "Question N." label in a Pandoc custom-style div so Word
+    /// can apply a paragraph border (or other style) to exactly one line.
+    pub pandoc_docx_styles: bool,
 }
 
 impl Default for ExportBankMdOptions {
@@ -352,6 +359,7 @@ impl Default for ExportBankMdOptions {
             include_choices: true,
             shuffle_choices: false,
             shuffle_questions: false,
+            pandoc_docx_styles: false,
         }
     }
 }
@@ -413,7 +421,25 @@ pub fn export_md_with_options(
     for (i, q) in ordered_questions.iter().enumerate() {
         let question_text =
             convert_codeblock_tables_to_markdown(&normalize_math_delimiters(q.text.trim()));
-        output.push_str(&format!("**Question {}.** {}\n\n", i + 1, question_text));
+        if options.pandoc_docx_styles {
+            // Only wrap the first line/paragraph in the custom-style block so
+            // Word applies exactly one paragraph border per question. The
+            // remainder (code blocks, follow-up sentences) renders unstyled.
+            let (first_line, rest) = question_text
+                .split_once('\n')
+                .map(|(a, b)| (a.trim_end(), b.trim_start()))
+                .unwrap_or((question_text.as_str(), ""));
+            output.push_str(&format!(
+                "::: {{custom-style=\"QuestionBody\"}}\n**Question {}.** {}\n:::\n\n",
+                i + 1,
+                first_line
+            ));
+            if !rest.is_empty() {
+                output.push_str(&format!("{rest}\n\n"));
+            }
+        } else {
+            output.push_str(&format!("**Question {}.** {}\n\n", i + 1, question_text));
+        }
 
         let mut answers = q.answers.clone();
         if options.shuffle_choices {
@@ -506,7 +532,22 @@ pub fn export_bank_md_with_options(
     for (i, entry) in ordered_entries.iter().enumerate() {
         let question_text =
             convert_codeblock_tables_to_markdown(&normalize_math_delimiters(entry.text.trim()));
-        output.push_str(&format!("**Question {}.** {}\n\n", i + 1, question_text));
+        if options.pandoc_docx_styles {
+            let (first_line, rest) = question_text
+                .split_once('\n')
+                .map(|(a, b)| (a.trim_end(), b.trim_start()))
+                .unwrap_or((question_text.as_str(), ""));
+            output.push_str(&format!(
+                "::: {{custom-style=\"QuestionBody\"}}\n**Question {}.** {}\n:::\n\n",
+                i + 1,
+                first_line
+            ));
+            if !rest.is_empty() {
+                output.push_str(&format!("{rest}\n\n"));
+            }
+        } else {
+            output.push_str(&format!("**Question {}.** {}\n\n", i + 1, question_text));
+        }
 
         let mut ordered_options = entry.options.clone();
         if options.include_choices && options.shuffle_choices {

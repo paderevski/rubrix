@@ -742,8 +742,8 @@ async fn convert_markdown_to_docx(
 
     if let Some(template_b64) = template_docx_base64 {
         // Include a couple common keys for compatibility with simple pandoc wrappers.
-        payload["template_docx_base64"] = serde_json::Value::String(template_b64.clone());
         payload["reference_docx_base64"] = serde_json::Value::String(template_b64);
+        payload["use_reference_docx"] = serde_json::Value::Bool(true);
     }
 
     let client = reqwest::Client::new();
@@ -793,7 +793,7 @@ fn save_intermediate_docx_markdown_if_dev(label: &str, markdown: &str) -> Result
         return Ok(());
     }
 
-    let dir = PathBuf::from("exports").join("dev-docx-markdown");
+    let dir = PathBuf::from("../exports/dev-docx-markdown");
     fs::create_dir_all(&dir).map_err(|e| format!("Failed to create {}: {}", dir.display(), e))?;
 
     let timestamp = chrono::Local::now().format("%Y%m%d_%H%M%S");
@@ -1633,6 +1633,7 @@ fn export_to_md(
             include_choices: true,
             shuffle_choices: true,
             shuffle_questions: false,
+            pandoc_docx_styles: false,
         },
     )
 }
@@ -1700,6 +1701,7 @@ async fn export_to_docx(
                 include_choices,
                 shuffle_choices,
                 shuffle_questions,
+                pandoc_docx_styles: true,
             },
         )?
     } else {
@@ -1716,6 +1718,7 @@ async fn export_to_docx(
                     include_choices,
                     shuffle_choices,
                     shuffle_questions,
+                    pandoc_docx_styles: true,
                 },
             )?;
 
@@ -1790,6 +1793,7 @@ async fn export_question_bank_to_docx(
                 include_choices,
                 shuffle_choices,
                 shuffle_questions,
+                pandoc_docx_styles: true,
             },
         )?
     } else {
@@ -1805,6 +1809,7 @@ async fn export_question_bank_to_docx(
                     include_choices,
                     shuffle_choices,
                     shuffle_questions,
+                    pandoc_docx_styles: true,
                 },
             )?;
             sections.push(section);
