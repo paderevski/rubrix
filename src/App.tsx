@@ -51,6 +51,12 @@ interface RegenerateAllProgressEvent {
   success: boolean;
 }
 
+type PendingDocumentAction =
+  | { type: "close" }
+  | { type: "new" }
+  | { type: "open" }
+  | { type: "open-recent"; filePath: string };
+
 const catieFileFilter = { name: "Catie Document", extensions: ["kt"] };
 const legacySessionFileFilter = { name: "Legacy Session", extensions: ["json", "md"] };
 const remainingTokensStorageKey = "remainingTokens";
@@ -325,6 +331,9 @@ function App() {
   const [documentMode, setDocumentMode] = useState<DocumentMode>("blank");
   const [openRecentOpen, setOpenRecentOpen] = useState(false);
   const [saveChangesOpen, setSaveChangesOpen] = useState(false);
+  const [pendingDocumentAction, setPendingDocumentAction] = useState<PendingDocumentAction | null>(
+    null
+  );
   const [recentDocuments, setRecentDocuments] = useState<string[]>(() => {
     if (typeof localStorage === "undefined") return [];
     try {
@@ -830,18 +839,20 @@ function App() {
       if (action === "submit_bug") {
         setSubmitBugOpen(true);
       } else if (action === "new_document") {
-        void handleNewDocument();
+        void requestDocumentAction({ type: "new" });
       } else if (action === "add_custom_question") {
         setActiveTab("generate");
         void handleAddQuestion();
       } else if (action === "close_document") {
         void handleCloseDocumentRequest();
       } else if (action === "open_session") {
-        void handleOpenDocument();
+        void requestDocumentAction({ type: "open" });
       } else if (action === "open_recent") {
         setOpenRecentOpen(true);
       } else if (action === "save_session") {
         void handleSaveDocument();
+      } else if (action === "save_session_as") {
+        void handleSaveDocumentAs();
       } else if (action === "export_md") {
         openExportOptions("md");
       } else if (action === "export_qti") {
@@ -872,7 +883,18 @@ function App() {
     return () => {
       unlistenAction.then((f) => f());
     };
-  }, [streamingText, activeTab, questions.length, selectedSubject, isGenerating, isRegeneratingAll, isAuthenticated]);
+  }, [
+    streamingText,
+    activeTab,
+    questionsSnapshot,
+    selectedSubject,
+    isGenerating,
+    isRegeneratingAll,
+    isAuthenticated,
+    currentDocumentPath,
+    documentMode,
+    isDocumentDirty,
+  ]);
 
   useEffect(() => {
     void invoke("set_menu_state", {
@@ -1438,6 +1460,35 @@ function App() {
     setRecentDocuments((prev) => [filePath, ...prev.filter((p) => p !== filePath)].slice(0, 10));
   };
 
+  const performDocumentAction = async (action: PendingDocumentAction) => {
+    if (action.type === "close") {
+      await resetToBlankState();
+      return;
+    }
+
+    if (action.type === "new") {
+      await handleNewDocument();
+      return;
+    }
+
+    if (action.type === "open") {
+      await handleOpenDocument();
+      return;
+    }
+
+    await handleOpenRecentPath(action.filePath);
+  };
+
+  const requestDocumentAction = async (action: PendingDocumentAction) => {
+    if (documentMode !== "blank" && isDocumentDirty) {
+      setPendingDocumentAction(action);
+      setSaveChangesOpen(true);
+      return;
+    }
+
+    await performDocumentAction(action);
+  };
+
   const resetToBlankState = async () => {
     setQuestions([]);
     setRawTextByQuestionId({});
@@ -1461,11 +1512,7 @@ function App() {
 
   const handleCloseDocumentRequest = async () => {
     if (documentMode === "blank") return;
-    if (isDocumentDirty) {
-      setSaveChangesOpen(true);
-      return;
-    }
-    await resetToBlankState();
+    await requestDocumentAction({ type: "close" });
   };
 
   const handleNewDocument = async () => {
@@ -1526,16 +1573,23 @@ function App() {
   };
 
   const handleSaveDocument = async (): Promise<boolean> => {
+    return handleSaveDocumentToPath(currentDocumentPath);
+  };
+
+  const handleSaveDocumentToPath = async (
+    requestedPath?: string | null,
+    defaultPath = "untitled.kt"
+  ): Promise<boolean> => {
     if (questions.length === 0) {
       setStatus("No questions to save");
       return false;
     }
 
-    let filePath = currentDocumentPath;
+    let filePath = requestedPath ?? null;
 
     if (!filePath) {
       filePath = await save({
-        defaultPath: "untitled.kt",
+        defaultPath,
         filters: [catieFileFilter],
       });
     }
@@ -1563,6 +1617,12 @@ function App() {
       setStatus(`Save session error: ${err}`);
       return false;
     }
+  };
+
+  const handleSaveDocumentAs = async (): Promise<boolean> => {
+    const currentName = currentDocumentPath?.split(/[/\\]/).pop();
+    const defaultPath = currentName && currentName.trim().length > 0 ? currentName : "untitled.kt";
+    return handleSaveDocumentToPath(null, defaultPath);
   };
 
   const handleOpenDocument = async () => {
@@ -1673,24 +1733,37 @@ function App() {
       <OpenRecentModal
         open={openRecentOpen}
         recentPaths={recentDocuments}
-        onOpenPath={handleOpenRecentPath}
+        onOpenPath={(filePath) => {
+          void requestDocumentAction({ type: "open-recent", filePath });
+        }}
         onClear={handleClearRecent}
         onClose={() => setOpenRecentOpen(false)}
       />
       <SaveChangesModal
         open={saveChangesOpen}
         documentName={documentName ?? "Untitled.kt"}
-        onCancel={() => setSaveChangesOpen(false)}
+        onCancel={() => {
+          setSaveChangesOpen(false);
+          setPendingDocumentAction(null);
+        }}
         onDontSave={() => {
           setSaveChangesOpen(false);
-          void resetToBlankState();
+          const nextAction = pendingDocumentAction;
+          setPendingDocumentAction(null);
+          if (nextAction) {
+            void performDocumentAction(nextAction);
+          }
         }}
         onSave={() => {
           void (async () => {
             const saved = await handleSaveDocument();
             if (!saved) return;
             setSaveChangesOpen(false);
-            await resetToBlankState();
+            const nextAction = pendingDocumentAction;
+            setPendingDocumentAction(null);
+            if (nextAction) {
+              await performDocumentAction(nextAction);
+            }
           })();
         }}
       />

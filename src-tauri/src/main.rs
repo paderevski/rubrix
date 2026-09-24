@@ -1467,6 +1467,9 @@ fn set_menu_state(
     menu.get_item("save_session")
         .set_enabled(can_save_session)
         .map_err(|e| format!("Failed to set save_session state: {}", e))?;
+    menu.get_item("save_session_as")
+        .set_enabled(can_save_session)
+        .map_err(|e| format!("Failed to set save_session_as state: {}", e))?;
     menu.get_item("export_md")
         .set_enabled(can_export_questions)
         .map_err(|e| format!("Failed to set export_md state: {}", e))?;
@@ -1935,6 +1938,8 @@ fn main() {
     let open_recent =
         CustomMenuItem::new("open_recent", "Open Recent…").accelerator("CmdOrCtrl+Shift+O");
     let save_session = CustomMenuItem::new("save_session", "Save").accelerator("CmdOrCtrl+S");
+    let save_session_as =
+        CustomMenuItem::new("save_session_as", "Save As…").accelerator("CmdOrCtrl+Shift+S");
     let close_document = CustomMenuItem::new("close_document", "Close").accelerator("CmdOrCtrl+W");
     let regenerate_all_questions =
         CustomMenuItem::new("regenerate_all_questions", "Regenerate All Questions")
@@ -1976,6 +1981,7 @@ fn main() {
             .add_item(open_session)
             .add_item(open_recent.clone())
             .add_item(save_session)
+            .add_item(save_session_as.clone())
             .add_item(close_document.clone())
             .add_item(regenerate_all_questions.clone())
             .add_native_item(MenuItem::Separator)
@@ -1992,6 +1998,7 @@ fn main() {
             .add_item(open_session)
             .add_item(open_recent)
             .add_item(save_session)
+            .add_item(save_session_as)
             .add_item(close_document)
             .add_item(regenerate_all_questions)
             .add_native_item(MenuItem::Separator)
@@ -2112,6 +2119,7 @@ fn main() {
                 "open_session" => Some("open_session"),
                 "open_recent" => Some("open_recent"),
                 "save_session" => Some("save_session"),
+                "save_session_as" => Some("save_session_as"),
                 "close_document" => Some("close_document"),
                 "regenerate_all_questions" => Some("regenerate_all_questions"),
                 "export_md" => Some("export_md"),
