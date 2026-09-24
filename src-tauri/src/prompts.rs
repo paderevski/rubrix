@@ -5,6 +5,7 @@ use crate::{GenerationRequest, Question, QuestionBankEntry};
 /// Configuration for prompt building
 pub struct PromptConfig<'a> {
     pub topics: String,
+    pub topic_ids: &'a [String],
     pub difficulty: &'a str,
     pub count: usize,
     pub examples: &'a [QuestionBankEntry],
@@ -60,6 +61,12 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
         "hard" => "D3 (Hard) - Complex analysis, synthesis of multiple concepts, 5+ steps",
         _ => "D2 (Medium) - Requires analysis or multi-step reasoning",
     };
+    let difficulty_code = match config.difficulty {
+        "easy" => "D1",
+        "medium" => "D2",
+        "hard" => "D3",
+        _ => "D2",
+    };
 
     let examples_str = if config.examples.is_empty() {
         String::from("(No examples available)")
@@ -108,10 +115,15 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
         None => String::new(),
     };
 
+    let topic_ids_json =
+        serde_json::to_string(config.topic_ids).unwrap_or_else(|_| "[]".to_string());
+
     // Replace placeholders in template
     template
         .replace("{topics}", &config.topics)
+        .replace("{topic_ids}", &topic_ids_json)
         .replace("{difficulty}", difficulty_desc)
+        .replace("{difficulty_code}", difficulty_code)
         .replace("{count}", &config.count.to_string())
         .replace("{examples}", &examples_str)
         .replace("{user_instructions}", &user_instructions_str)
@@ -127,6 +139,7 @@ pub fn build_generation_prompt(
 ) -> String {
     let config = PromptConfig {
         topics: topics_label.to_string(),
+        topic_ids: &request.topics,
         difficulty: &request.difficulty,
         count: request.count as usize,
         examples,
@@ -139,13 +152,10 @@ pub fn build_generation_prompt(
 
 /// Format a question bank entry as JSON with only pedagogically useful fields
 fn format_example_as_json(q: &QuestionBankEntry) -> String {
-    // Build a clean JSON representation with the useful fields
     let answers_json: Vec<String> = q
         .options
         .iter()
         .map(|opt| {
-            // Use the current generation schema (`answers`) to reduce model confusion.
-            // We intentionally omit `id` and per-choice `explanation` because the bank doesn't store them.
             format!(
                 r#"    {{"text": "{}", "is_correct": {}}}"#,
                 escape_json_string(&opt.text),
@@ -154,29 +164,22 @@ fn format_example_as_json(q: &QuestionBankEntry) -> String {
         })
         .collect();
 
-    // Emit distractors as a string (matches the app's Question schema), but still preserve
-    // the pedagogy signal from the bank examples.
     let distractors_text = {
         let mut lines: Vec<String> = Vec::new();
-
         if !q.distractors.common_mistakes.is_empty() {
             lines.push("Common mistakes:".to_string());
             for m in &q.distractors.common_mistakes {
                 lines.push(format!("- {}: {}", m.option_id, m.misconception));
             }
         }
-
         if !q.distractors.common_errors.is_empty() {
             lines.push(format!(
                 "Common errors: {}",
                 q.distractors.common_errors.join(", ")
             ));
         }
-
         lines.join("\n")
     };
-
-    let skills_json: Vec<String> = q.skills.iter().map(|s| format!(r#""{}""#, s)).collect();
 
     format!(
         r#"{{
@@ -185,17 +188,11 @@ fn format_example_as_json(q: &QuestionBankEntry) -> String {
 {answers}
   ],
   "explanation": "{explanation}",
-  "difficulty": "{difficulty}",
-  "cognitive_level": "{cognitive_level}",
-  "skills": [{skills}],
-    "distractors": "{distractors}"
+  "distractors": "{distractors}"
 }}"#,
         text = escape_json_string(&q.text),
         answers = answers_json.join(",\n"),
         explanation = escape_json_string(&q.explanation),
-        difficulty = q.difficulty,
-        cognitive_level = q.cognitive_level,
-        skills = skills_json.join(", "),
         distractors = escape_json_string(&distractors_text),
     )
 }
@@ -956,6 +953,34 @@ mod tests {
         assert_eq!(questions.len(), 2);
         assert_eq!(questions[0].id, "q1");
         assert_eq!(questions[1].id, "q2");
+    }
+
+    #[test]
+    fn test_custom_prompt_injects_selected_subtopic_ids() {
+        let request = GenerationRequest {
+            subject: "Computer Science".to_string(),
+            topics: vec!["ST021".to_string()],
+            difficulty: "medium".to_string(),
+            count: 1,
+            notes: None,
+            append: false,
+            question_type: "multiple_choice".to_string(),
+            frq_question_type: None,
+        };
+
+        let prompt = build_generation_prompt(
+            &request,
+            &[],
+            Some(
+                r#"Target difficulty: {difficulty}\n{\"difficulty\": \"{difficulty_code}\", \"topics\": {topic_ids}}"#,
+            ),
+            "Writing Classes > Class Definition",
+        );
+
+        assert_eq!(
+            prompt,
+            r#"Target difficulty: D2 (Medium) - Requires analysis or multi-step reasoning, 3-5 steps\n{\"difficulty\": \"D2\", \"topics\": [\"ST021\"]}"#
+        );
     }
 
     #[test]

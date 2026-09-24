@@ -1222,6 +1222,7 @@ mod tests {
                 include_choices: true,
                 shuffle_choices: false,
                 shuffle_questions: false,
+                pandoc_docx_styles: false,
             },
         )
         .unwrap();
@@ -1268,6 +1269,7 @@ mod tests {
                 include_choices: true,
                 shuffle_choices: false,
                 shuffle_questions: false,
+                pandoc_docx_styles: false,
             },
         )
         .unwrap();

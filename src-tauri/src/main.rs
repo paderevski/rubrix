@@ -237,14 +237,14 @@ fn topic_labels_for_prompt(
     let mut id_to_name: HashMap<String, String> = HashMap::new();
 
     for topic in knowledge.get_topics(subject) {
-        id_to_name.insert(topic.id.clone(), topic.name.clone());
+        id_to_name.insert(topic.id.clone(), format!("{}: {}", topic.id, topic.name));
 
         for child in topic.children {
             // Include parent context so subtopic labels are self-explanatory in prompts.
             let child_label = if topic.name.trim().is_empty() {
-                child.name.clone()
+                format!("{}: {}", child.id, child.name)
             } else {
-                format!("{} > {}", topic.name, child.name)
+                format!("{}: {} > {}", child.id, topic.name, child.name)
             };
             id_to_name.insert(child.id.clone(), child_label);
         }

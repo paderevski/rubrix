@@ -26,6 +26,9 @@ Study these examples carefully. Pay special attention to:
 - The relationship between `difficulty` and `cognitive_level`
 - The precision and accuracy of the explanations
 
+Note: the examples below omit per-answer `explanation` fields because
+the example bank predates this feature. Your output must include them.
+
 {examples}
 
 ---
@@ -43,7 +46,7 @@ Generate {count} NEW question(s) that:
 
 For EACH question you write:
 
-**Step 1: Plan & Solve (Do this in the explanation section)**
+**Step 1: Plan & Solve (Write this as plain text before the <question> block)**
 - Decide what concept you'll test
 - Write the code you'll use
 - TRACE through it step-by-step and calculate the CORRECT answer
@@ -63,22 +66,26 @@ For EACH question you write:
 
 **Output Format (Tagged JSON Array):**
 
-Return your response wrapped in `<question>` and `</question>` tags, with the JSON array inside. The JSON should contain {count} question object(s). Each question should follow this structure:
+Write your reasoning as plain text BEFORE the `<question>` block —
+not inside any JSON field. Then return the `<question>` block only.
 
 ```text
 <question>
 [
   {
-    "text": "Question text here with markdown formatting like **bold** or `code`. Can include code blocks:\n\n```java\nSystem.out.println(\"Hello\");\n```",
-    "explanation": "Step-by-step walkthrough of how to arrive at the correct answer. Verify correct answer. Design distractors.",
-    "distractors": "Analysis of why each wrong answer is tempting and what misconception leads to it",
+    "text": "Question stem with markdown. Code blocks use:\n\n```java\n...\n```",
     "answers": [
-      {"text": "Answer text (use markdown like `42` for code)", "is_correct": false, "explanation": "Why this is wrong"},
-      {"text": "Another answer", "is_correct": true, "explanation": "Why this is correct"},
-      {"text": "Third answer", "is_correct": false, "explanation": "Common misconception"},
-      {"text": "Fourth answer", "is_correct": false, "explanation": "Off-by-one error"},
-      {"text": "Fifth answer", "is_correct": false, "explanation": "Calculation mistake"}
-    ]
+      {"text": "`42`", "is_correct": false, "explanation": "Why wrong"},
+      {"text": "`43`", "is_correct": true,  "explanation": "Why correct"},
+      {"text": "`44`", "is_correct": false, "explanation": "Common misconception"},
+      {"text": "`45`", "is_correct": false, "explanation": "Off-by-one error"},
+      {"text": "`46`", "is_correct": false, "explanation": "Calculation mistake"}
+    ],
+    "explanation": "Step-by-step solution walkthrough",
+    "distractors": "Analysis of why each wrong answer is tempting",
+    "difficulty": "{difficulty_code}",
+    "cognitive_level": "B3",
+    "topics": {topic_ids}
   }
 ]
 </question>
@@ -97,10 +104,11 @@ Return your response wrapped in `<question>` and `</question>` tags, with the JS
 - ✓ Did you work out the correct answer BEFORE writing anything?
 - ✓ Does your explanation match the answer you marked as correct?
 - ✓ Does each distractor represent a real student error pattern?
+- ✓ Code in the text field must not contain comments that reveal computation steps, intermediate values, or the solution path. // ASCII value 65 is acceptable context; // (int) y → 5 or // integer division: 70/2 = 35 are not.
 - ✓ Is your code syntactically correct Java?
 - ✓ Are all inline code references wrapped in backticks?
 - ✓ Is your explanation clear, accurate, and step-by-step?
-- ✓ Did you return ONLY the `<question>...</question>` block with no extra text outside the tags?
+- ✓ Did you write your reasoning as plain text BEFORE the <question> block, with no extra text AFTER it?
 
 *** User instructions
 {user_instructions}
