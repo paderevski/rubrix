@@ -26,7 +26,10 @@ const bedrockUsWest2 = new BedrockRuntimeClient({
 const usageRegion = "us-east-1";
 const usageDb = new DynamoDBClient({ region: usageRegion });
 
-const MODEL_ID = process.env.BEDROCK_MODEL_ID || "openai.gpt-oss-120b-1:0";
+const oss = "openai.gpt-oss-120b-1:0";
+const claude = "anthropic.claude-sonnet-4-5-20250929-v1:0";
+
+const MODEL_ID = process.env.BEDROCK_MODEL_ID || claude;
 const FRQ_MODEL_ID =
   process.env.BEDROCK_MODEL_ID_FRQ ||
   process.env.BEDROCK_FRQ_MODEL_ID ||
