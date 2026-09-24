@@ -8,6 +8,7 @@ export interface Question {
   subject?: string;
   topics?: string[];
   difficulty?: string;
+  cognitive_level?: string;
 }
 
 // Question bank (rich) entries

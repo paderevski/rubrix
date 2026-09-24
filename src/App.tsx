@@ -58,6 +58,7 @@ type PendingDocumentAction =
   | { type: "open-recent"; filePath: string };
 
 const catieFileFilter = { name: "Catie Document", extensions: ["kt"] };
+const llmQuestionFileFilter = { name: "LLM Question JSON", extensions: ["json"] };
 const legacySessionFileFilter = { name: "Legacy Session", extensions: ["json", "md"] };
 const remainingTokensStorageKey = "remainingTokens";
 const exportPresetStorageKey = "exportPresets";
@@ -184,6 +185,10 @@ function parseSessionQuestions(raw: unknown): Question[] {
         difficulty:
           typeof q.difficulty === "string" && q.difficulty.trim().length > 0
             ? q.difficulty
+            : undefined,
+        cognitive_level:
+          typeof q.cognitive_level === "string" && q.cognitive_level.trim().length > 0
+            ? q.cognitive_level
             : undefined,
       };
 
@@ -1527,7 +1532,7 @@ function App() {
     setCurrentDocumentPath(null);
     setDocumentMode("new");
     setSavedQuestionsSnapshot(JSON.stringify([]));
-    setStatus("New document • Unsaved (Untitled.kt)");
+    setStatus("New document • Unsaved (Untitled.json)");
     try {
       await invoke("set_questions", { newQuestions: [] as Question[] });
     } catch (err) {
@@ -1578,7 +1583,7 @@ function App() {
 
   const handleSaveDocumentToPath = async (
     requestedPath?: string | null,
-    defaultPath = "untitled.kt"
+    defaultPath = "untitled.json"
   ): Promise<boolean> => {
     if (questions.length === 0) {
       setStatus("No questions to save");
@@ -1590,18 +1595,33 @@ function App() {
     if (!filePath) {
       filePath = await save({
         defaultPath,
-        filters: [catieFileFilter],
+        filters: [llmQuestionFileFilter, catieFileFilter],
       });
     }
 
     if (!filePath) return false;
 
     try {
-      const payload = {
-        version: 1,
-        savedAt: new Date().toISOString(),
-        questions,
-      };
+      const isLegacySession = filePath.toLowerCase().endsWith(".kt");
+      const llmQuestions = questions.map(({ id, rubric, subject, ...question }) => ({
+        ...question,
+        explanation: question.explanation ?? "",
+        distractors: question.distractors ?? "",
+        difficulty: question.difficulty ?? "",
+        cognitive_level: question.cognitive_level ?? "",
+        topics: question.topics ?? [],
+        answers: question.answers.map((answer) => ({
+          ...answer,
+          explanation: answer.explanation ?? "",
+        })),
+      }));
+      const payload = isLegacySession
+        ? {
+            version: 1,
+            savedAt: new Date().toISOString(),
+            questions,
+          }
+        : llmQuestions;
       await invoke("write_document_file", {
         path: filePath,
         content: JSON.stringify(payload, null, 2),
@@ -1621,14 +1641,14 @@ function App() {
 
   const handleSaveDocumentAs = async (): Promise<boolean> => {
     const currentName = currentDocumentPath?.split(/[/\\]/).pop();
-    const defaultPath = currentName && currentName.trim().length > 0 ? currentName : "untitled.kt";
+    const defaultPath = currentName && currentName.trim().length > 0 ? currentName : "untitled.json";
     return handleSaveDocumentToPath(null, defaultPath);
   };
 
   const handleOpenDocument = async () => {
     const selection = await open({
       multiple: false,
-      filters: [catieFileFilter, legacySessionFileFilter],
+      filters: [llmQuestionFileFilter, catieFileFilter, legacySessionFileFilter],
     });
 
     if (!selection) return;

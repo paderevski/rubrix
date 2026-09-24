@@ -269,6 +269,15 @@ fn topic_labels_for_prompt(
     labels.join(", ")
 }
 
+fn difficulty_code(difficulty: &str) -> &str {
+    match difficulty {
+        "easy" => "D1",
+        "medium" => "D2",
+        "hard" => "D3",
+        _ => "D2",
+    }
+}
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -298,6 +307,8 @@ pub struct Question {
     pub topics: Vec<String>,
     #[serde(default)]
     pub difficulty: String,
+    #[serde(default)]
+    pub cognitive_level: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1025,7 +1036,7 @@ async fn generate_questions(
     for question in &mut new_questions {
         question.subject = request.subject.clone();
         question.topics = request.topics.clone();
-        question.difficulty = request.difficulty.clone();
+        question.difficulty = difficulty_code(&request.difficulty).to_string();
     }
 
     // Store in state (append or replace)
@@ -1303,6 +1314,7 @@ fn add_question(state: State<AppState>) -> Question {
         subject: String::new(),
         topics: Vec::new(),
         difficulty: String::new(),
+        cognitive_level: String::new(),
         answers: vec![
             Answer {
                 text: "Correct answer".to_string(),
