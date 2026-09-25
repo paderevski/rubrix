@@ -2128,11 +2128,11 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-        use super::*;
+    use super::*;
 
-        #[test]
-        fn question_bank_v2_round_trip_preserves_supported_fields() {
-                let input = r#"{
+    #[test]
+    fn question_bank_v2_round_trip_preserves_supported_fields() {
+        let input = r#"{
     "schema_version": "2.0.0",
     "source": "AP CSA Practice Exam",
     "questions": [
@@ -2153,20 +2153,26 @@ mod tests {
     ]
 }"#;
 
-                let document: QuestionBankDocument = serde_json::from_str(input).unwrap();
-                assert_eq!(document.source, "AP CSA Practice Exam");
-                assert_eq!(document.questions[0].migration_note.as_deref(), Some("Imported from a legacy source."));
-                assert_eq!(document.questions[0].answers[0].explanation, "Correct trace.");
+        let document: QuestionBankDocument = serde_json::from_str(input).unwrap();
+        assert_eq!(document.source, "AP CSA Practice Exam");
+        assert_eq!(
+            document.questions[0].migration_note.as_deref(),
+            Some("Imported from a legacy source.")
+        );
+        assert_eq!(
+            document.questions[0].answers[0].explanation,
+            "Correct trace."
+        );
 
-                let serialized = serde_json::to_string(&document).unwrap();
-                assert!(serialized.contains("\"_migration_note\""));
-                assert!(!serialized.contains("\"skills\""));
-                assert!(!serialized.contains("\"distractors\""));
-        }
+        let serialized = serde_json::to_string(&document).unwrap();
+        assert!(serialized.contains("\"_migration_note\""));
+        assert!(!serialized.contains("\"skills\""));
+        assert!(!serialized.contains("\"distractors\""));
+    }
 
-        #[test]
-        fn question_bank_v2_rejects_nested_legacy_entries() {
-                let legacy = r#"{
+    #[test]
+    fn question_bank_v2_rejects_nested_legacy_entries() {
+        let legacy = r#"{
     "questions": [
         {
             "id": "legacy_q1",
@@ -2179,6 +2185,6 @@ mod tests {
     ]
 }"#;
 
-                assert!(serde_json::from_str::<QuestionBankDocument>(legacy).is_err());
-        }
+        assert!(serde_json::from_str::<QuestionBankDocument>(legacy).is_err());
+    }
 }

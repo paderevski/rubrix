@@ -1,8 +1,6 @@
 //! Knowledge base management - loads example questions for few-shot prompting
 
-use crate::{
-    QuestionBankDocument, QuestionBankEntry, SubjectInfo, SubtopicInfo, TopicInfo,
-};
+use crate::{QuestionBankDocument, QuestionBankEntry, SubjectInfo, SubtopicInfo, TopicInfo};
 use rust_embed::RustEmbed;
 use serde::Deserialize;
 use std::collections::HashMap;
