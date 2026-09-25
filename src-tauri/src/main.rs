@@ -785,75 +785,6 @@ fn save_intermediate_docx_markdown_if_dev(label: &str, markdown: &str) -> Result
     Ok(())
 }
 
-fn load_question_bank_document(
-    subject: &str,
-    state: &AppState,
-    app_handle: &AppHandle,
-) -> Result<QuestionBankDocument, String> {
-    let from_disk: Result<QuestionBankDocument, String> = (|| {
-        let base = knowledge_base_dir(app_handle)
-            .ok_or_else(|| "No knowledge base directory available".to_string())?;
-        let path = base.join(subject).join("question-bank.json");
-
-        // Prefer user-edited bank in app data; fall back to packaged file if missing
-        let data = if path.exists() {
-            fs::read_to_string(&path)
-                .map_err(|e| format!("Failed to read {}: {}", path.display(), e))?
-        } else {
-            // Fallback to bundled asset path (dev/prod) if present
-            let embedded_path = app_handle
-                .path_resolver()
-                .resolve_resource(format!("knowledge/{}/question-bank.json", subject))
-                .unwrap_or_else(|| {
-                    PathBuf::from("src-tauri/knowledge")
-                        .join(subject)
-                        .join("question-bank.json")
-                });
-            fs::read_to_string(&embedded_path).map_err(|e| {
-                format!(
-                    "Failed to read embedded bank {}: {}",
-                    embedded_path.display(),
-                    e
-                )
-            })?
-        };
-
-        serde_json::from_str(&data)
-            .map_err(|e| format!("Failed to parse question-bank.json: {}", e))
-    })();
-
-    if let Ok(entries) = &from_disk {
-        return Ok(entries.clone());
-    }
-
-    let disk_error = from_disk
-        .as_ref()
-        .err()
-        .cloned()
-        .unwrap_or_else(|| "unknown error".to_string());
-
-    // Fallback to the in-memory bank loaded at startup (from embedded assets) so the editor still has data
-    if let Some(entries) = state.knowledge.bank_entries.get(subject) {
-        if !entries.is_empty() {
-            eprintln!(
-                "Warning: Using embedded question bank for {} because disk load failed: {}",
-                subject, disk_error
-            );
-            return Ok(QuestionBankDocument {
-                schema_version: "2.0.0".to_string(),
-                source: "Embedded knowledge base fallback".to_string(),
-                questions: entries.clone(),
-            });
-        }
-    }
-
-    Err(format!(
-        "No question bank found for {}. Set RUBRIX_KNOWLEDGE_DIR to the knowledge folder or add a packaged bank. Last error: {}",
-        subject,
-        disk_error
-    ))
-}
-
 fn save_saved_credentials(app_handle: &AppHandle, creds: &SavedCredentials) -> Result<(), String> {
     let path = credentials_path(app_handle)?;
     let parent = path
@@ -1719,10 +1650,11 @@ async fn export_question_bank_to_docx(
     subject: String,
     title: String,
     options: Option<WordExportOptions>,
-    state: State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<Vec<u8>, String> {
-    let entries = load_question_bank_document(&subject, &state, &app_handle)?.questions;
+    let base = knowledge_base_dir(&app_handle)
+        .ok_or_else(|| "No knowledge base directory available".to_string())?;
+    let entries = knowledge::load_question_bank_entries(&subject, Some(&base));
     let opts = options.unwrap_or(WordExportOptions {
         include_explanations: false,
         include_choices: true,
@@ -1791,26 +1723,38 @@ async fn export_question_bank_to_docx(
     convert_markdown_to_docx(markdown, template_docx_base64).await
 }
 
-/// Load question bank JSON for a subject from disk
+/// List available V2 question-bank files for a subject.
 #[tauri::command]
-fn load_question_bank(
-    subject: String,
-    state: State<AppState>,
-    app_handle: AppHandle,
-) -> Result<QuestionBankDocument, String> {
-    load_question_bank_document(&subject, &state, &app_handle)
+fn list_question_bank_files(subject: String, app_handle: AppHandle) -> Result<Vec<String>, String> {
+    let base = knowledge_base_dir(&app_handle)
+        .ok_or_else(|| "No knowledge base directory available".to_string())?;
+    knowledge::list_question_bank_files(&subject, Some(&base))
 }
 
-/// Save question bank JSON for a subject to disk (atomic write)
+/// Load one V2 question-bank file.
 #[tauri::command]
-fn save_question_bank(
+fn load_question_bank_file(
     subject: String,
+    file_name: String,
+    app_handle: AppHandle,
+) -> Result<QuestionBankDocument, String> {
+    let base = knowledge_base_dir(&app_handle)
+        .ok_or_else(|| "No knowledge base directory available".to_string())?;
+    knowledge::read_question_bank_document(&subject, &file_name, Some(&base))
+}
+
+/// Save one V2 question-bank file to its writable override path (atomic write).
+#[tauri::command]
+fn save_question_bank_file(
+    subject: String,
+    file_name: String,
     document: QuestionBankDocument,
     app_handle: AppHandle,
 ) -> Result<(), String> {
+    knowledge::validate_bank_location(&subject, &file_name)?;
     let base =
         knowledge_base_dir(&app_handle).ok_or_else(|| "No app data dir available".to_string())?;
-    let path = base.join(&subject).join("question-bank.json");
+    let path = base.join(&subject).join("banks").join(&file_name);
     let parent = path
         .parent()
         .ok_or_else(|| format!("Invalid path for subject: {}", subject))?;
@@ -1820,7 +1764,7 @@ fn save_question_bank(
         .map_err(|e| format!("Failed to create dir {}: {}", parent.display(), e))?;
 
     let json = serde_json::to_string_pretty(&document)
-        .map_err(|e| format!("Failed to serialize question bank: {}", e))?;
+        .map_err(|e| format!("Failed to serialize question bank {}: {}", file_name, e))?;
 
     let tmp_path = path.with_extension("json.tmp");
     {
@@ -1860,13 +1804,6 @@ fn write_document_file(path: String, content: String) -> Result<(), String> {
 fn main() {
     load_env_vars();
     log_startup_env_diagnostics();
-    let knowledge = knowledge::KnowledgeBase::load();
-
-    let state = AppState {
-        questions: Mutex::new(Vec::new()),
-        knowledge,
-        credentials: Mutex::new(None),
-    };
 
     let new_document = CustomMenuItem::new("new_document", "New").accelerator("CmdOrCtrl+N");
     let add_custom_question = CustomMenuItem::new("add_custom_question", "Add Custom Question...")
@@ -2028,12 +1965,18 @@ fn main() {
         .add_submenu(help_menu);
 
     tauri::Builder::default()
-        .manage(state)
         .menu(menu)
         .setup(|app| {
             if let Some(main_window) = app.get_window("main") {
                 restore_window_state(&main_window);
             }
+            let writable_root = knowledge_base_dir(&app.handle());
+            let knowledge = knowledge::KnowledgeBase::load(writable_root.as_deref());
+            app.manage(AppState {
+                questions: Mutex::new(Vec::new()),
+                knowledge,
+                credentials: Mutex::new(None),
+            });
             Ok(())
         })
         .on_menu_event(|event| {
@@ -2119,8 +2062,9 @@ fn main() {
             export_to_qti,
             export_to_docx,
             export_question_bank_to_docx,
-            load_question_bank,
-            save_question_bank,
+            list_question_bank_files,
+            load_question_bank_file,
+            save_question_bank_file,
             read_document_file,
             write_document_file,
         ])

@@ -81,6 +81,8 @@ interface BankEditorProps {
 }
 
 export default function BankEditor({ subject }: BankEditorProps) {
+  const [bankFiles, setBankFiles] = useState<string[]>([]);
+  const [selectedFile, setSelectedFile] = useState("");
   const [document, setDocument] = useState<QuestionBankDocument | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -96,16 +98,49 @@ export default function BankEditor({ subject }: BankEditorProps) {
 
   useEffect(() => {
     if (!subject) return;
-    loadBank();
+    loadBankFiles();
     loadTopics();
   }, [subject]);
 
-  const loadBank = async () => {
+  const loadBankFiles = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await invoke<QuestionBankDocument>("load_question_bank", { subject });
+      const files = await invoke<string[]>("list_question_bank_files", { subject });
+      setBankFiles(files);
+      const initialFile = files[0] ?? "";
+      setSelectedFile(initialFile);
+      if (!initialFile) {
+        setDocument(null);
+        setSelectedId(null);
+        setDirty(false);
+        return;
+      }
+      const data = await invoke<QuestionBankDocument>("load_question_bank_file", {
+        subject,
+        fileName: initialFile,
+      });
       setDocument(data);
+      setSelectedId(data.questions[0]?.id ?? null);
+      setDirty(false);
+    } catch (e: any) {
+      setError(String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openBankFile = async (fileName: string) => {
+    if (!fileName) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await invoke<QuestionBankDocument>("load_question_bank_file", {
+        subject,
+        fileName,
+      });
+      setDocument(data);
+      setSelectedFile(fileName);
       setSelectedId(data.questions[0]?.id ?? null);
       setDirty(false);
     } catch (e: any) {
@@ -173,7 +208,11 @@ export default function BankEditor({ subject }: BankEditorProps) {
     setError(null);
     try {
       if (!document) return;
-      await invoke("save_question_bank", { subject, document });
+      await invoke("save_question_bank_file", {
+        subject,
+        fileName: selectedFile,
+        document,
+      });
       setDirty(false);
     } catch (e: any) {
       setError(String(e));
@@ -183,14 +222,38 @@ export default function BankEditor({ subject }: BankEditorProps) {
   };
 
   const handleDiscard = () => {
-    loadBank();
+    openBankFile(selectedFile);
   };
 
   const renderList = () => (
     <div className="w-64 border-r bg-slate-50 h-full overflow-auto">
-      <div className="px-3 py-2 flex items-center justify-between border-b bg-white">
-        <div className="text-sm font-semibold">Questions</div>
-        {loading && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
+      <div className="px-3 py-2 border-b bg-white">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-sm font-semibold">Questions</div>
+          {loading && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
+        </div>
+        <label className="block text-xs font-medium text-slate-600 mb-1" htmlFor="bank-file-select">
+          Bank file
+        </label>
+        <select
+          id="bank-file-select"
+          className="w-full border rounded px-2 py-1.5 text-sm"
+          value={selectedFile}
+          disabled={loading || bankFiles.length === 0}
+          onChange={(event) => {
+            const nextFile = event.target.value;
+            if (dirty && !window.confirm("Discard unsaved changes and open another bank file?")) {
+              event.target.value = selectedFile;
+              return;
+            }
+            openBankFile(nextFile);
+          }}
+        >
+          {bankFiles.length === 0 && <option value="">No bank files found</option>}
+          {bankFiles.map((fileName) => (
+            <option key={fileName} value={fileName}>{fileName}</option>
+          ))}
+        </select>
       </div>
       <div className="divide-y">
         {(document?.questions ?? []).map((q) => (
