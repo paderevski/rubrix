@@ -213,15 +213,26 @@ pub fn build_regenerate_prompt(
         current.subject.clone()
     };
 
-    let inferred_difficulty = examples
-        .first()
-        .map(|e| e.difficulty.clone())
-        .unwrap_or_else(|| "same as original".to_string());
+    let inferred_difficulty = if !current.difficulty.trim().is_empty() {
+        current.difficulty.clone()
+    } else {
+        examples
+            .first()
+            .map(|e| e.difficulty.clone())
+            .unwrap_or_else(|| "same as original".to_string())
+    };
 
-    let inferred_style = examples
-        .first()
-        .map(|e| e.cognitive_level.clone())
-        .unwrap_or_else(|| "same as original".to_string());
+    let inferred_style = if !current.cognitive_level.trim().is_empty() {
+        current.cognitive_level.clone()
+    } else {
+        examples
+            .first()
+            .map(|e| e.cognitive_level.clone())
+            .unwrap_or_else(|| "same as original".to_string())
+    };
+
+    let topic_ids_json =
+        serde_json::to_string(&current.topics).unwrap_or_else(|_| "[]".to_string());
 
     let current_json = serde_json::to_string_pretty(current)
         .unwrap_or_else(|_| "{\"error\":\"failed to serialize current question\"}".to_string());
@@ -254,6 +265,7 @@ pub fn build_regenerate_prompt(
             .replace("{current_question_json}", &current_json)
             .replace("{difficulty}", &inferred_difficulty)
             .replace("{topics}", &topics_label)
+            .replace("{topic_ids}", &topic_ids_json)
             .replace("{subject}", &subject_label)
             .replace("{style}", &inferred_style)
             .replace("{other_questions}", &other_questions_block)
@@ -959,6 +971,40 @@ mod tests {
             prompt,
             r#"Target difficulty: D2 (Medium) - Requires analysis or multi-step reasoning, 3-5 steps\n{\"difficulty\": \"D2\", \"topics\": [\"ST021\"]}"#
         );
+    }
+
+    #[test]
+    fn test_regeneration_template_uses_current_question_metadata_and_topic_ids() {
+        let current = Question {
+            id: "q1".to_string(),
+            text: "Original question".to_string(),
+            answers: vec![],
+            explanation: Some("Original explanation".to_string()),
+            rubric: None,
+            subject: "Computer Science".to_string(),
+            topics: vec!["T009".to_string(), "ST041".to_string()],
+            difficulty: "D2".to_string(),
+            cognitive_level: "B3".to_string(),
+        };
+        let template =
+            include_str!("../../imports/knowledge/Computer Science/regeneration-prompt.txt");
+
+        let prompt = build_regenerate_prompt(
+            &current,
+            &[current.clone()],
+            &[],
+            None,
+            Some(template),
+            Some("T009: Arrays, ST041: Array Traversal"),
+        );
+
+        assert!(prompt.contains("**Target Difficulty:** D2"));
+        assert!(prompt.contains("**Target Cognitive Level:** B3"));
+        assert!(prompt.contains("**Target Topic IDs:** [\"T009\",\"ST041\"]"));
+        assert!(prompt.contains("\"topics\": [\"T009\",\"ST041\"]"));
+        assert!(!prompt.contains("{current_question_json}"));
+        assert!(!prompt.contains("{topic_ids}"));
+        assert!(!prompt.contains("{user_instructions}"));
     }
 
     #[test]

@@ -1,75 +1,112 @@
-You are an expert AP Computer Science A question writer.
+You are an expert AP Computer Science A question writer with strong analytical and debugging skills.
 
-Here is the current question JSON (full object):
+**CRITICAL RULE: Calculate the correct answer BEFORE writing the replacement question.**
+
+When generating questions with code or calculations:
+1. First, decide on the concept you'll test
+2. Write the code mentally or on scratch paper
+3. TRACE through the code step-by-step and calculate the correct answer
+4. Verify your calculation is correct - double-check your work
+5. Create wrong answers based on specific misconceptions
+6. ONLY THEN write the replacement question in the output format below
+
+If you discover an error while writing your explanation, silently restart with different code and solve it again before writing the question.
+
+**Subject:** {subject}
+**Target Topic(s):** {topics}
+**Target Topic IDs:** {topic_ids}
+**Target Difficulty:** {difficulty}
+**Target Cognitive Level:** {style}
+
+## Question to Replace
+
+Use this question as context for topic, complexity, and style. Write a distinct replacement rather than paraphrasing it.
+
 ```json
 {current_question_json}
 ```
 
+## Other Questions in This Set
+
+Avoid duplicating these questions:
+{other_questions}
+
 ## Your Task
 
-Generate 1 NEW question that:
-
-1. Tests the specified topic(s) at the target difficulty
-2. Use SIMILAR BUT DISTINCT code and scenarios to the current question
-3. Each wrong answer must exploit a specific student misconception. These are called 'distractors'
-4. Match the quality and style shown in the examples
-5. Have internally consistent, mathematically correct answers that you've verified
+Generate exactly ONE new question that:
+1. Tests the target topic(s) at the target difficulty and cognitive level
+2. Uses a different code example, values, or scenario from the question being replaced
+3. Uses distinct code and scenarios from the other questions in this set
+4. Has plausible wrong answers based on specific student misconceptions
+5. Has an internally consistent, verified correct answer
 
 **WORKFLOW (FOLLOW THIS ORDER):**
 
-For the question you write:
+**Step 1: Plan & Solve (Write this as plain text before the `<question>` block)**
+- Decide what concept to test
+- Finalize the exact code and values for the replacement question
+- Trace the code step-by-step and calculate the correct answer
+- Double-check the calculation using the final code and values
 
-**Step 1: Plan & Solve (Do this in the explanation section)**
-- Decide what concept you'll test
-- Write the code you'll use
-- TRACE through it step-by-step and calculate the CORRECT answer
-- Double-check your calculation - verify it's right
-- Think through common student errors for this type of problem
+**Step 2: Design Distractors (Also before the `<question>` block)**
+- Identify four specific misconceptions students may have
+- For each misconception, apply it to the finalized code and determine the resulting wrong answer
+- Verify that every wrong answer follows from its stated misconception
+- Ensure the five answer choices are distinct and exactly one is correct
 
-**Step 2: Design 4 Distractors (Also in the explanation section)**
-- Identify 4 specific misconceptions students have
-- For each misconception, calculate what wrong answer it would produce
-- Make sure each distractor comes from a real error pattern (off-by-one, wrong operator, pass-by-value confusion, loop bound errors, etc.)
+**Step 3: Write the Question**
+- Write the stem and finalized code
+- Include an explanation for every answer choice in `answers[].explanation`
+- Include a clear, step-by-step correct solution in the question-level `explanation`
+- Do not add a separate top-level distractor-analysis field
 
-**Step 3: Question quality verification (Also in the explanation section)**
-- Review the question text and solution text for any extraneous comments or explanations
-- Remove any comments or text that gives away the solution of the question. For example any comment that says what a line of code does should be removed
-- Verify and function names do not give away a question solution. For example do not call a reverseList(a) if the goal is to determine what the function does (it reverses a list)
-- Also clean up any errors in latex or markdown formatting
-- Double-check that all of the answer choices are distinct. If not, regenerate ones that are identical.
-
-**Step 4: Write the Question (Now you can start writing JSON)**
-- Only NOW should you write the stem and code
-- Write ALL answer choices (correct + distractors) with their explanations
-- Write the explanation showing the step-by-step solution
-- Write the distractors analysis explaining the error patterns
+**Step 4: Verify Quality**
+- Check that the explanation agrees with the marked correct answer
+- Check that the Java code is syntactically valid
+- Remove comments, names, or wording that reveal the answer or solution path
+- Check Markdown and LaTeX formatting
 
 **Additional human instructions (IMPORTANT PRIORITY):**
 {user_instructions}
 
-** Required guards **
-1) Return ONLY a single `<question>...</question>` block containing a JSON array with exactly 1 question object.
-2) Preserve schema exactly:
-   - text (string)
-   - explanation (string)
-   - distractors (string)
-   - answers (array of objects with text, is_correct, explanation)
-3) Include exactly one correct answer (`is_correct: true`).
-4) Keep explanations internally consistent with the marked correct answer.
-5) Do not include markdown fences or extra prose outside the `<question>...</question>` block.
-6) All code or keywords or code references within the "answers" field *must* be fenced with inline code or code block indicators appropriate for markdown formatting.
+## Output Format
 
-** Strict output format: **
+Write your reasoning as plain text BEFORE the `<question>` block. Then return only one `<question>...</question>` block containing a JSON array with exactly one question object. Do not include text after the closing tag.
+
+```text
 <question>
 [
   {
-    "text": "...",
-    "explanation": "...",
-    "distractors": "...",
+    "text": "Question stem with Markdown. Code blocks use `\\n\\n```java\\n...\\n```.",
     "answers": [
-      {"text": "...", "is_correct": false, "explanation": "..."},
-      {"text": "...", "is_correct": true, "explanation": "..."}
-    ]
+      {"text": "`42`", "is_correct": false, "explanation": "Why this is a plausible error"},
+      {"text": "`43`", "is_correct": true, "explanation": "Why this is correct"},
+      {"text": "`44`", "is_correct": false, "explanation": "The misconception and resulting error"},
+      {"text": "`45`", "is_correct": false, "explanation": "The misconception and resulting error"},
+      {"text": "`46`", "is_correct": false, "explanation": "The misconception and resulting error"}
+    ],
+    "explanation": "Step-by-step solution walkthrough.",
+    "difficulty": "{difficulty}",
+    "cognitive_level": "{style}",
+    "topics": {topic_ids}
   }
 ]
 </question>
+```
+
+**Field Guidelines:**
+- `text`: Complete question stem in Markdown, including code where needed
+- `answers`: Exactly five choices; each has `text`, `is_correct`, and `explanation`
+- `explanation`: Detailed walkthrough of the verified correct solution
+- `difficulty`: Use the target difficulty code shown above
+- `cognitive_level`: Use the target cognitive level shown above
+- `topics`: Use the topic or subtopic codes shown above
+
+**Quality Checklist:**
+- Did you solve the finalized question before writing it?
+- Does each wrong answer result from a specific misconception applied to the finalized code?
+- Is exactly one answer marked correct?
+- Does each answer have a useful explanation?
+- Does the question-level explanation match the correct choice?
+- Are code, Markdown, and LaTeX valid and clear?
+- Is the replacement genuinely distinct from the question being replaced and the other questions?

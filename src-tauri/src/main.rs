@@ -1091,6 +1091,7 @@ async fn regenerate_question(
     new_question.subject = current.subject.clone();
     new_question.topics = current.topics.clone();
     new_question.difficulty = current.difficulty.clone();
+    new_question.cognitive_level = current.cognitive_level.clone();
 
     // Update in state
     let mut stored = state.questions.lock().unwrap();
@@ -1181,6 +1182,7 @@ async fn regenerate_all_questions_parallel(
                             new_question.subject = current.subject.clone();
                             new_question.topics = current.topics.clone();
                             new_question.difficulty = current.difficulty.clone();
+                            new_question.cognitive_level = current.cognitive_level.clone();
 
                             RegenerateAllQuestionResult {
                                 index,
