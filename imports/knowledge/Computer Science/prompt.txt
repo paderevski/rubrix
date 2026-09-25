@@ -48,14 +48,16 @@ For EACH question you write:
 
 **Step 1: Plan & Solve (Write this as plain text before the <question> block)**
 - Decide what concept you'll test
-- Write the code you'll use
+- Write the FINAL version of the code you will use in the question
 - TRACE through it step-by-step and calculate the CORRECT answer
-- Double-check your calculation - verify it's right
-- Think through common student errors for this type of problem
+- Double-check your calculation — verify it's right
+- Record the exact values that appear in your final code (you will need these in Step 2)
 
-**Step 2: Design Distractors (Also in the explanation section)**
-- Identify 3-4 specific misconceptions students have
-- For each misconception, calculate what wrong answer it would produce
+**Step 2: Design Distractors (Also before the <question> block)**
+- Do not begin this step until your code from Step 1 is fully finalized
+- Identify 3-4 specific misconceptions students have about this type of problem
+- For EACH misconception, apply it to the EXACT code values from Step 1 and compute the wrong answer fresh — do not reuse values calculated during planning or from an earlier draft
+- Verify: does each distractor value actually follow from its stated misconception applied to the final code?
 - Make sure each distractor comes from a real error pattern (off-by-one, wrong operator, pass-by-value confusion, loop bound errors, etc.)
 
 **Step 3: Write the Question (Now you can start writing JSON)**
@@ -63,6 +65,8 @@ For EACH question you write:
 - Write ALL answer choices (correct + distractors) with their explanations
 - Write the explanation showing the step-by-step solution
 - Write the distractors analysis explaining the error patterns
+
+---
 
 **Output Format (Tagged JSON Array):**
 
@@ -85,7 +89,7 @@ not inside any JSON field. Then return the `<question>` block only.
     "distractors": "Analysis of why each wrong answer is tempting",
     "difficulty": "{difficulty_code}",
     "cognitive_level": "B3",
-    "topics": {topic_ids}
+    "topics": ["{topic_id}"]
   }
 ]
 </question>
@@ -99,16 +103,20 @@ not inside any JSON field. Then return the `<question>` block only.
   - `explanation`: Brief explanation of why this answer is correct/incorrect
 - `explanation`: Detailed walkthrough showing how to solve the problem
 - `distractors`: Analysis of common student errors that lead to wrong answers
+- `difficulty`: ID only (e.g. `"D2"`)
+- `topics`: Array of topic or subtopic codes as provided in the Target Topic(s) line above
 
 **Quality Checklist (verify before submitting):**
 - ✓ Did you work out the correct answer BEFORE writing anything?
+- ✓ Is the code in Step 1 fully finalized before you calculated distractor values in Step 2?
+- ✓ Does each distractor value result from applying its stated misconception to the code AS FINALLY WRITTEN, not a draft or earlier version?
 - ✓ Does your explanation match the answer you marked as correct?
 - ✓ Does each distractor represent a real student error pattern?
-- ✓ Code in the text field must not contain comments that reveal computation steps, intermediate values, or the solution path. // ASCII value 65 is acceptable context; // (int) y → 5 or // integer division: 70/2 = 35 are not.
 - ✓ Is your code syntactically correct Java?
 - ✓ Are all inline code references wrapped in backticks?
+- ✓ Code in the `text` field must not contain comments that reveal computation steps, intermediate values, or the solution path. `// ASCII value 65` is acceptable context; `// (int) y → 5` is not.
 - ✓ Is your explanation clear, accurate, and step-by-step?
-- ✓ Did you write your reasoning as plain text BEFORE the <question> block, with no extra text AFTER it?
+- ✓ Did you write your reasoning as plain text BEFORE the `<question>` block, with no extra text AFTER it?
 
 *** User instructions
 {user_instructions}
