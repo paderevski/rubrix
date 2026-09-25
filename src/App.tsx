@@ -179,7 +179,6 @@ function parseSessionQuestions(raw: unknown): Question[] {
         answers,
         explanation: coerceRichText(q.explanation) ?? coerceRichText(q.solution),
         rubric: coerceRichText(q.rubric),
-        distractors: coerceRichText(q.distractors),
         subject: typeof q.subject === "string" ? q.subject : undefined,
         topics,
         difficulty:
@@ -280,7 +279,6 @@ function parseMarkdownQuestions(content: string): Question[] {
       answers,
       explanation: undefined,
       rubric: undefined,
-      distractors: undefined,
       subject: undefined,
       topics: undefined,
       difficulty: undefined,
@@ -1606,7 +1604,6 @@ function App() {
       const llmQuestions = questions.map(({ id, rubric, subject, ...question }) => ({
         ...question,
         explanation: question.explanation ?? "",
-        distractors: question.distractors ?? "",
         difficulty: question.difficulty ?? "",
         cognitive_level: question.cognitive_level ?? "",
         topics: question.topics ?? [],

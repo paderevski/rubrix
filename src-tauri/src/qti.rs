@@ -899,10 +899,10 @@ mod tests {
             text: "What is 2+2?".to_string(),
             explanation: None,
             rubric: None,
-            distractors: None,
             subject: "Test".to_string(),
             topics: vec!["Math".to_string()],
             difficulty: String::new(),
+            cognitive_level: String::new(),
             answers: vec![
                 Answer {
                     text: "4".to_string(),
@@ -963,10 +963,10 @@ mod tests {
             text: "Find $F'(x)$ and $g''(t)$".to_string(),
             explanation: None,
             rubric: None,
-            distractors: None,
             subject: "Calculus".to_string(),
             topics: vec!["Derivatives".to_string()],
             difficulty: String::new(),
+            cognitive_level: String::new(),
             answers: vec![],
         };
 
@@ -1023,10 +1023,10 @@ mod tests {
             text: "Find $F'(x)$ here".to_string(),
             explanation: None,
             rubric: None,
-            distractors: None,
             subject: "Calculus".to_string(),
             topics: vec!["Derivatives".to_string()],
             difficulty: String::new(),
+            cognitive_level: String::new(),
             answers: vec![],
         };
 
@@ -1069,10 +1069,10 @@ mod tests {
             text: "Here is an equation: $$F'(x) = 2x$$ and more text".to_string(),
             explanation: None,
             rubric: None,
-            distractors: None,
             subject: "Calculus".to_string(),
             topics: vec!["Derivatives".to_string()],
             difficulty: String::new(),
+            cognitive_level: String::new(),
             answers: vec![],
         };
 
@@ -1147,10 +1147,10 @@ mod tests {
             text: "What is 2 + 2?".to_string(),
             explanation: Some("Add the two integers directly.".to_string()),
             rubric: None,
-            distractors: None,
             subject: "Math".to_string(),
             topics: vec!["arithmetic".to_string()],
             difficulty: String::new(),
+            cognitive_level: String::new(),
             answers: vec![
                 Answer {
                     text: "4".to_string(),
@@ -1195,10 +1195,10 @@ mod tests {
             text: "Choose the output.".to_string(),
             explanation: None,
             rubric: None,
-            distractors: None,
             subject: "Computer Science".to_string(),
             topics: vec!["control_flow".to_string()],
             difficulty: String::new(),
+            cognitive_level: String::new(),
             answers: vec![
                 Answer {
                     text: "```java\nSystem.out.println(\"A\");\n```".to_string(),

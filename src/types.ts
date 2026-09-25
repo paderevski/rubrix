@@ -4,7 +4,6 @@ export interface Question {
   answers: Answer[];
   explanation?: string; // Correct answer explanation
   rubric?: string; // Optional rubric (primarily used for FRQ)
-  distractors?: string; // Why wrong answers are tempting
   subject?: string;
   topics?: string[];
   difficulty?: string;

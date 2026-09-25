@@ -40,7 +40,6 @@ Return ONLY a JSON array with this structure:
   {{
     "text": "Question text",
     "explanation": "Explanation of the correct answer",
-    "distractors": "Why wrong answers are tempting",
     "answers": [
       {{"text": "Answer 1", "is_correct": false, "explanation": "Why wrong"}},
       {{"text": "Answer 2", "is_correct": true, "explanation": "Why correct"}}
@@ -164,36 +163,17 @@ fn format_example_as_json(q: &QuestionBankEntry) -> String {
         })
         .collect();
 
-    let distractors_text = {
-        let mut lines: Vec<String> = Vec::new();
-        if !q.distractors.common_mistakes.is_empty() {
-            lines.push("Common mistakes:".to_string());
-            for m in &q.distractors.common_mistakes {
-                lines.push(format!("- {}: {}", m.option_id, m.misconception));
-            }
-        }
-        if !q.distractors.common_errors.is_empty() {
-            lines.push(format!(
-                "Common errors: {}",
-                q.distractors.common_errors.join(", ")
-            ));
-        }
-        lines.join("\n")
-    };
-
     format!(
         r#"{{
   "text": "{text}",
   "answers": [
 {answers}
   ],
-  "explanation": "{explanation}",
-  "distractors": "{distractors}"
+  "explanation": "{explanation}"
 }}"#,
         text = escape_json_string(&q.text),
         answers = answers_json.join(",\n"),
         explanation = escape_json_string(&q.explanation),
-        distractors = escape_json_string(&distractors_text),
     )
 }
 
@@ -305,7 +285,6 @@ Required guards:
 2. Preserve schema exactly:
    - text (string)
    - explanation (string)
-   - distractors (string)
    - answers (array of objects with text, is_correct, explanation)
 3. Include exactly one correct answer (`is_correct: true`).
 4. Keep explanations internally consistent with the marked correct answer.
@@ -316,7 +295,6 @@ Output format (strict):
   {{
     "text": "...",
     "explanation": "...",
-    "distractors": "...",
     "answers": [
       {{"text": "...", "is_correct": false, "explanation": "..."}},
       {{"text": "...", "is_correct": true,  "explanation": "..."}}
@@ -716,10 +694,6 @@ fn normalize_question_text(question: &mut Question) {
         question.rubric = Some(normalize_escaped_math_and_newlines(rubric));
     }
 
-    if let Some(distractors) = question.distractors.as_ref() {
-        question.distractors = Some(normalize_escaped_math_and_newlines(distractors));
-    }
-
     for answer in &mut question.answers {
         answer.text = normalize_escaped_math_and_newlines(&answer.text);
         if let Some(explanation) = answer.explanation.as_ref() {
@@ -928,6 +902,9 @@ mod tests {
             questions[0].text,
             "What is returned by this code?\n\n```java\nreturn 5 + 3;\n```"
         );
+        assert!(!serde_json::to_string(&questions[0])
+            .unwrap()
+            .contains("distractors"));
     }
 
     #[test]

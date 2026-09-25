@@ -21,7 +21,7 @@ If you discover an error while writing your explanation, DO NOT try to fix it mi
 ## Reference Examples (JSON format)
 
 Study these examples carefully. Pay special attention to:
-- How the `distractors` field shows WHY each wrong answer is tempting
+- How wrong answer choices reflect realistic student misconceptions
 - The `common_errors` that students make
 - The relationship between `difficulty` and `cognitive_level`
 - The precision and accuracy of the explanations
@@ -64,7 +64,6 @@ For EACH question you write:
 - Only NOW should you write the stem and code
 - Write ALL answer choices (correct + distractors) with their explanations
 - Write the explanation showing the step-by-step solution
-- Write the distractors analysis explaining the error patterns
 
 ---
 
@@ -86,7 +85,6 @@ not inside any JSON field. Then return the `<question>` block only.
       {"text": "`46`", "is_correct": false, "explanation": "Calculation mistake"}
     ],
     "explanation": "Step-by-step solution walkthrough",
-    "distractors": "Analysis of why each wrong answer is tempting",
     "difficulty": "{difficulty_code}",
     "cognitive_level": "B3",
     "topics": ["{topic_id}"]
@@ -102,7 +100,6 @@ not inside any JSON field. Then return the `<question>` block only.
   - `is_correct`: Boolean indicating if this is the correct answer
   - `explanation`: Brief explanation of why this answer is correct/incorrect
 - `explanation`: Detailed walkthrough showing how to solve the problem
-- `distractors`: Analysis of common student errors that lead to wrong answers
 - `difficulty`: ID only (e.g. `"D2"`)
 - `topics`: Array of topic or subtopic codes as provided in the Target Topic(s) line above
 

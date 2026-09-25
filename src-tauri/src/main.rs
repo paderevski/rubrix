@@ -299,8 +299,6 @@ pub struct Question {
     pub explanation: Option<String>, // Correct answer explanation
     #[serde(default, deserialize_with = "de_opt_string_or_json")]
     pub rubric: Option<String>, // Optional scoring rubric (primarily FRQ)
-    #[serde(default, deserialize_with = "de_opt_string_or_json")]
-    pub distractors: Option<String>, // Why wrong answers are tempting
     #[serde(default)]
     pub subject: String,
     #[serde(default)]
@@ -1310,7 +1308,6 @@ fn add_question(state: State<AppState>) -> Question {
         text: "New question".to_string(),
         explanation: None,
         rubric: None,
-        distractors: None,
         subject: String::new(),
         topics: Vec::new(),
         difficulty: String::new(),
