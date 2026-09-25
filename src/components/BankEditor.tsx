@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import { QuestionBankEntry, TopicInfo } from "../types";
+import { QuestionBankDocument, QuestionBankEntry, TopicInfo } from "../types";
 import { Loader2, Save, RotateCcw, X, Plus } from "lucide-react";
 import ReactMarkdown, { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -81,7 +81,7 @@ interface BankEditorProps {
 }
 
 export default function BankEditor({ subject }: BankEditorProps) {
-  const [entries, setEntries] = useState<QuestionBankEntry[]>([]);
+  const [document, setDocument] = useState<QuestionBankDocument | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -90,8 +90,8 @@ export default function BankEditor({ subject }: BankEditorProps) {
   const [topicOptions, setTopicOptions] = useState<TopicInfo[]>([]);
 
   const selected = useMemo(
-    () => entries.find((e) => e.id === selectedId) || null,
-    [entries, selectedId]
+    () => document?.questions.find((e) => e.id === selectedId) || null,
+    [document, selectedId]
   );
 
   useEffect(() => {
@@ -104,9 +104,9 @@ export default function BankEditor({ subject }: BankEditorProps) {
     setLoading(true);
     setError(null);
     try {
-      const data = await invoke<QuestionBankEntry[]>("load_question_bank", { subject });
-      setEntries(data);
-      setSelectedId(data[0]?.id ?? null);
+      const data = await invoke<QuestionBankDocument>("load_question_bank", { subject });
+      setDocument(data);
+      setSelectedId(data.questions[0]?.id ?? null);
       setDirty(false);
     } catch (e: any) {
       setError(String(e));
@@ -125,28 +125,46 @@ export default function BankEditor({ subject }: BankEditorProps) {
   };
 
   const updateEntry = (id: string, patch: Partial<QuestionBankEntry>) => {
-    setEntries((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, ...patch } : e))
+    setDocument((prev) =>
+      prev
+        ? {
+            ...prev,
+            questions: prev.questions.map((entry) =>
+              entry.id === id ? { ...entry, ...patch } : entry
+            ),
+          }
+        : prev
     );
     setDirty(true);
   };
 
-  const updateOption = (
+  const updateAnswer = (
     id: string,
-    optionId: string,
-    patch: Partial<QuestionBankEntry["options"][number]>
+    answerId: string,
+    patch: Partial<QuestionBankEntry["answers"][number]>
   ) => {
-    setEntries((prev) =>
-      prev.map((e) => {
-        if (e.id !== id) return e;
-        return {
-          ...e,
-          options: e.options.map((o) =>
-            o.id === optionId ? { ...o, ...patch } : o
-          ),
-        };
-      })
+    setDocument((prev) =>
+      prev
+        ? {
+            ...prev,
+            questions: prev.questions.map((entry) =>
+              entry.id === id
+                ? {
+                    ...entry,
+                    answers: entry.answers.map((answer) =>
+                      answer.id === answerId ? { ...answer, ...patch } : answer
+                    ),
+                  }
+                : entry
+            ),
+          }
+        : prev
     );
+    setDirty(true);
+  };
+
+  const updateDocument = (patch: Partial<QuestionBankDocument>) => {
+    setDocument((prev) => (prev ? { ...prev, ...patch } : prev));
     setDirty(true);
   };
 
@@ -154,7 +172,8 @@ export default function BankEditor({ subject }: BankEditorProps) {
     setSaving(true);
     setError(null);
     try {
-      await invoke("save_question_bank", { subject, entries });
+      if (!document) return;
+      await invoke("save_question_bank", { subject, document });
       setDirty(false);
     } catch (e: any) {
       setError(String(e));
@@ -174,7 +193,7 @@ export default function BankEditor({ subject }: BankEditorProps) {
         {loading && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
       </div>
       <div className="divide-y">
-        {entries.map((q) => (
+        {(document?.questions ?? []).map((q) => (
           <button
             key={q.id}
             onClick={() => setSelectedId(q.id)}
@@ -186,7 +205,7 @@ export default function BankEditor({ subject }: BankEditorProps) {
             <div className="text-xs text-slate-600 line-clamp-2">{q.text}</div>
           </button>
         ))}
-        {entries.length === 0 && (
+        {(document?.questions.length ?? 0) === 0 && (
           <div className="px-3 py-4 text-xs text-muted-foreground">
             No questions loaded.
           </div>
@@ -253,6 +272,14 @@ export default function BankEditor({ subject }: BankEditorProps) {
 
             {/* Right: Metadata */}
             <div className="flex flex-col gap-4 h-full">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Source</label>
+                <input
+                  className="w-full border rounded p-2 text-sm"
+                  value={document?.source ?? ""}
+                  onChange={(e) => updateDocument({ source: e.target.value })}
+                />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Difficulty</label>
@@ -270,9 +297,17 @@ export default function BankEditor({ subject }: BankEditorProps) {
                     onChange={(e) => updateEntry(selected.id, { cognitive_level: e.target.value })}
                   />
                 </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Status</label>
+                  <input
+                    className="w-full border rounded p-2 text-sm"
+                    value={selected.status}
+                    onChange={(e) => updateEntry(selected.id, { status: e.target.value })}
+                  />
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Topics</label>
                   <div className="space-y-2">
@@ -361,21 +396,6 @@ export default function BankEditor({ subject }: BankEditorProps) {
                     </button>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Skills (comma-separated)</label>
-                  <input
-                    className="w-full border rounded p-2 text-sm"
-                    value={selected.skills.join(", ")}
-                    onChange={(e) =>
-                      updateEntry(selected.id, {
-                        skills: e.target.value
-                          .split(",")
-                          .map((s) => s.trim())
-                          .filter(Boolean),
-                      })
-                    }
-                  />
-                </div>
               </div>
 
               <div>
@@ -388,25 +408,6 @@ export default function BankEditor({ subject }: BankEditorProps) {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Distractors (common errors)</label>
-                <textarea
-                  className="w-full border rounded p-2 text-sm"
-                  rows={3}
-                  value={selected.distractors.common_errors.join("\n")}
-                  onChange={(e) =>
-                    updateEntry(selected.id, {
-                      distractors: {
-                        ...selected.distractors,
-                        common_errors: e.target.value
-                          .split("\n")
-                          .map((s) => s.trim())
-                          .filter(Boolean),
-                      },
-                    })
-                  }
-                />
-              </div>
               <div className="flex-1" />
             </div>
           </div>
@@ -414,17 +415,17 @@ export default function BankEditor({ subject }: BankEditorProps) {
           {/* Answers Block */}
           <div className="space-y-3">
             <div className="text-sm font-semibold">Answers</div>
-            {selected.options.map((opt, idx) => (
+            {selected.answers.map((answer, idx) => (
               <div
-                key={opt.id}
+                key={answer.id}
                 className="flex items-center gap-2 border rounded px-3 py-2 bg-white"
               >
                 <label className="flex items-center gap-2 text-xs">
                   <input
                     type="checkbox"
-                    checked={opt.is_correct}
+                    checked={answer.is_correct}
                     onChange={(e) =>
-                      updateOption(selected.id, opt.id, { is_correct: e.target.checked })
+                      updateAnswer(selected.id, answer.id, { is_correct: e.target.checked })
                     }
                   />
                   Correct
@@ -434,7 +435,7 @@ export default function BankEditor({ subject }: BankEditorProps) {
                 </span>
                 <div className="flex-1 min-w-0 text-xs text-slate-700 truncate border rounded px-2 py-1 bg-slate-50">
                   <RichMarkdown
-                    content={opt.text}
+                    content={answer.text}
                     className="prose prose-xs max-w-none prose-p:my-0 prose-ul:my-0 prose-ol:my-0"
                     components={{
                       p({ children }: any) {
@@ -454,9 +455,15 @@ export default function BankEditor({ subject }: BankEditorProps) {
                 </div>
                 <input
                   className="flex-1 min-w-0 border rounded px-2 py-1 text-sm"
-                  value={opt.text}
-                  onChange={(e) => updateOption(selected.id, opt.id, { text: e.target.value })}
+                  value={answer.text}
+                  onChange={(e) => updateAnswer(selected.id, answer.id, { text: e.target.value })}
                   placeholder="Answer text"
+                />
+                <input
+                  className="flex-1 min-w-0 border rounded px-2 py-1 text-sm"
+                  value={answer.explanation}
+                  onChange={(e) => updateAnswer(selected.id, answer.id, { explanation: e.target.value })}
+                  placeholder="Answer explanation"
                 />
               </div>
             ))}

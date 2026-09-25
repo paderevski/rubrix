@@ -519,75 +519,42 @@ pub struct SubmitBugResult {
 // Question Bank Types (for few-shot examples)
 // ============================================================================
 
-/// Rich question entry from question-bank.json
+/// Flat V2 question-bank document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuestionBankDocument {
+    pub schema_version: String,
+    pub source: String,
+    pub questions: Vec<QuestionBankEntry>,
+}
+
+/// Flat V2 question entry from question-bank.json.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QuestionBankEntry {
     pub id: String,
+    #[serde(default = "default_question_bank_status")]
+    pub status: String,
+    #[serde(default, rename = "_migration_note")]
+    pub migration_note: Option<String>,
     pub text: String,
-    pub options: Vec<QuestionBankOption>,
+    pub answers: Vec<QuestionBankAnswer>,
     pub explanation: String,
     pub difficulty: String,
     pub cognitive_level: String,
     pub topics: Vec<String>,
     #[serde(default)]
     pub subtopics: Option<Vec<String>>,
-    pub skills: Vec<String>,
-    pub distractors: DistractorInfo,
+}
+
+fn default_question_bank_status() -> String {
+    "active".to_string()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct QuestionBankFile {
-    questions: Vec<QuestionBankJsonEntry>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct QuestionBankJsonEntry {
-    id: String,
-    difficulty: String,
-    cognitive_level: String,
-    content: QuestionContent,
-    pedagogy: Pedagogy,
-    distractors: DistractorsJson,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct QuestionContent {
-    text: String,
-    options: Vec<QuestionBankOption>,
-    explanation: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct Pedagogy {
-    topics: Vec<String>,
-    #[serde(default)]
-    subtopics: Option<Vec<String>>,
-    skills: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct DistractorsJson {
-    common_mistakes: Vec<CommonMistake>,
-    common_errors: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuestionBankOption {
+pub struct QuestionBankAnswer {
     pub id: String,
     pub text: String,
     pub is_correct: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DistractorInfo {
-    pub common_mistakes: Vec<CommonMistake>,
-    pub common_errors: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommonMistake {
-    pub option_id: String,
-    pub misconception: String,
+    pub explanation: String,
 }
 
 // ============================================================================
@@ -818,12 +785,12 @@ fn save_intermediate_docx_markdown_if_dev(label: &str, markdown: &str) -> Result
     Ok(())
 }
 
-fn load_question_bank_entries(
+fn load_question_bank_document(
     subject: &str,
     state: &AppState,
     app_handle: &AppHandle,
-) -> Result<Vec<QuestionBankEntry>, String> {
-    let from_disk: Result<Vec<QuestionBankEntry>, String> = (|| {
+) -> Result<QuestionBankDocument, String> {
+    let from_disk: Result<QuestionBankDocument, String> = (|| {
         let base = knowledge_base_dir(app_handle)
             .ok_or_else(|| "No knowledge base directory available".to_string())?;
         let path = base.join(subject).join("question-bank.json");
@@ -851,28 +818,8 @@ fn load_question_bank_entries(
             })?
         };
 
-        let parsed: QuestionBankFile = serde_json::from_str(&data)
-            .map_err(|e| format!("Failed to parse question-bank.json: {}", e))?;
-
-        Ok(parsed
-            .questions
-            .into_iter()
-            .map(|q| QuestionBankEntry {
-                id: q.id,
-                text: q.content.text,
-                options: q.content.options,
-                explanation: q.content.explanation,
-                difficulty: q.difficulty,
-                cognitive_level: q.cognitive_level,
-                topics: q.pedagogy.topics,
-                subtopics: q.pedagogy.subtopics,
-                skills: q.pedagogy.skills,
-                distractors: DistractorInfo {
-                    common_mistakes: q.distractors.common_mistakes,
-                    common_errors: q.distractors.common_errors,
-                },
-            })
-            .collect())
+        serde_json::from_str(&data)
+            .map_err(|e| format!("Failed to parse question-bank.json: {}", e))
     })();
 
     if let Ok(entries) = &from_disk {
@@ -892,7 +839,11 @@ fn load_question_bank_entries(
                 "Warning: Using embedded question bank for {} because disk load failed: {}",
                 subject, disk_error
             );
-            return Ok(entries.clone());
+            return Ok(QuestionBankDocument {
+                schema_version: "2.0.0".to_string(),
+                source: "Embedded knowledge base fallback".to_string(),
+                questions: entries.clone(),
+            });
         }
     }
 
@@ -1769,7 +1720,7 @@ async fn export_question_bank_to_docx(
     state: State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<Vec<u8>, String> {
-    let entries = load_question_bank_entries(&subject, &state, &app_handle)?;
+    let entries = load_question_bank_document(&subject, &state, &app_handle)?.questions;
     let opts = options.unwrap_or(WordExportOptions {
         include_explanations: false,
         include_choices: true,
@@ -1844,15 +1795,15 @@ fn load_question_bank(
     subject: String,
     state: State<AppState>,
     app_handle: AppHandle,
-) -> Result<Vec<QuestionBankEntry>, String> {
-    load_question_bank_entries(&subject, &state, &app_handle)
+) -> Result<QuestionBankDocument, String> {
+    load_question_bank_document(&subject, &state, &app_handle)
 }
 
 /// Save question bank JSON for a subject to disk (atomic write)
 #[tauri::command]
 fn save_question_bank(
     subject: String,
-    entries: Vec<QuestionBankEntry>,
+    document: QuestionBankDocument,
     app_handle: AppHandle,
 ) -> Result<(), String> {
     let base =
@@ -1866,32 +1817,7 @@ fn save_question_bank(
     fs::create_dir_all(parent)
         .map_err(|e| format!("Failed to create dir {}: {}", parent.display(), e))?;
 
-    let file_model = QuestionBankFile {
-        questions: entries
-            .into_iter()
-            .map(|e| QuestionBankJsonEntry {
-                id: e.id,
-                difficulty: e.difficulty,
-                cognitive_level: e.cognitive_level,
-                content: QuestionContent {
-                    text: e.text,
-                    options: e.options,
-                    explanation: e.explanation,
-                },
-                pedagogy: Pedagogy {
-                    topics: e.topics,
-                    subtopics: e.subtopics,
-                    skills: e.skills,
-                },
-                distractors: DistractorsJson {
-                    common_mistakes: e.distractors.common_mistakes,
-                    common_errors: e.distractors.common_errors,
-                },
-            })
-            .collect(),
-    };
-
-    let json = serde_json::to_string_pretty(&file_model)
+    let json = serde_json::to_string_pretty(&document)
         .map_err(|e| format!("Failed to serialize question bank: {}", e))?;
 
     let tmp_path = path.with_extension("json.tmp");
@@ -2198,4 +2124,61 @@ fn main() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+        use super::*;
+
+        #[test]
+        fn question_bank_v2_round_trip_preserves_supported_fields() {
+                let input = r#"{
+    "schema_version": "2.0.0",
+    "source": "AP CSA Practice Exam",
+    "questions": [
+        {
+            "id": "pt1_q001",
+            "status": "active",
+            "_migration_note": "Imported from a legacy source.",
+            "text": "What is printed?",
+            "answers": [
+                {"id": "a", "text": "42", "is_correct": true, "explanation": "Correct trace."}
+            ],
+            "explanation": "Trace the expression.",
+            "topics": ["T009"],
+            "subtopics": ["ST041"],
+            "difficulty": "D2",
+            "cognitive_level": "B3"
+        }
+    ]
+}"#;
+
+                let document: QuestionBankDocument = serde_json::from_str(input).unwrap();
+                assert_eq!(document.source, "AP CSA Practice Exam");
+                assert_eq!(document.questions[0].migration_note.as_deref(), Some("Imported from a legacy source."));
+                assert_eq!(document.questions[0].answers[0].explanation, "Correct trace.");
+
+                let serialized = serde_json::to_string(&document).unwrap();
+                assert!(serialized.contains("\"_migration_note\""));
+                assert!(!serialized.contains("\"skills\""));
+                assert!(!serialized.contains("\"distractors\""));
+        }
+
+        #[test]
+        fn question_bank_v2_rejects_nested_legacy_entries() {
+                let legacy = r#"{
+    "questions": [
+        {
+            "id": "legacy_q1",
+            "difficulty": "D1",
+            "cognitive_level": "B2",
+            "content": {"text": "Legacy", "options": [], "explanation": "Legacy"},
+            "pedagogy": {"topics": [], "subtopics": null, "skills": []},
+            "distractors": {"common_mistakes": [], "common_errors": []}
+        }
+    ]
+}"#;
+
+                assert!(serde_json::from_str::<QuestionBankDocument>(legacy).is_err());
+        }
 }

@@ -549,7 +549,7 @@ pub fn export_bank_md_with_options(
             output.push_str(&format!("**Question {}.** {}\n\n", i + 1, question_text));
         }
 
-        let mut ordered_options = entry.options.clone();
+        let mut ordered_options = entry.answers.clone();
         if options.include_choices && options.shuffle_choices {
             ordered_options.shuffle(&mut rng);
         }
@@ -571,33 +571,6 @@ pub fn export_bank_md_with_options(
                 ));
                 output.push_str("\n**Explanation:**\n\n");
                 output.push_str(&format!("{}\n", explanation));
-            }
-
-            if !entry.distractors.common_errors.is_empty() {
-                output.push_str("\n**Distractors - Common errors:**\n");
-                for err in &entry.distractors.common_errors {
-                    let cleaned = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(
-                        err.trim(),
-                    ));
-                    output.push_str(&format!("- {}\n", cleaned));
-                }
-            }
-
-            if !entry.distractors.common_mistakes.is_empty() {
-                output.push_str("\n**Distractors - Misconceptions by option:**\n");
-                for mistake in &entry.distractors.common_mistakes {
-                    let label = ordered_options
-                        .iter()
-                        .enumerate()
-                        .find(|(_, option)| option.id == mistake.option_id)
-                        .map(|(idx, _)| (b'A' + idx as u8) as char)
-                        .map(|letter| letter.to_string())
-                        .unwrap_or_else(|| mistake.option_id.clone());
-                    let misconception = convert_codeblock_tables_to_markdown(
-                        &normalize_math_delimiters(mistake.misconception.trim()),
-                    );
-                    output.push_str(&format!("- {}: {}\n", label, misconception));
-                }
             }
         }
 
@@ -890,7 +863,7 @@ fn sanitize_filename(name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Answer, CommonMistake, DistractorInfo, QuestionBankEntry, QuestionBankOption};
+    use crate::{Answer, QuestionBankAnswer, QuestionBankEntry};
 
     #[test]
     fn test_export_txt() {
@@ -1095,20 +1068,24 @@ mod tests {
     }
 
     #[test]
-    fn test_export_bank_md_explanations_and_distractors_toggle() {
+    fn test_export_bank_md_explanations_toggle() {
         let entries = vec![QuestionBankEntry {
             id: "q1".to_string(),
+            status: "active".to_string(),
+            migration_note: None,
             text: "What does this return?".to_string(),
-            options: vec![
-                QuestionBankOption {
+            answers: vec![
+                QuestionBankAnswer {
                     id: "opt_a".to_string(),
                     text: "42".to_string(),
                     is_correct: true,
+                    explanation: "Correct loop trace.".to_string(),
                 },
-                QuestionBankOption {
+                QuestionBankAnswer {
                     id: "opt_b".to_string(),
                     text: "24".to_string(),
                     is_correct: false,
+                    explanation: "Swapped operands.".to_string(),
                 },
             ],
             explanation: "Because the loop runs exactly 42 times.".to_string(),
@@ -1116,28 +1093,16 @@ mod tests {
             cognitive_level: "apply".to_string(),
             topics: vec!["loops".to_string()],
             subtopics: None,
-            skills: vec!["trace code".to_string()],
-            distractors: DistractorInfo {
-                common_mistakes: vec![CommonMistake {
-                    option_id: "opt_b".to_string(),
-                    misconception: "Swapped operands in multiplication.".to_string(),
-                }],
-                common_errors: vec!["Off-by-one in loop bounds.".to_string()],
-            },
         }];
 
         let without_explanations = export_bank_md("Bank", &entries, false).unwrap();
         assert!(!without_explanations.contains("**Explanation:**"));
-        assert!(!without_explanations.contains("**Distractors - Common errors:**"));
-        assert!(!without_explanations.contains("**Distractors - Misconceptions by option:**"));
 
         let with_explanations = export_bank_md("Bank", &entries, true).unwrap();
         assert!(with_explanations.contains("**Explanation:**"));
         assert!(with_explanations.contains("Because the loop runs exactly 42 times."));
-        assert!(with_explanations.contains("**Distractors - Common errors:**"));
-        assert!(with_explanations.contains("Off-by-one in loop bounds."));
-        assert!(with_explanations.contains("**Distractors - Misconceptions by option:**"));
-        assert!(with_explanations.contains("B: Swapped operands in multiplication."));
+        assert!(!with_explanations.contains("**Distractors - Common errors:**"));
+        assert!(!with_explanations.contains("**Distractors - Misconceptions by option:**"));
     }
 
     #[test]
@@ -1236,17 +1201,21 @@ mod tests {
     fn test_export_bank_md_with_fenced_choice_uses_indented_list_block_layout() {
         let entries = vec![QuestionBankEntry {
             id: "q1".to_string(),
+            status: "active".to_string(),
+            migration_note: None,
             text: "Choose the output.".to_string(),
-            options: vec![
-                QuestionBankOption {
+            answers: vec![
+                QuestionBankAnswer {
                     id: "opt_a".to_string(),
                     text: "```java\nSystem.out.println(\"A\");\n```".to_string(),
                     is_correct: true,
+                    explanation: "Correct output.".to_string(),
                 },
-                QuestionBankOption {
+                QuestionBankAnswer {
                     id: "opt_b".to_string(),
                     text: "Plain text".to_string(),
                     is_correct: false,
+                    explanation: "Incorrect output.".to_string(),
                 },
             ],
             explanation: String::new(),
@@ -1254,11 +1223,6 @@ mod tests {
             cognitive_level: "apply".to_string(),
             topics: vec!["control_flow".to_string()],
             subtopics: None,
-            skills: vec![],
-            distractors: DistractorInfo {
-                common_mistakes: vec![],
-                common_errors: vec![],
-            },
         }];
 
         let result = export_bank_md_with_options(

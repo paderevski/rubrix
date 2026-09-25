@@ -1,2375 +1,1913 @@
 {
+  "schema_version": "2.3.0",
+  "source": "AP CSA Practice Exam 1 (2026 format), 42 MCQ",
   "questions": [
     {
-      "id": "pt1_q001",
+      "id": "pt2_q001",
       "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q1.",
+      "text": "Consider the following code segment.\n```java\nint x = 20;\nint y = 10;\nint temp = x;\nx = y;\ny = temp * x;\nSystem.out.println(x + \" \" + y);\n```\nWhat is printed as a result of executing this code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`10 100`",
+          "is_correct": false,
+          "explanation": "Computes `y` as `10 * 10`, as if `temp` held 10. `temp` was saved before `x` changed, so it holds 20."
+        },
+        {
+          "id": "b",
+          "text": "`10 200`",
+          "is_correct": true,
+          "explanation": "Correct. `x` becomes 10, and `y` becomes `temp * x`, which is `20 * 10` = 200."
+        },
+        {
+          "id": "c",
+          "text": "`20 100`",
+          "is_correct": false,
+          "explanation": "Treats both assignments as if they had no effect on `x` and uses 10 for both factors of `y`."
+        },
+        {
+          "id": "d",
+          "text": "`20 200`",
+          "is_correct": false,
+          "explanation": "Gets `y` right but misses that `x = y` changed `x` to 10."
+        }
+      ],
+      "explanation": "`temp` saves the original `x` (20) before `x` is overwritten. After `x = y`, `x` is 10. Then `y = temp * x` is `20 * 10`, which is 200. The output is `10 200`.",
+      "topics": [
+        "T001"
+      ],
+      "subtopics": [
+        "ST001",
+        "ST003"
+      ],
+      "skills": [
+        "SK001"
+      ],
       "difficulty": "D1",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Consider the following methods. What is printed as the result of the call trial()?\n\n```java\npublic void trial()\n{\n    int a = 10;\n    int b = 5;\n    doublevalues(a,b);\n    System.out.print(b);\n    System.out.print(a);\n}\n\npublic void doublevalues(int c, int d)\n{\n    c = c * 2;\n    d = d * 2;\n    System.out.print(c);\n    System.out.print(d);\n}\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "2010",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "2010105",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "2010510",
-            "is_correct": true
-          },
-          {
-            "id": "d",
-            "text": "20102010",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "20101020",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Primitive types are passed by value. The doublevalues method receives copies of a and b. It prints 20 and 10, then returns. The original variables a=10, b=5 are unchanged, so trial() prints 5 and 10. Total output: 2010510."
-      },
-      "pedagogy": {
-        "topics": ["T012", "T001"],
-        "subtopics": ["ST049", "ST050"],
-        "skills": ["SK001", "SK008"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Student only traces the method call output"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Pass by reference confusion"
-          },
-          {
-            "option_id": "e",
-            "misconception": "Confuses execution sequence"
-          }
-        ],
-        "common_errors": ["E005", "E009"]
-      }
+      "cognitive_level": "B3"
     },
     {
-      "id": "pt1_q002",
+      "id": "pt2_q002",
       "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q2.",
+      "text": "In the following statement, j and k are properly declared and initialized int variables.\n```java\nboolean result = ((j > 0) && (k > 0)) || ((j < 0) && (k < 0));\n```\nWhich of the following best describes the conditions in which result is assigned the value true?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "When j and k are both equal to 0",
+          "is_correct": false,
+          "explanation": "When both are 0, `0 > 0` and `0 < 0` are both false, so `result` is false."
+        },
+        {
+          "id": "b",
+          "text": "When j and k are both positive or both negative",
+          "is_correct": true,
+          "explanation": "Correct. The first `&&` covers both positive and the second covers both negative."
+        },
+        {
+          "id": "c",
+          "text": "When j is greater than k",
+          "is_correct": false,
+          "explanation": "`j > k` doesn't guarantee the same sign. For `j = 5`, `k = -1`, `result` is false."
+        },
+        {
+          "id": "d",
+          "text": "When j is positive and k is negative or when j is negative and k is positive",
+          "is_correct": false,
+          "explanation": "Opposite signs make both `&&` expressions false, so this describes exactly when `result` is false."
+        }
+      ],
+      "explanation": "The left operand of `||` is true when both are positive. The right operand is true when both are negative. So `result` is true exactly when `j` and `k` are both positive or both negative.",
+      "topics": [
+        "T003"
+      ],
+      "subtopics": [
+        "ST013"
+      ],
+      "skills": [
+        "SK009",
+        "SK020"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "pt2_q003",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q3. Code indentation normalized.",
+      "text": "Consider the following Painting class.\n```java\npublic class Painting\n{\n   private int year;\n   private String artist;\n   private String title;\n   public Painting(int y, String a)\n   {\n      year = y;\n      artist = a;\n      title = \"Untitled\";\n   }\n   // There are no other constructors.\n}\n```\nWhich of the following code segments, appearing in a class other than Painting, will correctly create an instance of a Painting object?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nPainting p = new Painting(\"Frida Kahlo\", \"Self Portrait\", 1939);\n```",
+          "is_correct": false,
+          "explanation": "Three arguments in the wrong order. No constructor takes three parameters."
+        },
+        {
+          "id": "b",
+          "text": "```java\nPainting p = new Painting(1939, \"Frida Kahlo\", \"Self Portrait\");\n```",
+          "is_correct": false,
+          "explanation": "The order of the first two is right, but there is no three-parameter constructor. `title` is always set to \"Untitled\" internally."
+        },
+        {
+          "id": "c",
+          "text": "```java\nPainting p = new Painting(\"Frida Kahlo\", 1939);\n```",
+          "is_correct": false,
+          "explanation": "Right number of arguments, but the order is reversed. The first parameter must be an `int`."
+        },
+        {
+          "id": "d",
+          "text": "```java\nPainting p = new Painting(1939, \"Frida Kahlo\");\n```",
+          "is_correct": true,
+          "explanation": "Correct. The arguments match the `(int, String)` parameter list."
+        }
+      ],
+      "explanation": "The only constructor takes an `int` then a `String`, in that order. `title` is set inside the constructor, not passed in. Only `new Painting(1939, \"Frida Kahlo\")` matches that signature.",
+      "topics": [
+        "T002",
+        "T005"
+      ],
+      "subtopics": [
+        "ST006",
+        "ST023"
+      ],
+      "skills": [
+        "SK008"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "pt2_q004",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q4.",
+      "text": "Consider the following code segment.\n```java\nint first = 5 + 10 * 2;\nint second = first + first % 2;\n```\nWhat is the value of second after this code segment is executed?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`37`",
+          "is_correct": false,
+          "explanation": "Treats `%` as `/`: `25 + 25 / 2` = `25 + 12` = 37."
+        },
+        {
+          "id": "b",
+          "text": "`30`",
+          "is_correct": false,
+          "explanation": "Evaluates left to right, `(5 + 10) * 2` = 30, then adds `30 % 2`, which is 0."
+        },
+        {
+          "id": "c",
+          "text": "`26`",
+          "is_correct": true,
+          "explanation": "Correct. `first` is 25, `25 % 2` is 1, and 25 + 1 = 26."
+        },
+        {
+          "id": "d",
+          "text": "`0`",
+          "is_correct": false,
+          "explanation": "Treats the expression as `(first + first) % 2`. `%` binds more tightly than `+`."
+        }
+      ],
+      "explanation": "`*` has higher precedence than `+`, so `first` is `5 + 20` = 25. In `first + first % 2`, `%` happens first: `25 % 2` is 1. So `second` is `25 + 1` = 26.",
+      "topics": [
+        "T001"
+      ],
+      "subtopics": [
+        "ST003"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "pt2_q005",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q5.",
+      "text": "Consider the following code segment.\n```java\ndouble cost = 25.0;\ndouble discount = 0.0;\nif (cost >= 100.0)\n{\n discount = 10.0;\n}\nelse if (cost >= 50.0)\n{\n discount = 5.0;\n}\nelse\n{\n discount = 2.0;\n}\nSystem.out.println(cost - discount);\n```\nWhat is printed as a result of executing this code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`25.0`",
+          "is_correct": false,
+          "explanation": "Assumes no branch runs and `discount` stays 0.0. The `else` guarantees one branch executes."
+        },
+        {
+          "id": "b",
+          "text": "`23.0`",
+          "is_correct": true,
+          "explanation": "Correct. Only the `else` branch runs, so the discount is 2.0."
+        },
+        {
+          "id": "c",
+          "text": "`20.0`",
+          "is_correct": false,
+          "explanation": "Applies the 5.0 discount, but 25.0 is not `>= 50.0`."
+        },
+        {
+          "id": "d",
+          "text": "`15.0`",
+          "is_correct": false,
+          "explanation": "Applies the 10.0 discount, but 25.0 is not `>= 100.0`."
+        }
+      ],
+      "explanation": "`cost` is 25.0, which fails both `cost >= 100.0` and `cost >= 50.0`, so the `else` branch sets `discount` to 2.0. It prints `25.0 - 2.0`, which is `23.0`.",
+      "topics": [
+        "T003"
+      ],
+      "subtopics": [
+        "ST012"
+      ],
+      "skills": [
+        "SK001",
+        "SK020"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "pt2_q006",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q6. Line 1 update corrected from \"j = 2\" to \"j -= 2\" and stray \"-\" removed from the Line 1 comment; missing intended output restored as 97531 (the output of the corrected code under the keyed answer).",
+      "text": "Consider the following code segment.\n```java\nfor (int j = 10; j >= 0; j -= 2)  // Line 1\n{                                  // Line 2\n   System.out.print(j - 1);        // Line 3\n}                                  // Line 4\n```\nThis code segment is intended to produce only the following output.\n```\n97531\n```\nIt does not work as intended.\nWhich of the following changes can be made so that this code segment works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "In line 1, changing the condition j >= 0 to j > 0",
+          "is_correct": true,
+          "explanation": "Correct. `j > 0` excludes `j = 0`, removing the trailing `-1`."
+        },
+        {
+          "id": "b",
+          "text": "In line 1, changing the condition j = 10 to j = 9",
+          "is_correct": false,
+          "explanation": "Starting at 9 makes `j` odd, so it prints `86420`."
+        },
+        {
+          "id": "c",
+          "text": "In line 3, changing the condition j - 1 to j + 1",
+          "is_correct": false,
+          "explanation": "Prints `1197531`, because it adds 1 instead of subtracting 1 and still includes the `j = 0` iteration."
+        },
+        {
+          "id": "d",
+          "text": "In line 3, changing the condition j - 1 to j - 2",
+          "is_correct": false,
+          "explanation": "Prints `86420-2`. Every value shifts down and the extra iteration remains."
+        }
+      ],
+      "explanation": "As written, `j` takes the values 10, 8, 6, 4, 2, 0, so it prints `97531-1`. The extra `-1` comes from the `j = 0` iteration. Changing the condition to `j > 0` stops the loop before that iteration, which leaves `97531`.",
+      "topics": [
+        "T004"
+      ],
+      "subtopics": [
+        "ST018",
+        "ST020"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
       "difficulty": "D2",
-      "cognitive_level": "B4",
-      "content": {
-        "text": "Consider the following method. What is returned by the call mystery(x,y)?\n\n```java\n/**\n * Precondition: a > b > 0\n */\npublic static int mystery(int a, int b)\n{\n    int d = 0;\n    for (int c = a; c > b; c--)\n    {\n        d=d+c;\n    }\n    return d;\n}\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "The sum of all the integers greater than y but less than or equal to x",
-            "is_correct": true
-          },
-          {
-            "id": "b",
-            "text": "The sum of all the integers greater than or equal to y but less than or equal to x",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "The sum of all the integers greater than y but less than x",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "The sum of all the integers greater than y but less than or equal to x",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "The sum of all the integers less than y but greater than or equal to x",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Loop: c starts at a (x), continues while c > b (y), decrements. Sums a + (a-1) + ... + (b+1). This is all integers greater than y but ≤ x."
-      },
-      "pedagogy": {
-        "topics": ["T004", "T012"],
-        "subtopics": ["ST018", "ST020"],
-        "skills": ["SK011", "SK003", "SK010"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "b",
-            "misconception": "Off-by-one boundary error"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Wrong boundary conditions"
-          },
-          {
-            "option_id": "e",
-            "misconception": "Reverses relationship"
-          }
-        ],
-        "common_errors": ["E001", "E020"]
-      }
+      "cognitive_level": "B4"
     },
     {
-      "id": "pt1_q003",
+      "id": "pt2_q007",
       "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q7.",
+      "text": "Consider the following code segment.\n```java\nString original = \"DEFGHI\";\nString result = /* missing code */;\nSystem.out.println(result);\n```\nWhich of the following expressions can be used to replace /* missing code */ so that this code segment prints the string \"HIDE\"?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\noriginal.substring(4) + original.substring(0, 1)\n```",
+          "is_correct": false,
+          "explanation": "`substring(0, 1)` is only `\"D\"`, so this gives `\"HID\"`. The end index is exclusive."
+        },
+        {
+          "id": "b",
+          "text": "```java\noriginal.substring(4) + original.substring(0, 2)\n```",
+          "is_correct": true,
+          "explanation": "Correct. `\"HI\"` + `\"DE\"` = `\"HIDE\"`."
+        },
+        {
+          "id": "c",
+          "text": "```java\noriginal.substring(5) + original.substring(1, 2)\n```",
+          "is_correct": false,
+          "explanation": "`substring(5)` is `\"I\"` and `substring(1, 2)` is `\"E\"`, giving `\"IE\"`."
+        },
+        {
+          "id": "d",
+          "text": "```java\noriginal.substring(5) + original.substring(1, 3)\n```",
+          "is_correct": false,
+          "explanation": "`substring(5)` is `\"I\"` and `substring(1, 3)` is `\"EF\"`, giving `\"IEF\"`."
+        }
+      ],
+      "explanation": "The indices of `\"DEFGHI\"` are D=0, E=1, F=2, G=3, H=4, I=5. `substring(4)` is `\"HI\"` and `substring(0, 2)` is `\"DE\"`, so together they give `\"HIDE\"`.",
+      "topics": [
+        "T013"
+      ],
+      "subtopics": [
+        "ST009"
+      ],
+      "skills": [
+        "SK019"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "pt2_q008",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q8.",
+      "text": "Consider the following code segment.\n```java\ndouble w = 2.0;\ndouble x = 5.0;\ndouble y = (int) w / x;\ndouble z = (int) (w / x);\nSystem.out.println(y + \", \" + z);\n```\nWhat is printed as a result of executing this code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`0.0, 0.0`",
+          "is_correct": false,
+          "explanation": "Treats both lines as truncating. In `y`, the cast applies only to `w`, and `x` is still a `double`."
+        },
+        {
+          "id": "b",
+          "text": "`0.0, 0.4`",
+          "is_correct": false,
+          "explanation": "Swaps the two results. The parentheses in `z` make the cast apply to the quotient."
+        },
+        {
+          "id": "c",
+          "text": "`0.4, 0.0`",
+          "is_correct": true,
+          "explanation": "Correct. The cast binds to `w` in `y` but to the whole quotient in `z`."
+        },
+        {
+          "id": "d",
+          "text": "`0.4, 0.4`",
+          "is_correct": false,
+          "explanation": "Ignores the cast in `z`, but `(int) 0.4` truncates to 0."
+        }
+      ],
+      "explanation": "In `(int) w / x`, the cast applies only to `w`, so this is `2 / 5.0` = 0.4. In `(int) (w / x)`, the division happens first to give 0.4, and the cast truncates it to 0, which is stored as 0.0. The output is `0.4, 0.0`.",
+      "topics": [
+        "T001"
+      ],
+      "subtopics": [
+        "ST002",
+        "ST004"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "pt2_q009",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q9. Code indentation normalized.",
+      "text": "Consider the following class definitions.\n```java\npublic class Measurement\n{\n   private int feet;\n   private int inches;\n   public Measurement(int numFeet, int numInches)\n   {\n      feet = numFeet;\n      inches = numInches;\n   }\n   private int toInches()\n   {\n      return feet * 12 + inches;\n   }\n}\npublic class Calculations\n{\n   public static boolean compare(Measurement m1, Measurement m2)\n   {\n      if (m1.toInches() >= m2.toInches())\n      {\n         return true;\n      }\n      return false;\n   }\n}\n```\nWhich of the following best explains why an error occurs when the classes are compiled?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The compare method cannot have parameters of type Measurement.",
+          "is_correct": false,
+          "explanation": "A method can take parameters of any class type."
+        },
+        {
+          "id": "b",
+          "text": "The compare method should be declared as void.",
+          "is_correct": false,
+          "explanation": "Returning `boolean` is valid, and the method does return a `boolean` on every path."
+        },
+        {
+          "id": "c",
+          "text": "The toInches method cannot be accessed from a class other than Measurement.",
+          "is_correct": true,
+          "explanation": "Correct. Private methods are not accessible from other classes."
+        },
+        {
+          "id": "d",
+          "text": "The variables feet and inches cannot be accessed from the method toInches.",
+          "is_correct": false,
+          "explanation": "`toInches` is an instance method of `Measurement`, so it can access that class's private variables."
+        }
+      ],
+      "explanation": "`toInches` is `private`, so it can only be called from inside `Measurement`. `Calculations.compare` calls `m1.toInches()`, which causes a compile error.",
+      "topics": [
+        "T005"
+      ],
+      "subtopics": [
+        "ST055"
+      ],
+      "skills": [
+        "SK004",
+        "SK013"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "pt2_q010",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q10.",
+      "text": "A computer game should print different messages based on a player’s score.\n• \"Great!\" is printed for scores greater than 500.\n• \"Good!\" is printed for scores between 250 and 500, inclusive.\n• \"Try again.\" is printed for scores less than 250.\nAssume that score is a properly declared and initialized int that represents a player’s score.\nWhich of the following code segments will print the correct message for any valid value of score?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nString message = \"\";\nif (score < 250)\n{\n   message = \"Try again.\";\n}\nelse if (score <= 500)\n{\n   message = \"Good!\";\n}\nelse\n{\n   message = \"Great!\";\n}\nSystem.out.println(message);\n```",
+          "is_correct": true,
+          "explanation": "Correct. The `else if` chain gives each range exactly one message."
+        },
+        {
+          "id": "b",
+          "text": "```java\nString message = \"\";\nif (score < 250)\n{\n   message = \"Try again.\";\n}\nif (score <= 500)\n{\n   message = \"Good!\";\n}\nelse\n{\n   message = \"Great!\";\n}\nSystem.out.println(message);\n```",
+          "is_correct": false,
+          "explanation": "The two separate `if` statements both run. A score below 250 gets \"Try again.\" and then \"Good!\" overwrites it, since it is also `<= 500`."
+        },
+        {
+          "id": "c",
+          "text": "```java\nString message = \"\";\nif (score >= 250)\n{\n   message = \"Good!\";\n}\nelse if (score > 500)\n{\n   message = \"Great!\";\n}\nelse\n{\n   message = \"Try again.\";\n}\nSystem.out.println(message);\n```",
+          "is_correct": false,
+          "explanation": "`score >= 250` also catches scores above 500, so 600 prints \"Good!\". The `else if (score > 500)` branch can never run."
+        },
+        {
+          "id": "d",
+          "text": "```java\nString message = \"\";\nif (score > 500)\n{\n   message = \"Great!\";\n}\nelse if (score <= 500)\n{\n   message = \"Good!\";\n}\nelse\n{\n   message = \"Try again.\";\n}\nSystem.out.println(message);\n```",
+          "is_correct": false,
+          "explanation": "`else if (score <= 500)` catches every score that isn't above 500, including those below 250, so \"Try again.\" is never printed."
+        }
+      ],
+      "explanation": "Segment (a) checks the ranges in order: below 250, then up to 500, then everything else, which is above 500. Each score reaches exactly one branch with the right message.",
+      "topics": [
+        "T003"
+      ],
+      "subtopics": [
+        "ST012"
+      ],
+      "skills": [
+        "SK020",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "pt2_q011",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q11. Shared Pair class stimulus restored from the original source.",
+      "text": "Consider the following Pair class.\n```java\npublic class Pair\n{\n   private int x;\n   private int y;\n   public Pair(int x1, int y1)\n   {\n      x = x1;\n      y = y1;\n   }\n   public int getX()\n   {\n      return x;\n   }\n}\n```\nAssume that myPair is a properly declared and initialized Pair object that appears in a class other than Pair. Which of the following code segments will compile without error?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nint val = myPair.getX();\n```",
+          "is_correct": true,
+          "explanation": "Correct. `getX()` is public, takes no arguments, and returns an `int`."
+        },
+        {
+          "id": "b",
+          "text": "```java\nint val = myPair.getX(x);\n```",
+          "is_correct": false,
+          "explanation": "`getX` takes no parameters, and there is no variable `x` in scope in the other class."
+        },
+        {
+          "id": "c",
+          "text": "```java\nint val = myPair.x;\n```",
+          "is_correct": false,
+          "explanation": "`x` is private, so it can't be accessed from outside `Pair`."
+        },
+        {
+          "id": "d",
+          "text": "```java\nint val = myPair.x1;\n```",
+          "is_correct": false,
+          "explanation": "`x1` is a constructor parameter, not a field of `Pair`."
+        }
+      ],
+      "explanation": "Outside `Pair`, the private fields `x` and `y` are not accessible. The only public member is `getX()`, which takes no parameters and returns an `int`.",
+      "topics": [
+        "T005"
+      ],
+      "subtopics": [
+        "ST025",
+        "ST055"
+      ],
+      "skills": [
+        "SK008"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "pt2_q012",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q12. Shared Pair class stimulus restored from the original source.",
+      "text": "Consider the following Pair class.\n```java\npublic class Pair\n{\n   private int x;\n   private int y;\n   public Pair(int x1, int y1)\n   {\n      x = x1;\n      y = y1;\n   }\n   public int getX()\n   {\n      return x;\n   }\n}\n```\nWhich of the following methods can be added to the Pair class to allow other classes to modify the value of y?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nprivate int setY(int num)\n{\n   return num;\n}\n```",
+          "is_correct": false,
+          "explanation": "Private and doesn't change `y`. It only returns its argument."
+        },
+        {
+          "id": "b",
+          "text": "```java\npublic int setY(int num)\n{\n   return num;\n}\n```",
+          "is_correct": false,
+          "explanation": "Public, but it never assigns to `y`, so the object is unchanged."
+        },
+        {
+          "id": "c",
+          "text": "```java\nprivate void setY(int num)\n{\n   y = num;\n}\n```",
+          "is_correct": false,
+          "explanation": "Assigns to `y`, but `private` means other classes can't call it."
+        },
+        {
+          "id": "d",
+          "text": "```java\npublic void setY(int num)\n{\n   y = num;\n}\n```",
+          "is_correct": true,
+          "explanation": "Correct. It is public and it assigns `num` to `y`."
+        }
+      ],
+      "explanation": "To let other classes change `y`, the method must be `public` and must assign the new value to `y`. A `void` return type is fine because nothing needs to be returned.",
+      "topics": [
+        "T005"
+      ],
+      "subtopics": [
+        "ST026",
+        "ST055"
+      ],
+      "skills": [
+        "SK017"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "pt2_q013",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q13.",
+      "text": "Consider the following code segment.\n```java\nfor (int outer = 0; outer < 5; outer++)\n{\n   for (int inner = 4; inner >= 0; inner--)\n   {\n      System.out.println(\"*\");               // Line 5\n   }\n}\n```\nHow many times will the statement in line 5 be executed as a result of running this code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "20",
+          "is_correct": false,
+          "explanation": "Counts the inner loop as 4 iterations, but `inner >= 0` includes 0, so there are 5 values."
+        },
+        {
+          "id": "b",
+          "text": "24",
+          "is_correct": false,
+          "explanation": "An off-by-one in the total. Both loops run exactly 5 times."
+        },
+        {
+          "id": "c",
+          "text": "25",
+          "is_correct": true,
+          "explanation": "Correct. 5 iterations times 5 iterations."
+        },
+        {
+          "id": "d",
+          "text": "30",
+          "is_correct": false,
+          "explanation": "Counts one of the loops as 6 iterations."
+        }
+      ],
+      "explanation": "The outer loop runs 5 times (`outer` from 0 to 4). The inner loop also runs 5 times (`inner` from 4 down to 0). Line 5 therefore executes 5 × 5 = 25 times.",
+      "topics": [
+        "T004"
+      ],
+      "subtopics": [
+        "ST019"
+      ],
+      "skills": [
+        "SK011"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "pt2_q014",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q14.",
+      "text": "Assume that isEven, isPositive, and isPrime are boolean variables that have been properly declared and initialized. Which of the following expressions is equivalent to the expression `!(isEven && isPositive) && isPrime`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`(!isEven || !isPositive) && isPrime`",
+          "is_correct": true,
+          "explanation": "Correct. De Morgan changes `&&` to `||` and negates each operand, and `isPrime` is untouched."
+        },
+        {
+          "id": "b",
+          "text": "`(!isEven || !isPositive) && !isPrime`",
+          "is_correct": false,
+          "explanation": "Also negates `isPrime`, but the `!` applies only to the parenthesized part."
+        },
+        {
+          "id": "c",
+          "text": "`(!isEven && !isPositive) && isPrime`",
+          "is_correct": false,
+          "explanation": "Negates each operand but keeps `&&`. De Morgan also changes `&&` to `||`."
+        },
+        {
+          "id": "d",
+          "text": "`(!isEven && !isPositive) && !isPrime`",
+          "is_correct": false,
+          "explanation": "Makes both errors: it keeps `&&` and negates `isPrime`."
+        }
+      ],
+      "explanation": "By De Morgan's law, `!(isEven && isPositive)` equals `!isEven || !isPositive`. The `&& isPrime` part is outside the negation and stays unchanged.",
+      "topics": [
+        "T003"
+      ],
+      "subtopics": [
+        "ST013"
+      ],
+      "skills": [
+        "SK009"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "pt2_q015",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q15.",
+      "text": "Consider the following code segment.\n```java\nString str = \"lookout\";\nString target = \"o\";\nint j = str.indexOf(target);\nwhile (j >= 0)\n{\n   str = str.substring(j);\n   System.out.print(str + \" \");\n   str = str.substring(1);\n   j = str.indexOf(target);\n}\n```\nWhat is printed as a result of executing this code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`ookout okout out`",
+          "is_correct": true,
+          "explanation": "Correct. The loop prints once per remaining `o`, starting from that `o`."
+        },
+        {
+          "id": "b",
+          "text": "`ookout out`",
+          "is_correct": false,
+          "explanation": "Skips `\"okout\"`. After the first character is removed, the next `o` is at index 0 and still gets printed."
+        },
+        {
+          "id": "c",
+          "text": "`okout out`",
+          "is_correct": false,
+          "explanation": "Omits the first print, which starts at the first `o` (index 1)."
+        },
+        {
+          "id": "d",
+          "text": "`kout ut`",
+          "is_correct": false,
+          "explanation": "Prints the text after each `o` instead of starting at each `o`."
+        }
+      ],
+      "explanation": "`j` starts at 1. The loop prints `\"ookout\"`, then drops the first character to get `\"okout\"`. Its `o` is at index 0, so the loop prints `\"okout\"` and drops to `\"kout\"`. The `o` there is at index 1, so the loop prints `\"out\"` and drops to `\"ut\"`. `indexOf` then returns -1 and the loop ends. The output is `ookout okout out`.",
+      "topics": [
+        "T013",
+        "T004"
+      ],
+      "subtopics": [
+        "ST009",
+        "ST017"
+      ],
+      "skills": [
+        "SK001",
+        "SK019"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "pt2_q016",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q16.",
+      "text": "The Book class will contain attributes for a book’s title, author, and number of pages. The class will also contain methods to allow the attributes to be accessed outside the class.\n\nA class design diagram for the Book class will contain three sections. The first section contains the class name, the second section contains three instance variables and their data types, and the third section contains three methods and their return types.\n\nThe + symbol indicates a public designation, and the - symbol indicates a private designation.\n\nOf the following diagrams, which represents the most appropriate design for the Book class?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Book with public fields `title : String`, `author : String`, `numPages : String`, and private methods `getTitle() : String`, `getAuthor() : String`, `getNumPages() : String`",
+          "is_correct": false,
+          "explanation": "Reverses the visibility, making fields public and getters private. It also stores a count as a `String`."
+        },
+        {
+          "id": "b",
+          "text": "Book with private fields `title : String`, `author : String`, `numPages : String`, and public methods `getTitle() : String`, `getAuthor() : String`, `getNumPages() : String`",
+          "is_correct": false,
+          "explanation": "Correct visibility, but the number of pages should be an `int`, not a `String`."
+        },
+        {
+          "id": "c",
+          "text": "Book with public fields `title : String`, `author : String`, `numPages : int`, and private methods `getTitle() : String`, `getAuthor() : String`, `getNumPages() : int`",
+          "is_correct": false,
+          "explanation": "Correct types, but reversed visibility. Private getters can't be used outside the class."
+        },
+        {
+          "id": "d",
+          "text": "Book with private fields `title : String`, `author : String`, `numPages : int`, and public methods `getTitle() : String`, `getAuthor() : String`, `getNumPages() : int`",
+          "is_correct": true,
+          "explanation": "Correct. Private `int` field for pages, and public accessors with matching return types."
+        }
+      ],
+      "explanation": "Good encapsulation makes instance variables private and exposes public accessor methods. A page count is a whole number, so `numPages` should be an `int`, and `getNumPages()` should return an `int`.",
+      "topics": [
+        "T005"
+      ],
+      "subtopics": [
+        "ST024",
+        "ST055",
+        "ST056"
+      ],
+      "skills": [
+        "SK017",
+        "SK013"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "pt2_q017",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q17.",
+      "text": "A programmer developed a mobile application that is intended for users around the world. The programmer wants to maximize the application’s system reliability. Which of the following actions is most likely to support this goal?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Applying security measures to safeguard the personal privacy of users",
+          "is_correct": false,
+          "explanation": "Security measures protect privacy, which is a separate goal from reliability."
+        },
+        {
+          "id": "b",
+          "text": "Testing the application under a wide variety of possible conditions",
+          "is_correct": true,
+          "explanation": "Correct. Broad testing finds the failures that make a system unreliable."
+        },
+        {
+          "id": "c",
+          "text": "Using public visibility for the attributes used in the application",
+          "is_correct": false,
+          "explanation": "Public attributes weaken encapsulation and do nothing for reliability."
+        },
+        {
+          "id": "d",
+          "text": "Using public visibility for the behaviors used in the application",
+          "is_correct": false,
+          "explanation": "Visibility of behaviors is a design choice and doesn't make the app work more reliably."
+        }
+      ],
+      "explanation": "Reliability means the system works correctly and consistently under the conditions users actually encounter. Testing across a wide variety of conditions, such as devices, locales, and inputs, is the most direct way to find failures before users do.",
+      "topics": [
+        "T015"
+      ],
+      "subtopics": [
+        "ST064"
+      ],
+      "skills": [],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "pt2_q018",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q18. Removed duplicated method signature line from the code block.",
+      "text": "The following method is intended to return the maximum value that appears in the `int` array `numbers`.\n```java\npublic static int findMaximum(int[] numbers)\n{\n   int max = 0;\n   for (int num : numbers)\n   {\n      if (num > max)\n      {\n         max = num;\n      }\n   }\n   return max;\n}\n```\nThe method works as intended for some, but not all, int arrays. Which of the following best describes the conditions in which the method does not return the intended result?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "When the maximum value in numbers is the first element in the array",
+          "is_correct": false,
+          "explanation": "If the maximum is first, it replaces 0 on the first iteration (assuming it is positive), so it is found."
+        },
+        {
+          "id": "b",
+          "text": "When the maximum value in numbers appears multiple times in the array",
+          "is_correct": false,
+          "explanation": "Duplicates don't matter. `>` just skips later equal values, and `max` is still correct."
+        },
+        {
+          "id": "c",
+          "text": "When the maximum value in numbers is negative",
+          "is_correct": true,
+          "explanation": "Correct. If the maximum is negative, the initial 0 is never replaced."
+        },
+        {
+          "id": "d",
+          "text": "When the maximum value in numbers is Integer.MAX_VALUE",
+          "is_correct": false,
+          "explanation": "`Integer.MAX_VALUE` is greater than 0, so it is found normally."
+        }
+      ],
+      "explanation": "`max` starts at 0, not at an element of the array. If every element is negative, no element is greater than 0, so the method returns 0, a value that isn't in the array. Initializing `max` to `numbers[0]` would fix it.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "pt2_q019",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q19.",
+      "text": "Consider the following statement.\n```java\nint r = (int) (Math.random() * 6) + 10;\n```\nWhich of the following best describes the behavior of the statement?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "It generates a random integer between 6 and 15, inclusive, and assigns it to r.",
+          "is_correct": false,
+          "explanation": "Uses 6 as the lower bound. The 6 sets how many values are possible, and the + 10 sets the starting value."
+        },
+        {
+          "id": "b",
+          "text": "It generates a random integer between 6 and 16, inclusive, and assigns it to r.",
+          "is_correct": false,
+          "explanation": "Mixes up both roles, and 16 is also unreachable."
+        },
+        {
+          "id": "c",
+          "text": "It generates a random integer between 10 and 15, inclusive, and assigns it to r.",
+          "is_correct": true,
+          "explanation": "Correct. There are 6 possible values starting at 10: 10 through 15."
+        },
+        {
+          "id": "d",
+          "text": "It generates a random integer between 10 and 16, inclusive, and assigns it to r.",
+          "is_correct": false,
+          "explanation": "Forgets that `Math.random()` is strictly less than 1, so `(int) (Math.random() * 6)` never reaches 6."
+        }
+      ],
+      "explanation": "`Math.random()` returns a value in [0, 1). Multiplying by 6 gives [0, 6), and casting gives an integer from 0 to 5. Adding 10 gives an integer from 10 to 15, inclusive.",
+      "topics": [
+        "T002",
+        "T001"
+      ],
+      "subtopics": [
+        "ST062",
+        "ST002"
+      ],
+      "skills": [
+        "SK010"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "pt2_q020",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q20.",
+      "text": "Consider the following code segment.\n```java\nint value = 100;\nwhile (value % 5 == 0)\n{\n   value /= 2;\n}\nSystem.out.println(value);\n```\nWhat is printed as a result of executing this code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`12`",
+          "is_correct": true,
+          "explanation": "Correct. `25 / 2` is 12 with integer division, and 12 is not a multiple of 5."
+        },
+        {
+          "id": "b",
+          "text": "`13`",
+          "is_correct": false,
+          "explanation": "Rounds 12.5 up, but integer division truncates."
+        },
+        {
+          "id": "c",
+          "text": "`25`",
+          "is_correct": false,
+          "explanation": "Stops too early. 25 is a multiple of 5, so the loop runs once more."
+        },
+        {
+          "id": "d",
+          "text": "`100`",
+          "is_correct": false,
+          "explanation": "Assumes the loop doesn't run, but `100 % 5 == 0` is true."
+        }
+      ],
+      "explanation": "`value` goes 100 → 50 → 25 → 12. The last step is integer division of 25 by 2. `12 % 5` is 2, so the loop stops and prints 12.",
+      "topics": [
+        "T004",
+        "T001"
+      ],
+      "subtopics": [
+        "ST017",
+        "ST004"
+      ],
+      "skills": [
+        "SK001",
+        "SK011"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "pt2_q021",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q21. Restored missing first line (0) of the intended output.",
+      "text": "Consider the following code segment.\n```java\nfor (int j = 0; j < 4; j++)\n{\n   for (/* missing code */)\n   {\n      System.out.print(j + \" \");\n   }\n   System.out.println();\n}\n```\nThis code segment is intended to produce the following output.\n```\n0\n1 1\n2 2 2\n3 3 3 3\n```\nWhich of the following can be used to replace /* missing code */ so that this code segment works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nint k = 0; k < j; k++\n```",
+          "is_correct": false,
+          "explanation": "Runs `j` times, which gives a blank first line, then `1`, `2 2`, `3 3 3`."
+        },
+        {
+          "id": "b",
+          "text": "```java\nint k = 0; k <= j; k++\n```",
+          "is_correct": true,
+          "explanation": "Correct. `k` from 0 through `j` gives `j + 1` repetitions."
+        },
+        {
+          "id": "c",
+          "text": "```java\nint k = j; k < 4; k++\n```",
+          "is_correct": false,
+          "explanation": "Runs `4 - j` times, printing the triangle upside down: `0 0 0 0`, `1 1 1`, `2 2`, `3`."
+        },
+        {
+          "id": "d",
+          "text": "```java\nint k = j; k <= 4; k++\n```",
+          "is_correct": false,
+          "explanation": "Runs `5 - j` times: `0 0 0 0 0`, `1 1 1 1`, `2 2 2`, `3 3`."
+        }
+      ],
+      "explanation": "Row `j` must print `j` a total of `j + 1` times: once for 0, twice for 1, and so on. The loop `int k = 0; k <= j; k++` runs exactly `j + 1` times.",
+      "topics": [
+        "T004"
+      ],
+      "subtopics": [
+        "ST019",
+        "ST020"
+      ],
+      "skills": [
+        "SK011",
+        "SK005"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "pt2_q022",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q22.",
+      "text": "The following class definition does not compile.\n```java\npublic class Pet\n{\n   private String name;\n   private String species;\n   private int age;\n   public Pet(String pName, String pSpecies)\n   {\n      name = pName;\n      species = pSpecies;\n      age = 0;\n   }\n   public void incrementAge()\n   {\n      age++;\n   }\n   public String getInfo()\n   {\n      return pName + \", \" + pSpecies;\n   }\n}\n```\nWhich of the following best explains why the class will not compile?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The class has three instance variables, but its constructor has only two parameters.",
+          "is_correct": false,
+          "explanation": "A constructor doesn't need one parameter per instance variable. `age` is set to 0 directly."
+        },
+        {
+          "id": "b",
+          "text": "The instance variables should be designated public instead of private.",
+          "is_correct": false,
+          "explanation": "Private instance variables are correct and don't cause a compile error."
+        },
+        {
+          "id": "c",
+          "text": "The return type of the incrementAge method should be int instead of `void`.",
+          "is_correct": false,
+          "explanation": "`incrementAge` doesn't need to return anything. `void` is fine."
+        },
+        {
+          "id": "d",
+          "text": "The getInfo method does not have access to variables named pName or pSpecies.",
+          "is_correct": true,
+          "explanation": "Correct. The constructor's parameters are out of scope in `getInfo`."
+        }
+      ],
+      "explanation": "`pName` and `pSpecies` are parameters of the constructor, so they exist only inside it. `getInfo` must use the instance variables `name` and `species` instead.",
+      "topics": [
+        "T012",
+        "T005"
+      ],
+      "subtopics": [
+        "ST063",
+        "ST023"
+      ],
+      "skills": [
+        "SK004"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "pt2_q023",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q23.",
+      "text": "Consider the following method.\n```java\npublic static void updateArr(int[] arr, int val)\n{\n   arr[val] = val;\n}\n```\nThe following code segment appears in a method in the same class as updateArr.\n```java\nint[] numArr = new int[4];\nupdateArr(numArr, 1);\nupdateArr(numArr, 3);\n```\nWhat are the contents of numArr after executing this code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{0, 0, 0, 0}`",
+          "is_correct": false,
+          "explanation": "Assumes the method can't change the caller's array, but it modifies the shared array object."
+        },
+        {
+          "id": "b",
+          "text": "`{0, 1, 0, 3}`",
+          "is_correct": true,
+          "explanation": "Correct. Index 1 gets 1 and index 3 gets 3."
+        },
+        {
+          "id": "c",
+          "text": "`{1, 0, 3, 0}`",
+          "is_correct": false,
+          "explanation": "Off by one, as if `val` were stored at index `val - 1`."
+        },
+        {
+          "id": "d",
+          "text": "`{1, 3, 0, 0}`",
+          "is_correct": false,
+          "explanation": "Treats each call as appending the next value, but `val` is used as the index."
+        }
+      ],
+      "explanation": "The array reference is passed by value, so `updateArr` modifies the same array as `numArr`. `arr[1] = 1` and `arr[3] = 3` change those positions. Every other element keeps its default of 0.",
+      "topics": [
+        "T012",
+        "T006"
+      ],
+      "subtopics": [
+        "ST049",
+        "ST032"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "pt2_q024",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q24. Fixed typo in stem (\"after executing numbers this code segment\").",
+      "text": "Consider the following code segment.\n```java\nArrayList<Integer> numbers = new ArrayList<Integer>();\nnumbers.add(100);\nnumbers.add(200);\nnumbers.add(0, 300);\nnumbers.set(2, 400);\nnumbers.add(2, 500);\n```\nWhat are the contents of numbers after executing this code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`[100, 200, 500, 400]`",
+          "is_correct": false,
+          "explanation": "Treats `add(0, 300)` as appending to the end. `set(2, 400)` then overwrites the 300."
+        },
+        {
+          "id": "b",
+          "text": "`[100, 200, 400, 500]`",
+          "is_correct": false,
+          "explanation": "Appends 300, then treats `add(2, 500)` as an append too."
+        },
+        {
+          "id": "c",
+          "text": "`[300, 100, 400, 500]`",
+          "is_correct": false,
+          "explanation": "Handles `add(0, 300)` and `set` correctly but appends 500 instead of inserting it at index 2."
+        },
+        {
+          "id": "d",
+          "text": "`[300, 100, 500, 400]`",
+          "is_correct": true,
+          "explanation": "Correct. Insert at 0, replace at 2, insert at 2."
+        }
+      ],
+      "explanation": "`[100, 200]` → `add(0, 300)` gives `[300, 100, 200]`. → `set(2, 400)` replaces 200, giving `[300, 100, 400]`. → `add(2, 500)` inserts before 400, giving `[300, 100, 500, 400]`.",
+      "topics": [
+        "T007"
+      ],
+      "subtopics": [
+        "ST035"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "pt2_q025",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q25.",
+      "text": "Consider the following class definition.\n```java\npublic class Shoe\n{\n   private static int count = 0;\n   private double size;\n   private String style;\n   public Shoe()\n   {\n      size = 7.0;\n      style = \"boot\";\n   }\n   public Shoe(double mySize, String myStyle)\n   {\n      size = mySize;\n      style = myStyle;\n      count++;\n   }\n   public static int getCount()\n   {\n      return count;\n   }\n}\n```\nThe following code segment appears in a class other than Shoe.\n```java\nShoe s1 = new Shoe(8.5, \"sneaker\");\nShoe s2 = new Shoe();\nShoe s3 = new Shoe(7.0, \"sandal\");\nSystem.out.println(Shoe.getCount());\n```\nWhat is printed as a result of executing this code segment if it is executed before any other instances of Shoe are constructed?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`0`",
+          "is_correct": false,
+          "explanation": "Assumes the increments don't persist. A static variable keeps its value across constructions."
+        },
+        {
+          "id": "b",
+          "text": "`1`",
+          "is_correct": false,
+          "explanation": "Counts only one object, as if each object had its own copy of `count`."
+        },
+        {
+          "id": "c",
+          "text": "`2`",
+          "is_correct": true,
+          "explanation": "Correct. Two objects were built with the incrementing constructor."
+        },
+        {
+          "id": "d",
+          "text": "`3`",
+          "is_correct": false,
+          "explanation": "Assumes every constructor increments `count`, but the no-argument constructor doesn't."
+        }
+      ],
+      "explanation": "`count` is static, so it is shared by all `Shoe` objects. Only the two-parameter constructor increments it. `s1` and `s3` use that constructor, and `s2` uses the no-argument one. `getCount()` returns 2.",
+      "topics": [
+        "T005"
+      ],
+      "subtopics": [
+        "ST027",
+        "ST023"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "pt2_q026",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q26.",
+      "text": "In the following code segment, `n` is a properly declared and initialized `int` variable whose value is positive.\n\n```java\nwhile (n > 0)           // Line 1\n{                       // Line 2\n   n /= 10;             // Line 3\n}                       // Line 4\nSystem.out.println(n);  // Line 5\n```\n\nThis code segment is intended to print the leftmost digit of `n`. For example, if `n` is `302`, this code segment should print `3`. However, this code segment is not working as intended. Which of the following changes can be made so that this code segment works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "In line 1, changing the condition `n > 0` to `n / 10 > 0`",
+          "is_correct": true,
+          "explanation": "Correct. The loop stops as soon as only the leftmost digit remains."
+        },
+        {
+          "id": "b",
+          "text": "In line 1, changing the condition `n > 0` to `n % 10 > 0`",
+          "is_correct": false,
+          "explanation": "`n % 10 > 0` checks the last digit. For 302 the loop stops at 30 and prints 30."
+        },
+        {
+          "id": "c",
+          "text": "In line 3, changing the statement `n /= 10` to `n -= 10`",
+          "is_correct": false,
+          "explanation": "Subtracting 10 repeatedly drives `n` negative. For 302 it prints -8."
+        },
+        {
+          "id": "d",
+          "text": "In line 3, changing the statement `n /= 10` to `n %= 10`",
+          "is_correct": false,
+          "explanation": "`n %= 10` leaves `n` at 2 forever, so the loop never ends."
+        }
+      ],
+      "explanation": "With `n > 0`, the loop divides until `n` is 0, so it always prints 0. With `n / 10 > 0`, the loop stops once `n` has a single digit. For 302, `n` goes 302 → 30 → 3, and then `3 / 10` is 0, so it prints 3.",
+      "topics": [
+        "T004",
+        "T001"
+      ],
+      "subtopics": [
+        "ST017",
+        "ST020",
+        "ST004"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "pt2_q027",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q27.",
+      "text": "A school offers optional courses and clubs to students. A programmer wants to investigate whether students at the school who took a computer science course were more or less likely to participate in the school’s photography club. The programmer has the following data sets available.\n• Data set 1 contains an entry for each club offered by the school. Each entry includes the name of the club and a list of the names of the club members.\n• Data set 2 contains an entry for each member of the photography club. Each entry contains the name of the member, the number of photographs taken by the member, and the member’s favorite course.\n• Data set 3 contains an entry for each student at the school. Each entry contains the name of the student, a list of the courses the student took, and a list of the clubs the student participated in.\n• Data set 4 contains an entry for each student at the school. Each entry contains the name of the student, the student’s favorite course, and the student’s favorite club.\nWhich of the data sets is most appropriate for the programmer’s investigation?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Data set 1",
+          "is_correct": false,
+          "explanation": "It has club membership but nothing about which courses students took."
+        },
+        {
+          "id": "b",
+          "text": "Data set 2",
+          "is_correct": false,
+          "explanation": "It covers only photography club members, so there are no non-members to compare against. It also records favorite course, not courses taken."
+        },
+        {
+          "id": "c",
+          "text": "Data set 3",
+          "is_correct": true,
+          "explanation": "Correct. It has courses taken and club participation for every student."
+        },
+        {
+          "id": "d",
+          "text": "Data set 4",
+          "is_correct": false,
+          "explanation": "Favorite course and favorite club don't tell you what courses a student took or which clubs they joined."
+        }
+      ],
+      "explanation": "The investigation needs two facts about every student: whether they took a computer science course, and whether they are in the photography club. Only Data set 3 records both the courses taken and the clubs joined for each student.",
+      "topics": [
+        "T014"
+      ],
+      "subtopics": [
+        "ST054"
+      ],
+      "skills": [
+        "SK023"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B5"
+    },
+    {
+      "id": "pt2_q028",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q28.",
+      "text": "Consider the following code segment.\n```java\nString str = \"abbcdddeff\";\nint j = 0;\nint count = 0;\nwhile (j < str.length() - 1)\n{\n   if (str.substring(j, j + 1)\n          .equals(str.substring(j + 1, j + 2)))\n   {\n      count++;\n   }\n   j++;\n}\nSystem.out.println(count);\n```\nWhat is printed as a result of executing this code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`2`",
+          "is_correct": false,
+          "explanation": "Undercounts. It misses the overlapping second `dd` pair and the final `ff`."
+        },
+        {
+          "id": "b",
+          "text": "`3`",
+          "is_correct": false,
+          "explanation": "Counts runs of repeated letters (`bb`, `ddd`, `ff`) instead of adjacent pairs. `ddd` contains two pairs."
+        },
+        {
+          "id": "c",
+          "text": "`4`",
+          "is_correct": true,
+          "explanation": "Correct. Four adjacent pairs match."
+        },
+        {
+          "id": "d",
+          "text": "`6`",
+          "is_correct": false,
+          "explanation": "Overcounts. Each position is compared only with the one after it, so each matching pair counts once."
+        }
+      ],
+      "explanation": "The loop compares each character with the next one. The equal adjacent pairs are `bb` (indices 1–2), `dd` (4–5), `dd` (5–6), and `ff` (8–9), so `count` is 4.",
+      "topics": [
+        "T013",
+        "T004"
+      ],
+      "subtopics": [
+        "ST009",
+        "ST017"
+      ],
+      "skills": [
+        "SK001",
+        "SK019"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "pt2_q029",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q29.",
+      "text": "Consider the following method.\n```java\npublic static void printNums(int n)\n{\n   if (n < 50)\n   {\n      printNums(n * -2);\n      System.out.print(n + \" \");\n   }\n}\n```\nWhat is printed as a result of the call printNums(10)?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`-80 40 -20 10`",
+          "is_correct": true,
+          "explanation": "Correct. The deepest call prints first."
+        },
+        {
+          "id": "b",
+          "text": "`10 -20 40 -80`",
+          "is_correct": false,
+          "explanation": "The call order, which you'd get if the print came before the recursive call."
+        },
+        {
+          "id": "c",
+          "text": "`40 -20 10`",
+          "is_correct": false,
+          "explanation": "Omits -80, but `-80 < 50` is true, so that call prints too."
+        },
+        {
+          "id": "d",
+          "text": "`10 -20 40`",
+          "is_correct": false,
+          "explanation": "Uses the call order and also omits -80."
+        }
+      ],
+      "explanation": "The recursive call comes before the print, so values print as the calls return. The calls go 10 → -20 → 40 → -80 → 160, and 160 fails `n < 50`. Unwinding prints `-80 40 -20 10`.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST042",
+        "ST043"
+      ],
+      "skills": [
+        "SK012",
+        "SK001"
+      ],
       "difficulty": "D3",
-      "cognitive_level": "B4",
-      "content": {
-        "text": "Consider the following method. What value is returned by the call mystery(3)?\n\n```java\npublic void mystery (int n)\n{\n    int k;\n    for (k = 0 ; k < n ; k++)\n    {\n        mystery(k);\n        System.out.print (n) ;\n    }\n}\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "0123",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "00123",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "0010012",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "00100123",
-            "is_correct": true
-          },
-          {
-            "id": "e",
-            "text": "001001200100123",
-            "is_correct": false
-          }
-        ],
-        "explanation": "mystery(3): k=0 calls mystery(0) (prints nothing), prints 3; k=1 calls mystery(1) (prints 1), prints 3; k=2 calls mystery(2) (prints 10 + 2=012), prints 3. Total: 00 + 1 + 00 + 1 + 0 + 0 + 1 + 2 + 3 = 00100123."
-      },
-      "pedagogy": {
-        "topics": ["T009", "T004"],
-        "subtopics": ["ST031", "ST032"],
-        "skills": ["SK012", "SK001"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Incomplete recursion trace"
-          },
-          {
-            "option_id": "e",
-            "misconception": "Over-traces recursion"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Incorrect output sequence"
-          }
-        ],
-        "common_errors": ["E016", "E009"]
-      }
+      "cognitive_level": "B3"
     },
     {
-      "id": "pt1_q004",
+      "id": "pt2_q030",
       "status": "active",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Consider an array of integers: [4, 10, 1, 2, 6, 7, 3, 5]. If selection sort is used to order the array from smallest to largest values, which of the following represents a possible state of the array at some point during the selection sort process?",
-        "options": [
-          {
-            "id": "a",
-            "text": "[1, 4, 10, 2, 3, 6, 7, 5]",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "[1, 2, 4, 6, 10, 7, 3, 5]",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "[1, 2, 3, 10, 6, 7, 4, 5]",
-            "is_correct": true
-          },
-          {
-            "id": "d",
-            "text": "[4, 3, 1, 2, 6, 7, 10, 5]",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "[5, 3, 7, 6, 2, 1, 10, 4]",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Selection sort finds the minimum of unsorted portion and swaps to front. After 3 passes: sorted portion [1,2,3], unsorted [10,6,7,4,5] remains in original order. Only option C matches this pattern."
-      },
-      "pedagogy": {
-        "topics": ["T011", "T006"],
-        "subtopics": ["ST046", "ST031"],
-        "skills": ["SK003", "SK005", "SK018"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Confuses with insertion sort"
-          },
-          {
-            "option_id": "b",
-            "misconception": "Too much sorting in unsorted portion"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Wrong sort direction"
-          }
-        ],
-        "common_errors": ["E019"]
-      }
-    },
-    {
-      "id": "pt1_q005",
-      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q30.",
+      "text": "The following incomplete method is intended to return the minimum value among its three parameters.\n```java\npublic static int minOfThree(int a, int b, int c)\n{\n   /* missing code */\n}\n```\nWhich of the following can be used to replace /* missing code */ so that the method works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nif (a <= b)\n{\n   if (a <= c)\n   {\n      return a;\n   }\n   else\n   {\n      return c;\n   }\n}\nelse\n{\n   return b;\n}\n```",
+          "is_correct": false,
+          "explanation": "When `a > b`, it returns `b` without comparing it to `c`. For (3, 2, 1) it returns 2."
+        },
+        {
+          "id": "b",
+          "text": "```java\nif (a <= b)\n{\n   if (a <= c)\n   {\n      return a;\n   }\n   else if (b <= c)\n   {\n      return b;\n   }\n}\nelse\n{\n   return c;\n}\n```",
+          "is_correct": false,
+          "explanation": "When `a <= b` but `a > c` and `b > c`, no `return` runs, so the method doesn't compile. Its `else` also returns `c` without checking."
+        },
+        {
+          "id": "c",
+          "text": "```java\nif (a <= b || a <= c)\n{\n   return a;\n}\nelse if (b <= a || b <= c)\n{\n   return b;\n}\nelse\n{\n   return c;\n}\n```",
+          "is_correct": false,
+          "explanation": "`||` is too weak. For (2, 1, 5), `a <= c` is true, so it returns 2 instead of 1."
+        },
+        {
+          "id": "d",
+          "text": "```java\nif (a <= b && a <= c)\n{\n   return a;\n}\nelse if (b <= a && b <= c)\n{\n   return b;\n}\nelse\n{\n   return c;\n}\n```",
+          "is_correct": true,
+          "explanation": "Correct. Each branch requires being at most both other values."
+        }
+      ],
+      "explanation": "Segment (d) returns `a` only when it is at most both others, otherwise `b` when it is at most both others, and otherwise `c`, which then must be the smallest. That is correct for every input.",
+      "topics": [
+        "T003"
+      ],
+      "subtopics": [
+        "ST015",
+        "ST013"
+      ],
+      "skills": [
+        "SK020",
+        "SK010"
+      ],
       "difficulty": "D3",
-      "cognitive_level": "B4",
-      "content": {
-        "text": "Consider the following code segment. What values will A contain after the code segment is executed?\n\n```java\nint k;\nint A[];\nA = new int [7];\nfor (k = 0; k < A.length; k++)\n{\n    A[k] = A.length - k;\n}\nfor (k = 0; k < A.length - 1; k++)\n{\n    A[k+1] = A[k];\n}\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "[1, 1, 2, 3, 4, 5, 6]",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "[1, 2, 3, 4, 5, 6, 7]",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "[6, 6, 5, 4, 3, 2, 1]",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "[7, 7, 6, 5, 4, 3, 2]",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "[7, 7, 7, 7, 7, 7, 7]",
-            "is_correct": true
-          }
-        ],
-        "explanation": "First loop: A[k] = 7-k creates [7,6,5,4,3,2,1]. Second loop: A[k+1] = A[k] cascades the first value (7) through the array. Result: [7,7,7,7,7,7,7]."
-      },
-      "pedagogy": {
-        "topics": ["T006", "T004"],
-        "subtopics": ["ST031", "ST034"],
-        "skills": ["SK001", "SK018", "SK011"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Incomplete cascade trace"
-          },
-          {
-            "option_id": "b",
-            "misconception": "Ignores second loop"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Partial cascade"
-          }
-        ],
-        "common_errors": ["E021", "E008"]
-      }
+      "cognitive_level": "B4"
     },
     {
-      "id": "pt1_q006",
+      "id": "pt2_q031",
       "status": "active",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Consider the following code segment: PostOffice p[] p = new PostOffice[10]; Assuming that the box has been assigned and that it has at least four pieces of mail waiting in it, what is the correct way of getting the fourth piece of mail from the 57th box of the tenth post office of p?\n\n```java\nPostOffice p[];\np = new PostOffice[10];\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "Mail m = p[10].getBox(57).getmail(4);",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "Mail m = p[9].getBox(56).getMail(3);",
-            "is_correct": true
-          },
-          {
-            "id": "c",
-            "text": "Mail m = p.getMail(57).getMail(4)[10];",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "Mail m = getMail(getBox(p[9], 560, 3);",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "Mail m = new Mail(10, 57, 4);",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Arrays are 0-indexed. 10th office = p[9], 57th box = getBox(56), 4th piece = getMail(3). Correct: p[9].getBox(56).getMail(3)."
-      },
-      "pedagogy": {
-        "topics": ["T002", "T006"],
-        "subtopics": ["ST001", "ST009"],
-        "skills": ["SK007", "SK020"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Off-by-one array indexing"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Wrong method call chain"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Malformed syntax"
-          }
-        ],
-        "common_errors": ["E001"]
-      }
-    },
-    {
-      "id": "pt1_q007",
-      "status": "active",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Consider the incomplete function printEmptyBoxes given below. printEmptyBoxes should print the box numbers of all of the boxes that do not contain mail. Which of the following could be used to replace the missing expression?\n\n```java\npublic void printEmptyBoxes (PostOffice p [ ])\n{\n    for (int k = 0; k < p.length - 1 ; k++)\n    {\n        for (int x = 0; x < p[k].getNumBoxes( ) - 1 ; x++)\n        {\n            // missing expression\n        }\n    }\n}\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "if (p[k].getBox(x).isAssigned( ) && !p[k].getBox(x).hasMail( ) ) { System.out.println(p[k].getBox(x).getBoxNumber( )) ; }",
-            "is_correct": true
-          },
-          {
-            "id": "b",
-            "text": "if (p[x].getBox(k).isAssigned ( ) && !p[x].getBox(k).hasMail( )) { System.out.println(p[x].getBox(k).getBoxNumber( )); }",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "if (p[k].getBox(x).isAssigned( ) && !p[k].getBox(x).hasMail( )) { System.out.println (p[k].getBoxNumber (x)); }",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "if (p[x].getBox(k).isAssigned( ) && !p[x].getBox (k).hasMail( )) { System.out.println(p[x].getBoxNumber(k)); }",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "if (p[x].getBox(k).isAssigned( ) && p[x].getBox(k).getMail( ) == 0) { System.out.println(k); }",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Loops use k for post offices and x for boxes. Correct condition: p[k].getBox(x).isAssigned() && !p[k].getBox(x).hasMail(). Correct print: p[k].getBox(x).getBoxNumber()."
-      },
-      "pedagogy": {
-        "topics": ["T002", "T003"],
-        "subtopics": ["ST008", "ST009"],
-        "skills": ["SK006", "SK009"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "b",
-            "misconception": "Swapped array indices"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Wrong method signature"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Multiple index errors"
-          }
-        ],
-        "common_errors": ["E009"]
-      }
-    },
-    {
-      "id": "pt1_q008",
-      "status": "active",
-      "difficulty": "D2",
-      "cognitive_level": "B4",
-      "content": {
-        "text": "Assume that a and b are Boolean variables that have been initialized. Consider the following code segment. \n\n`a = a && b; b = a || b;`\n\n Which of the following statements is true?",
-        "options": [
-          {
-            "id": "a",
-            "text": "I only (The final value of a is the same as the initial value of a.)",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "II only (The final value of b is the same as the initial value of b.)",
-            "is_correct": true
-          },
-          {
-            "id": "c",
-            "text": "III only (The final value of a is the same as the initial value of b.)",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "I and II only",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "II and III only",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Analysis: (1) a_new = a_old && b_old (not always equal to a_old). (2) b_new = (a_old && b_old) || b_old = b_old (absorption law - always true). (3) a_new ≠ b_old unless special conditions. Only II is always true."
-      },
-      "pedagogy": {
-        "topics": ["T003"],
-        "subtopics": ["ST010", "ST011"],
-        "skills": ["SK009", "SK020"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Doesn't trace values systematically"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Only checks one case"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Assumes a doesn't change"
-          }
-        ],
-        "common_errors": ["E008"]
-      }
-    },
-    {
-      "id": "pt1_q009",
-      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q31.",
+      "text": "A software company wants to develop new features to attract new users to download a popular application. The company created a survey to ask users how they feel about several potential new features. The company sent the survey to all users who spent more than 500 hours using the application during the previous year. A programmer for the company wants to determine which new features should be prioritized by performing an analysis of the survey data. Which of the following best explains why the programmer should be careful about the conclusions drawn from the analysis?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The survey data may be biased in favor of a specific group of users.",
+          "is_correct": true,
+          "explanation": "Correct. The sample is biased toward heavy existing users."
+        },
+        {
+          "id": "b",
+          "text": "The survey data may include responses from users who dislike the application.",
+          "is_correct": false,
+          "explanation": "Including users who dislike the app would make the data more representative, not less."
+        },
+        {
+          "id": "c",
+          "text": "The survey data may raise intellectual property concerns for the company.",
+          "is_correct": false,
+          "explanation": "Intellectual property isn't at issue in analyzing survey responses."
+        },
+        {
+          "id": "d",
+          "text": "The survey data may require data encapsulation before they can be analyzed.",
+          "is_correct": false,
+          "explanation": "Encapsulation is a programming design concept, not a step required before analyzing data."
+        }
+      ],
+      "explanation": "Only users with more than 500 hours were surveyed, and they are the heaviest existing users. The goal is attracting new users, and this sample doesn't represent them, so conclusions may not generalize.",
+      "topics": [
+        "T015"
+      ],
+      "subtopics": [
+        "ST065"
+      ],
+      "skills": [
+        "SK023"
+      ],
       "difficulty": "D1",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Consider the following code segment. What is output when the code is executed?\n\n```java\nint x;\nx = 53;\nif (x > 10) { System.out.print(\"A\") ; }\nif (x > 30) { System.out.print(\"B\") ; }\nelse if (x > 40) { System.out.print(\"C\") ; }\nif (x > 50) { System.out.print (\"D\") ; }\nif (x > 70) { System.out.print (\"E\") ; }\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "A",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "D",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "ABD",
-            "is_correct": true
-          },
-          {
-            "id": "d",
-            "text": "ABCD",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "ABCDE",
-            "is_correct": false
-          }
-        ],
-        "explanation": "x=53: First if (53>10) prints A; Second if (53>30) prints B, else-if skipped; Third if (53>50) prints D; Fourth if (53>70) false, no print. Output: ABD."
-      },
-      "pedagogy": {
-        "topics": ["T003"],
-        "subtopics": ["ST012", "ST013"],
-        "skills": ["SK020"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Only traces first if"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Thinks else-if is independent"
-          },
-          {
-            "option_id": "e",
-            "misconception": "Doesn't check conditions"
-          }
-        ],
-        "common_errors": ["E008"]
-      }
+      "cognitive_level": "B5"
     },
     {
-      "id": "pt1_q010",
+      "id": "pt2_q032",
       "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q32.",
+      "text": "Consider the following code segment.\n```java\nint[][] mat = {{10, 20, 30},\n               {40, 50, 60}};\nArrayList<Integer> result = new ArrayList<Integer>();\n/* missing code */\n```\nAfter executing this code segment, result should contain [30, 20, 10, 60, 50, 40].\nWhich of the following can replace /* missing code */ to produce this result?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nfor (int j = 0; j < mat.length; j++)\n{\n   for (int k = 0; k <= mat[0].length; k++)\n   {\n      result.add(mat[j][k]);\n   }\n}\n```",
+          "is_correct": false,
+          "explanation": "`k <= mat[0].length` reaches index 3, which throws `ArrayIndexOutOfBoundsException`. The order is also forward, not reversed."
+        },
+        {
+          "id": "b",
+          "text": "```java\nfor (int j = 0; j < mat.length; j++)\n{\n   for (int k = mat[0].length - 1; k >= 0; k--)\n   {\n      result.add(mat[j][k]);\n   }\n}\n```",
+          "is_correct": true,
+          "explanation": "Correct. Rows in order, columns in reverse."
+        },
+        {
+          "id": "c",
+          "text": "```java\nfor (int j = mat.length - 1; j >= 0; j--)\n{\n   for (int k = 0; k <= mat[0].length; k++)\n   {\n      result.add(mat[j][k]);\n   }\n}\n```",
+          "is_correct": false,
+          "explanation": "Rows in reverse, and `k <= mat[0].length` goes out of bounds."
+        },
+        {
+          "id": "d",
+          "text": "```java\nfor (int j = mat.length - 1; j >= 0; j--)\n{\n   for (int k = mat[0].length - 1; k >= 0; k--)\n   {\n      result.add(mat[j][k]);\n   }\n}\n```",
+          "is_correct": false,
+          "explanation": "Reverses the rows as well, producing `[60, 50, 40, 30, 20, 10]`."
+        }
+      ],
+      "explanation": "The target is row 0 reversed, then row 1 reversed. So the outer loop moves forward through the rows and the inner loop moves backward from `mat[0].length - 1` down to 0.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST039"
+      ],
+      "skills": [
+        "SK018",
+        "SK010"
+      ],
       "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Consider the following code segment. What is the output when the code is executed?\n\n```java\nint j;\nint k;\nfor (j = -2; j <= 2; j = j + 2)\n{\n    for (k = j; k < j + 3; k++)\n    {\n        System.out.print(k + \" \" ) ;\n    }\n}\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "-2 -1 0",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "-2 -1 0 1 2",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "0 1 2 0 1 2 0 1 2",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "-2 0 2",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "-2 -1 0 0 1 2 2 3 4",
-            "is_correct": true
-          }
-        ],
-        "explanation": "j=-2: prints -2, -1, 0; j=0: prints 0, 1, 2; j=2: prints 2, 3, 4. Output: -2 -1 0 0 1 2 2 3 4."
-      },
-      "pedagogy": {
-        "topics": ["T004"],
-        "subtopics": ["ST018", "ST022"],
-        "skills": ["SK011"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Only traces first iteration"
-          },
-          {
-            "option_id": "b",
-            "misconception": "Wrong increment"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Only prints outer loop variable"
-          }
-        ],
-        "common_errors": ["E001"]
-      }
+      "cognitive_level": "B4"
     },
     {
-      "id": "pt1_q011",
+      "id": "pt2_q033",
       "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q33.",
+      "text": "Consider the following code segment.\n```java\nint[] arr = {10, 20, 30, 40, 50, 60};\nfor (int j = arr.length - 1; j >= 0; j -= 2)\n{\n   arr[j]++;\n}\n```\nWhat are the contents of arr after executing this code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{10, 20, 31, 40, 51, 60}`",
+          "is_correct": false,
+          "explanation": "Increments indices 4 and 2, as if the loop started at `arr.length - 2`."
+        },
+        {
+          "id": "b",
+          "text": "`{10, 21, 30, 41, 50, 61}`",
+          "is_correct": true,
+          "explanation": "Correct. Indices 5, 3, 1 are incremented."
+        },
+        {
+          "id": "c",
+          "text": "`{11, 20, 31, 40, 51, 60}`",
+          "is_correct": false,
+          "explanation": "Increments indices 0, 2, 4, as if the loop started at 0 and counted up."
+        },
+        {
+          "id": "d",
+          "text": "`{11, 21, 31, 41, 51, 61}`",
+          "is_correct": false,
+          "explanation": "Increments every element, ignoring the step of 2."
+        }
+      ],
+      "explanation": "`j` starts at the last index, 5, and moves down by 2, visiting indices 5, 3, and 1. Those elements (60, 40, 20) each increase by 1.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032"
+      ],
+      "skills": [
+        "SK018",
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "pt2_q034",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q34.",
+      "text": "Consider the following code segment.\n```java\nArrayList<String> oldList = new ArrayList<String>();\noldList.add(\"a\");\noldList.add(\"b\");\noldList.add(\"c\");\nArrayList<String> newList = new ArrayList<String>();\n/* missing code */\n```\nAfter executing this code segment, newList should contain [\"c\", \"b\", \"a\", \"a\", \"b\", \"c\"].\nWhich of the following can replace /* missing code */ to produce this result?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nfor (String s : oldList)\n{\n   newList.add(s);\n   newList.add(s);\n}\n```",
+          "is_correct": false,
+          "explanation": "Adds each element twice at the end, producing `[a, a, b, b, c, c]`."
+        },
+        {
+          "id": "b",
+          "text": "```java\nfor (String s : oldList)\n{\n   newList.add(s);\n   newList.add(0, s);\n}\n```",
+          "is_correct": true,
+          "explanation": "Correct. Appending and front-inserting build the two halves."
+        },
+        {
+          "id": "c",
+          "text": "```java\nfor (int j = 0; j < oldList.size(); j++)\n{\n   newList.add(oldList.get(0));\n   newList.add(oldList.get(j));\n}\n```",
+          "is_correct": false,
+          "explanation": "`oldList.get(0)` always adds `\"a\"`, producing `[a, a, a, b, a, c]`."
+        },
+        {
+          "id": "d",
+          "text": "```java\nfor (int j = 0; j < oldList.size(); j++)\n{\n   newList.add(j, oldList.get(j));\n   newList.add(0, oldList.get(j));\n}\n```",
+          "is_correct": false,
+          "explanation": "`add(j, ...)` inserts into the middle as the list grows, producing `[c, b, a, c, b, a]`."
+        }
+      ],
+      "explanation": "Tracing (b): for `a`, the list becomes `[a, a]`. For `b`, appending gives `[a, a, b]`, and inserting at the front gives `[b, a, a, b]`. For `c`, it becomes `[c, b, a, a, b, c]`. Appending builds the forward half, and inserting at index 0 builds the reversed half.",
+      "topics": [
+        "T007"
+      ],
+      "subtopics": [
+        "ST035",
+        "ST036"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "pt2_q035",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q35.",
+      "text": "Consider the following method.\n```java\npublic static boolean mystery(ArrayList<Integer> numbers)\n{\n   int prev = Integer.MAX_VALUE;\n   for (int num : numbers)\n   {\n      if (num > prev)\n      {\n         return false;\n      }\n      prev = num;\n   }\n   return true;\n}\n```\nWhich of the following best describes the behavior of the method?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "It returns false if numbers is sorted from least to greatest and returns true otherwise.",
+          "is_correct": false,
+          "explanation": "Wrong direction and wrong result. A least-to-greatest list with at least two distinct values returns `false`."
+        },
+        {
+          "id": "b",
+          "text": "It returns false if numbers is sorted from greatest to least and returns true otherwise.",
+          "is_correct": false,
+          "explanation": "Right order, but the results are reversed."
+        },
+        {
+          "id": "c",
+          "text": "It returns true if numbers is sorted from least to greatest and returns false otherwise.",
+          "is_correct": false,
+          "explanation": "Wrong direction. Any increase makes the method return `false`."
+        },
+        {
+          "id": "d",
+          "text": "It returns true if numbers is sorted from greatest to least and returns false otherwise.",
+          "is_correct": true,
+          "explanation": "Correct. It returns `false` on any increase, so a greatest-to-least list returns `true`."
+        }
+      ],
+      "explanation": "`prev` starts at `Integer.MAX_VALUE`, so the first element never triggers `num > prev`. After that, the method returns `false` as soon as some element is larger than the one before it. So it returns `true` exactly when the list never increases, which means it is sorted from greatest to least.",
+      "topics": [
+        "T007"
+      ],
+      "subtopics": [
+        "ST036"
+      ],
+      "skills": [
+        "SK003",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "pt2_q036",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q36.",
+      "text": "Consider the following code segment.\n```java\nint[][] my2Darr = new int[4][3];\nfor (int r = 0; r < my2Darr.length; r++)\n{\n   for (int c = 0; c < my2Darr[0].length; c++)\n   {\n      if (r == c)\n      {\n         my2Darr[r][c] = r;\n      }\n   }\n}\n```\nWhich of the following represents the contents of my2Darr after executing this code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{{0, 0, 0}, {0, 0, 0}, {0, 2, 0}, {0, 0, 3}}`",
+          "is_correct": false,
+          "explanation": "Places the values below the diagonal, as if the condition were `r == c + 1`."
+        },
+        {
+          "id": "b",
+          "text": "`{{0, 0, 0}, {0, 1, 0}, {0, 0, 2}, {0, 0, 0}}`",
+          "is_correct": true,
+          "explanation": "Correct. The diagonal holds 0, 1, 2 and the last row is all zeros."
+        },
+        {
+          "id": "c",
+          "text": "`{{0, 0, 0, 0}, {0, 0, 2, 0}, {0, 0, 0, 3}}`",
+          "is_correct": false,
+          "explanation": "Swaps the dimensions to 3×4 and misplaces the values."
+        },
+        {
+          "id": "d",
+          "text": "`{{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 2, 0}}`",
+          "is_correct": false,
+          "explanation": "Has the right diagonal values, but swaps the dimensions to 3 rows × 4 columns."
+        }
+      ],
+      "explanation": "`new int[4][3]` makes 4 rows and 3 columns, filled with 0. Only cells where `r == c` change: (0, 0) = 0, (1, 1) = 1, (2, 2) = 2. Row 3 has no column 3, so it stays all zeros.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "pt2_q037",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q37.",
+      "text": "Consider the following method. When an element of the two-dimensional array values is accessed, the first index is used to specify the row and the second index is used to specify the column.\n```java\npublic static int enigma(int[][] values, int x, int target)\n{\n   int result = 0;\n   for (int num : values[x])\n   {\n      if (num == target)\n      {\n         result++;\n      }\n   }\n   return result;\n}\n```\nWhich of the following best describes the value returned by the method?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The index of a column in values that contains at least one element equal to target",
+          "is_correct": false,
+          "explanation": "The method returns a count, not an index, and it looks only at one row."
+        },
+        {
+          "id": "b",
+          "text": "The index of a row in values that contains at least one element equal to target",
+          "is_correct": false,
+          "explanation": "Returns a count, not an index. `x` is supplied by the caller."
+        },
+        {
+          "id": "c",
+          "text": "The number of times that an element equal to target appears in column x of values",
+          "is_correct": false,
+          "explanation": "Confuses rows and columns. The first index selects the row."
+        },
+        {
+          "id": "d",
+          "text": "The number of times that an element equal to target appears in row x of values",
+          "is_correct": true,
+          "explanation": "Correct. It counts matches in row `x`."
+        }
+      ],
+      "explanation": "`values[x]` is row `x`. The enhanced `for` loop visits each element of that row and counts the ones equal to `target`. The method returns that count.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038"
+      ],
+      "skills": [
+        "SK003"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "pt2_q038",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q38.",
+      "text": "A text file named `sourceText.txt` has the following contents. Assume that the file contains no spaces.\n```\nfinest_artist\nbiggest_gamer\nnicest_teacher\nbest_athlete\n```\nIn the following code segment, a valid `Scanner` object named `sc` has been created to read from the text file.\n```java\nFile myText = new File(\"sourceText.txt\");\nScanner sc = new Scanner(myText);\nArrayList<String> firstList = new ArrayList<String>();\nArrayList<String> secondList = new ArrayList<String>();\n/* missing code */\n```\nThis code segment is intended to assign `[\"finest\", \"biggest\", \"nicest\", \"best\"]` to `firstList` and to assign `[\"artist\", \"gamer\", \"teacher\", \"athlete\"]` to `secondList`.\nWhich of the following can replace `/* missing code */` so that this code segment works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nwhile (sc.hasNext())\n{\n   firstList.add(sc.next());\n   secondList.add(sc.next());\n}\n```",
+          "is_correct": false,
+          "explanation": "Reads whole unsplit tokens alternately. `firstList` gets `finest_artist` and `nicest_teacher`, and `secondList` gets the other two."
+        },
+        {
+          "id": "b",
+          "text": "```java\nwhile (sc.hasNext())\n{\n   firstList.add(sc.next());\n}\nwhile (sc.hasNext())\n{\n   secondList.add(sc.next());\n}\n```",
+          "is_correct": false,
+          "explanation": "The first loop reads all four unsplit tokens into `firstList`. The Scanner is then exhausted, so `secondList` stays empty."
+        },
+        {
+          "id": "c",
+          "text": "```java\nwhile (sc.hasNext())\n{\n   String[] temp = sc.next().split(\"_\");\n   firstList.add(temp[0]);\n   secondList.add(temp[1]);\n}\n```",
+          "is_correct": true,
+          "explanation": "Correct. Each token is split, and its two parts go to the matching lists."
+        },
+        {
+          "id": "d",
+          "text": "```java\nwhile (sc.hasNext())\n{\n   String[] temp = sc.next().split(\"_\");\n   firstList.add(temp[0]);\n   firstList.add(temp[1]);\n}\nwhile (sc.hasNext())\n{\n   String[] temp = sc.next().split(\"_\");\n   secondList.add(temp[0]);\n   secondList.add(temp[1]);\n}\n```",
+          "is_correct": false,
+          "explanation": "The first loop puts all eight words into `firstList`. The second loop never runs, so `secondList` stays empty."
+        }
+      ],
+      "explanation": "Each token looks like `finest_artist`. Splitting on `\"_\"` gives `[\"finest\", \"artist\"]`, so index 0 goes to `firstList` and index 1 goes to `secondList`, one line at a time.",
+      "topics": [
+        "T014",
+        "T013"
+      ],
+      "subtopics": [
+        "ST053",
+        "ST009"
+      ],
+      "skills": [
+        "SK022"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "pt2_q039",
+      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q39. Code indentation normalized.",
+      "text": "The following method implements a recursive binary search algorithm.\n```java\npublic static int binarySearch(int[] elements, int low,\n                               int high, int target)\n{\n   if (low <= high)\n   {\n      int mid = (high + low) / 2;\n      if (target < elements[mid])\n      {\n         return binarySearch(elements, low, mid - 1, target);\n      }\n      else if (target > elements[mid])\n      {\n         return binarySearch(elements, mid + 1, high, target);\n      }\n      else if (elements[mid] == target)\n      {\n         return mid;\n      }\n   }\n   return -1;\n}\n```\nThe following code segment appears in a method in the same class as binarySearch.\n```java\nint[] numbers = {10, 10, 10, 20, 20, 30, 40, 50, 50, 60, 80};\nint result = binarySearch(numbers, 0, numbers.length - 1, 10);\n```\nWhat is the value of result after executing the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`-1`",
+          "is_correct": false,
+          "explanation": "10 is in the array, so the search succeeds."
+        },
+        {
+          "id": "b",
+          "text": "`0`",
+          "is_correct": false,
+          "explanation": "Assumes binary search finds the first occurrence. It returns the first match it reaches."
+        },
+        {
+          "id": "c",
+          "text": "`1`",
+          "is_correct": false,
+          "explanation": "Miscomputes a midpoint. The second `mid` is `(0 + 4) / 2` = 2."
+        },
+        {
+          "id": "d",
+          "text": "`2`",
+          "is_correct": true,
+          "explanation": "Correct. The second call's midpoint lands on a 10."
+        }
+      ],
+      "explanation": "The first call has `low` = 0 and `high` = 10, so `mid` = 5 and `elements[5]` is 30. Since 10 < 30, it searches from 0 to 4, where `mid` = 2 and `elements[2]` is 10. That is a match, so it returns 2. Binary search returns whichever matching index it reaches first, not necessarily the first occurrence.",
+      "topics": [
+        "T010",
+        "T009"
+      ],
+      "subtopics": [
+        "ST045",
+        "ST042"
+      ],
+      "skills": [
+        "SK012",
+        "SK001"
+      ],
       "difficulty": "D3",
-      "cognitive_level": "B4",
-      "content": {
-        "text": "Consider the following method. What is output by the call mystery(5, \"X\")?\n\n```java\npublic void mystery (int count, String s)\n{\n    if (count <= 0) { return; }\n    if (count % 3 == 0) { System.out.print(s + \"--\" + s) }\n    else if (count % 3 == 1) { System.out.print(s + \"-\" + s) }\n    else { System.out.print (s) ; }\n    mystery(count - 1, s) ;\n}\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "XX - XX - - XXX - X",
-            "is_correct": true
-          },
-          {
-            "id": "b",
-            "text": "XX - XX - XX - XX",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "XXX - - XX - X - XX - - XXX",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "XX - XXX - - XXX - XX",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "XXXXX",
-            "is_correct": false
-          }
-        ],
-        "explanation": "mystery(5): 5%3=2 prints X; mystery(4): 4%3=1 prints X-X; mystery(3): 3%3=0 prints X--X; mystery(2): 2%3=2 prints X; mystery(1): 1%3=1 prints X-X. Output: X X-X X--X X X-X formatted as XX - XX - - XXX - X."
-      },
-      "pedagogy": {
-        "topics": ["T009"],
-        "subtopics": ["ST031", "ST032"],
-        "skills": ["SK012", "SK001"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "b",
-            "misconception": "Wrong modulo pattern"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Reversed recursion trace"
-          },
-          {
-            "option_id": "e",
-            "misconception": "Counts instead of executes"
-          }
-        ],
-        "common_errors": ["E016"]
-      }
+      "cognitive_level": "B3"
     },
     {
-      "id": "pt1_q012",
+      "id": "pt2_q040",
       "status": "active",
-      "difficulty": "D1",
-      "cognitive_level": "B2",
-      "content": {
-        "text": "What is the correct way to define the signature of the constructor for the DiningRoomSet class?",
-        "options": [
-          {
-            "id": "a",
-            "text": "public void DiningRoomSet (Table t, ArrayList, chairs)",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "public DiningRoomSet (Table t, ArrayList chairs)",
-            "is_correct": true
-          },
-          {
-            "id": "c",
-            "text": "public void DiningRoomSet (Table t, ArrayList Chair Chairs)",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "public DiningRoomSet (Table t, ArrayList Chair Chairs)",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "public DiningRoomSet (Table t, Chair Chairs)",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Constructor should: (1) NOT have void, (2) have correct class name, (3) have properly generic ArrayList<Chair>. Option B is closest valid syntax, though technically should be ArrayList<Chair>."
-      },
-      "pedagogy": {
-        "topics": ["T005"],
-        "subtopics": ["ST024", "ST025"],
-        "skills": ["SK016"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Constructor returns void"
-          },
-          {
-            "option_id": "c",
-            "misconception": "ArrayList type parameter in wrong place"
-          },
-          {
-            "option_id": "d",
-            "misconception": "ArrayList missing generic type"
-          }
-        ],
-        "common_errors": ["E007"]
-      }
-    },
-    {
-      "id": "pt1_q013",
-      "status": "active",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "What is the correct way to implement the getPrice method of the DiningRoomSet class?\n\n```java\npublic class DiningRoomSet {\n    private Table myTable;\n    private ArrayList<Chair> myChairs;\n}\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "public double getPrice(Table t, ArrayList chairs) { return t.getPrice() + chairs.getPrice() ; }",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "public double getPrice(Table t, ArrayList chairs) { return myTable.getPrice() + myChairs.getPrice(); }",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "public double getPrice() { return myTable.getPrice() + myChairs.getPrice(); }",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "public double getPrice() { double result = myTable.getPrice(); for (int k = 0; k < myChairs.size() - 1; k++) { result += ((Chair)myChairs.get(k)).getPrice(); } return result; }",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "public double getPrice() { double result = myTable.getPrice() ; for (int k = 0; k < myChairs.size(); k++) { result += ((Chair)myChairs.get(k)).getPrice( ); } return result ; }",
-            "is_correct": true
-          }
-        ],
-        "explanation": "Must iterate through ALL chairs (k < myChairs.size(), not size()-1). Option D has off-by-one error. Option E correctly sums table + all chairs."
-      },
-      "pedagogy": {
-        "topics": ["T007"],
-        "subtopics": ["ST035", "ST036"],
-        "skills": ["SK018", "SK021"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "b",
-            "misconception": "ArrayList has no getPrice method"
-          },
-          {
-            "option_id": "c",
-            "misconception": "ArrayList getPrice doesn't exist"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Off-by-one error in loop"
-          }
-        ],
-        "common_errors": ["E001", "E018"]
-      }
-    },
-    {
-      "id": "pt1_q014",
-      "status": "active",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Consider the following output:\n6 5 4 3 2 1\n5 4 3 2 1\n4 3 2 1\n3 2 1\n2 1\n1\nWhich of the following code segments produces the above output?",
-        "options": [
-          {
-            "id": "a",
-            "text": "for (int j = 6; j < 0; j--) { for (int k = j; k > 0 ; k --) { System.out.print (k + \" \") ; } System.out.println(\"\") ; }",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "for (int j = 6; j >= 0; j--) { for (int k = j; k >= 0; k--) { System.out.print(k + \" \"); } System.out.println (\" \") ; }",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "for (int j = 0; j < 6; j++) { for (int k = 6 - j; k > 0; k--) { System.out.print (k + \" \") ; } system.out.println (\" \") ; }",
-            "is_correct": true
-          },
-          {
-            "id": "d",
-            "text": "for (int j = 0; j < 6; j++) { for (int k = 7 - j ; k > 0 ; k --) { System.out.print(k + \" \"); } System.out.println (\" \") ; }",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "for (int j = 0; j < 6; j++) { for (int k = 6 - j ; k >= 0; k--) { System.out.print(k + \" \"); } System.out.println (\" \") ; }",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Pattern: iterate j from 0 to 5; each row starts at 6-j and counts down to 1. Outer: j 0-5; Inner: k from (6-j) down to 1 (k > 0)."
-      },
-      "pedagogy": {
-        "topics": ["T004"],
-        "subtopics": ["ST018", "ST022"],
-        "skills": ["SK011", "SK005"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Outer loop condition never true"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Off-by-one in starting value"
-          },
-          {
-            "option_id": "e",
-            "misconception": "Includes 0 in output"
-          }
-        ],
-        "common_errors": ["E001"]
-      }
-    },
-    {
-      "id": "pt1_q015",
-      "status": "active",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Consider the following code segment. What is printed as a result of executing this code segment?\n\n```java\nList<Integer> list = new ArrayList<Integer>();\nlist.add(new Integer (7));\nlist.add (new Integer (6));\nlist.add (1, new Integer (5));\nlist.add (1, new Integer (4));\nlist.add (new Integer (3));\nlist.set (2, new Integer (2));\nlist.add (1, new Integer (1));\nSystem.out.prinln (list);\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "[1, 4, 2, 7, 6, 3]",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "[7, 1, 4, 2, 6, 3]",
-            "is_correct": true
-          },
-          {
-            "id": "c",
-            "text": "[7, 2, 5, 4, 3, 1]",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "[7, 6, 2, 4, 3, 1]",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "[7, 1, 2]",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Trace each operation: add(7)→[7]; add(6)→[7,6]; add(1,5)→[7,5,6]; add(1,4)→[7,4,5,6]; add(3)→[7,4,5,6,3]; set(2,2)→[7,4,2,6,3]; add(1,1)→[7,1,4,2,6,3]."
-      },
-      "pedagogy": {
-        "topics": ["T007"],
-        "subtopics": ["ST035", "ST036"],
-        "skills": ["SK001", "SK018"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Wrong index calculations"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Ignores set operation"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Incomplete trace"
-          }
-        ],
-        "common_errors": ["E001"]
-      }
-    },
-    {
-      "id": "pt1_q016",
-      "status": "legacy",
-      "status_note": "Interfaces (pre-2025 content)",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Consider the following declarations. Which of the following methods must be included in the declaration of the Dog class in order for the class to successfully compile?\n\n```java\npublic interface Animal { String makeSound(); String animalType(); }\npublic static class Dog implements Animal { public String makeSound(Animal a) { } }\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "I only (public String makeSound())",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "II only (public String animalType())",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "I and II only",
-            "is_correct": true
-          },
-          {
-            "id": "d",
-            "text": "II and III only",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "I, II, and III",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Interface requires both makeSound() and animalType(). Dog has makeSound(Animal a) which is different signature. Must implement both interface methods: makeSound() and animalType()."
-      },
-      "pedagogy": {
-        "topics": ["T019"],
-        "subtopics": ["ST061"],
-        "skills": ["SK017", "SK013"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Thinks overloading satisfies interface"
-          },
-          {
-            "option_id": "b",
-            "misconception": "Only needs one method"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Ignores makeSound requirement"
-          }
-        ],
-        "common_errors": ["E014"]
-      }
-    },
-    {
-      "id": "pt1_q017",
-      "status": "legacy",
-      "status_note": "Inheritance/polymorphism (pre-2025 content)",
-      "difficulty": "D2",
-      "cognitive_level": "B4",
-      "content": {
-        "text": "Consider the following two classes. Which of the following is the correct output after the following code segment is executed? Fish Bob = new Shark(); System.out.println(Bob.endoskeleton); Bob.action();\n\n```java\npublic static class Fish { public String endoskeleton = \"bone\"; public void action() { System.out.println(\"splash splash\"); } }\npublic static class Shark extends Fish { public void action() { System.out.println(\"chomp chomp\"); } public String endoskeleton=\"cartilage\"; }\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "bone\\nchomp chomp",
-            "is_correct": true
-          },
-          {
-            "id": "b",
-            "text": "bone\\nsplash splash",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "cartilage\\nsplash splash",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "cartilage\\nchomp chomp",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "cartilage\\nsplash splash\\nchomp chomp",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Instance variables are NOT polymorphic - use declared type (Fish). Methods ARE polymorphic - use runtime type (Shark). Result: endoskeleton=\"bone\" (Fish), action() calls Shark version prints \"chomp chomp\"."
-      },
-      "pedagogy": {
-        "topics": ["T016", "T017"],
-        "subtopics": ["ST057", "ST058", "ST060"],
-        "skills": ["SK013", "SK007"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "c",
-            "misconception": "Thinks variables are polymorphic"
-          },
-          {
-            "option_id": "b",
-            "misconception": "Thinks methods use declared type"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Both polymorphic"
-          }
-        ],
-        "common_errors": ["E024"]
-      }
-    },
-    {
-      "id": "pt1_q018",
-      "status": "active",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "The following insertSort method sorts the values in an integer array. Which of the following can be used to replace the missing code?\n\n```java\npublic static void insertSort(int[] sort) {\n    for (int index=1;index<sort.length;index++) {\n        int temp=sort[index];\n        while (index > 0 && sort[index-1]>temp) {\n            // Missing code\n        }\n        sort[index]=temp;\n    }\n}\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "sort[index]=sort[index-1]; index++;",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "sort[index-1]=sort[index]; index--;",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "sort[index]=sort[index+1]; index++;",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "sort[index]=sort[index-1]; index--;",
-            "is_correct": true
-          },
-          {
-            "id": "e",
-            "text": "sort[index]=sort[index+1]; index--;",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Must shift element right: sort[index]=sort[index-1], and move left: index--. This creates space for smaller elements."
-      },
-      "pedagogy": {
-        "topics": ["T011"],
-        "subtopics": ["ST047"],
-        "skills": ["SK003", "SK015"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Wrong direction increment"
-          },
-          {
-            "option_id": "b",
-            "misconception": "Wrong assignment direction"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Both wrong"
-          }
-        ],
-        "common_errors": ["E008"]
-      }
-    },
-    {
-      "id": "pt1_q019",
-      "status": "active",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Assuming that the missing code is implemented properly, what change can be made to the code in order for the array to be sorted in descending order?",
-        "options": [
-          {
-            "id": "a",
-            "text": "Replace Line 6 with: while (index < 0 && sort[index-1]<temp)",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "Replace Line 6 with: while (index < 0 && sort[index-1]<temp)",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "Replace Line 6 with: while (index > 0 && sort[index-1]<temp)",
-            "is_correct": true
-          },
-          {
-            "id": "d",
-            "text": "Replace Line 3 with: for (int index=sort.length-1;index>0;index--)",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "Replace Line 3 with: for (int index=1;index>0;index--)",
-            "is_correct": false
-          }
-        ],
-        "explanation": "To reverse sort order, reverse the comparison: > becomes <. Rest of logic remains same. Change sort[index-1]>temp to sort[index-1]<temp."
-      },
-      "pedagogy": {
-        "topics": ["T011"],
-        "subtopics": ["ST047"],
-        "skills": ["SK003", "SK015"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Wrong loop condition"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Only changes loop initialization"
-          },
-          {
-            "option_id": "e",
-            "misconception": "Breaks loop immediately"
-          }
-        ],
-        "common_errors": ["E008"]
-      }
-    },
-    {
-      "id": "pt1_q020",
-      "status": "active",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Which of the following arrays would be sorted the slowest using insertion sort?",
-        "options": [
-          {
-            "id": "a",
-            "text": "[3 4 6 2 7 3 9]",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "[3 2 5 4 6 7 9]",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "[9 7 6 5 4 3 2]",
-            "is_correct": true
-          },
-          {
-            "id": "d",
-            "text": "[2 3 4 5 6 7 9]",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "[9 3 2 4 5 7 6]",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Insertion sort worst case is when array is in reverse order (every element must be compared with all previous). [9,7,6,5,4,3,2] is reverse sorted, requiring maximum comparisons."
-      },
-      "pedagogy": {
-        "topics": ["T011"],
-        "subtopics": ["ST047"],
-        "skills": ["SK003", "SK015"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "d",
-            "misconception": "Already sorted is slow"
-          },
-          {
-            "option_id": "a",
-            "misconception": "Random order is worst"
-          },
-          {
-            "option_id": "e",
-            "misconception": "One swap away"
-          }
-        ],
-        "common_errors": ["E015"]
-      }
-    },
-    {
-      "id": "pt1_q021",
-      "status": "needs_source",
-      "status_note": "Stem refers to the multiply method and statements I, II, III, none of which are in the text.",
-      "difficulty": "D2",
-      "cognitive_level": "B2",
-      "content": {
-        "text": "Consider the method multiply of the Fraction class. Which of the following statements can be used to replace the missing code?",
-        "options": [
-          {
-            "id": "a",
-            "text": "I only",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "II only",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "III only",
-            "is_correct": true
-          },
-          {
-            "id": "d",
-            "text": "I and III",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "II and III",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Must: (1) use 'new', (2) use public getter methods not private fields, (3) properly call getDenominator(). Option III is correct."
-      },
-      "pedagogy": {
-        "topics": ["T005"],
-        "subtopics": ["ST025", "ST056"],
-        "skills": ["SK016", "SK007"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Missing 'new' keyword"
-          },
-          {
-            "option_id": "b",
-            "misconception": "Accessing private fields directly"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Mixing valid and invalid"
-          }
-        ],
-        "common_errors": ["E002", "E014"]
-      }
-    },
-    {
-      "id": "pt1_q022",
-      "status": "active",
-      "difficulty": "D1",
-      "cognitive_level": "B2",
-      "content": {
-        "text": "Consider the use of the Fraction class to multiply the fractions 3/4 and 7/19. Which of the following could be used to replace the missing code?\n\n```java\nFraction fractionOne = new Fraction(3, 4);\nFraction fractionTwo = new Fraction(7, 19);\n/* missing code */\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "answer = fractionOne * fractionTwo",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "answer = multiply(fractionOne, fractionTwo);",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "answer = fractionOne.multiply(fractionTwo);",
-            "is_correct": true
-          },
-          {
-            "id": "d",
-            "text": "answer = new Fraction(fractionOne, fractionTwo);",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "answer = (fractionOne.getNumerator() * fractionTwo.getNumerator()) / (fractionOne.getDenominator() * fractionTwo.getDenominator());",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Instance method syntax: object.method(parameter). answer = fractionOne.multiply(fractionTwo);"
-      },
-      "pedagogy": {
-        "topics": ["T002"],
-        "subtopics": ["ST003", "ST008"],
-        "skills": ["SK007"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Operator overloading in Java"
-          },
-          {
-            "option_id": "b",
-            "misconception": "Static method call"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Constructor call instead"
-          }
-        ],
-        "common_errors": ["E014"]
-      }
-    },
-    {
-      "id": "pt1_q023",
-      "status": "needs_source",
-      "status_note": "Stem refers to proposed constructors I, II, III for ReducedFraction; no code in the text. Inheritance/super (pre-2025 content)",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Consider the proposed constructors for the ReducedFraction class. Which of these constructor(s) would be legal?",
-        "options": [
-          {
-            "id": "a",
-            "text": "I only",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "II only",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "III only",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "I and III",
-            "is_correct": true
-          },
-          {
-            "id": "e",
-            "text": "II and III",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Constructor I: Legal, initializes only reduced fields. Constructor II: Illegal - lowercase 'reducedFraction' wrong, directly accesses private fields. Constructor III: Legal - calls super() properly, initializes reduced fields."
-      },
-      "pedagogy": {
-        "topics": ["T016"],
-        "subtopics": ["ST057", "ST059"],
-        "skills": ["SK017", "SK013"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "b",
-            "misconception": "Case sensitivity and field access"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Only super() counts"
-          },
-          {
-            "option_id": "e",
-            "misconception": "II is valid"
-          }
-        ],
-        "common_errors": ["E024"]
-      }
-    },
-    {
-      "id": "pt1_q024",
-      "status": "active",
-      "difficulty": "D1",
-      "cognitive_level": "B2",
-      "content": {
-        "text": "Consider `s1` and `s2` defined as follows. \n```java\nString s1 = new String(\"hello\"); \nString s2 = new String(\"hello”);\n```\n Which of the following is/are correct ways to see if `s1` and `s2` hold identical strings?\n\nI. `if (s1 == s2)`\n\nII. `if (s1.compareTo(s2) = 0)`\n\nIII. `if (s1.equals(s2))`",
-        "options": [
-          {
-            "id": "a",
-            "text": "I only",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "III only",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "I and III only",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "II and III only",
-            "is_correct": true
-          },
-          {
-            "id": "e",
-            "text": "I, II, and III",
-            "is_correct": false
-          }
-        ],
-        "explanation": "== checks references (different objects, so false). compareTo()==0 checks content (true). equals() checks content (true). II and III are correct."
-      },
-      "pedagogy": {
-        "topics": ["T013"],
-        "subtopics": ["ST039", "ST040"],
-        "skills": ["SK008"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "== compares content for strings"
-          },
-          {
-            "option_id": "b",
-            "misconception": "equals() is the only way"
-          },
-          {
-            "option_id": "c",
-            "misconception": "== works for objects"
-          }
-        ],
-        "common_errors": ["E012"]
-      }
-    },
-    {
-      "id": "pt1_q025",
-      "status": "active",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Consider the following variable and method declarations. Assume that s has the value \"Elizabeth\" and t has the value \"Andrew\" and mystery(s, t) is called. What are the values of s and t after the call?\n\n```java\nString s; String t;\npublic void mystery(String a, String b) {\n    a = a + b;\n    b = b + a;\n}\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "s=Elizabeth, t=Andrew",
-            "is_correct": true
-          },
-          {
-            "id": "b",
-            "text": "s=ElizabethAndrew, t=AndrewElizabeth",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "s=ElizabethAndrew, t=AndrewElizabethAndrew",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "s=ElizabethAndrew, t=ElizabethAndrewAndrew",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "s=ElizabethAndrewElizabeth, t=AndrewElizabethAndrew",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Strings are passed by value. Inside mystery, parameters a and b change, but original s and t are unchanged. Answer: s=Elizabeth, t=Andrew."
-      },
-      "pedagogy": {
-        "topics": ["T001", "T012"],
-        "subtopics": ["ST049", "ST050"],
-        "skills": ["SK001", "SK019"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "b",
-            "misconception": "Only first concatenation"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Cascading concatenation"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Wrong string order"
-          }
-        ],
-        "common_errors": ["E005"]
-      }
-    },
-    {
-      "id": "pt1_q026",
-      "status": "legacy",
-      "status_note": "Interfaces/Comparable (pre-2025 content)",
-      "difficulty": "D2",
-      "cognitive_level": "B4",
-      "content": {
-        "text": "Consider the incomplete and incorrect class declaration. For which of the following reasons is the class declaration incorrect?\n\n```java\npublic class Point implements Comparable {\n    private int x; private int y;\n    public boolean compareTo(Point other) {\n        return (x == other.x && y == other.y);\n    }\n}\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "I only",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "III only",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "I and III",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "II and III",
-            "is_correct": true
-          },
-          {
-            "id": "e",
-            "text": "I, II, and III",
-            "is_correct": false
-          }
-        ],
-        "explanation": "I. FALSE - objects in same class CAN access private fields. II. TRUE - Comparable requires Object parameter. III. TRUE - Comparable requires int return type, not boolean."
-      },
-      "pedagogy": {
-        "topics": ["T019"],
-        "subtopics": ["ST061"],
-        "skills": ["SK013", "SK017"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Objects can't access private"
-          },
-          {
-            "option_id": "b",
-            "misconception": "Only return type wrong"
-          },
-          {
-            "option_id": "e",
-            "misconception": "All three are violations"
-          }
-        ],
-        "common_errors": ["E014"]
-      }
-    },
-    {
-      "id": "pt1_q027",
-      "status": "needs_source",
-      "status_note": "Stem refers to an abstraction of a for loop (<1>..<4>) that is not shown.",
-      "difficulty": "D2",
-      "cognitive_level": "B4",
-      "content": {
-        "text": "Consider the following abstraction of a for loop. Which of the following while loops has the same functionality?",
-        "options": [
-          {
-            "id": "a",
-            "text": "<1>; while (<2>) { <3>; <4> }",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "<1>; while (<2>) { <4> <3>; }",
-            "is_correct": true
-          },
-          {
-            "id": "c",
-            "text": "<1>; while (!<2>) { <3>; <4> }",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "<1>; while (!<2>) { <4> <3>; }",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "<1>; <3>; while (<2>) { <4> <3>; }",
-            "is_correct": false
-          }
-        ],
-        "explanation": "For loop: init <1>, check <2>, exec <4>, then increment <3>. While: init <1>, check <2>, exec <4>, then increment <3>. Body comes before increment."
-      },
-      "pedagogy": {
-        "topics": ["T004"],
-        "subtopics": ["ST017", "ST018"],
-        "skills": ["SK011"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Increment before body"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Negates condition"
-          },
-          {
-            "option_id": "e",
-            "misconception": "Executes increment before loop"
-          }
-        ],
-        "common_errors": ["E004"]
-      }
-    },
-    {
-      "id": "pt1_q028",
-      "status": "active",
-      "difficulty": "D1",
-      "cognitive_level": "B2",
-      "content": {
-        "text": "Consider the following expression: \n\n`a / b + c – d % e * f` \n\nWhich of the expressions given below is equivalent?",
-        "options": [
-          {
-            "id": "a",
-            "text": "( (a / b) + (c – d) ) % (e *f)",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "( ( ( ( a / b) + c) – d) % e) * f",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "( ( a / b) + c) – (d % (e * f))",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "(a / ( (b + c) – d) % e) * f",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "( (a / b) + c) – ( (d % e) * f)",
-            "is_correct": true
-          }
-        ],
-        "explanation": "Precedence: /, %, * (left to right) > +, - (left to right). Expression = (a/b) + c - ((d%e)*f)."
-      },
-      "pedagogy": {
-        "topics": ["T001"],
-        "subtopics": ["ST003", "ST005"],
-        "skills": ["SK008"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Wrong parenthesization"
-          },
-          {
-            "option_id": "b",
-            "misconception": "Wrong modulo position"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Wrong modulo grouping"
-          }
-        ],
-        "common_errors": ["E008"]
-      }
-    },
-    {
-      "id": "pt1_q029",
-      "status": "needs_source",
-      "status_note": "Code segments I, II, III are not in the text.",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Assume that a program declares and initializes x as follows: String [] x; x = new String[10]; initialize(x); // Fills the array x with valid strings each of length 5. Which of the following code segments correctly traverses the array and prints out the first character of all ten strings followed by the second character of all ten strings?",
-        "options": [
-          {
-            "id": "a",
-            "text": "I only",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "II only",
-            "is_correct": true
-          },
-          {
-            "id": "c",
-            "text": "I and II",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "II and III",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "I, II, and III",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Want character index (0-4) as outer loop, string index (0-9) as inner loop. II: for(i=0; i<5; i++) for(j=0; j<10; j++) x[j].substring(i,i+1) - Correct. I and III have wrong loop order."
-      },
-      "pedagogy": {
-        "topics": ["T004", "T013"],
-        "subtopics": ["ST018", "ST022", "ST039"],
-        "skills": ["SK011", "SK019"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Wrong loop nesting order"
-          },
-          {
-            "option_id": "c",
-            "misconception": "II and one other"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Includes III"
-          }
-        ],
-        "common_errors": ["E001"]
-      }
-    },
-    {
-      "id": "pt1_q030",
-      "status": "active",
-      "difficulty": "D1",
-      "cognitive_level": "B2",
-      "content": {
-        "text": "Consider the following declaration and assignment statements. int a = 7; int b = 4; double c; c = a / b; After the assignment, what's the value of c?\n\n```java\nint a = 7;\nint b = 4;\ndouble c;\nc = a / b;\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "1.0",
-            "is_correct": true
-          },
-          {
-            "id": "b",
-            "text": "1.75",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "2.0",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "Error - c not initialized",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "Error - type mismatch",
-            "is_correct": false
-          }
-        ],
-        "explanation": "a and b are integers, so a/b = 7/4 = 1 (integer division). Then 1 is assigned to c, giving 1.0."
-      },
-      "pedagogy": {
-        "topics": ["T001"],
-        "subtopics": ["ST002", "ST006"],
-        "skills": ["SK008"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "b",
-            "misconception": "Automatic floating point division"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Rounds instead of truncates"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Variables must be initialized"
-          }
-        ],
-        "common_errors": ["E011"]
-      }
-    },
-    {
-      "id": "pt1_q031",
-      "status": "active",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Consider the following code segment. For what values of x will \"Yes\" be printed?\n\n```java\nint x;\nif (x % 2 == 0 && x / 3 == 1) System.out.print(\"Yes\");\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "0",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "4",
-            "is_correct": true
-          },
-          {
-            "id": "c",
-            "text": "Whenever x is even and x is not divisible by 3",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "Whenever x is odd and x is divisible by 3",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "Whenever x is even and x is divisible by 3",
-            "is_correct": false
-          }
-        ],
-        "explanation": "x%2==0: x is even. x/3==1: x in [3,5] (integer division). Both: x in [3,5] AND even = x==4."
-      },
-      "pedagogy": {
-        "topics": ["T003"],
-        "subtopics": ["ST010", "ST011"],
-        "skills": ["SK009", "SK020"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Tests specific value"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Wrong second condition"
-          },
-          {
-            "option_id": "e",
-            "misconception": "Wrong divisibility"
-          }
-        ],
-        "common_errors": ["E011"]
-      }
-    },
-    {
-      "id": "pt1_q032",
-      "status": "needs_source",
-      "status_note": "swap method and segment II are missing; stem says \"Now consider\", implying shared context from a prior item.",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Now consider the method swap. Which of the following code segments can replace the missing code so the method works as intended?",
-        "options": [
-          {
-            "id": "a",
-            "text": "I only: SomeClass temp; temp = x; x = y; y = temp;",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "III only: String temp; temp = x.getName(); x.setName(y.getName()); y.setName(temp);",
-            "is_correct": true
-          },
-          {
-            "id": "c",
-            "text": "I and III",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "II and III",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "I, II, and III",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Must swap the NAME values, not the objects. Option III calls setName/getName correctly. Option I swaps object references (doesn't swap names). Option II accesses private fields directly."
-      },
-      "pedagogy": {
-        "topics": ["T002"],
-        "subtopics": ["ST008", "ST009"],
-        "skills": ["SK007", "SK013"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Swapping object references"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Both I and III work"
-          },
-          {
-            "option_id": "d",
-            "misconception": "II is valid"
-          }
-        ],
-        "common_errors": ["E009"]
-      }
-    },
-    {
-      "id": "pt1_q033",
-      "status": "needs_source",
-      "status_note": "The book types the design must model are not given, so the answer cannot be derived. Inheritance hierarchy design (pre-2025 content)",
-      "difficulty": "D2",
-      "cognitive_level": "B4",
-      "content": {
-        "text": "A bookstore wants to store information about books with different types. Which of the following is the best design?",
-        "options": [
-          {
-            "id": "a",
-            "text": "One class Book with data fields",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "Four unrelated classes",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "Book with subclass BookType",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "Book with 6 subclasses",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "Book > FictionWork/NonFictionWork > (3 sub-subclasses each)",
-            "is_correct": true
-          }
-        ],
-        "explanation": "Best OOP design uses inheritance hierarchy matching the data structure: Book has two main branches (Fiction/NonFiction), each with 3 sub-types. Option E shows proper abstraction and hierarchy."
-      },
-      "pedagogy": {
-        "topics": ["T016", "T017"],
-        "subtopics": ["ST057"],
-        "skills": ["SK013", "SK017"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Flat structure with type field"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Skips intermediate hierarchy"
-          },
-          {
-            "option_id": "b",
-            "misconception": "No inheritance at all"
-          }
-        ],
-        "common_errors": ["E017"]
-      }
-    },
-    {
-      "id": "pt1_q034",
-      "status": "active",
-      "difficulty": "D2",
-      "cognitive_level": "B4",
-      "content": {
-        "text": "Consider the following code. Which value can replace the missing value so that mystery(4) returns 34?\n\n```java\npublic int mystery(int x) {\n    if (x == 1) return <missing>;\n    else return (2 * mystery(x-1)) + x;\n}\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "0",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "1",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "2",
-            "is_correct": true
-          },
-          {
-            "id": "d",
-            "text": "3",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "4",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Trace with return value 2: mystery(1)=2, mystery(2)=2*2+2=6, mystery(3)=2*6+3=15, mystery(4)=2*15+4=34. ✓"
-      },
-      "pedagogy": {
-        "topics": ["T009"],
-        "subtopics": ["ST031", "ST032"],
-        "skills": ["SK012", "SK001"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Base case 0"
-          },
-          {
-            "option_id": "b",
-            "misconception": "Base case 1"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Base case 3"
-          }
-        ],
-        "common_errors": ["E015"]
-      }
-    },
-    {
-      "id": "pt1_q035",
-      "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q40. Code indentation normalized.",
+      "text": "The following method is a correct implementation of the insertion sort algorithm. The method correctly sorts the elements of numList so that they appear in order from least to greatest.\n```java\npublic static void insertionSort(ArrayList<Integer> numList)\n{\n   for (int j = 1; j < numList.size(); j++)\n   {\n      int temp = numList.get(j);\n      int k = j;\n      while (k > 0 && temp < numList.get(k - 1))\n      {\n         numList.set(k, numList.get(k - 1));\n         k--;\n      }\n      numList.set(k, temp);\n      /* end of outer loop */\n   }\n}\n```\nAssume that insertionSort has been called with an ArrayList parameter that has been initialized with the following Integer objects.\n[60, 30, 10, 20, 50, 40]\nWhat will the contents of numList be after three passes of the outer loop (i.e., when j == 3 at the point indicated by /* end of outer loop */)?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`[10, 20, 30, 50, 60, 40]`",
+          "is_correct": false,
+          "explanation": "The state after four passes (j = 4), which has also inserted 50."
+        },
+        {
+          "id": "b",
+          "text": "`[10, 20, 30, 60, 50, 40]`",
+          "is_correct": true,
+          "explanation": "Correct. The first four elements are sorted, and the rest are untouched."
+        },
+        {
+          "id": "c",
+          "text": "`[10, 30, 60, 20, 50, 40]`",
+          "is_correct": false,
+          "explanation": "The state after only two passes (j = 2)."
+        },
+        {
+          "id": "d",
+          "text": "`[20, 10, 30, 60, 50, 40]`",
+          "is_correct": false,
+          "explanation": "Not a state insertion sort can reach. After pass j, the first j + 1 elements are always in order."
+        }
+      ],
+      "explanation": "Each pass inserts `numList.get(j)` into the sorted prefix before it. j = 1 gives `[30, 60, 10, 20, 50, 40]`. j = 2 gives `[10, 30, 60, 20, 50, 40]`. j = 3 gives `[10, 20, 30, 60, 50, 40]`.",
+      "topics": [
+        "T011"
+      ],
+      "subtopics": [
+        "ST047"
+      ],
+      "skills": [
+        "SK001",
+        "SK003"
+      ],
       "difficulty": "D3",
-      "cognitive_level": "B4",
-      "content": {
-        "text": "Assuming that after X and Y are initialized, X.length == Y.length, which of the following must be true after executing this code?\n\n```java\nfor (int k = 0;\n     k < X.length && X[k] == Y[k];\n     k++)\n{\n    /* some code */\n}\n```",
-        "options": [
-          {
-            "id": "a",
-            "text": "k < X.length",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "k < X.length && X[k] == Y[k]",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "k < X.length && X[k] != Y[k]",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "k >= X.length || X[k] == Y[k]",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "k >= X.length || X[k] != Y[k]",
-            "is_correct": true
-          }
-        ],
-        "explanation": "Loop exits when: k >= X.length OR X[k] != Y[k]. By De Morgan's law, this is the negation of the loop condition. Answer: k >= X.length || X[k] != Y[k]."
-      },
-      "pedagogy": {
-        "topics": ["T003", "T004", "T006"],
-        "subtopics": ["ST010", "ST018"],
-        "skills": ["SK011", "SK009"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Only checks first condition"
-          },
-          {
-            "option_id": "b",
-            "misconception": "Thinks loop continues"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Wrong operator"
-          }
-        ],
-        "common_errors": ["E008"]
-      }
+      "cognitive_level": "B3"
     },
     {
-      "id": "pt1_q036",
+      "id": "pt2_q041",
       "status": "active",
-      "difficulty": "D1",
-      "cognitive_level": "B2",
-      "content": {
-        "text": "Which of the following would NOT cause a run-time exception?",
-        "options": [
-          {
-            "id": "a",
-            "text": "Dividing an integer by zero",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "Using an object that has been declared but not instantiated",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "Accessing an array element with index == array length",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "Attempting to cast an object to a subclass of which it is not an instance",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "Attempting to call a method with wrong number of arguments",
-            "is_correct": true
-          }
-        ],
-        "explanation": "(A-D) cause ArithmeticException, NullPointerException, ArrayIndexOutOfBoundsException, ClassCastException respectively. (E) is a compile-time error, not runtime."
-      },
-      "pedagogy": {
-        "topics": ["T001"],
-        "subtopics": ["ST001"],
-        "skills": ["SK008"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "No exception for division by zero"
-          },
-          {
-            "option_id": "b",
-            "misconception": "No exception for null use"
-          },
-          {
-            "option_id": "d",
-            "misconception": "No exception for bad cast"
-          }
-        ],
-        "common_errors": ["E002", "E003"]
-      }
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q41.",
+      "text": "Consider the following code segment.\n```java\nString[] colors = {\"red\", \"green\", \"orange\", \"black\",\n                   \"yellow\", \"brown\"};\nint result = -1;\nfor (int j = 0; j < colors.length; j++)\n{\n   for (int k = j + 1; k < colors.length; k++)\n   {\n      if (colors[j].length() == colors[k].length())\n      {\n         result = k;\n      }\n   }\n}\n```\nWhat is the value of result after executing this code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`-1`",
+          "is_correct": false,
+          "explanation": "There are several pairs with equal lengths."
+        },
+        {
+          "id": "b",
+          "text": "`3`",
+          "is_correct": false,
+          "explanation": "The first match found. The loop doesn't stop there, and later matches overwrite `result`."
+        },
+        {
+          "id": "c",
+          "text": "`4`",
+          "is_correct": false,
+          "explanation": "The match for j = 2, but the j = 3 pass assigns again afterward."
+        },
+        {
+          "id": "d",
+          "text": "`5`",
+          "is_correct": true,
+          "explanation": "Correct. The final assignment is k = 5."
+        }
+      ],
+      "explanation": "The pairs with equal lengths are (1, 3) and (1, 5) at length 5, (2, 4) at length 6, and (3, 5) at length 5. `result` keeps whichever `k` was assigned last in loop order. The last assignment is at j = 3, k = 5, so `result` is 5.",
+      "topics": [
+        "T004",
+        "T006",
+        "T013"
+      ],
+      "subtopics": [
+        "ST019",
+        "ST031",
+        "ST009"
+      ],
+      "skills": [
+        "SK001",
+        "SK011"
+      ],
+      "difficulty": "D3",
+      "cognitive_level": "B3"
     },
     {
-      "id": "pt1_q037",
+      "id": "pt2_q042",
       "status": "active",
+      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q42.",
+      "text": "Consider the following code segment.\n```java\nint j = 0;\nint sum = 0;\nwhile (j <= 5)\n{\n   j++;\n   sum += j;\n}\n```\nWhich of the following code segments assigns the same value to sum as the preceding code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nint sum = 0;\nfor (int j = 0; j <= 5; j++)\n{\n   j++;\n   sum += j;\n}\n```",
+          "is_correct": false,
+          "explanation": "Increments `j` twice per iteration, adding 1, 3, 5, for a total of 9."
+        },
+        {
+          "id": "b",
+          "text": "```java\nint sum = 0;\nfor (int j = 0; j <= 6; j++)\n{\n   j++;\n   sum += j;\n}\n```",
+          "is_correct": false,
+          "explanation": "Same double increment, adding 1, 3, 5, 7, for a total of 16."
+        },
+        {
+          "id": "c",
+          "text": "```java\nint sum = 0;\nfor (int j = 1; j <= 5; j++)\n{\n   sum += j;\n}\n```",
+          "is_correct": false,
+          "explanation": "Adds 1 through 5, for a total of 15. It misses that the last `while` iteration adds 6."
+        },
+        {
+          "id": "d",
+          "text": "```java\nint sum = 0;\nfor (int j = 1; j <= 6; j++)\n{\n   sum += j;\n}\n```",
+          "is_correct": true,
+          "explanation": "Correct. The sum 1 + 2 + … + 6 = 21, matching the original."
+        }
+      ],
+      "explanation": "The `while` loop increments `j` before adding, so it adds 1 through 6 and the sum is 21. Segment (d) adds 1 through 6 directly.",
+      "topics": [
+        "T004"
+      ],
+      "subtopics": [
+        "ST017",
+        "ST018"
+      ],
+      "skills": [
+        "SK011"
+      ],
       "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Assume that a and b are properly initialized variables of type Double. Which of the following is equivalent to: \n\n`a.doubleValue() != b.doubleValue()`?",
-        "options": [
-          {
-            "id": "a",
-            "text": "a != b",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "a.notEquals(b)",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "!(a.doubleValue().equals(b.doubleValue()))",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "!(a.compareTo(b))",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "a.compareTo(b) != 0",
-            "is_correct": true
-          }
-        ],
-        "explanation": "!= checks if values are different. compareTo(b) returns 0 if equal, nonzero if different. a.compareTo(b) != 0 is equivalent."
-      },
-      "pedagogy": {
-        "topics": ["T001"],
-        "subtopics": ["ST003", "ST006"],
-        "skills": ["SK008", "SK007"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "!= compares wrapper values"
-          },
-          {
-            "option_id": "b",
-            "misconception": "Wrapper class method"
-          },
-          {
-            "option_id": "c",
-            "misconception": "equals on doubled values"
-          }
-        ],
-        "common_errors": ["E023"]
-      }
-    },
-    {
-      "id": "pt1_q038",
-      "status": "active",
-      "difficulty": "D1",
-      "cognitive_level": "B2",
-      "content": {
-        "text": "Which of the following would be the LEAST effective way of ensuring reliability in a program?",
-        "options": [
-          {
-            "id": "a",
-            "text": "Making all data fields public",
-            "is_correct": true
-          },
-          {
-            "id": "b",
-            "text": "Defining preconditions and postconditions",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "Including assertions at key places",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "Using descriptive variable names",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "Indenting code consistently",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Making data public violates encapsulation, the fundamental principle for reliability. All other options actively improve reliability."
-      },
-      "pedagogy": {
-        "topics": ["T005"],
-        "subtopics": ["ST055", "ST056"],
-        "skills": ["SK007", "SK013"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "b",
-            "misconception": "Preconditions don't help"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Assertions don't help"
-          },
-          {
-            "option_id": "d",
-            "misconception": "Names don't matter"
-          }
-        ],
-        "common_errors": ["E017"]
-      }
-    },
-    {
-      "id": "pt1_q039",
-      "status": "needs_source",
-      "status_note": "Methods 1, 2, 3 are not described in the text.",
-      "difficulty": "D2",
-      "cognitive_level": "B3",
-      "content": {
-        "text": "Consider a dictionary that has 1,000 pages with 50 words on each page. In order to look up a given target word, a student is considering using one of the following three methods. Which of the following best characterizes the greatest number of words that will be examined using each method?",
-        "options": [
-          {
-            "id": "a",
-            "text": "Method 1: 10, Method 2: 50, Method 3: 1,000",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "Method 1: 55, Method 2: 500, Method 3: 2,500",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "Method 1: 55, Method 2: 525, Method 3: 25,000",
-            "is_correct": false
-          },
-          {
-            "id": "d",
-            "text": "Method 1: 60, Method 2: 1,050, Method 3: 1,050",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "Method 1: 60, Method 2: 1,050, Method 3: 50,000",
-            "is_correct": true
-          }
-        ],
-        "explanation": "Method 1: Binary search pages (log₂1000≈10) + linear on page (50) ≈ 60. Method 2: Linear pages (1000) + linear on page (50) ≈ 1050. Method 3: Linear all (50000)."
-      },
-      "pedagogy": {
-        "topics": ["T010", "T011"],
-        "subtopics": ["ST044", "ST045"],
-        "skills": ["SK003", "SK015"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Wrong logarithm base"
-          },
-          {
-            "option_id": "b",
-            "misconception": "Wrong Method 3 count"
-          },
-          {
-            "option_id": "c",
-            "misconception": "Wrong page counts"
-          }
-        ],
-        "common_errors": ["E015"]
-      }
-    },
-    {
-      "id": "pt1_q040",
-      "status": "retired",
-      "status_note": "Computer hardware literacy, not AP CSA content.",
-      "difficulty": "D1",
-      "cognitive_level": "B1",
-      "content": {
-        "text": "Which of the following is NOT a peripheral?",
-        "options": [
-          {
-            "id": "a",
-            "text": "A color laser printer",
-            "is_correct": false
-          },
-          {
-            "id": "b",
-            "text": "A monitor",
-            "is_correct": false
-          },
-          {
-            "id": "c",
-            "text": "A word processing application",
-            "is_correct": true
-          },
-          {
-            "id": "d",
-            "text": "A mouse",
-            "is_correct": false
-          },
-          {
-            "id": "e",
-            "text": "An external CD-ROM drive",
-            "is_correct": false
-          }
-        ],
-        "explanation": "Peripherals are external hardware devices. A word processing application is software, not hardware, so not a peripheral."
-      },
-      "pedagogy": {
-        "topics": ["T015"],
-        "subtopics": ["ST001"],
-        "skills": ["SK002"]
-      },
-      "distractors": {
-        "common_mistakes": [
-          {
-            "option_id": "a",
-            "misconception": "Printer is software"
-          },
-          {
-            "option_id": "b",
-            "misconception": "Monitor is software"
-          },
-          {
-            "option_id": "e",
-            "misconception": "Internal CD drive"
-          }
-        ],
-        "common_errors": []
-      }
+      "cognitive_level": "B4"
     }
   ]
 }

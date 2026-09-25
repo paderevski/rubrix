@@ -10,34 +10,31 @@ export interface Question {
   cognitive_level?: string;
 }
 
-// Question bank (rich) entries
+export interface QuestionBankDocument {
+  schema_version: string;
+  source: string;
+  questions: QuestionBankEntry[];
+}
+
+// Flat V2 question bank entries
 export interface QuestionBankEntry {
   id: string;
+  status: string;
+  _migration_note?: string;
   text: string;
-  options: QuestionBankOption[];
+  answers: QuestionBankAnswer[];
   explanation: string;
   difficulty: string;
   cognitive_level: string;
   topics: string[];
   subtopics?: string[];
-  skills: string[];
-  distractors: DistractorInfo;
 }
 
-export interface QuestionBankOption {
+export interface QuestionBankAnswer {
   id: string;
   text: string;
   is_correct: boolean;
-}
-
-export interface DistractorInfo {
-  common_mistakes: CommonMistake[];
-  common_errors: string[];
-}
-
-export interface CommonMistake {
-  option_id: string;
-  misconception: string;
+  explanation: string;
 }
 
 export interface Answer {

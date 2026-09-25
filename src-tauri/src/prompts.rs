@@ -152,13 +152,14 @@ pub fn build_generation_prompt(
 /// Format a question bank entry as JSON with only pedagogically useful fields
 fn format_example_as_json(q: &QuestionBankEntry) -> String {
     let answers_json: Vec<String> = q
-        .options
+        .answers
         .iter()
-        .map(|opt| {
+        .map(|answer| {
             format!(
-                r#"    {{"text": "{}", "is_correct": {}}}"#,
-                escape_json_string(&opt.text),
-                opt.is_correct
+                r#"    {{"text": "{}", "is_correct": {}, "explanation": "{}"}}"#,
+                escape_json_string(&answer.text),
+                answer.is_correct,
+                escape_json_string(&answer.explanation)
             )
         })
         .collect();
@@ -958,6 +959,34 @@ mod tests {
             prompt,
             r#"Target difficulty: D2 (Medium) - Requires analysis or multi-step reasoning, 3-5 steps\n{\"difficulty\": \"D2\", \"topics\": [\"ST021\"]}"#
         );
+    }
+
+    #[test]
+    fn test_v2_bank_examples_include_answer_explanations_without_bank_metadata() {
+        let entry = QuestionBankEntry {
+            id: "pt1_q001".to_string(),
+            status: "active".to_string(),
+            migration_note: Some("Imported".to_string()),
+            text: "What is printed?".to_string(),
+            answers: vec![crate::QuestionBankAnswer {
+                id: "a".to_string(),
+                text: "42".to_string(),
+                is_correct: true,
+                explanation: "The loop executes 42 times.".to_string(),
+            }],
+            explanation: "Trace the loop.".to_string(),
+            topics: vec!["T009".to_string()],
+            subtopics: Some(vec!["ST041".to_string()]),
+            difficulty: "D2".to_string(),
+            cognitive_level: "B3".to_string(),
+        };
+
+        let example = format_example_as_json(&entry);
+
+        assert!(example.contains("\"explanation\": \"The loop executes 42 times.\""));
+        assert!(!example.contains("\"id\""));
+        assert!(!example.contains("\"status\""));
+        assert!(!example.contains("_migration_note"));
     }
 
     #[test]

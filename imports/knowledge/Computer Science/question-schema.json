@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.2.0",
+  "schema_version": "2.3.0",
   "description": "Controlled vocabularies for AP Computer Science A pedagogy metadata - Unified Topic List",
   "last_updated": "2026-09-24",
   "source": "Refactored from AP CSA 2025 Curriculum + Historical Data",
@@ -931,6 +931,30 @@
         "name": "interface_implementation",
         "display": "Implementing Interfaces",
         "parent_topic": "T019"
+      },
+      {
+        "id": "ST062",
+        "name": "math_class",
+        "display": "Math Class Methods",
+        "parent_topic": "T002"
+      },
+      {
+        "id": "ST063",
+        "name": "variable_scope",
+        "display": "Variable Scope",
+        "parent_topic": "T012"
+      },
+      {
+        "id": "ST064",
+        "name": "system_reliability",
+        "display": "System Reliability and Testing",
+        "parent_topic": "T015"
+      },
+      {
+        "id": "ST065",
+        "name": "data_bias",
+        "display": "Bias in Data Collection",
+        "parent_topic": "T015"
       }
     ]
   },

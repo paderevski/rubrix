@@ -1,8 +1,7 @@
 //! Knowledge base management - loads example questions for few-shot prompting
 
 use crate::{
-    CommonMistake, DistractorInfo, QuestionBankEntry, QuestionBankOption, SubjectInfo,
-    SubtopicInfo, TopicInfo,
+    QuestionBankDocument, QuestionBankEntry, SubjectInfo, SubtopicInfo, TopicInfo,
 };
 use rust_embed::RustEmbed;
 use serde::Deserialize;
@@ -90,57 +89,6 @@ struct SubtopicSchemaItem {
     display: String,
     #[serde(default)]
     parent_topic: String,
-}
-
-/// Full question bank JSON structure
-#[derive(Debug, Deserialize)]
-struct QuestionBankFile {
-    questions: Vec<QuestionBankJsonEntry>,
-}
-
-/// Raw JSON entry from question-bank.json
-#[derive(Debug, Deserialize)]
-struct QuestionBankJsonEntry {
-    id: String,
-    difficulty: String,
-    cognitive_level: String,
-    content: QuestionContent,
-    pedagogy: Pedagogy,
-    distractors: DistractorsJson,
-}
-
-#[derive(Debug, Deserialize)]
-struct QuestionContent {
-    text: String,
-    options: Vec<OptionJson>,
-    explanation: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct OptionJson {
-    id: String,
-    text: String,
-    is_correct: bool,
-}
-
-#[derive(Debug, Deserialize)]
-struct Pedagogy {
-    topics: Vec<String>,
-    #[serde(default)]
-    subtopics: Option<Vec<String>>,
-    skills: Vec<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct DistractorsJson {
-    common_mistakes: Vec<CommonMistakeJson>,
-    common_errors: Vec<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct CommonMistakeJson {
-    option_id: String,
-    misconception: String,
 }
 
 pub struct KnowledgeBase {
@@ -243,43 +191,8 @@ impl KnowledgeBase {
             // Load JSON question bank once per subject (outside topic loop)
             let bank_filename = format!("{}/question-bank.json", subject_name);
             let subject_bank_entries = if let Some(content) = load_knowledge_file(&bank_filename) {
-                match serde_json::from_str::<QuestionBankFile>(&content) {
-                    Ok(bank) => bank
-                        .questions
-                        .into_iter()
-                        .map(|q| QuestionBankEntry {
-                            id: q.id,
-                            text: q.content.text,
-                            options: q
-                                .content
-                                .options
-                                .into_iter()
-                                .map(|o| QuestionBankOption {
-                                    id: o.id,
-                                    text: o.text,
-                                    is_correct: o.is_correct,
-                                })
-                                .collect(),
-                            explanation: q.content.explanation,
-                            difficulty: q.difficulty,
-                            cognitive_level: q.cognitive_level,
-                            topics: q.pedagogy.topics,
-                            subtopics: q.pedagogy.subtopics,
-                            skills: q.pedagogy.skills,
-                            distractors: DistractorInfo {
-                                common_mistakes: q
-                                    .distractors
-                                    .common_mistakes
-                                    .into_iter()
-                                    .map(|m| CommonMistake {
-                                        option_id: m.option_id,
-                                        misconception: m.misconception,
-                                    })
-                                    .collect(),
-                                common_errors: q.distractors.common_errors,
-                            },
-                        })
-                        .collect(),
+                match serde_json::from_str::<QuestionBankDocument>(&content) {
+                    Ok(bank) => bank.questions,
                     Err(e) => {
                         eprintln!(
                             "Warning: Failed to parse {} question-bank.json: {}",
