@@ -17,6 +17,8 @@ Usernames are normalized (sanitized) the same way in the app, the scripts, and t
 | `add_users_from_csv.sh [-n\|--dry-run]` | Bulk-add users from `catie-users.csv` (columns `Email Address`, `Password`); `-n` previews only |
 | `verify_user.py <username> [password]` | Check a user exists; optionally verify a password matches |
 | `list_users.py` | List users that have stored credentials |
+| `user_budget.py list \| get <user> \| set <user> <budget> \| add <user> <tokens> \| reset <user>` | View/update token budgets in DynamoDB `catieBedrockUsage` (see below) |
+| `delete_user.py <username> [--purge-usage] [-y]` | Delete a user's SSM credentials (blocks login); `--purge-usage` also deletes their DynamoDB budget/usage records. Prompts for confirmation unless `-y` |
 | `old/` | Archived one-off debugging/migration scripts; not maintained |
 
 `catie-users.csv` is git-ignored because it contains passwords. Never commit it.
@@ -34,11 +36,40 @@ Then launch Catie, log in as `alice`, and generate a question to confirm end to 
 ## Requirements
 
 ```bash
-pip install boto3
-aws configure   # or AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_DEFAULT_REGION
+pip install --upgrade boto3   # recent version required for `aws login` sessions
 ```
 
-The AWS identity needs SSM `PutParameter`, `GetParameter` and `GetParametersByPath` on `/secrets/*` (parameters are `SecureString`).
+The AWS identity needs SSM `PutParameter`, `GetParameter` and `GetParametersByPath` on `/secrets/*` (parameters are `SecureString`), plus `ssm:DescribeParameters` for `list_users.py`. If a customer-managed KMS key encrypts the parameters, it also needs `kms:Decrypt`/`kms:Encrypt` on that key.
+
+## AWS authentication
+
+The scripts create `boto3` clients with no explicit profile or region, so they use the standard AWS credential chain.
+
+One-time setup (browser-based login for an IAM user, no SSO start URL needed):
+
+```bash
+aws login --profile patrick
+aws configure set region us-east-1 --profile patrick
+aws sts get-caller-identity --profile patrick   # confirm it works
+```
+
+Each time you work in this directory:
+
+```bash
+aws login --profile patrick     # only when the session has expired
+export AWS_PROFILE=patrick      # once per terminal (or put in ~/.zshrc)
+python list_users.py
+```
+
+What is saved: the profile (region and `login_session` ARN) is in `~/.aws/config`, and the cached login session is under `~/.aws/login/cache/` (sensitive). `AWS_PROFILE` is not saved unless you add it to a shell rc file.
+
+## Troubleshooting
+
+| Error | Fix |
+|---|---|
+| `Unable to locate credentials` | Session expired or `AWS_PROFILE` unset: run `aws login --profile <name>` and `export AWS_PROFILE=<name>`. If the AWS CLI works but Python does not, upgrade boto3 (`pip install --upgrade boto3`) or use `env/bin/python`. |
+| `NoRegionError` | `aws configure set region us-east-1 --profile <name>` (the gateway uses `us-east-1`). |
+| `AccessDeniedException` | The IAM identity lacks the SSM/KMS permissions listed above. |
 
 ## Security notes
 
