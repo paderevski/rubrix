@@ -1,205 +1,107 @@
-# Rubrix - AI Test Generator
+# Catie - Test Item Engine
 
-An AI-powered multiple choice question generator for AP Computer Science A and Calculus, built with Tauri + React.
+An AI-powered multiple-choice question generator for AP Computer Science A and Calculus, built with Tauri + React. The app ships as **Catie**; this repository is named `rubrix`.
 
-![Rubrix Screenshot](docs/screenshot.png)
+![Catie Screenshot](docs/screenshot.png)
 
 ## Features
 
-- 📚 **Multi-Subject Support** - AP Computer Science A and Calculus
-- 🎯 **Topic Selection** - Choose from multiple topics per subject
-- 🎚️ **Difficulty Control** - Easy, Medium, or Hard questions
-- 🤖 **AI Generation** - Powered by AWS Bedrock through a secure gateway
-- 🔐 **Gateway Authentication** - Username/password login with credential validation
-- 🔢 **LaTeX Rendering** - Full mathematical notation support with KaTeX
-- ✏️ **Edit Questions** - Modify generated questions before export
-- 🔄 **Smart Regeneration** - Regenerate questions with context awareness
-- 📤 **Export to QTI** - Direct export to Schoology-compatible format
-- 💻 **Code Block Support** - Syntax highlighting for code in questions and answers
-- 📊 **Markdown Tables** - Support for tables in question content
+- **Subjects and topics** - AP Computer Science A and Calculus, with topics and subtopics from editable knowledge banks
+- **Generation** - difficulty (easy/medium/hard), 1-8 questions per run, optional instructions, streaming preview
+- **Auth via gateway** - username/password login; generation runs through an AWS Bedrock gateway (no AWS keys on the client)
+- **Editing and regeneration** - edit any question, regenerate one or all questions
+- **Rendering** - Markdown, KaTeX math, syntax-highlighted code, tables
+- **Documents** - tabs, save/open sessions (JSON), open recent
+- **Export** - QTI (`.imscc`, Schoology/Canvas), Markdown, Word (`.docx`)
+- **Bank Editor** - edit per-subject question banks used as few-shot examples
+- **Bug reporting** - Help -> Submit Bug files a GitHub issue through an AWS intake Lambda
+
+User documentation lives in [docs/](docs/index.md).
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) 18+
-- [Rust](https://rustup.rs/) 1.70+
-- [Tauri CLI](https://tauri.app/v1/guides/getting-started/prerequisites)
+- [Node.js](https://nodejs.org/) 20+
+- [Rust](https://rustup.rs/) (stable)
+- [Tauri v1 prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites)
 
 ## Quick Start
 
 ```bash
-# Install dependencies
 npm install
-
-# Run in development mode
-npm run tauri dev
-
-# Build for production
-npm run tauri build
+npm run tauri dev      # full app
+npm run dev            # frontend only
+npm run tauri build    # release build
+cd src-tauri && cargo build   # backend only
 ```
-
-### First Run
-On first launch, you'll be prompted to authenticate against the configured gateway. Credentials are stored in app-local storage for automatic login. See [QUICKSTART_CREDENTIALS.md](QUICKSTART_CREDENTIALS.md) for details.
 
 ## Configuration
 
-### Gateway Configuration
-Rubrix is gateway-only. Set the gateway URL in `src-tauri/.env` (or bake it at build time):
+Catie is gateway-only. Set the following in `src-tauri/.env` (git-ignored) or bake them in at build time:
 
-```bash
-BEDROCK_GATEWAY_URL=https://your-api.example.com/generate
-```
+| Variable | Required | Purpose |
+|---|---|---|
+| `BEDROCK_GATEWAY_URL` | Yes | Gateway endpoint for auth and streaming generation |
+| `RUBRIX_KNOWLEDGE_DIR` | No | Override the knowledge base directory (absolute or relative) |
+| `BUG_REPORT_URL` | No | Bug intake endpoint (required for Submit Bug) |
+| `BUG_REPORT_API_KEY` | No | Sent as `x-api-key` |
+| `BUG_REPORT_BEARER_TOKEN` | No | Sent as a bearer token |
 
-Without this setting, generation and authentication are disabled.
+Without `BEDROCK_GATEWAY_URL`, login and generation fail with a configuration error. There is no mock mode.
 
-See [docs/BEDROCK_GATEWAY_CONTRACT.md](docs/BEDROCK_GATEWAY_CONTRACT.md) for request/response details.
+On first Generate, Catie asks for a username and password. Credentials are stored in the app's local data directory (`auth/credentials.json`) for automatic login; Logout clears them. Details: [docs/CREDENTIALS.md](docs/CREDENTIALS.md).
 
-### Production Builds
-Release builds require gateway configuration and user authentication.
+## Documentation for developers
 
-### Bug Reporting Endpoint
-The app supports a standardized bug submission workflow (`Help -> Submit Bug`) that posts JSON to your server.
+- [Architecture](docs/ARCHITECTURE_DIAGRAM.md)
+- [Gateway contract](docs/BEDROCK_GATEWAY_CONTRACT.md)
+- [Credentials and auth](docs/CREDENTIALS.md)
+- Bug reporting: [workflow](docs/BUG_REPORT_WORKFLOW.md), [deployment](docs/BUG_REPORT_DEPLOYMENT.md), [schema](docs/BUG_REPORT_SCHEMA.json)
+- User management: [tools/README.md](tools/README.md)
+- [LaTeX in QTI export](LATEX_EXAMPLE.md)
+- [Changelog](CHANGELOG.md)
 
-Set these in `src-tauri/.env` (or bake at build time):
-- `BUG_REPORT_URL` (required) - AWS endpoint that receives bug JSON
-- `BUG_REPORT_API_KEY` (optional) - sent as `x-api-key`
-- `BUG_REPORT_BEARER_TOKEN` (optional) - sent as `Authorization: Bearer ...`
-
-Canonical schema: [docs/BUG_REPORT_SCHEMA.json](docs/BUG_REPORT_SCHEMA.json)
-AWS GitHub issue router sample: [lambda_functions/bug_intake/lambda_handler.py](lambda_functions/bug_intake/lambda_handler.py)
-Full deployment runbook (IAM/API Gateway/services): [docs/BUG_REPORT_DEPLOYMENT.md](docs/BUG_REPORT_DEPLOYMENT.md)
+## Project layout
 
 ```
 rubrix/
-├── src/                    # React frontend
-│   ├── components/         # UI components
-│   │   ├── QuestionCard.tsx    # Question display with LaTeX/code rendering
-│   │   ├── EditModal.tsx       # Question editor
-│   │   ├── Sidebar.tsx         # Topic selection
-│   │   └── StreamingPreview.tsx # Real-time generation view
-│   ├── App.tsx             # Main app component
-│   └── types.ts            # TypeScript types
-│
-├── src-tauri/              # Rust backend
-│   ├── src/
-│   │   ├── main.rs         # Tauri commands & Question struct
-│   │   ├── llm.rs          # Replicate API client
-│   │   ├── qti.rs          # QTI export with LaTeX & formatting
-│   │   ├── knowledge.rs    # Subject-specific knowledge management
-│   │   └── prompts.rs      # Prompt templating system
-│   └── knowledge/          # Subject knowledge bases
-│       ├── Computer Science/
-│       │   ├── prompt.txt          # CS-specific generation prompt
-│       │   ├── question-bank.json  # Example CS questions
-│       │   ├── question-schema.json
-│       │   └── [topic files].txt   # Topic knowledge
-│       └── Calculus/
-│           ├── prompt.txt          # Calculus-specific prompt
-│           ├── question-bank.json  # Example calc questions
-│           └── question-schema.json
-│
-└── package.json
+├── src/                      # React frontend
+│   ├── App.tsx               # Main controller (tabs, generation, sessions, auth)
+│   ├── types.ts              # Types shared with the backend
+│   └── components/           # QuestionCard, EditModal, Sidebar, BankEditor,
+│                             # LoginModal, PreferencesModal, SubmitBugModal, ...
+├── src-tauri/src/            # Rust backend
+│   ├── main.rs               # Tauri commands, menus, exports, bug reports
+│   ├── llm.rs                # Gateway streaming client (emits `llm-stream`)
+│   ├── auth.rs               # SHA256 password hashing
+│   ├── prompts.rs            # Prompt building and response parsing
+│   ├── knowledge.rs          # Knowledge base loader (embedded + override dir)
+│   └── qti.rs                # QTI export
+├── imports/knowledge/        # Bundled subject knowledge (prompts, banks, topic files)
+├── lambda_functions/         # bedrock_gateway, bug_intake, secret_store
+├── terraform/bug_intake/     # Infrastructure for bug intake
+├── tools/                    # User management scripts
+└── docs/                     # GitHub Pages site and technical docs
 ```
 
-### Subject-Specific Prompts
+### Knowledge base
 
-Each subject has its own prompt template in `knowledge/[Subject]/prompt.txt`. These prompts use placeholders:
-- `{topics}` - Selected topics
-- `{difficulty}` - Question difficulty
-- `{count}` - Number of questions
-- `{examples}` - Few-shot examples from question-bank.json
-- `{user_instructions}` - Optional user guidance
-- `{regenerate}` - Context for regeneration
-
-### Adding Knowledge Base Questions
-
-Add example questions to `knowledge/[Subject]/question-bank.json`:
-
-```json
-{
-  "id": "1",
-  "text": "What is the derivative of $f(x) = x^2$?",
-  "subject": "Calculus",
-  "topics": ["Derivatives"],
-  "answers": [
-    {"text": "$f'(x) = 2x$", "is_correct": true, "explanation": "Power rule"},
-    {"text": "$f'(x) = x$", "is_correct": false}
-  ],
-  "explanation": "Use the power rule"
-}
-```
-
-**Formatting Support:**
-- Inline LaTeX: `$f'(x)$`
-- Display LaTeX: `$$\\int_0^1 x^2 dx$$`
-- Code blocks: ` ```java ... ``` `
-- Inline code: `` `variable` ``
-- Markdown tables
-
-Available **Computer Science** topics:
-- Arrays, Recursion, Strings, Classes, Inheritance
-- ArrayList, 2D Arrays, Sorting
-
-Available **Calculus** topics:
-- Derivatives, Integrals, Limits, and more (41 topics total)
-
-## Usage
-
-1. **Select Subject** - Choose between Computer Science or Calculus
-2. **Select Topics** - Check the topics you want questions about
-3. **Set Difficulty** - Choose Easy, Medium, or Hard
-4. **Adjust Count** - Slide to set number of questions (1-20)
-5. **Add Notes** - Optional guidance for the AI
-6. **Generate** - Click to create questions with streaming preview
-7. **Review & Edit** - Modify any questions as needed
-8. **Regenerate Individual Questions** - Click regenerate on any question to get a replacement (preserves subject/topics)
-9. **Export** - Save as .txt or .imscc (QTI format)
+Each subject has a folder in `imports/knowledge/<Subject>/` with `prompt.txt`, `regeneration-prompt.txt`, `question-schema.json`, `question-bank.json`, and optional topic text files. Prompt placeholders include `{topics}`, `{difficulty}`, `{count}`, `{examples}`, and `{user_instructions}`. Release builds embed these files; if `RUBRIX_KNOWLEDGE_DIR` is set (or a user copy exists in app data), edits there take precedence and the Bank Editor saves to that location. Keep topic IDs stable because `question-bank.json` references them.
 
 ## Exporting to Schoology
 
-1. Click "Export QTI"
-2. Save as `questions.imscc`
-3. In Schoology: Resources → Add Resources → Import File
-4. Select your .imscc file
-5. Questions appear as a Question Bank
+1. File -> Export QTI, save as `questions.imscc`
+2. In Schoology: Resources -> Add Resources -> Import File
+3. Select the `.imscc`; the questions appear as a Question Bank
 
-## Development
+## Releases and versioning
 
-### Frontend (React)
-```bash
-cd rubrix
-npm run dev
-```
+- `npm version <x>` bumps `package.json` and syncs [src-tauri/tauri.conf.json](src-tauri/tauri.conf.json).
+- Pushing a `v*` tag triggers [.github/workflows/release.yml](.github/workflows/release.yml), which builds macOS/Linux/Windows installers into a draft GitHub release. Repository secrets: `BEDROCK_GATEWAY_URL`, `BUG_REPORT_URL`, `BUG_REPORT_API_KEY`.
+- Builds are unsigned; see [docs/release-build-readme.md](docs/release-build-readme.md) for install steps.
 
-### Backend (Rust)
-```bash
-cd rubrix/src-tauri
-cargo build
-```
+## Tech stack
 
-### Full App
-```bash
-npm run tauri dev
-```
-
-## Tech Stack
-
-- **Frontend**: React 18, TypeScript, Tailwind CSS, Radix UI
-- **Rendering**: ReactMarkdown, KaTeX, rehype/remark plugins
-- **Backend**: Rust, Tauri
-- **AI**: Claude Sonnet 4.5 via Replicate
-- **Export**: IMS QTI 1.2 with enhanced LaTeX and formatting support
-
-## Recent Improvements (v0.3.0)
-
-- ✅ Multi-subject support with subject-specific prompts
-- ✅ LaTeX rendering with proper prime/apostrophe handling
-- ✅ Smart paragraph grouping (inline LaTeX stays in paragraph)
-- ✅ HTML escaping only on non-LaTeX text
-- ✅ Markdown table support in QTI export
-- ✅ Multi-line answer support with `<br />` tags
-- ✅ Special character cleaning (UTF-8 artifacts, curly quotes)
-- ✅ Question regeneration with context preservation
-- ✅ Automatic version syncing between package.json and tauri.conf.json
+React 18, TypeScript, Tailwind CSS, Radix UI, ReactMarkdown + KaTeX; Rust + Tauri v1; AWS Bedrock (`openai.gpt-oss-120b-1:0`) behind a Lambda gateway; IMS QTI 1.2 export.
 
 ## License
 

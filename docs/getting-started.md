@@ -3,141 +3,63 @@ layout: default
 title: Getting Started
 ---
 
-# Getting Started with Rubrix
+# Getting Started with Catie
 
 ## Installation
 
-### macOS
+Release builds are unsigned, so your OS will show a warning on first launch. Step-by-step instructions for each platform are in the [install guide](release-build-readme.md). Download installers from the [latest release](https://github.com/paderevski/rubrix/releases/latest):
 
-1. Download `Rubrix.dmg` from the [latest release](https://github.com/paderevski/rubrix/releases/latest)
-2. Open the DMG file
-3. Drag Rubrix to your Applications folder
-4. Right-click Rubrix and select "Open" (first time only, due to macOS security)
-
-### Windows
-
-1. Download `Rubrix-setup.exe` from the [latest release](https://github.com/paderevski/rubrix/releases/latest)
-2. Run the installer
-3. Follow the installation wizard
-4. Launch Rubrix from your Start Menu
-
-### Linux
-
-1. Download the `.AppImage` or `.deb` file from the [latest release](https://github.com/paderevski/rubrix/releases/latest)
-2. For AppImage:
-   ```bash
-   chmod +x Rubrix.AppImage
-   ./Rubrix.AppImage
-   ```
-3. For Debian/Ubuntu:
-   ```bash
-   sudo dpkg -i rubrix_*.deb
-   ```
+- **macOS**: `.dmg`
+- **Windows**: `.exe` or `.msi`
+- **Linux**: `.deb`, `.rpm` or `.AppImage`
 
 ---
 
-## API Setup
+## Logging In
 
-Rubrix uses the Replicate API to generate questions with AI. You'll need an API key:
+Catie generates questions through a hosted gateway, so you need a username and password from the project administrator. You do **not** need your own AI or AWS key.
 
-### Step 1: Create a Replicate Account
+1. Choose a subject, topics and click **Generate Questions**.
+2. When the login window appears, enter your username and password.
+3. Catie stores your login in the app's local data folder so you are signed in automatically next time.
 
-1. Go to [replicate.com](https://replicate.com)
-2. Sign up (free tier includes $5 credit)
-3. Go to your [Account Settings](https://replicate.com/account)
-4. Copy your API token
-
-### Step 2: Add Your API Key to Rubrix
-
-**Currently**, you need to add the API key to the source code (we're working on a UI for this):
-
-1. Open the app's configuration file:
-   - **macOS**: `~/Library/Application Support/Rubrix/config.json`
-   - **Windows**: `%APPDATA%\Rubrix\config.json`
-   - **Linux**: `~/.config/Rubrix/config.json`
-
-2. Add your API key:
-   ```json
-   {
-     "replicate_api_token": "your-token-here"
-   }
-   ```
-
-**OR** build from source with your key (see [README](https://github.com/paderevski/rubrix#configuration))
-
-> **Coming Soon**: API key input in the app UI!
-
-### Costs
-
-- ~$0.005 per question (half a cent)
-- $0.50 for 100 questions
-- $5.00 for 1,000 questions
-- First $5 is free with new Replicate account
+Use **Logout** in the header to clear the saved login.
 
 ---
 
-## First Run
+## Your First Questions
 
-### 1. Launch Rubrix
+### 1. Select a subject
+Choose **Computer Science** or **Calculus** in the sidebar.
 
-Open the application - you'll see the main interface with a sidebar for subject selection.
+### 2. Choose topics
+Check topics (and subtopics) you want covered. Two to four related topics work best.
 
-### 2. Select a Subject
+### 3. Set difficulty
+**Easy**, **Medium** or **Hard**.
 
-Click on either:
-- **Computer Science** - for AP CS A questions
-- **Calculus** - for calculus questions
+### 4. Set the count
+Use the slider (1-8 questions).
 
-### 3. Choose Topics
-
-Check the boxes for topics you want questions about:
-
-**Computer Science topics:**
-- Arrays
-- ArrayList
-- 2D Arrays
-- Recursion
-- Strings
-- Classes
-- Inheritance
-- Sorting
-
-**Calculus topics:**
-- Derivatives
-- Integrals
-- Limits
-- Chain Rule
-- Product Rule
-- And 36 more...
-
-### 4. Set Difficulty
-
-Choose from:
-- **Easy** - Basic concepts, straightforward questions
-- **Medium** - Standard AP-level difficulty
-- **Hard** - Complex scenarios, deeper understanding
-
-### 5. Adjust Count
-
-Use the slider to choose how many questions (1-20)
-
-### 6. Add Optional Instructions
-
-In the "User Instructions" field, you can add guidance like:
+### 5. Add optional instructions
+For example:
 - "Focus on tracing code execution"
 - "Include examples with negative numbers"
-- "Avoid advanced topics"
 
-### 7. Click Generate!
+### 6. Click Generate
+Questions stream in live. New questions are added to the current document, so you can generate several batches and build up one test.
 
-Watch as questions stream in real-time. This typically takes 30-60 seconds.
+### 7. Review, edit, export
+Edit or regenerate anything you don't like, **File → Save** to keep your work, then export via **File → Export**.
+
+You can set your default subject and difficulty in **Preferences** (`Cmd/Ctrl + ,`).
 
 ---
 
 ## Next Steps
 
-- [Learn how to edit and export questions →](user-guide.md)
-- [Read frequently asked questions →](faq.md)
+- [Learn editing, regeneration and export →](user-guide.md)
+- [Read the FAQ →](faq.md)
 - [Report issues or request features](https://github.com/paderevski/rubrix/issues)
 
 ---

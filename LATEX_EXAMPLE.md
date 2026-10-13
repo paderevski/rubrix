@@ -1,6 +1,6 @@
-# LaTeX Support in Rubrix
+# LaTeX Support in Catie
 
-Rubrix now supports LaTeX math formulas in questions and answers! Use `$...$` for inline math and `$$...$$` for display math.
+Catie supports LaTeX math in questions and answers. Use `$...$` for inline math and `$$...$$` for display math.
 
 ## How It Works
 

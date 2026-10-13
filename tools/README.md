@@ -1,94 +1,47 @@
-# Lambda Secret Store Management Tools
+# User Management Tools
 
-Scripts for managing user/password combinations in AWS SSM Parameter Store for Lambda authentication.
+Scripts for managing Catie user accounts in AWS SSM Parameter Store. The Bedrock gateway Lambda ([lambda_functions/bedrock_gateway](../lambda_functions/bedrock_gateway/lambda_handler.js)) validates logins against `/secrets/{user}/password_hash`.
 
-## Overview
+## Parameters per user
 
-The Lambda authentication system requires TWO SSM parameters per user:
-1. `/secrets/{user}/password_hash` - SHA256 hash of the password (for validation)
-2. `/secrets/{user}/secret` - Bedrock API key (returned after successful auth)
+- `/secrets/{user}/password_hash` - SHA256 hex digest of the password (used by the gateway for authentication)
+- `/secrets/{user}/secret` - legacy Bedrock API key slot. The gateway calls Bedrock with its own server-side credentials, so this is not used at runtime; pass `NONE`.
+
+Usernames are normalized (sanitized) the same way in the app, the scripts, and the gateway.
 
 ## Scripts
 
-### add_user.py
-Add or update a user with password and Bedrock API key.
+| Script | Purpose |
+|---|---|
+| `add_user.py <username> <password> <bedrock_api_key>` | Create or update a user (use `NONE` for the key) |
+| `add_users_from_csv.sh [-n\|--dry-run]` | Bulk-add users from `catie-users.csv` (columns `Email Address`, `Password`); `-n` previews only |
+| `verify_user.py <username> [password]` | Check a user exists; optionally verify a password matches |
+| `list_users.py` | List users that have stored credentials |
+| `old/` | Archived one-off debugging/migration scripts; not maintained |
+
+`catie-users.csv` is git-ignored because it contains passwords. Never commit it.
+
+## Example
 
 ```bash
-python add_user.py <username> <password> <bedrock_api_key>
-```
-
-**Example:**
-```bash
-python add_user.py alice mypassword123 "ABSKQmVkcm9ja0FQSUtleS0..."
-```
-
-### verify_user.py
-Verify a user exists and optionally check if a password is correct.
-
-```bash
-python verify_user.py <username> [password]
-```
-
-**Examples:**
-```bash
-# Check if user exists and show stored hash
-python verify_user.py alice
-
-# Verify password matches
-python verify_user.py alice "mypassword123"
-```
-
-### list_users.py
-List all configured users and their status.
-
-```bash
+python add_user.py alice "s3cret-pass" NONE
+python verify_user.py alice "s3cret-pass"
 python list_users.py
 ```
 
-### Legacy Scripts
-
-- `store_secret.py` - Store Bedrock API key only (use `add_user.py` instead)
-- `get_secret.py` - Retrieve Bedrock API key for a user
-
-## Workflow
-
-### 1. Add a new user
-```bash
-python add_user.py bob "secretpass123" "ABSKQmVkcm9ja0FQSUtleS0..."
-```
-
-### 2. Verify it worked
-```bash
-python verify_user.py bob "secretpass123"
-```
-
-### 3. List all users
-```bash
-python list_users.py
-```
-
-### 4. Test in Rubrix
-1. Set `LAMBDA_URL` in `src-tauri/.env`
-2. Run `npm run tauri dev`
-3. Try generating questions
-4. Login with username `bob` and password `secretpass123`
-5. Should receive Bedrock API key and generate questions
+Then launch Catie, log in as `alice`, and generate a question to confirm end to end.
 
 ## Requirements
 
 ```bash
 pip install boto3
+aws configure   # or AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_DEFAULT_REGION
 ```
 
-Configure AWS credentials:
-```bash
-aws configure
-# or set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION
-```
+The AWS identity needs SSM `PutParameter`, `GetParameter` and `GetParametersByPath` on `/secrets/*` (parameters are `SecureString`).
 
-## Security Notes
+## Security notes
 
-- Passwords are hashed with SHA256 before storage
-- All parameters stored as `SecureString` type
-- Never commit passwords or API keys to git
-- Use IAM policies to restrict SSM access
+- Passwords are SHA256-hashed before storage, matching the client hashing in [auth.rs](../src-tauri/src/auth.rs).
+- Never commit passwords, hashes, or keys.
+- Restrict SSM access with IAM.

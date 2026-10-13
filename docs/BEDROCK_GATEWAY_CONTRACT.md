@@ -40,6 +40,7 @@ must match the existing `llm-stream` event format.
 - Content-Type: text/event-stream
 - Each chunk uses the `data:` prefix and ends with a blank line.
 - Payload matches the `llm-stream` shape: `{ "text": "...", "done": false }`.
+- The gateway may add `remaining_tokens` (number) when usage tracking is enabled; the client forwards it to the UI.
 
 Example stream:
 ```

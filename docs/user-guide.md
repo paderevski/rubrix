@@ -5,278 +5,155 @@ title: User Guide
 
 # User Guide
 
-Complete guide to using Rubrix effectively.
-
 ## Table of Contents
 - [Generating Questions](#generating-questions)
+- [Working with Documents](#working-with-documents)
 - [Editing Questions](#editing-questions)
 - [Regenerating Questions](#regenerating-questions)
+- [Bank Editor](#bank-editor)
 - [Exporting Questions](#exporting-questions)
 - [Importing to Schoology](#importing-to-schoology)
+- [Keyboard Shortcuts](#keyboard-shortcuts)
 - [Tips for Best Results](#tips-for-best-results)
+- [Reporting Bugs](#reporting-bugs)
 
 ---
 
 ## Generating Questions
 
-### Basic Workflow
+1. **Select Subject** - Computer Science or Calculus (sidebar)
+2. **Select Topics** - check topics and subtopics
+3. **Set Difficulty** - Easy, Medium or Hard
+4. **Choose Quantity** - 1-8 questions
+5. **Add Instructions** (optional)
+6. **Click Generate Questions** - watch the streaming preview
 
-1. **Select Subject** - Choose Computer Science or Calculus from the sidebar
-2. **Select Topics** - Check one or more topics
-3. **Set Difficulty** - Easy, Medium, or Hard
-4. **Choose Quantity** - 1-20 questions
-5. **Add Instructions** (optional) - Guide the AI
-6. **Click Generate** - Watch questions appear in real-time
+New questions are **appended** to the current document, so you can generate several batches into one test. Use **File → New** for a fresh document.
 
-### Understanding Difficulty Levels
+### Difficulty
 
-**Easy**
-- Basic concept application
-- Simple scenarios
-- Direct recall or straightforward logic
-- Example: "What does `arr.length` return?"
+- **Easy** - basic concept application, direct recall or straightforward logic
+- **Medium** - standard AP-level difficulty, multiple steps
+- **Hard** - complex scenarios, edge cases, deeper understanding
 
-**Medium**
-- Standard AP exam difficulty
-- May require multiple steps
-- Understanding of how concepts combine
-- Example: "What is printed after this code executes?"
+### Instructions
 
-**Hard**
-- Complex scenarios
-- Deep conceptual understanding
-- May involve tricky edge cases
-- Example: "Analyze this recursive method with multiple base cases"
+Good: "Focus on array indexing errors", "Use realistic scenarios from banking or games", "Avoid questions requiring memorization of syntax".
+Less effective: "Make them good" (too vague) or per-question directions like "Question 1 should be about..." (all questions are generated together).
 
-### Using Instructions Effectively
+---
 
-The "User Instructions" field lets you guide the AI. Good examples:
+## Working with Documents
 
-✅ **Good Instructions**
-- "Focus on array indexing errors"
-- "Include questions about StringBuilder"
-- "Use realistic scenarios from banking or games"
-- "Avoid questions requiring memorization of syntax"
+- **Tabs** - each document opens in its own tab; **File → Close** (`Cmd/Ctrl + W`) closes one.
+- **Save / Open** - sessions are saved as JSON (`Cmd/Ctrl + S`, `Cmd/Ctrl + O`). **Open Recent** (`Cmd/Ctrl + Shift + O`) lists recent files.
+- **Add Custom Question** (`Cmd/Ctrl + Shift + N`) - write your own question to include in the document.
+- **Preferences** (`Cmd/Ctrl + ,`) - default subject and difficulty.
+- **Show/Hide Raw Preview** (`Cmd/Ctrl + \`) toggles the raw model output panel.
 
-❌ **Less Effective**
-- "Make them good" (too vague)
-- "Question 1 should be about..." (AI generates all at once)
+Catie does not auto-save; save your document if you want to keep working later.
 
 ---
 
 ## Editing Questions
 
-Click the **Edit** button (pencil icon) on any question to modify it.
+Each question card has buttons to **edit**, **regenerate**, **add regeneration instructions**, toggle **raw/formatted view**, and **delete**.
 
-### What You Can Edit
+In the editor you can change:
+- **Question content** - Markdown, LaTeX and fenced code
+- **Answers** - answer text, which answer is correct, and explanations
 
-**Question Text**
-- Full markdown support
-- LaTeX math: Use `$f'(x)$` for inline, `$$...$$` for display
-- Code blocks: Use triple backticks with language:
+### Formatting reference
+
+- Italic `*text*`, bold `**text**`, inline code `` `variable` ``
+- Inline math `$f'(x) = 2x$`, display math `$$\int_0^1 x^2 dx$$`
+- Code:
+  ````
   ```java
-  public void example() {
-      System.out.println("test");
+  public class Example {
+      private int value;
   }
   ```
-
-**Answers**
-- Edit answer text
-- Change which answer is correct (checkbox)
-- Add explanations
-
-**Metadata**
-- Difficulty level
-- Topics (for regeneration context)
-
-### Formatting Reference
-
-**Text Formatting**
-- *Italic*: `*text*`
-- **Bold**: `**text**`
-- Inline code: `` `variable` ``
-
-**Math (Calculus)**
-- Inline: `$f'(x) = 2x$` → $f'(x) = 2x$
-- Display: `$$\int_0^1 x^2 dx$$` → $$\int_0^1 x^2 dx$$
-- Common symbols: `\frac{a}{b}`, `\sqrt{x}`, `\lim_{x \to 0}`
-
-**Code (Computer Science)**
-````
-```java
-public class Example {
-    private int value;
-}
-```
-````
-
-**Tables**
-```
-| Header 1 | Header 2 |
-|----------|----------|
-| Value 1  | Value 2  |
-```
+  ````
+- Tables:
+  ```
+  | Header 1 | Header 2 |
+  |----------|----------|
+  | Value 1  | Value 2  |
+  ```
 
 ---
 
 ## Regenerating Questions
 
-Don't like a question? Click the **Regenerate** button (refresh icon).
+- **One question** - click the refresh icon on the card. Use the instructions icon first to tell the AI what to change.
+- **All questions** - **File → Regenerate All Questions** (`Cmd/Ctrl + Shift + R`).
 
-**How it works:**
-- Generates a replacement question on the same topic(s)
-- Maintains the same difficulty level
-- Uses the same subject context
-- Replaces the old question
+Replacement questions keep the subject, topics and difficulty, and the AI is shown the existing question and the rest of the document to avoid duplicates. If you keep getting similar questions, add instructions, change the difficulty, or select more topics.
 
-**Tip**: If you keep getting similar questions, try:
-1. Adding specific instructions
-2. Changing the difficulty level
-3. Selecting additional topics for more variety
+---
+
+## Bank Editor
+
+Switch to **Bank Editor** (`Cmd/Ctrl + 2`; `Cmd/Ctrl + 1` returns to the Generator) to view and edit the question bank for a subject. Bank questions are used as examples when generating. Changes are saved to your local knowledge folder (or `RUBRIX_KNOWLEDGE_DIR` if set) and take precedence over the bundled defaults.
 
 ---
 
 ## Exporting Questions
 
-Rubrix supports two export formats:
+Use **File → Export**:
 
-### Plain Text (.txt)
-
-Click **Export TXT** to save questions as readable text.
-
-**Format:**
-```
-Title: Question Bank
-
-1. What is the time complexity of binary search?
-
-a. O(log n)
-a. O(n)
-a. O(n log n)
-a. O(n²)
-```
-
-**Use cases:**
-- Sharing with colleagues
-- Manual entry into other systems
-- Reference/study guides
-
-### QTI Format (.imscc)
-
-Click **Export QTI** to save in LMS-compatible format.
-
-**Features:**
-- Fully formatted questions
-- Preserves LaTeX math
-- Preserves code formatting
-- Direct Schoology/Canvas import
+- **Markdown…** (`Cmd/Ctrl + Shift + M`) - readable text with tables, lists, the correct answers marked, and explanations
+- **QTI…** (`Cmd/Ctrl + Shift + Q`) - `.imscc` package for Schoology, Canvas and other LMSs; preserves math (as images), code and tables
+- **Word…** (`Cmd/Ctrl + Shift + W`) - `.docx`; the dialog lets you choose whether to include answer choices, how many versions to produce, and whether to shuffle the choices across versions. Word conversion uses an external converter service, so it requires internet access.
 
 ---
 
 ## Importing to Schoology
 
-### Step-by-Step
+1. Export QTI and save as `questions.imscc`
+2. In your course go to **Resources → Add Resources → Import File**
+3. Choose the file and click **Import**
+4. Questions appear as a Question Bank; open a few to check math and code
+5. When building a test, choose **Add Question → From Question Bank**
 
-1. **Export from Rubrix**
-   - Click "Export QTI"
-   - Save as `questions.imscc`
+**Math not rendering?** Math is exported as images generated by an online LaTeX service, so the LMS must be able to load external images.
 
-2. **Open Schoology**
-   - Go to your course
-   - Navigate to **Resources**
+**Code formatting lost?** Some LMSs strip formatting; check an imported sample first.
 
-3. **Import**
-   - Click **Add Resources**
-   - Select **Import File**
-   - Choose your `.imscc` file
-   - Click **Import**
-
-4. **Verify**
-   - Questions appear as a Question Bank
-   - Open to check formatting
-   - Math and code should display correctly
-
-5. **Use in Assessments**
-   - Create a new Test/Quiz
-   - Click **Add Question**
-   - Select **From Question Bank**
-   - Choose your imported questions
-
-### Troubleshooting
-
-**Math not rendering?**
-- Ensure Schoology's LaTeX support is enabled
-- Some Schoology accounts may need admin settings adjusted
-
-**Code formatting lost?**
-- This is expected - Schoology may strip some formatting
-- Consider including code as images for complex examples
-
-**Wrong answer marked?**
-- The first answer in the export is always correct
-- Verify in Schoology's question editor if needed
-
----
-
-## Tips for Best Results
-
-### Topic Selection
-
-**Do:**
-- ✅ Select 2-4 related topics for coherent questions
-- ✅ Choose topics you're currently teaching
-- ✅ Mix topics for review quizzes
-
-**Don't:**
-- ❌ Select all topics (questions may be too varied)
-- ❌ Mix very basic and advanced topics
-
-### Instructions
-
-**Effective instructions:**
-- "Focus on common mistakes students make"
-- "Include questions that require code tracing"
-- "Use realistic variable names and scenarios"
-- "Avoid questions that require knowing exact method signatures"
-
-### Quantity
-
-**Recommendations:**
-- Start with 5-10 questions to test
-- Review and refine before generating more
-- Generate in batches for different difficulty levels
-
-### Quality Control
-
-**Always review generated questions for:**
-- Factual accuracy
-- Appropriate difficulty
-- Clear wording
-- Distinct answer choices
-- Fair distractors (wrong answers should be plausible)
-
-**Common things to fix:**
-- Overly complex wording
-- Answer choices that give away the correct answer
-- Questions that are too easy or too hard
-- Ambiguous phrasing
+**Wrong answer marked?** Verify in the LMS question editor and in Catie that the right answers are checked before exporting.
 
 ---
 
 ## Keyboard Shortcuts
 
-- `Cmd/Ctrl + E` - Edit selected question
-- `Cmd/Ctrl + R` - Regenerate selected question
-- `Cmd/Ctrl + S` - Export (opens save dialog)
-- `Cmd/Ctrl + G` - Generate new questions
+Shortcuts use `Cmd` on macOS and `Ctrl` elsewhere.
+
+| Action | Shortcut |
+|---|---|
+| New / Open / Open Recent | `Cmd/Ctrl + N` / `O` / `Shift + O` |
+| Save / Close | `Cmd/Ctrl + S` / `W` |
+| Add custom question | `Cmd/Ctrl + Shift + N` |
+| Regenerate all | `Cmd/Ctrl + Shift + R` |
+| Export Markdown / QTI / Word | `Cmd/Ctrl + Shift + M` / `Q` / `W` |
+| Preferences | `Cmd/Ctrl + ,` |
+| Generator / Bank Editor | `Cmd/Ctrl + 1` / `2` |
+| Show/hide raw preview | `Cmd/Ctrl + \` |
+| Zoom in / out / reset | `Cmd/Ctrl + =` / `-` / `0` |
 
 ---
 
-## Need Help?
+## Tips for Best Results
 
-- [Check the FAQ](faq.md) for common questions
-- [Open an issue](https://github.com/paderevski/rubrix/issues) on GitHub
-- [Join discussions](https://github.com/paderevski/rubrix/discussions) with other users
+- Select 2-4 related topics per batch; avoid mixing very basic and very advanced topics.
+- Start with a few questions, review, then generate more.
+- **Always review** for factual accuracy, difficulty, clear wording, distinct choices and plausible distractors. For Calculus, verify the math yourself.
+
+---
+
+## Reporting Bugs
+
+**Help → Submit Bug** sends a report (with recent app logs) that is filed as a GitHub issue. You can also [open an issue](https://github.com/paderevski/rubrix/issues) directly.
 
 ---
 

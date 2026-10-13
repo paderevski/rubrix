@@ -63,9 +63,10 @@ Frontend auth messaging maps common backend/gateway errors to user-friendly text
 | `RUBRIX_KNOWLEDGE_DIR` | No | Override knowledge base directory |
 | `BUG_REPORT_URL` | No | Bug report intake endpoint |
 | `BUG_REPORT_API_KEY` | No | Optional API key header for bug reports |
+| `BUG_REPORT_BEARER_TOKEN` | No | Optional bearer token for bug reports |
 
 ## Related Docs
 
 - [Gateway Contract](BEDROCK_GATEWAY_CONTRACT.md)
 - [Architecture Diagram](ARCHITECTURE_DIAGRAM.md)
-- [Quickstart Credentials](../QUICKSTART_CREDENTIALS.md)
+- [User management tools](../tools/README.md)
