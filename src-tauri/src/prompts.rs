@@ -149,42 +149,9 @@ pub fn build_generation_prompt(
     build_core_prompt(&config)
 }
 
-/// Format a question bank entry as JSON with only pedagogically useful fields
+/// Format a question bank entry as JSON with all bank metadata
 fn format_example_as_json(q: &QuestionBankEntry) -> String {
-    let answers_json: Vec<String> = q
-        .answers
-        .iter()
-        .map(|answer| {
-            format!(
-                r#"    {{"text": "{}", "is_correct": {}, "explanation": "{}"}}"#,
-                escape_json_string(&answer.text),
-                answer.is_correct,
-                escape_json_string(&answer.explanation)
-            )
-        })
-        .collect();
-
-    format!(
-        r#"{{
-  "text": "{text}",
-  "answers": [
-{answers}
-  ],
-  "explanation": "{explanation}"
-}}"#,
-        text = escape_json_string(&q.text),
-        answers = answers_json.join(",\n"),
-        explanation = escape_json_string(&q.explanation),
-    )
-}
-
-/// Escape special characters for JSON strings
-fn escape_json_string(s: &str) -> String {
-    s.replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
-        .replace('\r', "\\r")
-        .replace('\t', "\\t")
+    serde_json::to_string_pretty(q).unwrap_or_else(|_| "{}".to_string())
 }
 
 /// Build prompt for regenerating a single question
@@ -1008,7 +975,7 @@ mod tests {
     }
 
     #[test]
-    fn test_v2_bank_examples_include_answer_explanations_without_bank_metadata() {
+    fn test_v2_bank_examples_include_all_bank_metadata() {
         let entry = QuestionBankEntry {
             id: "pt1_q001".to_string(),
             status: "active".to_string(),
@@ -1028,11 +995,17 @@ mod tests {
         };
 
         let example = format_example_as_json(&entry);
+        let example_json: serde_json::Value = serde_json::from_str(&example).unwrap();
 
         assert!(example.contains("\"explanation\": \"The loop executes 42 times.\""));
-        assert!(!example.contains("\"id\""));
-        assert!(!example.contains("\"status\""));
-        assert!(!example.contains("_migration_note"));
+        assert_eq!(example_json["id"], "pt1_q001");
+        assert_eq!(example_json["status"], "active");
+        assert_eq!(example_json["_migration_note"], "Imported");
+        assert_eq!(example_json["difficulty"], "D2");
+        assert_eq!(example_json["cognitive_level"], "B3");
+        assert_eq!(example_json["topics"][0], "T009");
+        assert_eq!(example_json["subtopics"].as_array().unwrap()[0], "ST041");
+        assert_eq!(example_json["answers"][0]["id"], "a");
     }
 
     #[test]

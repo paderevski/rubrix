@@ -731,7 +731,12 @@ async fn convert_markdown_to_docx(
         .map_err(|e| format!("Failed to call API: {}", e))?;
 
     if !response.status().is_success() {
-        return Err(format!("API returned error: {}", response.status()));
+        let status = response.status();
+        let body = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "<no response body>".to_string());
+        return Err(format!("API returned error: {} - {}", status, body));
     }
 
     let docx_bytes = response
