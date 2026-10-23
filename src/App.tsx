@@ -708,6 +708,8 @@ function App() {
         setOpenRecentOpen(true);
       } else if (action === "save_session") {
         void handleSaveDocument();
+      } else if (action === "save_session_as") {
+        void handleSaveDocument(true);
       } else if (action === "export_md") {
         openExportOptions("md");
       } else if (action === "export_qti") {
@@ -1356,17 +1358,17 @@ function App() {
     setStatus("Cleared recent documents");
   };
 
-  const handleSaveDocument = async (): Promise<boolean> => {
+  const handleSaveDocument = async (saveAs = false): Promise<boolean> => {
     if (questions.length === 0) {
       setStatus("No questions to save");
       return false;
     }
 
-    let filePath = currentDocumentPath;
+    let filePath = saveAs ? null : currentDocumentPath;
 
     if (!filePath) {
       filePath = await save({
-        defaultPath: "untitled.kt",
+        defaultPath: currentDocumentPath ?? "untitled.kt",
         filters: [catieFileFilter],
       });
     }

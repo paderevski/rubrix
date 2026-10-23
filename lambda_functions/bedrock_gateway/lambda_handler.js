@@ -36,6 +36,9 @@ const FRQ_MODEL_ID =
   process.env.BEDROCK_FRQ_MODEL_ID ||
   "us.deepseek.r1-v1:0";
 const REASONING_EFFORT = process.env.BEDROCK_REASONING_EFFORT || "medium";
+const CLAUDE_THINKING_BUDGET = Number(
+  process.env.BEDROCK_CLAUDE_THINKING_BUDGET || 8000,
+);
 const MAX_TOKENS = process.env.BEDROCK_MAX_TOKENS
   ? Number(process.env.BEDROCK_MAX_TOKENS)
   : 20480;
@@ -664,6 +667,23 @@ const streamingHandler = async (event, responseStream) => {
     REASONING_EFFORT.trim()
   ) {
     additionalModelRequestFields.reasoning_effort = REASONING_EFFORT.trim();
+  }
+
+  // Claude extended thinking; requires maxTokens > budget and no custom temperature/topP.
+  const supportsClaudeThinking =
+    typeof selectedModelId === "string" &&
+    /(^|\.)anthropic\.claude-(haiku-4-5|sonnet-4|opus-4)/.test(selectedModelId);
+  if (supportsClaudeThinking && CLAUDE_THINKING_BUDGET > 0) {
+    additionalModelRequestFields.thinking = {
+      type: "enabled",
+      budget_tokens: CLAUDE_THINKING_BUDGET,
+    };
+    delete inferenceConfig.temperature;
+    delete inferenceConfig.topP;
+    inferenceConfig.maxTokens = Math.max(
+      inferenceConfig.maxTokens || 0,
+      CLAUDE_THINKING_BUDGET + 4096,
+    );
   }
 
   const selectedBedrockRegion =
