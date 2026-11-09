@@ -116,8 +116,8 @@ function formatExplanation(content: string) {
 }
 
 function inferTopicKind(id: string): "topic" | "subtopic" | null {
-  if (/^U\d+$/i.test(id) || /^TOPIC_?/i.test(id)) return "topic";
-  if (/^T\d+$/i.test(id) || /^SUBTOPIC_?/i.test(id)) return "subtopic";
+  if (/^U\d+$/i.test(id) || /^T\d+$/i.test(id) || /^TOPIC_?/i.test(id)) return "topic";
+  if (/^ST\d+$/i.test(id) || /^SUBTOPIC_?/i.test(id)) return "subtopic";
   return null;
 }
 
@@ -164,7 +164,7 @@ export default function QuestionCard({
   const activeRaw = liveRaw || storedRaw;
   const hasRawText = Boolean(activeRaw);
 
-  const topicIds = question.topics ?? [];
+  const topicIds = [...(question.topics ?? []), ...(question.subtopics ?? [])];
   const topicCandidates = topicIds.map((id) => {
     const meta = topicMetaById[id];
     const kind = meta?.kind ?? inferTopicKind(id);

@@ -192,6 +192,9 @@ struct QuestionSchema {
 #[derive(Debug, Deserialize)]
 struct TopicsSection {
     items: Vec<TopicSchemaItem>,
+    /// Keep topics (and their subtopics) that have no bank questions yet.
+    #[serde(default)]
+    include_empty: bool,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -281,9 +284,11 @@ impl KnowledgeBase {
         for subject_name in subject_names {
             // Load the schema file to get topic definitions
             let schema_filename = format!("{}/question-schema.json", subject_name);
+            let mut include_empty = false;
             let topic_definitions = if let Some(content) = load_knowledge_file(&schema_filename) {
                 match serde_json::from_str::<QuestionSchema>(&content) {
                     Ok(schema) => {
+                        include_empty = schema.topics.include_empty;
                         // Filter to only T0XX codes and build topic map
                         schema
                             .topics
@@ -373,8 +378,8 @@ impl KnowledgeBase {
                     })
                     .count();
 
-                // Only include topics that have questions
-                if json_count > 0 {
+                // Only include topics that have questions, unless the schema opts in to empty ones
+                if json_count > 0 || include_empty {
                     let primary_code = topic_codes.get(0).cloned().unwrap_or_else(|| name.clone());
 
                     // Attach subtopics (if any) and map them to parent codes

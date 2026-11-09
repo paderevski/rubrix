@@ -90,6 +90,14 @@ export default function BankEditor({ subject }: BankEditorProps) {
   const [error, setError] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [topicOptions, setTopicOptions] = useState<TopicInfo[]>([]);
+  const availableSubtopics = (topicIds: string[]) =>
+    topicOptions
+      .filter((t) => topicIds.includes(t.id))
+      .flatMap((t) => t.children ?? []);
+  const pruneSubtopics = (topicIds: string[], subtopics?: string[]) => {
+    const allowed = new Set(availableSubtopics(topicIds).map((c) => c.id));
+    return (subtopics || []).filter((id) => allowed.has(id));
+  };
 
   const selected = useMemo(
     () => document?.questions.find((e) => e.id === selectedId) || null,
@@ -381,9 +389,6 @@ export default function BankEditor({ subject }: BankEditorProps) {
                       const missing = topicId && !topicOptions.some((t) => t.id === topicId);
                       const selectedTopic = topicOptions.find((t) => t.id === topicId);
                       const titleText = selectedTopic?.name || (missing ? `(missing) ${topicId}` : "Select a topic");
-                      const children = selectedTopic?.children || [];
-                      const subtopics = selected.subtopics || [];
-                      const subValue = subtopics[idx] || "";
                       return (
                       <div key={`${topicId}-${idx}`} className="flex items-center gap-2">
                         <div className="flex-1 min-w-0">
@@ -394,9 +399,10 @@ export default function BankEditor({ subject }: BankEditorProps) {
                             onChange={(e) => {
                               const next = [...selected.topics];
                               next[idx] = e.target.value;
-                              const nextSubs = [...subtopics];
-                              nextSubs[idx] = "";
-                              updateEntry(selected.id, { topics: next, subtopics: nextSubs });
+                              updateEntry(selected.id, {
+                                topics: next,
+                                subtopics: pruneSubtopics(next, selected.subtopics),
+                              });
                             }}
                           >
                             <option value="">Select a topic</option>
@@ -409,33 +415,14 @@ export default function BankEditor({ subject }: BankEditorProps) {
                               </option>
                             ))}
                           </select>
-                          {children.length > 0 && (
-                            <div className="mt-2">
-                              <select
-                                className="w-full border rounded px-2 py-1.5 text-sm truncate"
-                                value={subValue}
-                                title={subValue || "Select subtopic"}
-                                onChange={(e) => {
-                                  const nextSubs = [...subtopics];
-                                  nextSubs[idx] = e.target.value;
-                                  updateEntry(selected.id, { subtopics: nextSubs });
-                                }}
-                              >
-                                <option value="">Select subtopic (optional)</option>
-                                {children.map((child) => (
-                                  <option key={child.id} value={child.id}>
-                                    {child.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          )}
                         </div>
                         <button
                           onClick={() => {
                             const next = selected.topics.filter((_, i) => i !== idx);
-                            const nextSubs = (selected.subtopics || []).filter((_, i) => i !== idx);
-                            updateEntry(selected.id, { topics: next, subtopics: nextSubs });
+                            updateEntry(selected.id, {
+                              topics: next,
+                              subtopics: pruneSubtopics(next, selected.subtopics),
+                            });
                           }}
                           className="h-8 w-8 flex items-center justify-center border rounded hover:bg-secondary"
                           title="Remove topic"
@@ -448,8 +435,7 @@ export default function BankEditor({ subject }: BankEditorProps) {
                     <button
                       onClick={() => {
                         const first = topicOptions[0]?.id ?? "";
-                        const nextSubs = [...(selected.subtopics || []), ""];
-                        updateEntry(selected.id, { topics: [...selected.topics, first], subtopics: nextSubs });
+                        updateEntry(selected.id, { topics: [...selected.topics, first] });
                       }}
                       className="flex items-center gap-2 px-3 py-1.5 text-sm border rounded hover:bg-secondary"
                       disabled={topicOptions.length === 0}
@@ -458,6 +444,33 @@ export default function BankEditor({ subject }: BankEditorProps) {
                       Add topic
                     </button>
                   </div>
+                  <label className="block text-xs font-semibold text-slate-700 mt-3 mb-1">Subtopics</label>
+                  <div className="space-y-1 max-h-48 overflow-y-auto border rounded p-2">
+                    {availableSubtopics(selected.topics).length === 0 && (
+                      <div className="text-xs text-muted-foreground">Select a topic with subtopics.</div>
+                    )}
+                    {availableSubtopics(selected.topics).map((child) => {
+                      const checked = (selected.subtopics || []).includes(child.id);
+                      return (
+                        <label key={child.id} className="flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => {
+                              const current = selected.subtopics || [];
+                              updateEntry(selected.id, {
+                                subtopics: checked
+                                  ? current.filter((id) => id !== child.id)
+                                  : [...current, child.id],
+                              });
+                            }}
+                          />
+                          <span>{child.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  
                 </div>
               </div>
 
