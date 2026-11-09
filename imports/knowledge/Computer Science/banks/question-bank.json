@@ -38,7 +38,8 @@
       ],
       "subtopics": [
         "ST001",
-        "ST003"
+        "ST003",
+        "ST066"
       ],
       "skills": [
         "SK001"
@@ -213,7 +214,8 @@
         "T003"
       ],
       "subtopics": [
-        "ST012"
+        "ST012",
+        "ST015"
       ],
       "skills": [
         "SK001",
@@ -345,8 +347,7 @@
         "T001"
       ],
       "subtopics": [
-        "ST002",
-        "ST004"
+        "ST002"
       ],
       "skills": [
         "SK001"
@@ -433,7 +434,8 @@
         "T003"
       ],
       "subtopics": [
-        "ST012"
+        "ST012",
+        "ST015"
       ],
       "skills": [
         "SK020",
@@ -608,7 +610,8 @@
         "T003"
       ],
       "subtopics": [
-        "ST013"
+        "ST013",
+        "ST076"
       ],
       "skills": [
         "SK009"
@@ -653,7 +656,8 @@
       ],
       "subtopics": [
         "ST009",
-        "ST017"
+        "ST017",
+        "ST075"
       ],
       "skills": [
         "SK001",
@@ -694,19 +698,21 @@
       ],
       "explanation": "Good encapsulation makes instance variables private and exposes public accessor methods. A page count is a whole number, so `numPages` should be an `int`, and `getNumPages()` should return an `int`.",
       "topics": [
-        "T005"
+        "T005",
+        "T021"
       ],
       "subtopics": [
         "ST024",
         "ST055",
-        "ST056"
+        "ST056",
+        "ST080"
       ],
       "skills": [
         "SK017",
         "SK013"
       ],
       "difficulty": "D1",
-      "cognitive_level": "B2"
+      "cognitive_level": "B4"
     },
     {
       "id": "pt2_q017",
@@ -745,7 +751,9 @@
       "subtopics": [
         "ST064"
       ],
-      "skills": [],
+      "skills": [
+        "SK009"
+      ],
       "difficulty": "D1",
       "cognitive_level": "B2"
     },
@@ -784,7 +792,8 @@
         "T006"
       ],
       "subtopics": [
-        "ST031"
+        "ST031",
+        "ST034"
       ],
       "skills": [
         "SK004",
@@ -875,7 +884,8 @@
       ],
       "subtopics": [
         "ST017",
-        "ST004"
+        "ST004",
+        "ST067"
       ],
       "skills": [
         "SK001",
@@ -1011,7 +1021,8 @@
       ],
       "subtopics": [
         "ST049",
-        "ST032"
+        "ST032",
+        "ST074"
       ],
       "skills": [
         "SK001"
@@ -1144,7 +1155,8 @@
       "subtopics": [
         "ST017",
         "ST020",
-        "ST004"
+        "ST004",
+        "ST067"
       ],
       "skills": [
         "SK004",
@@ -1233,7 +1245,8 @@
       ],
       "subtopics": [
         "ST009",
-        "ST017"
+        "ST017",
+        "ST075"
       ],
       "skills": [
         "SK001",
@@ -1374,7 +1387,7 @@
         "SK023"
       ],
       "difficulty": "D1",
-      "cognitive_level": "B5"
+      "cognitive_level": "B4"
     },
     {
       "id": "pt2_q032",
@@ -1545,7 +1558,8 @@
         "T007"
       ],
       "subtopics": [
-        "ST036"
+        "ST036",
+        "ST081"
       ],
       "skills": [
         "SK003",
@@ -1589,7 +1603,8 @@
         "T008"
       ],
       "subtopics": [
-        "ST038"
+        "ST038",
+        "ST082"
       ],
       "skills": [
         "SK001"
@@ -1632,7 +1647,8 @@
         "T008"
       ],
       "subtopics": [
-        "ST038"
+        "ST038",
+        "ST082"
       ],
       "skills": [
         "SK003"
@@ -1773,7 +1789,7 @@
         "SK003"
       ],
       "difficulty": "D3",
-      "cognitive_level": "B3"
+      "cognitive_level": "B4"
     },
     {
       "id": "pt2_q041",
@@ -1821,7 +1837,7 @@
         "SK011"
       ],
       "difficulty": "D3",
-      "cognitive_level": "B3"
+      "cognitive_level": "B4"
     },
     {
       "id": "pt2_q042",
