@@ -511,22 +511,6 @@ pub fn export_txt(title: &str, questions: &[Question]) -> Result<String, String>
     export_md(title, questions)
 }
 
-/// Convenience wrapper for bank markdown export with include_explanations toggle.
-pub fn export_bank_md(
-    title: &str,
-    entries: &[QuestionBankEntry],
-    include_explanations: bool,
-) -> Result<String, String> {
-    export_bank_md_with_options(
-        title,
-        entries,
-        ExportBankMdOptions {
-            include_explanations,
-            ..ExportBankMdOptions::default()
-        },
-    )
-}
-
 pub fn export_qti_zip_with_options(
     title: &str,
     questions: &[Question],
@@ -569,7 +553,7 @@ pub fn export_qti_zip_with_options(
 
 /// Generate the QTI XML content
 fn generate_qti_xml(_title: &str, questions: &[Question], options: ExportQtiOptions) -> String {
-    let mut items = Vec::new();
+    let mut items: Vec<String> = Vec::new();
 
     for (i, q) in questions.iter().enumerate() {
         let item_id = format!("{}", i + 1);
@@ -610,7 +594,7 @@ fn generate_qti_xml(_title: &str, questions: &[Question], options: ExportQtiOpti
         items.push(item);
     }
 
-    format!("{}\n{}\n{}", QTI_HEADER, items.join("\n"), QTI_FOOTER)
+    return format!("{}\n{}\n{}", QTI_HEADER, items.join("\n"), QTI_FOOTER);
 }
 
 /// Convert a question to HTML format
@@ -1007,12 +991,24 @@ mod tests {
             },
         }];
 
-        let without_explanations = export_bank_md("Bank", &entries, false).unwrap();
+        let bank_md = |include_explanations: bool| {
+            export_bank_md_with_options(
+                "Bank",
+                &entries,
+                ExportBankMdOptions {
+                    include_explanations,
+                    ..ExportBankMdOptions::default()
+                },
+            )
+            .unwrap()
+        };
+
+        let without_explanations = bank_md(false);
         assert!(!without_explanations.contains("**Explanation:**"));
         assert!(!without_explanations.contains("**Distractors - Common errors:**"));
         assert!(!without_explanations.contains("**Distractors - Misconceptions by option:**"));
 
-        let with_explanations = export_bank_md("Bank", &entries, true).unwrap();
+        let with_explanations = bank_md(true);
         assert!(with_explanations.contains("**Explanation:**"));
         assert!(with_explanations.contains("Because the loop runs exactly 42 times."));
         assert!(with_explanations.contains("**Distractors - Common errors:**"));
