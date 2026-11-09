@@ -1,94 +1,68 @@
 ---
 layout: default
-title: Rubrix -- The Intelligent Question Writer
+title: Catie -- Test Item Engine
 ---
 
-# Rubrix
+# Catie
 
-**Generate high-quality AP exam questions in seconds with AI**
+**Generate AP-style multiple-choice questions in minutes with AI**
 
-Rubrix is a desktop application that helps teachers create multiple-choice questions for AP Computer Science A and Calculus courses. Powered by advanced AI, it generates contextually appropriate questions with proper formatting, code blocks, and mathematical notation.
+Catie is a desktop application that helps teachers create multiple-choice questions for AP Computer Science A and Calculus. It generates questions with proper code blocks and mathematical notation, lets you edit and regenerate them, and exports to your LMS or Word.
 
-![Rubrix Screenshot](./screenshot.png)
+![Catie Screenshot](./screenshot.png)
 
 ## Key Features
 
-✨ **Multi-Subject Support**
-- AP Computer Science A
-- Calculus
-- More to come
+**Subjects, topics and subtopics**
+- AP Computer Science A and Calculus
+- Pick topics and nested subtopics from curated knowledge banks
 
-🧭 **Topic & Subtopic Coverage**
-- Pick subjects, topics, and nested subtopics from curated knowledge banks
-- Override the knowledge directory via `RUBRIX_KNOWLEDGE_DIR`; user edits are preferred over embedded defaults
+**Generation**
+- Easy, Medium or Hard difficulty
+- 1-8 questions per run, appended to the current document
+- Optional instructions to guide the AI
+- Live streaming preview
 
-🎯 **Smart Question Generation**
-- Choose difficulty level (Easy, Medium, Hard)
-- Generate 1-5 questions at once
-- Add custom instructions for the AI generator
-- Uses your editable knowledge bank for context
+**Math and code**
+- KaTeX rendering for inline `$f'(x)$` and display math
+- Syntax-highlighted Java code and Markdown tables
 
-🔢 **Beautiful Math Rendering**
-- Full LaTeX support for mathematical notation
-- Properly formatted derivatives, integrals, and equations
-- Inline math like $f'(x)$ and display equations $\int_0^1 x^2 dx$
+**Editing**
+- Edit questions, answers and explanations
+- Regenerate a single question (with optional instructions) or all questions
+- Add your own custom questions
+- View the raw model output for any question
 
-💻 **Code Block Support**
-- Syntax highlighting for Java code
-- Properly formatted code examples
-- Inline code snippets
+**Documents**
+- Tabs, Save/Open, Open Recent
+- Preferences for default subject and difficulty
 
-✏️ **Full Editing Control**
-- Edit any generated question
-- Modify answers and explanations
-- Regenerate individual questions
+**Export**
+- QTI (`.imscc`) for Schoology, Canvas and other LMSs
+- Markdown
+- Word (`.docx`), including multiple versions
 
-📤 **Direct LMS Export**
-- Export to Schoology-compatible QTI format
-- Also export as plain text
-- Import directly into your LMS
-
-🗂 **Question Bank Editor**
-- Load and save question banks from the configurable knowledge directory
-- Tag questions with topics and subtopics; edit answers and explanations before export
-- Keep local banks in sync while releases still bundle embedded defaults
+**Bank Editor**
+- Edit the per-subject question banks used as examples for the AI
 
 ## Quick Start
 
-1. **[Download Rubrix](https://github.com/paderevski/rubrix/releases/latest)** for your platform
-2. **Install** - Run the installer (Mac, Windows, or Linux)
-3. *(Optional)* **Set knowledge path** - Create/point `RUBRIX_KNOWLEDGE_DIR` to your editable banks (falls back to bundled defaults)
-4. **Generate** - Select topics/subtopics, set difficulty, and click Generate
-5. **Export** - Save questions and import to your LMS
+1. **[Download Catie](https://github.com/paderevski/rubrix/releases/latest)** for your platform
+2. **Install** it ([install notes](release-build-readme.md))
+3. **Log in** with the username and password provided to you when you first generate
+4. **Generate** - choose topics, difficulty and count
+5. **Export** - QTI, Markdown or Word
 
 ---
 
-**[Get Started →](getting-started.md)** | **[View User Guide →](user-guide.md)** | **[Changelog →](changelog.md)**
+**[Get Started →](getting-started.md)** | **[User Guide →](user-guide.md)** | **[FAQ →](faq.md)** | **[Changelog →](https://github.com/paderevski/rubrix/blob/main/CHANGELOG.md)**
 
 ---
 
-## Why Rubrix?
+## Access
 
-**Save Time** - Generate a full quiz in minutes instead of hours
-
-**High Quality** - AI understands AP curriculum and creates appropriate questions
-
-**Customizable** - Edit questions or provide guidance to the AI
-
-**Easy Export** - Direct integration with Schoology and other LMS platforms
-
-**Free & Open Source** - No subscriptions, use your own API key
+Generation runs through a hosted gateway to AWS Bedrock, so you need an account created by the project administrator. You do not need an AWS or AI-provider key.
 
 ---
 
-## Pricing
-
-Rubrix is **free and open source**. You'll need a Replicate API key for AI generation:
-- **Pay-as-you-go**: ~$0.50 per 100 questions
-- **First $5 free** from Replicate for new users
-
-[Learn more about setup →](getting-started.md#api-setup)
-
----
-
-<small>Built by teachers, for teachers. Questions or feedback? [Open an issue](https://github.com/paderevski/rubrix/issues) on GitHub.</small>
+<small>Built by teachers, for teachers. Questions or feedback? Use **Help → Submit Bug** in the app or [open an issue](https://github.com/paderevski/rubrix/issues) on GitHub.</small>

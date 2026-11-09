@@ -1,137 +1,78 @@
-# Lambda Secret Store Management Tools
+# User Management Tools
 
-Scripts for managing user/password combinations in AWS SSM Parameter Store for Lambda authentication.
+Scripts for managing Catie user accounts in AWS SSM Parameter Store. The Bedrock gateway Lambda ([lambda_functions/bedrock_gateway](../lambda_functions/bedrock_gateway/lambda_handler.js)) validates logins against `/secrets/{user}/password_hash`.
 
-## Overview
+## Parameters per user
 
-The Lambda authentication system requires TWO SSM parameters per user:
-1. `/secrets/{user}/password_hash` - SHA256 hash of the password (for validation)
-2. `/secrets/{user}/secret` - Bedrock API key (returned after successful auth)
+- `/secrets/{user}/password_hash` - scrypt record of the password: `scrypt$N$r$p$<salt>$<hash>` (format and helpers in [password_hashing.py](password_hashing.py)). The app sends the password over HTTPS and the gateway checks it against this record, so reading the parameter is not enough to log in.
+- `/secrets/{user}/secret` - legacy Bedrock API key slot. The gateway calls Bedrock with its own server-side credentials, so this is not used at runtime; pass `NONE`.
+
+Usernames are normalized (sanitized) the same way in the app, the scripts, and the gateway.
 
 ## Scripts
 
-### add_user.py
-Add or update a user with password and Bedrock API key.
+| Script | Purpose |
+|---|---|
+| `add_user.py <username> <password> <bedrock_api_key>` | Create or update a user (use `NONE` for the key) |
+| `add_users_from_csv.sh [-n\|--dry-run]` | Bulk-add users from `catie-users.csv` (columns `Email Address`, `Password`); `-n` previews only |
+| `verify_user.py <username> [password]` | Check a user exists; optionally verify a password matches |
+| `list_users.py` | List users that have stored credentials |
+| `user_budget.py list \| get <user> \| set <user> <budget> \| add <user> <tokens> \| reset <user>` | View/update token budgets in DynamoDB `catieBedrockUsage` (see below) |
+| `delete_user.py <username> [--purge-usage] [-y]` | Delete a user's SSM credentials (blocks login); `--purge-usage` also deletes their DynamoDB budget/usage records. Prompts for confirmation unless `-y` |
+| `old/` | Archived one-off debugging/migration scripts; not maintained |
+
+`catie-users.csv` is git-ignored because it contains passwords. Never commit it.
+
+## Example
 
 ```bash
-python add_user.py <username> <password> <bedrock_api_key>
-```
-
-**Example:**
-```bash
-python add_user.py alice mypassword123 "ABSKQmVkcm9ja0FQSUtleS0..."
-```
-
-### verify_user.py
-Verify a user exists and optionally check if a password is correct.
-
-```bash
-python verify_user.py <username> [password]
-```
-
-**Examples:**
-```bash
-# Check if user exists and show stored hash
-python verify_user.py alice
-
-# Verify password matches
-python verify_user.py alice "mypassword123"
-```
-
-### list_users.py
-List all configured users and their status.
-
-```bash
+python add_user.py alice "s3cret-pass" NONE
+python verify_user.py alice "s3cret-pass"
 python list_users.py
 ```
 
-### check_balance.sh
-Check a user's current token balance from DynamoDB usage table (`record_id=summary`).
-
-```bash
-./check_balance.sh <username>
-```
-
-Optional environment variables:
-- `AWS_REGION` (default `us-east-1`)
-- `USAGE_TABLE_NAME` (default `catieBedrockUsage`)
-
-### add_tokens.sh
-Add tokens to a user's account in DynamoDB (`record_id=summary`).
-
-```bash
-./add_tokens.sh <username> <tokens_to_add>
-```
-
-Optional environment variables:
-- `AWS_REGION` (default `us-east-1`)
-- `USAGE_TABLE_NAME` (default `catieBedrockUsage`)
-
-### set_balance.sh
-Set a user's remaining token balance to an absolute value in DynamoDB (`record_id=summary`).
-
-```bash
-./set_balance.sh <username> <new_remaining_tokens> [--sync-budget]
-```
-
-Notes:
-- By default this sets `remaining_tokens` only and keeps existing `budget_tokens` (or initializes it if missing).
-- Use `--sync-budget` to also set `budget_tokens` to the same value.
-
-Optional environment variables:
-- `AWS_REGION` (default `us-east-1`)
-- `USAGE_TABLE_NAME` (default `catieBedrockUsage`)
-
-### Legacy Scripts
-
-- `store_secret.py` - Store Bedrock API key only (use `add_user.py` instead)
-- `get_secret.py` - Retrieve Bedrock API key for a user
-
-## Workflow
-
-### 1. Add a new user
-```bash
-python add_user.py bob "secretpass123" "ABSKQmVkcm9ja0FQSUtleS0..."
-```
-
-### 2. Verify it worked
-```bash
-python verify_user.py bob "secretpass123"
-```
-
-### 3. List all users
-```bash
-python list_users.py
-```
-
-### 4. Test in Rubrix
-1. Set `LAMBDA_URL` in `src-tauri/.env`
-2. Run `npm run tauri dev`
-3. Try generating questions
-4. Login with username `bob` and password `secretpass123`
-5. Should receive Bedrock API key and generate questions
+Then launch Catie, log in as `alice`, and generate a question to confirm end to end.
 
 ## Requirements
 
 ```bash
-pip install boto3
+pip install --upgrade boto3   # recent version required for `aws login` sessions
 ```
 
-Configure AWS credentials:
+The AWS identity needs SSM `PutParameter`, `GetParameter` and `GetParametersByPath` on `/secrets/*` (parameters are `SecureString`), plus `ssm:DescribeParameters` for `list_users.py`. If a customer-managed KMS key encrypts the parameters, it also needs `kms:Decrypt`/`kms:Encrypt` on that key.
+
+## AWS authentication
+
+The scripts use the standard AWS credential chain with the region pinned to `us-east-1` (where the gateway reads parameters; see `REGION` in [password_hashing.py](password_hashing.py)).
+
+One-time setup (browser-based login for an IAM user, no SSO start URL needed):
+
 ```bash
-aws configure
-# or set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION
+aws login --profile patrick
+aws configure set region us-east-1 --profile patrick
+aws sts get-caller-identity --profile patrick   # confirm it works
 ```
 
-Also ensure AWS CLI is installed:
+Each time you work in this directory:
 
 ```bash
-aws --version
+aws login --profile patrick     # only when the session has expired
+export AWS_PROFILE=patrick      # once per terminal (or put in ~/.zshrc)
+python list_users.py
 ```
 
-## Security Notes
+What is saved: the profile (region and `login_session` ARN) is in `~/.aws/config`, and the cached login session is under `~/.aws/login/cache/` (sensitive). `AWS_PROFILE` is not saved unless you add it to a shell rc file.
 
-- Passwords are hashed with SHA256 before storage
-- All parameters stored as `SecureString` type
-- Never commit passwords or API keys to git
-- Use IAM policies to restrict SSM access
+## Troubleshooting
+
+| Error | Fix |
+|---|---|
+| `Unable to locate credentials` | Session expired or `AWS_PROFILE` unset: run `aws login --profile <name>` and `export AWS_PROFILE=<name>`. If the AWS CLI works but Python does not, upgrade boto3 (`pip install --upgrade boto3`) or use `env/bin/python`. |
+| `NoRegionError` | `aws configure set region us-east-1 --profile <name>` (the gateway uses `us-east-1`). |
+| `AccessDeniedException` | The IAM identity lacks the SSM/KMS permissions listed above. |
+
+## Security notes
+
+- Passwords are stored as scrypt records (see [password_hashing.py](password_hashing.py)); the app sends the password itself over HTTPS.
+- Never commit passwords, hashes, or keys.
+- Restrict SSM access with IAM.

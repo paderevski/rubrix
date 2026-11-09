@@ -1,27 +1,88 @@
 # Changelog
 
-All notable changes to Rubrix are documented in this file.
+All notable changes to Catie (repository: rubrix) are documented in this file.
 
-## [Unreleased]
+## [0.12.0] - 2026-03-18
 
 ### Added
-- **Dev/Release credential management**: Development mode now caches AWS tokens in system keychain for seamless restarts
-- Keyring integration for secure, OS-encrypted credential storage (macOS Keychain, Windows Credential Manager, Linux Secret Service)
-- Dev mode indicator in UI header showing "🔧 DEV MODE" badge
-- New `is_dev_mode` command to detect build profile from frontend
-- `.env.example` file with documentation for development environment variables
-- `DEV_AWS_TOKEN` environment variable support for local development overrides
+- `<question>` tags in prompts so multi-question responses can be parsed reliably; good questions are salvaged when one fails to parse
+- "Regenerate All Questions" runs regenerations in parallel
+
+### Fixed
+- LaTeX rendering of `aligned` regions
+
+---
+
+## [0.11.0] - 2026-03-08
+
+### Added
+- Password-based login against the gateway with username normalization and a cleaned-up login modal
+- Word (.docx) export, including multiple versions and page breaks
+- Export of answer explanations
+- Document tabs, New/Close document flow, Open Recent, Preferences (default subject/difficulty), per-question raw output, topic/subtopic selection
+- Menu bar with keyboard shortcuts for most actions
 
 ### Changed
-- Authentication flow now auto-saves tokens to keychain in development mode
-- Token resolution hierarchy: provided > keychain > DEV_AWS_TOKEN > AWS_BEARER_TOKEN_BEDROCK > mock/error
-- `check_auth` command now checks both memory cache and keychain in dev mode
-- `clear_auth` (logout) now clears keychain in addition to memory cache in dev mode
-- Mock mode now only activates in development builds when no credentials available
+- Removed the old direct-token password tooling
 
-### Documentation
-- Added comprehensive [docs/CREDENTIALS.md](docs/CREDENTIALS.md) guide for credential management
-- Updated [DEV_RELEASE_STRATEGY.md](DEV_RELEASE_STRATEGY.md) with full implementation details
+---
+
+## [0.10.0] - 2026-03-01
+
+### Added
+- In-app **Help → Submit Bug** workflow backed by an AWS intake Lambda that files GitHub issues (see [docs/BUG_REPORT_WORKFLOW.md](docs/BUG_REPORT_WORKFLOW.md)); recent app logs are attached
+- Remaining-token count shown after generation (`remaining_tokens` in the stream payload)
+
+### Changed
+- Improved regeneration logic
+
+### Fixed
+- Main window scrolling bug; stray `\\[4pt]` sequences in LaTeX
+
+---
+
+## [0.9.0] - 2026-02-17
+
+### Added
+- **Bedrock gateway**: the app now authenticates against a gateway Lambda that calls AWS Bedrock server-side; no AWS token is needed on the client (see [docs/BEDROCK_GATEWAY_CONTRACT.md](docs/BEDROCK_GATEWAY_CONTRACT.md))
+- User-management scripts in [tools/](tools/README.md)
+
+### Changed
+- Gateway is the only generation path in dev and release builds; direct Bedrock tokens and mock mode were removed
+- `BEDROCK_GATEWAY_URL` is required (runtime `.env` or build-time)
+
+---
+
+## [0.8.0] - 2026-02-10
+
+### Added
+- Basic keyboard shortcuts
+
+### Changed
+- Append is now the default generation mode
+- Bedrock region switched to us-east-1
+
+---
+
+## [0.7.0] - 2026-02-10
+
+### Added
+- Rebrand to **Catie**
+- Lambda-based credential store and user tools
+
+### Fixed
+- Several LaTeX escaping issues (`\(`/`\)` delimiters, stray `\n`)
+- Generation no longer retries on HTTP 500
+
+---
+
+## [0.6.0] - 2026-01-07
+
+### Added
+- Authentication step to obtain an API token before generating
+
+### Fixed
+- Computer Science code styling
 
 ---
 

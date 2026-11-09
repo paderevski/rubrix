@@ -1,6 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod auth;
 mod config;
 mod knowledge;
 mod llm;
@@ -987,7 +986,7 @@ async fn generate_questions(
         .clone()
         .map(|creds| llm::GatewayAuth {
             user: creds.username,
-            password_hash: auth::hash_password(&creds.password),
+            password: creds.password.clone(),
         });
 
     // Call LLM with streaming
@@ -1099,7 +1098,7 @@ async fn regenerate_question(
         .clone()
         .map(|creds| llm::GatewayAuth {
             user: creds.username,
-            password_hash: auth::hash_password(&creds.password),
+            password: creds.password.clone(),
         });
 
     let inferred_question_type = if current.rubric.is_some() {
@@ -1159,7 +1158,7 @@ async fn regenerate_all_questions_parallel(
         .clone()
         .map(|creds| llm::GatewayAuth {
             user: creds.username,
-            password_hash: auth::hash_password(&creds.password),
+            password: creds.password.clone(),
         });
 
     let knowledge = &state.knowledge;
@@ -1370,8 +1369,7 @@ async fn authenticate(
         );
     }
 
-    let password_hash = auth::hash_password(&password);
-    llm::validate_gateway_credentials(&username, &password_hash).await?;
+    llm::validate_gateway_credentials(&username, &password).await?;
 
     save_saved_credentials(&app_handle, &SavedCredentials { username, password })?;
 
@@ -1393,8 +1391,7 @@ async fn auto_authenticate(
 
     let cached_creds = { state.credentials.lock().unwrap().clone() };
     if let Some(creds) = cached_creds {
-        let password_hash = auth::hash_password(&creds.password);
-        if llm::validate_gateway_credentials(&creds.username, &password_hash)
+        if llm::validate_gateway_credentials(&creds.username, &creds.password)
             .await
             .is_ok()
         {
@@ -1406,8 +1403,7 @@ async fn auto_authenticate(
     }
 
     if let Some(creds) = load_saved_credentials(&app_handle)? {
-        let password_hash = auth::hash_password(&creds.password);
-        if llm::validate_gateway_credentials(&creds.username, &password_hash)
+        if llm::validate_gateway_credentials(&creds.username, &creds.password)
             .await
             .is_ok()
         {

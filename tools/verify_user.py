@@ -2,8 +2,8 @@
 """
 Verify user credentials in the Lambda secret store.
 
-This script retrieves and displays the stored password hash and checks
-if the provided password matches.
+This script reports whether the stored password record is a valid scrypt
+record, and checks if the provided password matches.
 
 Usage:
     python verify_user.py <username> [password]
@@ -13,16 +13,12 @@ Example:
 """
 
 import sys
-import hashlib
 import boto3
 import re
 
-ssm = boto3.client("ssm")
+from password_hashing import REGION, is_scrypt_record, verify
 
-
-def hash_password(password: str) -> str:
-    """Hash password using SHA256 (same algorithm as client)"""
-    return hashlib.sha256(password.encode()).hexdigest()
+ssm = boto3.client("ssm", region_name=REGION)
 
 
 def sanitize_user(username: str) -> str:
@@ -45,7 +41,10 @@ def verify_user(username: str, password: str = None):
         )
         stored_hash = hash_response["Parameter"]["Value"]
         print(f"✓ User '{username}' found")
-        print(f"Stored password hash: {stored_hash}")
+        if is_scrypt_record(stored_hash):
+            print("Password record: scrypt")
+        else:
+            print("Password record: NOT a scrypt record (re-add the user with add_user.py)")
 
         # Check if Bedrock API key exists
         try:
@@ -53,8 +52,7 @@ def verify_user(username: str, password: str = None):
                 Name=f"/secrets/{safe_user}/secret", WithDecryption=True
             )
             key_value = key_response["Parameter"]["Value"]
-            print(f"✓ Bedrock API key exists (length: {len(key_value)})")
-            print(f"Key preview: {key_value[:20]}...")
+            print(f"✓ Bedrock API key slot exists (length: {len(key_value)})")
         except ssm.exceptions.ParameterNotFound:
             print(
                 f"✗ WARNING: Bedrock API key NOT found at /secrets/{safe_user}/secret"
@@ -62,10 +60,7 @@ def verify_user(username: str, password: str = None):
 
         # Verify password if provided
         if password:
-            computed_hash = hash_password(password)
-            print(f"\nComputed password hash: {computed_hash}")
-
-            if computed_hash == stored_hash:
+            if verify(password, stored_hash):
                 print("✓ Password MATCHES!")
             else:
                 print("✗ Password does NOT match")

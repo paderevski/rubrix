@@ -8,7 +8,7 @@ must match the existing `llm-stream` event format.
 
 ## Endpoint
 - Method: POST
-- Path: /generate
+- Path: the configured `BEDROCK_GATEWAY_URL` (for example `/generate`); the client POSTs to that URL as-is
 - Content-Type: application/json
 - Accept: text/event-stream
 
@@ -16,28 +16,19 @@ must match the existing `llm-stream` event format.
 ```json
 {
   "user": "string",
-  "password_hash": "string",
+  "password": "string",
   "prompt": "string",
-  "question_type": "multiple_choice | frq",
-  "meta": {
-    "subject": "string",
-    "topics": ["string"],
-    "difficulty": "string",
-    "count": 0,
-    "regenerate": false,
-    "user_instructions": "string"
-  }
+  "question_type": "multiple_choice | frq"
 }
 ```
 
 ### Fields
 - `user`: Username.
-- `password_hash`: SHA256 hex digest of the user's password.
-- `prompt`: Fully rendered prompt text sent to Bedrock.
-- `question_type`: Optional generation type hint. Supported values currently include `multiple_choice` and `frq`.
-  - When omitted, gateway defaults to standard model routing.
-- `meta`: Optional request metadata for logging or usage tracking.
-  - The gateway should accept unknown keys and ignore them.
+- `password`: The user's password, sent over HTTPS. The gateway checks it against the user's scrypt record in SSM.
+- `prompt`: Fully rendered prompt text sent to the model.
+- `question_type`: Optional. `multiple_choice` or `frq`; FRQ requests run at a higher reasoning effort (`ANTHROPIC_EFFORT_FRQ`). When omitted, the standard settings are used.
+- The gateway ignores unknown keys, so optional metadata can be added later.
+- `user` is normalized by the gateway (characters outside `A-Za-z0-9._-` become `_`) before the password lookup, and the same normalization is used for usage tracking.
 
 ## Model Routing
 
@@ -58,6 +49,7 @@ Current FRQ fallback model ID: `deepseek.v3.2`.
 - Content-Type: text/event-stream
 - Each chunk uses the `data:` prefix and ends with a blank line.
 - Payload matches the `llm-stream` shape: `{ "text": "...", "done": false }`.
+- The gateway may add `remaining_tokens` (number) when usage tracking is enabled; the client forwards it to the UI.
 
 Example stream:
 ```
@@ -79,12 +71,17 @@ data: {"text":"","done":true}
 
 ## Error Responses
 - 400: Invalid JSON or missing required fields.
-- 401: Invalid password hash.
-- 404: Unknown user.
-- 429: Rate limit exceeded.
-- 500: Internal error.
+- 401: Invalid credentials (password hash mismatch).
+- 404: User not found.
+- 429: Usage budget exceeded (the user's token budget is used up).
+- 500: Internal error, including usage control not configured.
 
-Errors are returned as JSON (not SSE):
+Errors are returned as JSON (not SSE) with the status repeated in the body:
 ```json
-{ "error": "message" }
+{ "error": "message", "status": 401 }
 ```
+
+The client treats any `application/json` response as an error, even if the transport status is `200` (streaming Lambda responses cannot always set the status code).
+
+## Usage control
+The gateway tracks a per-user token budget in DynamoDB (`catieBedrockUsage`, default budget 1,000,000 tokens). Each streamed event may carry `remaining_tokens`, which the app displays after generation.

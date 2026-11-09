@@ -11,7 +11,9 @@ Usage:
 
 import boto3
 
-ssm = boto3.client("ssm")
+from password_hashing import REGION
+
+ssm = boto3.client("ssm", region_name=REGION)
 
 
 def list_users():
