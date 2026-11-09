@@ -45,6 +45,17 @@ List all configured users and their status.
 python list_users.py
 ```
 
+### update_password.py
+Update an existing user's password without changing their Bedrock API key.
+The script prompts for the new password twice without displaying it.
+
+```bash
+python update_password.py alice
+```
+
+The user must already have a password hash in the selected AWS account and region.
+Set `AWS_PROFILE` and, if needed, `AWS_DEFAULT_REGION` before running the script.
+
 ### check_balance.sh
 Check a user's current token balance from DynamoDB usage table (`record_id=summary`).
 
