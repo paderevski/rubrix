@@ -1,11 +1,10 @@
 {
-  "schema_version": "2.3.0",
+  "schema_version": "2.4.0",
   "source": "AP CSA Practice Exam 1 (2026 format), 42 MCQ",
   "questions": [
     {
       "id": "pt2_q001",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q1.",
       "text": "Consider the following code segment.\n```java\nint x = 20;\nint y = 10;\nint temp = x;\nx = y;\ny = temp * x;\nSystem.out.println(x + \" \" + y);\n```\nWhat is printed as a result of executing this code segment?",
       "answers": [
         {
@@ -50,7 +49,6 @@
     {
       "id": "pt2_q002",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q2.",
       "text": "In the following statement, j and k are properly declared and initialized int variables.\n```java\nboolean result = ((j > 0) && (k > 0)) || ((j < 0) && (k < 0));\n```\nWhich of the following best describes the conditions in which result is assigned the value true?",
       "answers": [
         {
@@ -95,7 +93,6 @@
     {
       "id": "pt2_q003",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q3. Code indentation normalized.",
       "text": "Consider the following Painting class.\n```java\npublic class Painting\n{\n   private int year;\n   private String artist;\n   private String title;\n   public Painting(int y, String a)\n   {\n      year = y;\n      artist = a;\n      title = \"Untitled\";\n   }\n   // There are no other constructors.\n}\n```\nWhich of the following code segments, appearing in a class other than Painting, will correctly create an instance of a Painting object?",
       "answers": [
         {
@@ -141,7 +138,6 @@
     {
       "id": "pt2_q004",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q4.",
       "text": "Consider the following code segment.\n```java\nint first = 5 + 10 * 2;\nint second = first + first % 2;\n```\nWhat is the value of second after this code segment is executed?",
       "answers": [
         {
@@ -185,7 +181,6 @@
     {
       "id": "pt2_q005",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q5.",
       "text": "Consider the following code segment.\n```java\ndouble cost = 25.0;\ndouble discount = 0.0;\nif (cost >= 100.0)\n{\n discount = 10.0;\n}\nelse if (cost >= 50.0)\n{\n discount = 5.0;\n}\nelse\n{\n discount = 2.0;\n}\nSystem.out.println(cost - discount);\n```\nWhat is printed as a result of executing this code segment?",
       "answers": [
         {
@@ -230,7 +225,6 @@
     {
       "id": "pt2_q006",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q6. Line 1 update corrected from \"j = 2\" to \"j -= 2\" and stray \"-\" removed from the Line 1 comment; missing intended output restored as 97531 (the output of the corrected code under the keyed answer).",
       "text": "Consider the following code segment.\n```java\nfor (int j = 10; j >= 0; j -= 2)  // Line 1\n{                                  // Line 2\n   System.out.print(j - 1);        // Line 3\n}                                  // Line 4\n```\nThis code segment is intended to produce only the following output.\n```\n97531\n```\nIt does not work as intended.\nWhich of the following changes can be made so that this code segment works as intended?",
       "answers": [
         {
@@ -276,7 +270,6 @@
     {
       "id": "pt2_q007",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q7.",
       "text": "Consider the following code segment.\n```java\nString original = \"DEFGHI\";\nString result = /* missing code */;\nSystem.out.println(result);\n```\nWhich of the following expressions can be used to replace /* missing code */ so that this code segment prints the string \"HIDE\"?",
       "answers": [
         {
@@ -320,7 +313,6 @@
     {
       "id": "pt2_q008",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q8.",
       "text": "Consider the following code segment.\n```java\ndouble w = 2.0;\ndouble x = 5.0;\ndouble y = (int) w / x;\ndouble z = (int) (w / x);\nSystem.out.println(y + \", \" + z);\n```\nWhat is printed as a result of executing this code segment?",
       "answers": [
         {
@@ -365,7 +357,6 @@
     {
       "id": "pt2_q009",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q9. Code indentation normalized.",
       "text": "Consider the following class definitions.\n```java\npublic class Measurement\n{\n   private int feet;\n   private int inches;\n   public Measurement(int numFeet, int numInches)\n   {\n      feet = numFeet;\n      inches = numInches;\n   }\n   private int toInches()\n   {\n      return feet * 12 + inches;\n   }\n}\npublic class Calculations\n{\n   public static boolean compare(Measurement m1, Measurement m2)\n   {\n      if (m1.toInches() >= m2.toInches())\n      {\n         return true;\n      }\n      return false;\n   }\n}\n```\nWhich of the following best explains why an error occurs when the classes are compiled?",
       "answers": [
         {
@@ -410,7 +401,6 @@
     {
       "id": "pt2_q010",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q10.",
       "text": "A computer game should print different messages based on a player’s score.\n• \"Great!\" is printed for scores greater than 500.\n• \"Good!\" is printed for scores between 250 and 500, inclusive.\n• \"Try again.\" is printed for scores less than 250.\nAssume that score is a properly declared and initialized int that represents a player’s score.\nWhich of the following code segments will print the correct message for any valid value of score?",
       "answers": [
         {
@@ -455,7 +445,6 @@
     {
       "id": "pt2_q011",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q11. Shared Pair class stimulus restored from the original source.",
       "text": "Consider the following Pair class.\n```java\npublic class Pair\n{\n   private int x;\n   private int y;\n   public Pair(int x1, int y1)\n   {\n      x = x1;\n      y = y1;\n   }\n   public int getX()\n   {\n      return x;\n   }\n}\n```\nAssume that myPair is a properly declared and initialized Pair object that appears in a class other than Pair. Which of the following code segments will compile without error?",
       "answers": [
         {
@@ -500,7 +489,6 @@
     {
       "id": "pt2_q012",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q12. Shared Pair class stimulus restored from the original source.",
       "text": "Consider the following Pair class.\n```java\npublic class Pair\n{\n   private int x;\n   private int y;\n   public Pair(int x1, int y1)\n   {\n      x = x1;\n      y = y1;\n   }\n   public int getX()\n   {\n      return x;\n   }\n}\n```\nWhich of the following methods can be added to the Pair class to allow other classes to modify the value of y?",
       "answers": [
         {
@@ -545,7 +533,6 @@
     {
       "id": "pt2_q013",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q13.",
       "text": "Consider the following code segment.\n```java\nfor (int outer = 0; outer < 5; outer++)\n{\n   for (int inner = 4; inner >= 0; inner--)\n   {\n      System.out.println(\"*\");               // Line 5\n   }\n}\n```\nHow many times will the statement in line 5 be executed as a result of running this code segment?",
       "answers": [
         {
@@ -589,7 +576,6 @@
     {
       "id": "pt2_q014",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q14.",
       "text": "Assume that isEven, isPositive, and isPrime are boolean variables that have been properly declared and initialized. Which of the following expressions is equivalent to the expression `!(isEven && isPositive) && isPrime`?",
       "answers": [
         {
@@ -633,7 +619,6 @@
     {
       "id": "pt2_q015",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q15.",
       "text": "Consider the following code segment.\n```java\nString str = \"lookout\";\nString target = \"o\";\nint j = str.indexOf(target);\nwhile (j >= 0)\n{\n   str = str.substring(j);\n   System.out.print(str + \" \");\n   str = str.substring(1);\n   j = str.indexOf(target);\n}\n```\nWhat is printed as a result of executing this code segment?",
       "answers": [
         {
@@ -680,7 +665,6 @@
     {
       "id": "pt2_q016",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q16.",
       "text": "The Book class will contain attributes for a book’s title, author, and number of pages. The class will also contain methods to allow the attributes to be accessed outside the class.\n\nA class design diagram for the Book class will contain three sections. The first section contains the class name, the second section contains three instance variables and their data types, and the third section contains three methods and their return types.\n\nThe + symbol indicates a public designation, and the - symbol indicates a private designation.\n\nOf the following diagrams, which represents the most appropriate design for the Book class?",
       "answers": [
         {
@@ -727,7 +711,6 @@
     {
       "id": "pt2_q017",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q17.",
       "text": "A programmer developed a mobile application that is intended for users around the world. The programmer wants to maximize the application’s system reliability. Which of the following actions is most likely to support this goal?",
       "answers": [
         {
@@ -769,7 +752,6 @@
     {
       "id": "pt2_q018",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q18. Removed duplicated method signature line from the code block.",
       "text": "The following method is intended to return the maximum value that appears in the `int` array `numbers`.\n```java\npublic static int findMaximum(int[] numbers)\n{\n   int max = 0;\n   for (int num : numbers)\n   {\n      if (num > max)\n      {\n         max = num;\n      }\n   }\n   return max;\n}\n```\nThe method works as intended for some, but not all, int arrays. Which of the following best describes the conditions in which the method does not return the intended result?",
       "answers": [
         {
@@ -814,7 +796,6 @@
     {
       "id": "pt2_q019",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q19.",
       "text": "Consider the following statement.\n```java\nint r = (int) (Math.random() * 6) + 10;\n```\nWhich of the following best describes the behavior of the statement?",
       "answers": [
         {
@@ -860,7 +841,6 @@
     {
       "id": "pt2_q020",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q20.",
       "text": "Consider the following code segment.\n```java\nint value = 100;\nwhile (value % 5 == 0)\n{\n   value /= 2;\n}\nSystem.out.println(value);\n```\nWhat is printed as a result of executing this code segment?",
       "answers": [
         {
@@ -907,7 +887,6 @@
     {
       "id": "pt2_q021",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q21. Restored missing first line (0) of the intended output.",
       "text": "Consider the following code segment.\n```java\nfor (int j = 0; j < 4; j++)\n{\n   for (/* missing code */)\n   {\n      System.out.print(j + \" \");\n   }\n   System.out.println();\n}\n```\nThis code segment is intended to produce the following output.\n```\n0\n1 1\n2 2 2\n3 3 3 3\n```\nWhich of the following can be used to replace /* missing code */ so that this code segment works as intended?",
       "answers": [
         {
@@ -953,7 +932,6 @@
     {
       "id": "pt2_q022",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q22.",
       "text": "The following class definition does not compile.\n```java\npublic class Pet\n{\n   private String name;\n   private String species;\n   private int age;\n   public Pet(String pName, String pSpecies)\n   {\n      name = pName;\n      species = pSpecies;\n      age = 0;\n   }\n   public void incrementAge()\n   {\n      age++;\n   }\n   public String getInfo()\n   {\n      return pName + \", \" + pSpecies;\n   }\n}\n```\nWhich of the following best explains why the class will not compile?",
       "answers": [
         {
@@ -999,7 +977,6 @@
     {
       "id": "pt2_q023",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q23.",
       "text": "Consider the following method.\n```java\npublic static void updateArr(int[] arr, int val)\n{\n   arr[val] = val;\n}\n```\nThe following code segment appears in a method in the same class as updateArr.\n```java\nint[] numArr = new int[4];\nupdateArr(numArr, 1);\nupdateArr(numArr, 3);\n```\nWhat are the contents of numArr after executing this code segment?",
       "answers": [
         {
@@ -1045,7 +1022,6 @@
     {
       "id": "pt2_q024",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q24. Fixed typo in stem (\"after executing numbers this code segment\").",
       "text": "Consider the following code segment.\n```java\nArrayList<Integer> numbers = new ArrayList<Integer>();\nnumbers.add(100);\nnumbers.add(200);\nnumbers.add(0, 300);\nnumbers.set(2, 400);\nnumbers.add(2, 500);\n```\nWhat are the contents of numbers after executing this code segment?",
       "answers": [
         {
@@ -1089,7 +1065,6 @@
     {
       "id": "pt2_q025",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q25.",
       "text": "Consider the following class definition.\n```java\npublic class Shoe\n{\n   private static int count = 0;\n   private double size;\n   private String style;\n   public Shoe()\n   {\n      size = 7.0;\n      style = \"boot\";\n   }\n   public Shoe(double mySize, String myStyle)\n   {\n      size = mySize;\n      style = myStyle;\n      count++;\n   }\n   public static int getCount()\n   {\n      return count;\n   }\n}\n```\nThe following code segment appears in a class other than Shoe.\n```java\nShoe s1 = new Shoe(8.5, \"sneaker\");\nShoe s2 = new Shoe();\nShoe s3 = new Shoe(7.0, \"sandal\");\nSystem.out.println(Shoe.getCount());\n```\nWhat is printed as a result of executing this code segment if it is executed before any other instances of Shoe are constructed?",
       "answers": [
         {
@@ -1134,7 +1109,6 @@
     {
       "id": "pt2_q026",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q26.",
       "text": "In the following code segment, `n` is a properly declared and initialized `int` variable whose value is positive.\n\n```java\nwhile (n > 0)           // Line 1\n{                       // Line 2\n   n /= 10;             // Line 3\n}                       // Line 4\nSystem.out.println(n);  // Line 5\n```\n\nThis code segment is intended to print the leftmost digit of `n`. For example, if `n` is `302`, this code segment should print `3`. However, this code segment is not working as intended. Which of the following changes can be made so that this code segment works as intended?",
       "answers": [
         {
@@ -1182,7 +1156,6 @@
     {
       "id": "pt2_q027",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q27.",
       "text": "A school offers optional courses and clubs to students. A programmer wants to investigate whether students at the school who took a computer science course were more or less likely to participate in the school’s photography club. The programmer has the following data sets available.\n• Data set 1 contains an entry for each club offered by the school. Each entry includes the name of the club and a list of the names of the club members.\n• Data set 2 contains an entry for each member of the photography club. Each entry contains the name of the member, the number of photographs taken by the member, and the member’s favorite course.\n• Data set 3 contains an entry for each student at the school. Each entry contains the name of the student, a list of the courses the student took, and a list of the clubs the student participated in.\n• Data set 4 contains an entry for each student at the school. Each entry contains the name of the student, the student’s favorite course, and the student’s favorite club.\nWhich of the data sets is most appropriate for the programmer’s investigation?",
       "answers": [
         {
@@ -1226,7 +1199,6 @@
     {
       "id": "pt2_q028",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q28.",
       "text": "Consider the following code segment.\n```java\nString str = \"abbcdddeff\";\nint j = 0;\nint count = 0;\nwhile (j < str.length() - 1)\n{\n   if (str.substring(j, j + 1)\n          .equals(str.substring(j + 1, j + 2)))\n   {\n      count++;\n   }\n   j++;\n}\nSystem.out.println(count);\n```\nWhat is printed as a result of executing this code segment?",
       "answers": [
         {
@@ -1273,7 +1245,6 @@
     {
       "id": "pt2_q029",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q29.",
       "text": "Consider the following method.\n```java\npublic static void printNums(int n)\n{\n   if (n < 50)\n   {\n      printNums(n * -2);\n      System.out.print(n + \" \");\n   }\n}\n```\nWhat is printed as a result of the call printNums(10)?",
       "answers": [
         {
@@ -1320,7 +1291,6 @@
     {
       "id": "pt2_q030",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q30.",
       "text": "The following incomplete method is intended to return the minimum value among its three parameters.\n```java\npublic static int minOfThree(int a, int b, int c)\n{\n   /* missing code */\n}\n```\nWhich of the following can be used to replace /* missing code */ so that the method works as intended?",
       "answers": [
         {
@@ -1366,7 +1336,6 @@
     {
       "id": "pt2_q031",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q31.",
       "text": "A software company wants to develop new features to attract new users to download a popular application. The company created a survey to ask users how they feel about several potential new features. The company sent the survey to all users who spent more than 500 hours using the application during the previous year. A programmer for the company wants to determine which new features should be prioritized by performing an analysis of the survey data. Which of the following best explains why the programmer should be careful about the conclusions drawn from the analysis?",
       "answers": [
         {
@@ -1410,7 +1379,6 @@
     {
       "id": "pt2_q032",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q32.",
       "text": "Consider the following code segment.\n```java\nint[][] mat = {{10, 20, 30},\n               {40, 50, 60}};\nArrayList<Integer> result = new ArrayList<Integer>();\n/* missing code */\n```\nAfter executing this code segment, result should contain [30, 20, 10, 60, 50, 40].\nWhich of the following can replace /* missing code */ to produce this result?",
       "answers": [
         {
@@ -1456,7 +1424,6 @@
     {
       "id": "pt2_q033",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q33.",
       "text": "Consider the following code segment.\n```java\nint[] arr = {10, 20, 30, 40, 50, 60};\nfor (int j = arr.length - 1; j >= 0; j -= 2)\n{\n   arr[j]++;\n}\n```\nWhat are the contents of arr after executing this code segment?",
       "answers": [
         {
@@ -1502,7 +1469,6 @@
     {
       "id": "pt2_q034",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q34.",
       "text": "Consider the following code segment.\n```java\nArrayList<String> oldList = new ArrayList<String>();\noldList.add(\"a\");\noldList.add(\"b\");\noldList.add(\"c\");\nArrayList<String> newList = new ArrayList<String>();\n/* missing code */\n```\nAfter executing this code segment, newList should contain [\"c\", \"b\", \"a\", \"a\", \"b\", \"c\"].\nWhich of the following can replace /* missing code */ to produce this result?",
       "answers": [
         {
@@ -1547,7 +1513,6 @@
     {
       "id": "pt2_q035",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q35.",
       "text": "Consider the following method.\n```java\npublic static boolean mystery(ArrayList<Integer> numbers)\n{\n   int prev = Integer.MAX_VALUE;\n   for (int num : numbers)\n   {\n      if (num > prev)\n      {\n         return false;\n      }\n      prev = num;\n   }\n   return true;\n}\n```\nWhich of the following best describes the behavior of the method?",
       "answers": [
         {
@@ -1592,7 +1557,6 @@
     {
       "id": "pt2_q036",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q36.",
       "text": "Consider the following code segment.\n```java\nint[][] my2Darr = new int[4][3];\nfor (int r = 0; r < my2Darr.length; r++)\n{\n   for (int c = 0; c < my2Darr[0].length; c++)\n   {\n      if (r == c)\n      {\n         my2Darr[r][c] = r;\n      }\n   }\n}\n```\nWhich of the following represents the contents of my2Darr after executing this code segment?",
       "answers": [
         {
@@ -1636,7 +1600,6 @@
     {
       "id": "pt2_q037",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q37.",
       "text": "Consider the following method. When an element of the two-dimensional array values is accessed, the first index is used to specify the row and the second index is used to specify the column.\n```java\npublic static int enigma(int[][] values, int x, int target)\n{\n   int result = 0;\n   for (int num : values[x])\n   {\n      if (num == target)\n      {\n         result++;\n      }\n   }\n   return result;\n}\n```\nWhich of the following best describes the value returned by the method?",
       "answers": [
         {
@@ -1680,7 +1643,6 @@
     {
       "id": "pt2_q038",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q38.",
       "text": "A text file named `sourceText.txt` has the following contents. Assume that the file contains no spaces.\n```\nfinest_artist\nbiggest_gamer\nnicest_teacher\nbest_athlete\n```\nIn the following code segment, a valid `Scanner` object named `sc` has been created to read from the text file.\n```java\nFile myText = new File(\"sourceText.txt\");\nScanner sc = new Scanner(myText);\nArrayList<String> firstList = new ArrayList<String>();\nArrayList<String> secondList = new ArrayList<String>();\n/* missing code */\n```\nThis code segment is intended to assign `[\"finest\", \"biggest\", \"nicest\", \"best\"]` to `firstList` and to assign `[\"artist\", \"gamer\", \"teacher\", \"athlete\"]` to `secondList`.\nWhich of the following can replace `/* missing code */` so that this code segment works as intended?",
       "answers": [
         {
@@ -1726,7 +1688,6 @@
     {
       "id": "pt2_q039",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q39. Code indentation normalized.",
       "text": "The following method implements a recursive binary search algorithm.\n```java\npublic static int binarySearch(int[] elements, int low,\n                               int high, int target)\n{\n   if (low <= high)\n   {\n      int mid = (high + low) / 2;\n      if (target < elements[mid])\n      {\n         return binarySearch(elements, low, mid - 1, target);\n      }\n      else if (target > elements[mid])\n      {\n         return binarySearch(elements, mid + 1, high, target);\n      }\n      else if (elements[mid] == target)\n      {\n         return mid;\n      }\n   }\n   return -1;\n}\n```\nThe following code segment appears in a method in the same class as binarySearch.\n```java\nint[] numbers = {10, 10, 10, 20, 20, 30, 40, 50, 50, 60, 80};\nint result = binarySearch(numbers, 0, numbers.length - 1, 10);\n```\nWhat is the value of result after executing the code segment?",
       "answers": [
         {
@@ -1773,7 +1734,6 @@
     {
       "id": "pt2_q040",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q40. Code indentation normalized.",
       "text": "The following method is a correct implementation of the insertion sort algorithm. The method correctly sorts the elements of numList so that they appear in order from least to greatest.\n```java\npublic static void insertionSort(ArrayList<Integer> numList)\n{\n   for (int j = 1; j < numList.size(); j++)\n   {\n      int temp = numList.get(j);\n      int k = j;\n      while (k > 0 && temp < numList.get(k - 1))\n      {\n         numList.set(k, numList.get(k - 1));\n         k--;\n      }\n      numList.set(k, temp);\n      /* end of outer loop */\n   }\n}\n```\nAssume that insertionSort has been called with an ArrayList parameter that has been initialized with the following Integer objects.\n[60, 30, 10, 20, 50, 40]\nWhat will the contents of numList be after three passes of the outer loop (i.e., when j == 3 at the point indicated by /* end of outer loop */)?",
       "answers": [
         {
@@ -1818,7 +1778,6 @@
     {
       "id": "pt2_q041",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q41.",
       "text": "Consider the following code segment.\n```java\nString[] colors = {\"red\", \"green\", \"orange\", \"black\",\n                   \"yellow\", \"brown\"};\nint result = -1;\nfor (int j = 0; j < colors.length; j++)\n{\n   for (int k = j + 1; k < colors.length; k++)\n   {\n      if (colors[j].length() == colors[k].length())\n      {\n         result = k;\n      }\n   }\n}\n```\nWhat is the value of result after executing this code segment?",
       "answers": [
         {
@@ -1867,7 +1826,6 @@
     {
       "id": "pt2_q042",
       "status": "active",
-      "_migration_note": "Converted from APCSA_Practice_MCQ_1_formatted (saved 2026-04-20), source id q42.",
       "text": "Consider the following code segment.\n```java\nint j = 0;\nint sum = 0;\nwhile (j <= 5)\n{\n   j++;\n   sum += j;\n}\n```\nWhich of the following code segments assigns the same value to sum as the preceding code segment?",
       "answers": [
         {
