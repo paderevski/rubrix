@@ -16,15 +16,15 @@ must match the existing `llm-stream` event format.
 ```json
 {
   "user": "string",
-  "password_hash": "string",
+  "password": "string",
   "prompt": "string"
 }
 ```
 
 ### Fields
 - `user`: Username.
-- `password_hash`: SHA256 hex digest of the user's password.
-- `prompt`: Fully rendered prompt text sent to Bedrock.
+- `password`: The user's password, sent over HTTPS. The gateway checks it against the user's scrypt record in SSM.
+- `prompt`: Fully rendered prompt text sent to the model.
 - The client currently sends only these three fields. The gateway should ignore unknown keys, so optional metadata can be added later.
 - `user` is normalized by the gateway (characters outside `A-Za-z0-9._-` become `_`) before the password lookup, and the same normalization is used for usage tracking.
 

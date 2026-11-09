@@ -3,10 +3,9 @@ const streamifyResponse =
   typeof globalThis.awslambda.streamifyResponse === "function"
     ? globalThis.awslambda.streamifyResponse
     : null;
-const {
-  BedrockRuntimeClient,
-  ConverseStreamCommand,
-} = require("@aws-sdk/client-bedrock-runtime");
+const crypto = require("node:crypto");
+const { promisify } = require("node:util");
+const Anthropic = require("@anthropic-ai/sdk");
 const { SSMClient, GetParameterCommand } = require("@aws-sdk/client-ssm");
 const {
   DynamoDBClient,
@@ -16,43 +15,31 @@ const {
 } = require("@aws-sdk/client-dynamodb");
 const { marshall, unmarshall } = require("@aws-sdk/util-dynamodb");
 
+const scryptAsync = promisify(crypto.scrypt);
+
 const AWS_REGION = "us-east-1";
-// the following west is used for deepseek.v3-v1:0 only. probably need to deprecate
-const BEDROCK_REGION_US_WEST_2 = "us-west-2";
 const ssm = new SSMClient({ region: AWS_REGION });
-const bedrock = new BedrockRuntimeClient({ region: AWS_REGION });
-const bedrockUsWest2 = new BedrockRuntimeClient({
-  region: BEDROCK_REGION_US_WEST_2,
-});
 const usageRegion = "us-east-1";
 const usageDb = new DynamoDBClient({ region: usageRegion });
 
-const oss = "openai.gpt-oss-120b-1:0";
-const claude = "anthropic.claude-sonnet-4-5-20250929-v1:0";
-const claude2 = "us.anthropic.claude-sonnet-4-5-20250929-v1:0";
-const MODEL_ID = process.env.BEDROCK_MODEL_ID || oss;
-const FRQ_MODEL_ID =
-  process.env.BEDROCK_MODEL_ID_FRQ ||
-  process.env.BEDROCK_FRQ_MODEL_ID ||
-  "us.deepseek.r1-v1:0";
-const REASONING_EFFORT = process.env.BEDROCK_REASONING_EFFORT || "medium";
-const CLAUDE_THINKING_BUDGET = Number(
-  process.env.BEDROCK_CLAUDE_THINKING_BUDGET || 8000,
-);
-const MAX_TOKENS = process.env.BEDROCK_MAX_TOKENS
-  ? Number(process.env.BEDROCK_MAX_TOKENS)
-  : 20480;
-const TEMPERATURE = process.env.BEDROCK_TEMPERATURE
-  ? Number(process.env.BEDROCK_TEMPERATURE)
-  : undefined;
-const TOP_P = process.env.BEDROCK_TOP_P
-  ? Number(process.env.BEDROCK_TOP_P)
-  : undefined;
-const STOP_SEQUENCES = process.env.BEDROCK_STOP_SEQUENCES
-  ? process.env.BEDROCK_STOP_SEQUENCES.split(",")
-      .map((item) => item.trim())
-      .filter(Boolean)
-  : [];
+// Model configuration (Anthropic API, called directly).
+const MODEL_ID = process.env.ANTHROPIC_MODEL || "claude-haiku-5-5";
+const FRQ_MODEL_ID = process.env.ANTHROPIC_MODEL_FRQ || MODEL_ID;
+// Effort controls how much the model thinks. Claude Haiku 5.5 defaults to "medium".
+const EFFORT = process.env.ANTHROPIC_EFFORT || "medium";
+const FRQ_EFFORT = process.env.ANTHROPIC_EFFORT_FRQ || "high";
+// Thinking counts toward max_tokens, so leave room for it on top of the answer.
+const MAX_TOKENS = process.env.ANTHROPIC_MAX_TOKENS
+  ? Number(process.env.ANTHROPIC_MAX_TOKENS)
+  : 32000;
+// SSM SecureString holding the Anthropic API key (kept out of the /secrets/ per-user namespace).
+const ANTHROPIC_API_KEY_PARAM =
+  process.env.ANTHROPIC_API_KEY_PARAM || "/catie/anthropic_api_key";
+
+// Password verification. The client sends the password over HTTPS; stored values are
+// `scrypt$N$r$p$<salt b64>$<hash b64>` of it (see tools/password_hashing.py).
+const SCRYPT_MAXMEM = 256 * 1024 * 1024;
+
 const USAGE_TABLE_NAME = "catieBedrockUsage";
 const USAGE_DEFAULT_BUDGET = 1000000;
 const USAGE_MAX_TEXT_BYTES = 300000;
@@ -132,227 +119,6 @@ function computeProjectedRemainingTokens(usageRecord, usageTokens) {
   return Math.max(currentRemaining - usedTokens, 0);
 }
 
-function detectBlockTypeFromStart(start) {
-  if (!start || typeof start !== "object") {
-    return null;
-  }
-
-  if (
-    typeof start.reasoningText === "string" ||
-    typeof start.reasoningContent?.text === "string" ||
-    typeof start.reasoningContent?.reasoningText?.text === "string" ||
-    start.reasoningContent
-  ) {
-    return "reasoning";
-  }
-
-  if (typeof start.text === "string") {
-    return "response";
-  }
-
-  return null;
-}
-
-function extractTextFromConverseEvent(eventChunk, usageState) {
-  if (!eventChunk || typeof eventChunk !== "object") {
-    return null;
-  }
-
-  const deltaEvent = eventChunk.contentBlockDelta;
-  const delta = deltaEvent?.delta;
-  if (delta && typeof delta === "object") {
-    if (typeof delta.text === "string" && delta.text.length > 0) {
-      return {
-        text: delta.text,
-        blockType: "response",
-        contentBlockIndex: Number.isInteger(deltaEvent?.contentBlockIndex)
-          ? deltaEvent.contentBlockIndex
-          : null,
-      };
-    }
-
-    // Some reasoning-capable models can emit reasoning text blocks.
-    const reasoningText = delta.reasoningContent?.reasoningText?.text;
-    if (typeof reasoningText === "string" && reasoningText.length > 0) {
-      return {
-        text: reasoningText,
-        blockType: "reasoning",
-        contentBlockIndex: Number.isInteger(deltaEvent?.contentBlockIndex)
-          ? deltaEvent.contentBlockIndex
-          : null,
-      };
-    }
-
-    // Some providers emit reasoning text directly on reasoningContent.text.
-    const reasoningContentText = delta.reasoningContent?.text;
-    if (
-      typeof reasoningContentText === "string" &&
-      reasoningContentText.length > 0
-    ) {
-      return {
-        text: reasoningContentText,
-        blockType: "reasoning",
-        contentBlockIndex: Number.isInteger(deltaEvent?.contentBlockIndex)
-          ? deltaEvent.contentBlockIndex
-          : null,
-      };
-    }
-
-    if (
-      typeof delta.reasoningText === "string" &&
-      delta.reasoningText.length > 0
-    ) {
-      return {
-        text: delta.reasoningText,
-        blockType: "reasoning",
-        contentBlockIndex: Number.isInteger(deltaEvent?.contentBlockIndex)
-          ? deltaEvent.contentBlockIndex
-          : null,
-      };
-    }
-  }
-
-  const startEvent = eventChunk.contentBlockStart;
-  const start = startEvent?.start;
-  if (start && typeof start === "object" && typeof start.text === "string") {
-    return {
-      text: start.text,
-      blockType: "response",
-      contentBlockIndex: Number.isInteger(startEvent?.contentBlockIndex)
-        ? startEvent.contentBlockIndex
-        : null,
-    };
-  }
-
-  const startReasoningText = start?.reasoningContent?.reasoningText?.text;
-  if (typeof startReasoningText === "string" && startReasoningText.length > 0) {
-    return {
-      text: startReasoningText,
-      blockType: "reasoning",
-      contentBlockIndex: Number.isInteger(startEvent?.contentBlockIndex)
-        ? startEvent.contentBlockIndex
-        : null,
-    };
-  }
-
-  const startReasoningContentText = start?.reasoningContent?.text;
-  if (
-    typeof startReasoningContentText === "string" &&
-    startReasoningContentText.length > 0
-  ) {
-    return {
-      text: startReasoningContentText,
-      blockType: "reasoning",
-      contentBlockIndex: Number.isInteger(startEvent?.contentBlockIndex)
-        ? startEvent.contentBlockIndex
-        : null,
-    };
-  }
-
-  const outputMessage = eventChunk.messageStart?.message;
-  if (outputMessage && Array.isArray(outputMessage.content)) {
-    for (const part of outputMessage.content) {
-      if (!part || typeof part !== "object") {
-        continue;
-      }
-      if (typeof part.text === "string" && part.text.length > 0) {
-        return {
-          text: part.text,
-          blockType: "response",
-          contentBlockIndex: null,
-        };
-      }
-      if (
-        typeof part.reasoningText === "string" &&
-        part.reasoningText.length > 0
-      ) {
-        return {
-          text: part.reasoningText,
-          blockType: "reasoning",
-          contentBlockIndex: null,
-        };
-      }
-      if (
-        typeof part.reasoningContent?.text === "string" &&
-        part.reasoningContent.text.length > 0
-      ) {
-        return {
-          text: part.reasoningContent.text,
-          blockType: "reasoning",
-          contentBlockIndex: null,
-        };
-      }
-      if (
-        typeof part.reasoningContent?.reasoningText?.text === "string" &&
-        part.reasoningContent.reasoningText.text.length > 0
-      ) {
-        return {
-          text: part.reasoningContent.reasoningText.text,
-          blockType: "reasoning",
-          contentBlockIndex: null,
-        };
-      }
-    }
-  }
-
-  const deltaIndex = Number.isInteger(deltaEvent?.contentBlockIndex)
-    ? deltaEvent.contentBlockIndex
-    : null;
-  if (
-    deltaIndex !== null &&
-    usageState &&
-    usageState.blockTypesByIndex &&
-    usageState.blockTypesByIndex[deltaIndex]
-  ) {
-    return {
-      text: null,
-      blockType: usageState.blockTypesByIndex[deltaIndex],
-      contentBlockIndex: deltaIndex,
-    };
-  }
-
-  return null;
-}
-
-function extractUsageFromConverseEvent(eventChunk) {
-  if (!eventChunk || typeof eventChunk !== "object") {
-    return null;
-  }
-
-  const usage = eventChunk.metadata?.usage || eventChunk.usage;
-  if (usage && typeof usage === "object") {
-    const promptTokens = Number.isFinite(usage.inputTokens)
-      ? usage.inputTokens
-      : null;
-    const completionTokens = Number.isFinite(usage.outputTokens)
-      ? usage.outputTokens
-      : null;
-    if (Number.isFinite(usage.totalTokens)) {
-      return {
-        totalTokens: usage.totalTokens,
-        promptTokens,
-        completionTokens,
-        cachedTokens: null,
-      };
-    }
-    const promptValue = Number.isFinite(promptTokens) ? promptTokens : 0;
-    const completionValue = Number.isFinite(completionTokens)
-      ? completionTokens
-      : 0;
-    const total = promptValue + completionValue;
-    if (total > 0) {
-      return {
-        totalTokens: total,
-        promptTokens,
-        completionTokens,
-        cachedTokens: null,
-      };
-    }
-  }
-
-  return null;
-}
-
 function truncateTextToBytes(text, maxBytes) {
   if (!text) {
     return { text: "", bytes: 0, truncated: false };
@@ -406,75 +172,168 @@ function appendChunkWithLimit(state, chunk) {
   state.responseTruncated = true;
 }
 
-function handleConverseEvent(eventChunk, responseStream, usageState) {
-  const startEvent = eventChunk?.contentBlockStart;
-  if (startEvent && Number.isInteger(startEvent.contentBlockIndex)) {
-    const blockType = detectBlockTypeFromStart(startEvent.start);
-    if (blockType) {
-      usageState.blockTypesByIndex[startEvent.contentBlockIndex] = blockType;
-      if (blockType === "reasoning") {
+function writeReasoningEndOnce(responseStream, usageState) {
+  if (!usageState.reasoningSeen || usageState.reasoningEndSent) {
+    return;
+  }
+  usageState.reasoningEndSent = true;
+  responseStream.write(
+    sseEvent("", false, null, {
+      block_type: "reasoning_end",
+      reasoning_done: true,
+    }),
+  );
+}
+
+function writeStreamText(responseStream, usageState, text, blockType) {
+  if (!text) {
+    return;
+  }
+  if (blockType === "response") {
+    writeReasoningEndOnce(responseStream, usageState);
+  }
+  responseStream.write(
+    sseEvent(text, false, null, {
+      block_type: blockType,
+      reasoning_done: usageState.reasoningEndSent,
+    }),
+  );
+  appendChunkWithLimit(usageState, text);
+}
+
+// Usage arrives on message_start (input side) and message_delta (cumulative output),
+// so partial usage is still recorded if the stream fails midway.
+function recordUsage(usageState, usage) {
+  if (!usage || typeof usage !== "object") {
+    return;
+  }
+  const u = usageState.apiUsage;
+  for (const key of [
+    "input_tokens",
+    "output_tokens",
+    "cache_creation_input_tokens",
+    "cache_read_input_tokens",
+  ]) {
+    if (Number.isFinite(usage[key])) {
+      u[key] = usage[key];
+    }
+  }
+  const input =
+    (u.input_tokens || 0) +
+    (u.cache_creation_input_tokens || 0) +
+    (u.cache_read_input_tokens || 0);
+  const output = u.output_tokens || 0;
+  usageState.tokens = {
+    totalTokens: input + output,
+    promptTokens: input,
+    completionTokens: output,
+    cachedTokens: u.cache_read_input_tokens || 0,
+  };
+}
+
+function handleAnthropicEvent(event, responseStream, usageState) {
+  switch (event.type) {
+    case "message_start":
+      recordUsage(usageState, event.message?.usage);
+      break;
+    case "message_delta":
+      recordUsage(usageState, event.usage);
+      break;
+    case "content_block_start":
+      if (event.content_block?.type === "thinking") {
+        usageState.blockTypesByIndex[event.index] = "reasoning";
         usageState.reasoningSeen = true;
         usageState.activeReasoningBlocks += 1;
+      } else if (event.content_block?.type === "text") {
+        usageState.blockTypesByIndex[event.index] = "response";
       }
-    }
-  }
-
-  const stopEvent = eventChunk?.contentBlockStop;
-  if (stopEvent && Number.isInteger(stopEvent.contentBlockIndex)) {
-    const blockType = usageState.blockTypesByIndex[stopEvent.contentBlockIndex];
-    if (blockType === "reasoning") {
-      usageState.activeReasoningBlocks = Math.max(
-        usageState.activeReasoningBlocks - 1,
-        0,
-      );
-      if (
-        usageState.reasoningSeen &&
-        usageState.activeReasoningBlocks === 0 &&
-        !usageState.reasoningEndSent
-      ) {
-        usageState.reasoningEndSent = true;
-        responseStream.write(
-          sseEvent("", false, null, {
-            block_type: "reasoning_end",
-            reasoning_done: true,
-          }),
+      break;
+    case "content_block_delta":
+      if (event.delta?.type === "thinking_delta") {
+        writeStreamText(
+          responseStream,
+          usageState,
+          event.delta.thinking,
+          "reasoning",
+        );
+      } else if (event.delta?.type === "text_delta") {
+        writeStreamText(
+          responseStream,
+          usageState,
+          event.delta.text,
+          "response",
         );
       }
-    }
-    delete usageState.blockTypesByIndex[stopEvent.contentBlockIndex];
+      break;
+    case "content_block_stop":
+      if (usageState.blockTypesByIndex[event.index] === "reasoning") {
+        usageState.activeReasoningBlocks = Math.max(
+          usageState.activeReasoningBlocks - 1,
+          0,
+        );
+        if (usageState.activeReasoningBlocks === 0) {
+          writeReasoningEndOnce(responseStream, usageState);
+        }
+      }
+      delete usageState.blockTypesByIndex[event.index];
+      break;
+    default:
+      break;
   }
+}
 
-  const usageTokens = extractUsageFromConverseEvent(eventChunk);
-  if (usageTokens && Number.isFinite(usageTokens.totalTokens)) {
-    usageState.tokens = usageTokens;
-  }
+// --- Anthropic client (API key read from SSM once per container) ---
 
-  const extracted = extractTextFromConverseEvent(eventChunk, usageState);
-  if (extracted && extracted.text) {
-    const blockType = extracted.blockType || "response";
+let anthropicClientPromise = null;
 
-    if (
-      blockType === "response" &&
-      usageState.reasoningSeen &&
-      !usageState.reasoningEndSent
-    ) {
-      usageState.reasoningEndSent = true;
-      responseStream.write(
-        sseEvent("", false, null, {
-          block_type: "reasoning_end",
-          reasoning_done: true,
+function getAnthropicClient() {
+  if (!anthropicClientPromise) {
+    anthropicClientPromise = ssm
+      .send(
+        new GetParameterCommand({
+          Name: ANTHROPIC_API_KEY_PARAM,
+          WithDecryption: true,
         }),
-      );
-    }
-
-    responseStream.write(
-      sseEvent(extracted.text, false, null, {
-        block_type: blockType,
-        reasoning_done: usageState.reasoningEndSent,
-      }),
-    );
-    appendChunkWithLimit(usageState, extracted.text);
+      )
+      .then((result) => new Anthropic({ apiKey: result.Parameter.Value }))
+      .catch((error) => {
+        anthropicClientPromise = null; // retry on the next request
+        throw error;
+      });
   }
+  return anthropicClientPromise;
+}
+
+// --- Password verification ---
+
+async function verifyPassword(password, stored) {
+  if (typeof password !== "string" || typeof stored !== "string") {
+    return { ok: false, reason: "invalid_input" };
+  }
+  const parts = stored.split("$");
+  if (parts.length !== 6 || parts[0] !== "scrypt") {
+    return { ok: false, reason: "malformed_record" };
+  }
+  const [, nStr, rStr, pStr, saltB64, hashB64] = parts;
+  const N = Number(nStr);
+  const r = Number(rStr);
+  const p = Number(pStr);
+  const salt = Buffer.from(saltB64, "base64");
+  const expected = Buffer.from(hashB64, "base64");
+  if (
+    ![N, r, p].every(Number.isInteger) ||
+    salt.length === 0 ||
+    expected.length === 0
+  ) {
+    return { ok: false, reason: "malformed_record" };
+  }
+  const actual = await scryptAsync(password, salt, expected.length, {
+    N,
+    r,
+    p,
+    maxmem: SCRYPT_MAXMEM,
+  });
+  return { ok: crypto.timingSafeEqual(actual, expected), reason: "scrypt" };
 }
 
 const streamingHandler = async (event, responseStream) => {
@@ -493,7 +352,7 @@ const streamingHandler = async (event, responseStream) => {
 
   const user = body.user;
   const safeUser = normalizeUser(user);
-  const passwordHash = body.password_hash;
+  const password = body.password;
   const prompt = body.prompt;
   const questionType =
     typeof body.question_type === "string"
@@ -501,14 +360,14 @@ const streamingHandler = async (event, responseStream) => {
       : "";
   const selectedModelId = questionType === "frq" ? FRQ_MODEL_ID : MODEL_ID;
 
-  if (!user || !safeUser || !passwordHash || !prompt) {
+  if (!user || !safeUser || !password || !prompt) {
     return buildErrorResponse(
       responseStream,
       400,
-      "Missing user, password_hash, or prompt",
+      "Missing user, password, or prompt",
       {
         has_user: Boolean(user),
-        has_password_hash: Boolean(passwordHash),
+        has_password: Boolean(password),
         has_prompt: Boolean(prompt),
       },
     );
@@ -533,10 +392,19 @@ const streamingHandler = async (event, responseStream) => {
         WithDecryption: true,
       }),
     );
-    const storedHash = storedHashParam.Parameter.Value;
-    if (passwordHash !== storedHash) {
+    const storedRecord = storedHashParam.Parameter.Value;
+    const verification = await verifyPassword(password, storedRecord);
+    if (verification.reason === "malformed_record") {
+      logGatewayError(
+        "auth_record_malformed",
+        "Password record is not a scrypt record",
+        { safe_user: safeUser },
+      );
+    }
+    if (!verification.ok) {
       return buildErrorResponse(responseStream, 401, "Invalid credentials", {
         safe_user: safeUser,
+        reason: verification.reason,
       });
     }
   } catch (error) {
@@ -642,54 +510,21 @@ const streamingHandler = async (event, responseStream) => {
     }
   }
 
-  const inferenceConfig = {};
-  if (Number.isFinite(MAX_TOKENS)) {
-    inferenceConfig.maxTokens = MAX_TOKENS;
-  }
-  if (Number.isFinite(TEMPERATURE)) {
-    inferenceConfig.temperature = TEMPERATURE;
-  }
-  if (Number.isFinite(TOP_P)) {
-    inferenceConfig.topP = TOP_P;
-  }
-  if (STOP_SEQUENCES.length > 0) {
-    inferenceConfig.stopSequences = STOP_SEQUENCES;
-  }
-
-  const additionalModelRequestFields = {};
-  const supportsReasoningEffort =
-    typeof selectedModelId === "string" &&
-    (selectedModelId.startsWith("openai.gpt-oss") ||
-      selectedModelId.startsWith("deepseek.v3"));
-  if (
-    supportsReasoningEffort &&
-    typeof REASONING_EFFORT === "string" &&
-    REASONING_EFFORT.trim()
-  ) {
-    additionalModelRequestFields.reasoning_effort = REASONING_EFFORT.trim();
+  // The desktop app validates logins with this fixed prompt; answer it without a model call.
+  if (prompt === "auth_check") {
+    if (typeof responseStream.setContentType === "function") {
+      responseStream.setContentType("text/event-stream");
+    }
+    const remaining =
+      usageRecord && Number.isFinite(usageRecord.remaining_tokens)
+        ? usageRecord.remaining_tokens
+        : USAGE_DEFAULT_BUDGET;
+    responseStream.write(sseEvent("", true, remaining));
+    responseStream.end();
+    return;
   }
 
-  // Claude extended thinking; requires maxTokens > budget and no custom temperature/topP.
-  const supportsClaudeThinking =
-    typeof selectedModelId === "string" &&
-    /(^|\.)anthropic\.claude-(haiku-4-5|sonnet-4|opus-4)/.test(selectedModelId);
-  if (supportsClaudeThinking && CLAUDE_THINKING_BUDGET > 0) {
-    additionalModelRequestFields.thinking = {
-      type: "enabled",
-      budget_tokens: CLAUDE_THINKING_BUDGET,
-    };
-    delete inferenceConfig.temperature;
-    delete inferenceConfig.topP;
-    inferenceConfig.maxTokens = Math.max(
-      inferenceConfig.maxTokens || 0,
-      CLAUDE_THINKING_BUDGET + 4096,
-    );
-  }
-
-  const selectedBedrockRegion =
-    selectedModelId === "deepseek.v3-v1:0"
-      ? BEDROCK_REGION_US_WEST_2
-      : AWS_REGION;
+  const selectedEffort = questionType === "frq" ? FRQ_EFFORT : EFFORT;
   console.log(
     JSON.stringify({
       level: "info",
@@ -699,27 +534,9 @@ const streamingHandler = async (event, responseStream) => {
       safe_user: safeUser,
       question_type: questionType || null,
       selected_model_id: selectedModelId,
-      selected_bedrock_region: selectedBedrockRegion,
-      reasoning_effort: additionalModelRequestFields.reasoning_effort || null,
+      effort: selectedEffort,
     }),
   );
-
-  const requestBody = {
-    modelId: selectedModelId,
-    messages: [
-      {
-        role: "user",
-        content: [{ text: prompt }],
-      },
-    ],
-    ...(Object.keys(inferenceConfig).length > 0 ? { inferenceConfig } : {}),
-    ...(Object.keys(additionalModelRequestFields).length > 0
-      ? { additionalModelRequestFields }
-      : {}),
-  };
-
-  const bedrockClient =
-    selectedModelId === "deepseek.v3-v1:0" ? bedrockUsWest2 : bedrock;
 
   if (typeof responseStream.setContentType === "function") {
     responseStream.setContentType("text/event-stream");
@@ -733,6 +550,7 @@ const streamingHandler = async (event, responseStream) => {
   const promptResult = truncateTextToBytes(promptText, promptMaxBytes);
   const usageState = {
     tokens: null,
+    apiUsage: {},
     responseParts: [],
     responseBytes: 0,
     responseTruncated: false,
@@ -747,11 +565,53 @@ const streamingHandler = async (event, responseStream) => {
   };
 
   try {
-    const command = new ConverseStreamCommand(requestBody);
-    const response = await bedrockClient.send(command);
+    const client = await getAnthropicClient();
+    const stream = client.messages.stream({
+      model: selectedModelId,
+      max_tokens: MAX_TOKENS,
+      // Summarized thinking is streamed to the app as "reasoning" blocks, as before.
+      thinking: { type: "adaptive", display: "summarized" },
+      output_config: { effort: selectedEffort },
+      messages: [{ role: "user", content: promptText }],
+    });
 
-    for await (const eventChunk of response.stream || []) {
-      handleConverseEvent(eventChunk, responseStream, usageState);
+    for await (const streamEvent of stream) {
+      handleAnthropicEvent(streamEvent, responseStream, usageState);
+    }
+    const finalMessage = await stream.finalMessage();
+    recordUsage(usageState, finalMessage.usage);
+
+    if (finalMessage.stop_reason === "refusal") {
+      const category = finalMessage.stop_details?.category || null;
+      const projectedRemaining = computeProjectedRemainingTokens(
+        usageRecord,
+        usageState.tokens,
+      );
+      logGatewayError("model_refusal", "Model declined the request", {
+        safe_user: safeUser,
+        selected_model_id: selectedModelId,
+        category,
+      });
+      responseStream.write(
+        sseEvent("", true, projectedRemaining, {
+          error: "The model declined this request",
+          error_type: "Refusal",
+          refusal_category: category,
+        }),
+      );
+      responseStream.end();
+      return;
+    }
+    if (finalMessage.stop_reason === "max_tokens") {
+      logGatewayError(
+        "max_tokens_reached",
+        "Response hit max_tokens and may be truncated",
+        {
+          safe_user: safeUser,
+          selected_model_id: selectedModelId,
+          max_tokens: MAX_TOKENS,
+        },
+      );
     }
 
     const projectedRemaining = computeProjectedRemainingTokens(
@@ -786,15 +646,16 @@ const streamingHandler = async (event, responseStream) => {
     );
     const message =
       (error && typeof error.message === "string" && error.message.trim()) ||
-      "Bedrock invocation failed";
+      "Model invocation failed";
     const name =
       (error && typeof error.name === "string" && error.name.trim()) ||
-      "BedrockInvokeError";
-    logGatewayError("bedrock_invoke_error", message, {
+      "ModelInvokeError";
+    logGatewayError("model_invoke_error", message, {
       safe_user: safeUser,
       selected_model_id: selectedModelId,
       question_type: questionType || null,
       error_name: name,
+      api_status: error instanceof Anthropic.APIError ? error.status : null,
       stack: error?.stack,
       projected_remaining_tokens: projectedRemaining,
     });

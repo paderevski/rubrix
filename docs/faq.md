@@ -97,8 +97,8 @@ macOS (Apple Silicon and Intel), Windows 10/11, and Linux (`.deb`, `.rpm`, AppIm
 
 ### Is my data secure?
 
-- Prompts are sent to the gateway over HTTPS and forwarded to AWS Bedrock; documents are saved only where you save them.
-- Your password is SHA256-hashed before it is sent. Your username and password hash are stored locally in the app data folder for auto-login; Logout clears them.
+- Prompts are sent to the gateway over HTTPS and forwarded to the model provider; documents are saved only where you save them.
+- Your password is sent to the gateway over HTTPS, which checks it against a salted scrypt hash. Your username and password are stored unencrypted in the app data folder for auto-login; Logout clears them.
 - Bug reports include recent app logs.
 
 ### How do I update Catie?

@@ -4,7 +4,7 @@ Scripts for managing Catie user accounts in AWS SSM Parameter Store. The Bedrock
 
 ## Parameters per user
 
-- `/secrets/{user}/password_hash` - SHA256 hex digest of the password (used by the gateway for authentication)
+- `/secrets/{user}/password_hash` - scrypt record of the password: `scrypt$N$r$p$<salt>$<hash>` (format and helpers in [password_hashing.py](password_hashing.py)). The app sends the password over HTTPS and the gateway checks it against this record, so reading the parameter is not enough to log in.
 - `/secrets/{user}/secret` - legacy Bedrock API key slot. The gateway calls Bedrock with its own server-side credentials, so this is not used at runtime; pass `NONE`.
 
 Usernames are normalized (sanitized) the same way in the app, the scripts, and the gateway.
@@ -43,7 +43,7 @@ The AWS identity needs SSM `PutParameter`, `GetParameter` and `GetParametersByPa
 
 ## AWS authentication
 
-The scripts create `boto3` clients with no explicit profile or region, so they use the standard AWS credential chain.
+The scripts use the standard AWS credential chain with the region pinned to `us-east-1` (where the gateway reads parameters; see `REGION` in [password_hashing.py](password_hashing.py)).
 
 One-time setup (browser-based login for an IAM user, no SSO start URL needed):
 
@@ -73,6 +73,6 @@ What is saved: the profile (region and `login_session` ARN) is in `~/.aws/config
 
 ## Security notes
 
-- Passwords are SHA256-hashed before storage, matching the client hashing in [auth.rs](../src-tauri/src/auth.rs).
+- Passwords are stored as scrypt records (see [password_hashing.py](password_hashing.py)); the app sends the password itself over HTTPS.
 - Never commit passwords, hashes, or keys.
 - Restrict SSM access with IAM.

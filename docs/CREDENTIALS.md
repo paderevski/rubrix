@@ -6,7 +6,7 @@ Rubrix uses a single authentication model in both development and release builds
 
 - The desktop app authenticates users against the Bedrock gateway.
 - The app stores username/password locally for automatic login on restart.
-- Generation requests are sent to the gateway with `user` and `password_hash`.
+- Generation requests are sent to the gateway over HTTPS with `user` and `password`.
 
 Direct Bedrock token modes are not used by the app runtime.
 
@@ -23,10 +23,9 @@ If this value is missing, authentication and generation will fail with a configu
 ## Authentication Flow
 
 1. User opens login modal and enters username/password.
-2. Backend hashes password with SHA256.
-3. Backend validates credentials against gateway.
-4. On success, credentials are written to app-local storage.
-5. On app restart, `auto_authenticate` re-validates stored credentials.
+2. Backend validates credentials against the gateway, which checks the password against a scrypt record.
+3. On success, credentials are written to app-local storage.
+4. On app restart, `auto_authenticate` re-validates stored credentials.
 
 ## Storage Behavior
 
