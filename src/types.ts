@@ -8,6 +8,7 @@ export interface Question {
   topics?: string[];
   difficulty?: string;
   cognitive_level?: string;
+  subtopics?: string[];
 }
 
 export interface QuestionBankDocument {

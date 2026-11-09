@@ -876,6 +876,7 @@ mod tests {
             topics: vec!["Math".to_string()],
             difficulty: String::new(),
             cognitive_level: String::new(),
+            subtopics: Vec::new(),
             answers: vec![
                 Answer {
                     text: "4".to_string(),
@@ -940,6 +941,7 @@ mod tests {
             topics: vec!["Derivatives".to_string()],
             difficulty: String::new(),
             cognitive_level: String::new(),
+            subtopics: Vec::new(),
             answers: vec![],
         };
 
@@ -1000,6 +1002,7 @@ mod tests {
             topics: vec!["Derivatives".to_string()],
             difficulty: String::new(),
             cognitive_level: String::new(),
+            subtopics: Vec::new(),
             answers: vec![],
         };
 
@@ -1046,6 +1049,7 @@ mod tests {
             topics: vec!["Derivatives".to_string()],
             difficulty: String::new(),
             cognitive_level: String::new(),
+            subtopics: Vec::new(),
             answers: vec![],
         };
 
@@ -1116,6 +1120,7 @@ mod tests {
             topics: vec!["arithmetic".to_string()],
             difficulty: String::new(),
             cognitive_level: String::new(),
+            subtopics: Vec::new(),
             answers: vec![
                 Answer {
                     text: "4".to_string(),
@@ -1164,6 +1169,7 @@ mod tests {
             topics: vec!["control_flow".to_string()],
             difficulty: String::new(),
             cognitive_level: String::new(),
+            subtopics: Vec::new(),
             answers: vec![
                 Answer {
                     text: "```java\nSystem.out.println(\"A\");\n```".to_string(),

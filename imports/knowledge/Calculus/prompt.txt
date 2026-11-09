@@ -36,7 +36,6 @@ Study these examples carefully. Pay special attention to:
      * Use ONLY `$...$` for inline math and `$$...$$` for display math.
      * No HTML tags.
 
-*** User instructions
 {user_instructions}
 
 **Output Format (Tagged JSON Array):**
@@ -60,4 +59,3 @@ Return your response wrapped in `<question>` and `</question>` tags, with the JS
 ]
 </question>
 ```
-*** User instructions

@@ -12,7 +12,50 @@ pub struct PromptConfig<'a> {
     pub user_instructions: Option<&'a str>,
     pub regenerate_context: Option<RegenerateContext<'a>>,
     pub prompt_template: Option<&'a str>,
+    /// Stems of questions already in the current set (generation appends to it)
+    pub existing_questions: &'a [String],
+    /// Suggested assessment structure, used to break mode collapse on single-question requests
+    pub structure_hint: Option<&'a str>,
+    /// Subtopics (from the subject schema) that the question(s) should draw from
+    pub subtopics: &'a [SubtopicRef],
+    /// Subtopic the single requested question must assess
+    pub assigned_subtopic: Option<&'a SubtopicRef>,
 }
+
+/// A schema subtopic, as shown to the model
+#[derive(Debug, Clone, PartialEq)]
+pub struct SubtopicRef {
+    pub id: String,
+    pub name: String,
+}
+
+/// Extra context for a generation request, assembled by the caller from app state
+#[derive(Debug, Default)]
+pub struct GenerationContext {
+    /// Questions already in the set being appended to, as one-line summaries
+    pub existing_questions: Vec<String>,
+    /// Subtopics of the requested topic(s); empty when the schema defines none
+    pub subtopics: Vec<SubtopicRef>,
+    /// Subtopic picked for a single-question request
+    pub assigned_subtopic: Option<SubtopicRef>,
+}
+
+/// Assessment structures the prompt templates know about (see `{structure_hint}`).
+pub const ASSESSMENT_STRUCTURES: &[&str] = &[
+    "value_trace",
+    "code_selection",
+    "algorithm_selection",
+    "equivalence",
+    "error_analysis",
+    "code_completion",
+    "conceptual",
+    "modification",
+];
+
+/// Max number of existing question stems included in a generation prompt
+const MAX_EXISTING_QUESTIONS: usize = 15;
+/// Max characters of each existing question stem included in a generation prompt
+const EXISTING_QUESTION_CHARS: usize = 300;
 
 /// Context for regeneration requests
 pub struct RegenerateContext<'a> {
@@ -85,10 +128,77 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
             .join("\n\n")
     };
 
+    // Whole section (header included) is omitted when there are no instructions,
+    // so templates should place `{user_instructions}` on its own line without a header.
     let user_instructions_str = match config.user_instructions {
-        Some(notes) if !notes.trim().is_empty() => {
-            format!("\n\n**Additional Instructions from User:**\n{}", notes)
-        }
+        Some(notes) if !notes.trim().is_empty() => format!(
+            "## User Instructions (high priority)\n\n{}\n\nFollow these unless they conflict with correctness.",
+            notes.trim()
+        ),
+        _ => String::new(),
+    };
+
+    let existing_questions_str = if config.existing_questions.is_empty() {
+        String::new()
+    } else {
+        let skipped = config
+            .existing_questions
+            .len()
+            .saturating_sub(MAX_EXISTING_QUESTIONS);
+        let listed = config.existing_questions[skipped..]
+            .iter()
+            .enumerate()
+            .map(|(i, q)| {
+                let one_line = q.split_whitespace().collect::<Vec<_>>().join(" ");
+                format!("{}. {}", skipped + i + 1, truncate(&one_line, EXISTING_QUESTION_CHARS))
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        format!(
+            "## Questions Already in This Set\n\n\
+             The new question(s) will be added to a set that already contains the questions below. \
+             Classify the assessment structure and specific skill of each one internally. \
+             The new question(s) MUST NOT repeat the same task with different values: \
+             prefer an assessment structure and skill not yet used below. \
+             If the topic genuinely forces reuse of a structure, the new question must still require different reasoning.\n\n{}",
+            listed
+        )
+    };
+
+    let subtopics_str = if config.subtopics.is_empty() {
+        String::new()
+    } else {
+        format!(
+            "**Subtopics of the Target Topic(s):**\n\n{}\n\n\
+             Each question must primarily assess ONE of these subtopics. \
+             Do not substitute a skill from outside this list, even one you associate with the topic. \
+             When generating several questions, spread them across different subtopics.",
+            config
+                .subtopics
+                .iter()
+                .map(|s| format!("- `{}`: {}", s.id, s.name))
+                .collect::<Vec<_>>()
+                .join("\n")
+        )
+    };
+
+    let subtopic_hint_str = match config.assigned_subtopic {
+        Some(sub) => format!(
+            "**Assigned subtopic for this question:** `{}`: {}. \
+             The question must primarily assess this subtopic. Set `subtopics` to `[\"{}\"]`.",
+            sub.id, sub.name, sub.id
+        ),
+        None => String::new(),
+    };
+
+    let structure_hint_str = match config.structure_hint {
+        Some(hint) if config.count == 1 => format!(
+            "**Suggested assessment structure for this question:** `{}`. \
+             Use it if it can genuinely assess the target topic at the requested difficulty. \
+             If it cannot, or if it duplicates the structure of a question already in the set, \
+             choose a different structure, and avoid defaulting to `value_trace`.",
+            hint
+        ),
         _ => String::new(),
     };
 
@@ -118,7 +228,7 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
         serde_json::to_string(config.topic_ids).unwrap_or_else(|_| "[]".to_string());
 
     // Replace placeholders in template
-    template
+    let filled = template
         .replace("{topics}", &config.topics)
         .replace("{topic_ids}", &topic_ids_json)
         .replace("{difficulty}", difficulty_desc)
@@ -127,15 +237,58 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
         .replace("{examples}", &examples_str)
         .replace("{user_instructions}", &user_instructions_str)
         .replace("{regenerate}", &regenerate_section)
+        .replace("{existing_questions}", &existing_questions_str)
+        .replace("{structure_hint}", &structure_hint_str)
+        .replace("{subtopics}", &subtopics_str)
+        .replace("{subtopic_hint}", &subtopic_hint_str);
+
+    collapse_blank_lines(&filled)
 }
 
-/// Build the prompt for generating multiple questions using JSON examples
+/// Tidy up after empty optional sections: collapse runs of 3+ newlines into one blank
+/// line, then merge `---` separators that ended up adjacent.
+fn collapse_blank_lines(s: &str) -> String {
+    let mut out = collapse_newlines(s);
+    while out.contains("\n---\n\n---\n") {
+        out = out.replace("\n---\n\n---\n", "\n---\n");
+    }
+    out
+}
+
+fn collapse_newlines(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut newlines = 0;
+    for c in s.chars() {
+        if c == '\n' {
+            newlines += 1;
+            if newlines > 2 {
+                continue;
+            }
+        } else if c != ' ' && c != '\t' && c != '\r' {
+            newlines = 0;
+        }
+        out.push(c);
+    }
+    out
+}
+
+/// Build the prompt for generating multiple questions using JSON examples.
 pub fn build_generation_prompt(
     request: &GenerationRequest,
     examples: &[QuestionBankEntry],
     prompt_template: Option<&str>,
     topics_label: &str,
+    context: &GenerationContext,
 ) -> String {
+    use rand::seq::SliceRandom;
+    let structure_hint = if request.count == 1 {
+        ASSESSMENT_STRUCTURES
+            .choose(&mut rand::thread_rng())
+            .copied()
+    } else {
+        None
+    };
+
     let config = PromptConfig {
         topics: topics_label.to_string(),
         topic_ids: &request.topics,
@@ -145,6 +298,10 @@ pub fn build_generation_prompt(
         user_instructions: request.notes.as_deref(),
         regenerate_context: None,
         prompt_template,
+        existing_questions: &context.existing_questions,
+        structure_hint,
+        subtopics: &context.subtopics,
+        assigned_subtopic: context.assigned_subtopic.as_ref(),
     };
     build_core_prompt(&config)
 }
@@ -845,12 +1002,11 @@ fn sanitize_json_string(input: &str) -> String {
     output
 }
 
-/// Truncate string to max length
+/// Truncate string to max length (in chars, so multi-byte text can't panic)
 fn truncate(s: &str, max_len: usize) -> String {
-    if s.len() <= max_len {
-        s.to_string()
-    } else {
-        format!("{}...", &s[..max_len])
+    match s.char_indices().nth(max_len) {
+        None => s.to_string(),
+        Some((byte_idx, _)) => format!("{}...", &s[..byte_idx]),
     }
 }
 
@@ -932,12 +1088,138 @@ mod tests {
                 r#"Target difficulty: {difficulty}\n{\"difficulty\": \"{difficulty_code}\", \"topics\": {topic_ids}}"#,
             ),
             "Writing Classes > Class Definition",
+            &GenerationContext::default(),
         );
 
         assert_eq!(
             prompt,
             r#"Target difficulty: D2 (Medium) - Requires analysis or multi-step reasoning, 3-5 steps\n{\"difficulty\": \"D2\", \"topics\": [\"ST021\"]}"#
         );
+    }
+
+    fn cs_generation_prompt(count: u32, notes: Option<&str>, existing: &[String]) -> String {
+        let request = GenerationRequest {
+            subject: "Computer Science".to_string(),
+            topics: vec!["T002".to_string()],
+            difficulty: "medium".to_string(),
+            count,
+            notes: notes.map(|s| s.to_string()),
+            append: true,
+            question_type: "multiple_choice".to_string(),
+            frq_question_type: None,
+        };
+        build_generation_prompt(
+            &request,
+            &[],
+            Some(include_str!(
+                "../../imports/knowledge/Computer Science/prompt.txt"
+            )),
+            "Using Objects",
+            &GenerationContext {
+                existing_questions: existing.to_vec(),
+                ..Default::default()
+            },
+        )
+    }
+
+    #[test]
+    fn test_cs_prompt_has_no_unfilled_placeholders_or_empty_sections() {
+        let prompt = cs_generation_prompt(3, None, &[]);
+        for placeholder in [
+            "{topics}", "{topic_ids}", "{topic_id}", "{difficulty}", "{difficulty_code}",
+            "{count}", "{examples}", "{user_instructions}", "{regenerate}",
+            "{existing_questions}", "{structure_hint}",
+        ] {
+            assert!(!prompt.contains(placeholder), "unfilled {}", placeholder);
+        }
+        assert!(prompt.contains(r#""topics": ["T002"]"#));
+        assert!(!prompt.contains("User Instructions"));
+        assert!(!prompt.contains("## Questions Already in This Set"));
+        assert!(!prompt.contains("Suggested assessment structure"));
+        assert!(!prompt.contains("\n---\n\n---\n"));
+        assert!(!prompt.contains("\n\n\n"));
+    }
+
+    #[test]
+    fn test_single_question_prompt_gets_structure_hint_and_existing_set() {
+        let existing = vec![
+            "Consider the following code segment.\n\n```java\nString s = \"JavaProgramming\";\n```".to_string(),
+        ];
+        let prompt = cs_generation_prompt(1, Some("Use a scenario about a library"), &existing);
+        assert!(prompt.contains("Suggested assessment structure for this question:"));
+        assert!(ASSESSMENT_STRUCTURES
+            .iter()
+            .any(|s| prompt.contains(&format!("question:** `{}`", s))));
+        assert!(prompt.contains("## Questions Already in This Set"));
+        assert!(prompt.contains(
+            "1. Consider the following code segment. ```java String s = \"JavaProgramming\"; ```"
+        ));
+        assert!(prompt.contains("## User Instructions (high priority)\n\nUse a scenario about a library"));
+    }
+
+    fn cs_prompt_with_context(count: u32, context: &GenerationContext) -> String {
+        let request = GenerationRequest {
+            subject: "Computer Science".to_string(),
+            topics: vec!["T002".to_string()],
+            difficulty: "medium".to_string(),
+            count,
+            notes: None,
+            append: true,
+            question_type: "multiple_choice".to_string(),
+            frq_question_type: None,
+        };
+        build_generation_prompt(
+            &request,
+            &[],
+            Some(include_str!(
+                "../../imports/knowledge/Computer Science/prompt.txt"
+            )),
+            "T002: Using Objects",
+            context,
+        )
+    }
+
+    fn t002_subtopics() -> Vec<SubtopicRef> {
+        [("ST006", "Object Instantiation"), ("ST007", "Method Calls")]
+            .iter()
+            .map(|(id, name)| SubtopicRef { id: id.to_string(), name: name.to_string() })
+            .collect()
+    }
+
+    #[test]
+    fn test_subtopic_list_and_assignment_are_rendered() {
+        let subs = t002_subtopics();
+        let prompt = cs_prompt_with_context(
+            1,
+            &GenerationContext {
+                subtopics: subs.clone(),
+                assigned_subtopic: Some(subs[1].clone()),
+                ..Default::default()
+            },
+        );
+        assert!(prompt.contains("**Subtopics of the Target Topic(s):**\n\n- `ST006`: Object Instantiation\n- `ST007`: Method Calls"));
+        assert!(prompt.contains("**Assigned subtopic for this question:** `ST007`: Method Calls."));
+        assert!(prompt.contains(r#"Set `subtopics` to `["ST007"]`."#));
+        assert!(!prompt.contains("{subtopic"));
+    }
+
+    #[test]
+    fn test_no_subtopic_sections_without_schema_subtopics() {
+        let prompt = cs_prompt_with_context(1, &GenerationContext::default());
+        assert!(!prompt.contains("**Subtopics of the Target Topic(s):**"));
+        assert!(!prompt.contains("Assigned subtopic"));
+        assert!(!prompt.contains("{subtopic"));
+        assert!(!prompt.contains("\n\n\n"));
+    }
+
+    #[test]
+    fn test_existing_questions_are_capped_and_truncated() {
+        let existing: Vec<String> = (1..=20).map(|i| format!("Q{} {}", i, "é".repeat(400))).collect();
+        let prompt = cs_generation_prompt(2, None, &existing);
+        assert!(!prompt.contains("\n5. Q5 "));
+        assert!(prompt.contains("\n6. Q6 "));
+        assert!(prompt.contains("\n20. Q20 "));
+        assert!(!prompt.contains("Suggested assessment structure"));
     }
 
     #[test]
@@ -952,6 +1234,7 @@ mod tests {
             topics: vec!["T009".to_string(), "ST041".to_string()],
             difficulty: "D2".to_string(),
             cognitive_level: "B3".to_string(),
+            subtopics: Vec::new(),
         };
         let template =
             include_str!("../../imports/knowledge/Computer Science/regeneration-prompt.txt");

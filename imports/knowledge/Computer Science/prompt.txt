@@ -52,6 +52,12 @@ Perform all planning, solving, and verification internally. Do NOT output your i
 **Target Difficulty:** {difficulty}
 **Number of Questions:** {count}
 
+{subtopics}
+
+{subtopic_hint}
+
+{structure_hint}
+
 {regenerate}
 
 ---
@@ -90,7 +96,13 @@ Use the reference examples as local calibration for both style and difficulty. W
 
 Note: the examples below may omit per-answer `explanation` fields because the example bank predates this feature. Your output MUST include an explanation for every answer choice.
 
+The examples also carry question-bank bookkeeping fields (`id`, `status`, answer `id`, `_migration_note`). These are for reference only. Do NOT include them in your output. Output exactly the fields shown in the Output Format section.
+
 {examples}
+
+---
+
+{existing_questions}
 
 ---
 
@@ -171,17 +183,17 @@ When enough suitable assessment structures are available:
 - do not convert every reference example into a value/output tracing question
 - use the structural variety present in the reference examples as guidance
 
-When generating multiple questions, use distinct assessment structures
-whenever enough appropriate structures are available.
+For example, a batch of three questions on one topic might use:
 
-Do not repeat a question type until other appropriate types have been used.
-- code selection
-- equivalence or conceptual reasoning
-- value tracing
+- a code-selection question
+- an equivalence or conceptual question
+- a value-tracing question
 
 This is only an example. Choose structures appropriate to the target topic.
 
 If the target topic genuinely supports fewer distinct structures than `{count}`, repetition is allowed, but repeated questions must still assess meaningfully different reasoning.
+
+**When generating a single question:** the "batch" also includes any questions listed under "Questions Already in This Set". Questions are often generated one at a time, so without care every call produces the same kind of question. Do not default to the most obvious structure, such as tracing a single method call. Follow the suggested assessment structure when one is given and it fits the topic. Otherwise choose a structure and skill that the existing questions have not already covered.
 
 ---
 
@@ -321,10 +333,11 @@ Do not output planning, internal reasoning, analysis, commentary, or text before
       {"text": "`45`", "is_correct": false, "explanation": "Off-by-one error"},
       {"text": "`46`", "is_correct": false, "explanation": "Calculation mistake"}
     ],
-    "explanation": "Step-by-step solution walkthrough",
+    "explanation": "Student-facing step-by-step solution walkthrough",
     "difficulty": "{difficulty_code}",
-    "cognitive_level": "B3",
-    "topics": ["{topic_id}"]
+    "cognitive_level": "B1 | B2 | B3 | B4 | B5 | B6",
+    "topics": {topic_ids},
+    "subtopics": ["<subtopic ID>"]
   }
 ]
 </question>
@@ -352,18 +365,34 @@ Do not output planning, internal reasoning, analysis, commentary, or text before
   - Explanations for distractors must accurately identify the misconception represented by the choice.
 
 - `explanation`
+  - Students read this field. Write it as a teacher explaining the solution, not as a question writer.
   - Provide a clear walkthrough or justification for the correct answer.
   - Include intermediate reasoning where appropriate.
+  - Do NOT include question-design notes: no "Plan & Solve", "Design Distractors", "Distractor B", verification checkmarks, or commentary about how the question was built.
+  - Do NOT refer to answer choices by letter or position (A–E, "the first option"). Choices are shuffled when displayed, so refer to a choice by its content, e.g. `"Fundals"`.
 
 - `difficulty`
   - Use the requested difficulty ID only, e.g. `"D2"`.
 
+- `cognitive_level`
+  - The Bloom's level the question actually demands. Pick exactly one:
+    - `B1` Remember: recall a fact or rule
+    - `B2` Understand: explain or interpret a concept
+    - `B3` Apply: use a rule or procedure in a new situation (e.g. trace code)
+    - `B4` Analyze: compare alternatives, find errors, reason about structure or equivalence
+    - `B5` Evaluate: judge which approach is best or justify a decision
+    - `B6` Create: design or construct something new
+  - Use the reference examples to calibrate. Do not default to `B3`.
+
 - `topics`
-  - Use the topic or subtopic codes provided in the Target Topic(s).
+  - Use exactly the topic codes given in the Output Format: `{topic_ids}`.
+
+- `subtopics`
+  - The ID of the one subtopic the question primarily assesses, chosen from the Subtopics of the Target Topic(s) list, e.g. `["ST007"]`.
+  - If an assigned subtopic is given, use exactly that ID.
+  - If no subtopic list is given, use `[]`.
 
 ---
-
-*** User instructions
 
 {user_instructions}
 

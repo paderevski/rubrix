@@ -269,6 +269,48 @@ fn topic_labels_for_prompt(
     labels.join(", ")
 }
 
+/// Schema subtopics in scope for a request. For each topic, if the user selected specific
+/// subtopics use just those; otherwise, if the parent topic is selected, use all its subtopics.
+fn subtopics_for_request(
+    subject: &str,
+    topic_ids: &[String],
+    knowledge: &knowledge::KnowledgeBase,
+) -> Vec<prompts::SubtopicRef> {
+    let mut result = Vec::new();
+    for topic in knowledge.get_topics(subject) {
+        let selected_children: Vec<&SubtopicInfo> = topic
+            .children
+            .iter()
+            .filter(|c| topic_ids.contains(&c.id))
+            .collect();
+        let children: Vec<&SubtopicInfo> = if !selected_children.is_empty() {
+            selected_children
+        } else if topic_ids.contains(&topic.id) {
+            topic.children.iter().collect()
+        } else {
+            Vec::new()
+        };
+        result.extend(children.into_iter().map(|c| prompts::SubtopicRef {
+            id: c.id.clone(),
+            name: c.name.clone(),
+        }));
+    }
+    result
+}
+
+/// Pick a subtopic at random from those least used by questions already in the set.
+fn pick_subtopic(
+    subtopics: &[prompts::SubtopicRef],
+    existing: &[Question],
+) -> Option<prompts::SubtopicRef> {
+    use rand::seq::SliceRandom;
+    let usage = |id: &str| existing.iter().filter(|q| q.subtopics.iter().any(|s| s == id)).count();
+    let min_use = subtopics.iter().map(|s| usage(&s.id)).min()?;
+    let least_used: Vec<&prompts::SubtopicRef> =
+        subtopics.iter().filter(|s| usage(&s.id) == min_use).collect();
+    least_used.choose(&mut rand::thread_rng()).map(|s| (*s).clone())
+}
+
 fn difficulty_code(difficulty: &str) -> &str {
     match difficulty {
         "easy" => "D1",
@@ -307,6 +349,9 @@ pub struct Question {
     pub difficulty: String,
     #[serde(default)]
     pub cognitive_level: String,
+    /// Schema subtopic IDs this question assesses (e.g. `ST007`)
+    #[serde(default)]
+    pub subtopics: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -845,10 +890,33 @@ async fn generate_questions(
     state: State<'_, AppState>,
     app_handle: tauri::AppHandle,
 ) -> Result<Vec<Question>, String> {
-    // Get rich examples from question bank (prefer these for better distractors)
+    let is_mcq = request.question_type != "frq";
+
+    // Questions already in the set (generation appends), so the prompt can steer away from them
+    let existing_set: Vec<Question> = if request.append {
+        state.questions.lock().unwrap().clone()
+    } else {
+        Vec::new()
+    };
+
+    // Ground the prompt in the schema's subtopics, and for single-question requests pick
+    // one (favoring subtopics the set hasn't covered yet) so the skill isn't left to the model.
+    let subtopics = subtopics_for_request(&request.subject, &request.topics, &state.knowledge);
+    let assigned_subtopic = if is_mcq && request.count == 1 {
+        pick_subtopic(&subtopics, &existing_set)
+    } else {
+        None
+    };
+
+    // Get rich examples from question bank (prefer these for better distractors).
+    // With an assigned subtopic, prefer examples tagged with it (falls back to the parent topic).
+    let example_topics = match &assigned_subtopic {
+        Some(sub) => vec![sub.id.clone()],
+        None => request.topics.clone(),
+    };
     let bank_examples = state.knowledge.get_bank_examples(
         &request.subject,
-        &request.topics,
+        &example_topics,
         Some(&request.difficulty),
         3, // Get up to 3 examples
     );
@@ -887,7 +955,29 @@ async fn generate_questions(
     } else {
         // Get prompt template for this subject
         let prompt_template = state.knowledge.get_prompt(&request.subject);
-        prompts::build_generation_prompt(&request, &bank_examples, prompt_template, &topics_label)
+        // Show the model what's already in the set so repeated single-question
+        // requests don't collapse onto the same question type or skill.
+        let context = prompts::GenerationContext {
+            existing_questions: existing_set
+                .iter()
+                .map(|q| {
+                    if q.subtopics.is_empty() {
+                        q.text.clone()
+                    } else {
+                        format!("[{}] {}", q.subtopics.join(", "), q.text)
+                    }
+                })
+                .collect(),
+            subtopics: subtopics.clone(),
+            assigned_subtopic: assigned_subtopic.clone(),
+        };
+        prompts::build_generation_prompt(
+            &request,
+            &bank_examples,
+            prompt_template,
+            &topics_label,
+            &context,
+        )
     };
 
     let gateway_auth = state
@@ -922,6 +1012,16 @@ async fn generate_questions(
         question.subject = request.subject.clone();
         question.topics = request.topics.clone();
         question.difficulty = difficulty_code(&request.difficulty).to_string();
+        // Keep only subtopic IDs we offered; an assigned subtopic always wins.
+        question.subtopics = match &assigned_subtopic {
+            Some(sub) => vec![sub.id.clone()],
+            None => question
+                .subtopics
+                .iter()
+                .filter(|id| subtopics.iter().any(|s| &s.id == *id))
+                .cloned()
+                .collect(),
+        };
     }
 
     // Store in state (append or replace)
@@ -1028,6 +1128,7 @@ async fn regenerate_question(
     new_question.topics = current.topics.clone();
     new_question.difficulty = current.difficulty.clone();
     new_question.cognitive_level = current.cognitive_level.clone();
+    new_question.subtopics = current.subtopics.clone();
 
     // Update in state
     let mut stored = state.questions.lock().unwrap();
@@ -1119,6 +1220,7 @@ async fn regenerate_all_questions_parallel(
                             new_question.topics = current.topics.clone();
                             new_question.difficulty = current.difficulty.clone();
                             new_question.cognitive_level = current.cognitive_level.clone();
+                            new_question.subtopics = current.subtopics.clone();
 
                             RegenerateAllQuestionResult {
                                 index,
@@ -1201,6 +1303,7 @@ fn add_question(state: State<AppState>) -> Question {
         topics: Vec::new(),
         difficulty: String::new(),
         cognitive_level: String::new(),
+        subtopics: Vec::new(),
         answers: vec![
             Answer {
                 text: "Correct answer".to_string(),
@@ -2137,5 +2240,58 @@ mod tests {
 }"#;
 
         assert!(serde_json::from_str::<QuestionBankDocument>(legacy).is_err());
+    }
+}
+
+#[cfg(test)]
+mod subtopic_selection_tests {
+    use super::*;
+
+    fn question_with_subtopics(subs: &[&str]) -> Question {
+        Question {
+            id: String::new(),
+            text: String::new(),
+            answers: Vec::new(),
+            explanation: None,
+            rubric: None,
+            subject: String::new(),
+            topics: Vec::new(),
+            difficulty: String::new(),
+            cognitive_level: String::new(),
+            subtopics: subs.iter().map(|s| s.to_string()).collect(),
+        }
+    }
+
+    fn subs(ids: &[&str]) -> Vec<prompts::SubtopicRef> {
+        ids.iter()
+            .map(|id| prompts::SubtopicRef { id: id.to_string(), name: id.to_string() })
+            .collect()
+    }
+
+    #[test]
+    fn pick_subtopic_prefers_unused_subtopics() {
+        let available = subs(&["ST006", "ST007", "ST008"]);
+        let existing = vec![
+            question_with_subtopics(&["ST006"]),
+            question_with_subtopics(&["ST008"]),
+            question_with_subtopics(&[]),
+        ];
+        for _ in 0..50 {
+            assert_eq!(pick_subtopic(&available, &existing).unwrap().id, "ST007");
+        }
+    }
+
+    #[test]
+    fn pick_subtopic_handles_empty_and_fully_used_lists() {
+        assert!(pick_subtopic(&[], &[]).is_none());
+        let available = subs(&["ST006", "ST007"]);
+        let existing = vec![
+            question_with_subtopics(&["ST006"]),
+            question_with_subtopics(&["ST007"]),
+            question_with_subtopics(&["ST007"]),
+        ];
+        for _ in 0..50 {
+            assert_eq!(pick_subtopic(&available, &existing).unwrap().id, "ST006");
+        }
     }
 }
