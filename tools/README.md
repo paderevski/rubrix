@@ -4,7 +4,7 @@ Scripts for managing Catie user accounts in AWS SSM Parameter Store. The Bedrock
 
 ## Parameters per user
 
-- `/secrets/{user}/password_hash` - SHA256 hex digest of the password (used by the gateway for authentication)
+- `/secrets/{user}/password_hash` - scrypt record of the SHA256 hex digest of the password: `scrypt$N$r$p$<salt>$<hash>` (format and helpers in [password_hashing.py](password_hashing.py)). The app still sends SHA256(password); the gateway runs scrypt on it and compares, so reading the parameter is not enough to log in. Legacy plain-SHA256 values are accepted only while the Lambda's `ALLOW_LEGACY_PASSWORD_HASHES` is not `false`.
 - `/secrets/{user}/secret` - legacy Bedrock API key slot. The gateway calls Bedrock with its own server-side credentials, so this is not used at runtime; pass `NONE`.
 
 Usernames are normalized (sanitized) the same way in the app, the scripts, and the gateway.
@@ -18,6 +18,7 @@ Usernames are normalized (sanitized) the same way in the app, the scripts, and t
 | `verify_user.py <username> [password]` | Check a user exists; optionally verify a password matches |
 | `list_users.py` | List users that have stored credentials |
 | `user_budget.py list \| get <user> \| set <user> <budget> \| add <user> <tokens> \| reset <user>` | View/update token budgets in DynamoDB `catieBedrockUsage` (see below) |
+| `migrate_password_hashes.py [--apply]` | One-time: wrap legacy SHA256 records in scrypt (dry run unless `--apply`). Users keep their passwords. Then set `ALLOW_LEGACY_PASSWORD_HASHES=false` on the Lambda |
 | `delete_user.py <username> [--purge-usage] [-y]` | Delete a user's SSM credentials (blocks login); `--purge-usage` also deletes their DynamoDB budget/usage records. Prompts for confirmation unless `-y` |
 | `old/` | Archived one-off debugging/migration scripts; not maintained |
 
@@ -43,7 +44,7 @@ The AWS identity needs SSM `PutParameter`, `GetParameter` and `GetParametersByPa
 
 ## AWS authentication
 
-The scripts create `boto3` clients with no explicit profile or region, so they use the standard AWS credential chain.
+The scripts use the standard AWS credential chain with the region pinned to `us-east-1` (where the gateway reads parameters; see `REGION` in [password_hashing.py](password_hashing.py)).
 
 One-time setup (browser-based login for an IAM user, no SSO start URL needed):
 
