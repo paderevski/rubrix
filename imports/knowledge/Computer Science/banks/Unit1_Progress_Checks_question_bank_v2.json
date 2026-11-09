@@ -1,11 +1,10 @@
 {
-  "schema_version": "2.3.0",
+  "schema_version": "2.5.0",
   "source": "AP CSA Unit 1 Progress Check MCQ",
   "questions": [
     {
       "id": "unit1_q001",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part A question 1 (source pk 301).",
       "text": "A student wants to create an algorithm to calculate the average (mean) of two quiz scores. Which of the following algorithms can be used to determine the correct average?",
       "answers": [
         {
@@ -35,9 +34,11 @@
       ],
       "explanation": "The average of two scores is found by adding the two scores and dividing the sum by `2`. Subtracting the scores gives a difference, not the mean.",
       "topics": [
+        "T024",
         "T001"
       ],
       "subtopics": [
+        "ST068",
         "ST003"
       ],
       "skills": [
@@ -49,7 +50,6 @@
     {
       "id": "unit1_q002",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part A question 2 (source pk 302).",
       "text": "A student wants to create an algorithm to calculate the combined total area of two rectangles. Which of the following algorithms can be used to perform this calculation?",
       "answers": [
         {
@@ -79,9 +79,11 @@
       ],
       "explanation": "The area of a rectangle is length times width. The total area of two rectangles is the area of the first rectangle plus the area of the second rectangle.",
       "topics": [
+        "T024",
         "T001"
       ],
       "subtopics": [
+        "ST068",
         "ST003"
       ],
       "skills": [
@@ -93,7 +95,6 @@
     {
       "id": "unit1_q003",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part A question 3 (source pk 303).",
       "text": "A student wrote a program to calculate the average of several numeric scores. The program compiles without error but produces incorrect results when it runs. The student suspects there is a logic error in the code.\n\nWhich of the following strategies is most likely to help identify the logic error?",
       "answers": [
         {
@@ -123,10 +124,10 @@
       ],
       "explanation": "A logic error occurs when code compiles and runs but produces the wrong result. Print statements can reveal intermediate values, helping locate where the calculation first becomes incorrect.",
       "topics": [
-        "T015"
+        "T024"
       ],
       "subtopics": [
-        "ST064"
+        "ST068"
       ],
       "skills": [
         "SK004"
@@ -137,7 +138,6 @@
     {
       "id": "unit1_q004",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part A question 4 (source pk 304).",
       "text": "Consider the following variable declaration.\n\n```java\nint x;\n```\n\nWhich of the following values can be stored in the variable `x`?",
       "answers": [
         {
@@ -181,7 +181,6 @@
     {
       "id": "unit1_q005",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part A question 5 (source pk 305).",
       "text": "Consider the following variable declaration.\n\n```java\nboolean b;\n```\n\nWhich of the following values can be stored in the variable `b`?",
       "answers": [
         {
@@ -227,7 +226,6 @@
     {
       "id": "unit1_q006",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part A question 6 (source pk 306).",
       "text": "A code segment will use variables to represent a student's age, in years, and whether the student has a driver's license. Which of the following variable declarations are most appropriate for the code segment?",
       "answers": [
         {
@@ -273,20 +271,19 @@
     {
       "id": "unit1_q007",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part A question 7 (source pk 307).",
       "text": "Consider the following code segment.\n\n```java\nint a = 1;\nint b = 2;\nint c = 3;\nint d = 4;\ndouble x = a + b * c % d;\n```\n\nWhat is the value of `x` after executing the code segment?",
       "answers": [
         {
           "id": "a",
           "text": "`1.0`",
           "is_correct": false,
-          "explanation": "This effectively ignores the contribution of `b * c % d`. That part evaluates to `2`, so the final value is not `1.0`."
+          "explanation": "This evaluates the expression strictly left to right, ignoring precedence: `(1 + 2) * 3` is `9`, and `9 % 4` is `1`. Multiplication and `%` must be evaluated before the addition."
         },
         {
           "id": "b",
           "text": "`2.5`",
           "is_correct": false,
-          "explanation": "All operands in `a + b * c % d` are integers, so the arithmetic before assignment is integer arithmetic; no `.5` value is produced."
+          "explanation": "This treats `%` as division with a decimal result: `1 + 6 / 4.0` is `2.5`. The `%` operator gives the remainder, so `6 % 4` is `2` and `x` is `3.0`."
         },
         {
           "id": "c",
@@ -317,14 +314,13 @@
     {
       "id": "unit1_q008",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part A question 8 (source pk 308).",
       "text": "Which of the following code segments will print the word `Hello`?",
       "answers": [
         {
           "id": "a",
           "text": "`System.out.print(\"Hello\");`",
           "is_correct": true,
-          "explanation": "Correct. String literals in Java must be enclosed in double quotation marks. Choice A prints the literal `\"Hello\"`. Choices B and D use undeclared identifiers, and choice C is only a string literal statement rather than a print statement."
+          "explanation": "Correct. String literals in Java must be enclosed in double quotation marks, so `System.out.print(\"Hello\");` prints `Hello`."
         },
         {
           "id": "b",
@@ -345,12 +341,14 @@
           "explanation": "`He` and `llo` are treated as identifiers rather than string literals, and neither is declared."
         }
       ],
-      "explanation": "String literals in Java must be enclosed in double quotation marks. Choice A prints the literal `\"Hello\"`. Choices B and D use undeclared identifiers, and choice C is only a string literal statement rather than a print statement.",
+      "explanation": "String literals in Java must be enclosed in double quotation marks, so `System.out.print(\"Hello\");` prints `Hello`. Without quotation marks, `Hello`, `He` and `llo` are treated as undeclared identifiers, and a quoted statement such as `\"System.out.print(Hello)\";` is only a string literal, not a print call.",
       "topics": [
-        "T013"
+        "T013",
+        "T001"
       ],
       "subtopics": [
-        "ST010"
+        "ST010",
+        "ST087"
       ],
       "skills": [
         "SK008"
@@ -361,14 +359,13 @@
     {
       "id": "unit1_q009",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part A question 9 (source pk 309).",
       "text": "Consider the following statement.\n\n```java\nSystem.out.print(\"AP \\n Computer \\n Science \\n A \\n rocks\");\n```\n\nWhich of the following best describes the behavior of this statement?",
       "answers": [
         {
           "id": "a",
           "text": "It prints five lines of text, each separated by a line break indicated by the escape sequence `\\n`.",
           "is_correct": true,
-          "explanation": "Correct. The escape sequence `\\\\n` creates a line break. Four line breaks divide the output into five lines."
+          "explanation": "Correct. The escape sequence `\\n` creates a line break. Four line breaks divide the output into five lines."
         },
         {
           "id": "b",
@@ -389,12 +386,14 @@
           "explanation": "The string literal and its newline escape sequences are valid Java syntax, so the statement does print output."
         }
       ],
-      "explanation": "The escape sequence `\\\\n` creates a line break. Four line breaks divide the output into five lines.",
+      "explanation": "The escape sequence `\\n` creates a line break. Four line breaks divide the output into five lines.",
       "topics": [
-        "T013"
+        "T013",
+        "T001"
       ],
       "subtopics": [
-        "ST010"
+        "ST010",
+        "ST087"
       ],
       "skills": [
         "SK001"
@@ -405,7 +404,6 @@
     {
       "id": "unit1_q010",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part A question 10 (source pk 310).",
       "text": "Consider the following code segment.\n\n```java\nboolean a = true;\nboolean b = false;\nboolean temp = a;\na = b;\nb = temp;\nSystem.out.println(a);\nSystem.out.println(b);\n```\n\nWhat is printed as a result of executing this code segment?",
       "answers": [
         {
@@ -439,8 +437,8 @@
         "T003"
       ],
       "subtopics": [
-        "ST001",
-        "ST016"
+        "ST066",
+        "ST001"
       ],
       "skills": [
         "SK001"
@@ -451,7 +449,6 @@
     {
       "id": "unit1_q011",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part A question 11 (source pk 311). cognitive_level corrected B3→B4 (Identifying a code error is analysis/evaluation (B4), not tracing (B3)).",
       "text": "The following code segment contains an error.\n\n```java\ndouble pi = 3.14; // line 1\npi = 3.14159; // line 2\ndouble other = null; // line 3\ndouble example; // line 4\nexample = pi; // line 5\n```\n\nWhich of the following best describes the error in this code segment?",
       "answers": [
         {
@@ -498,14 +495,13 @@
     {
       "id": "unit1_q012",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part A question 12 (source pk 312).",
       "text": "The volume of a cylinder is equal to the height times the area of the circular base. The area of the circular base is equal to π times the square of the radius.\n\nThe following code segment is intended to compute and print the volume of a cylinder with radius `r` and height `h`. Assume that the `double` variables `r`, `h`, and `pi` have been properly declared and initialized.\n\n```java\n/* missing code */\nSystem.out.print(volume);\n```\n\nWhich of the following **cannot** be used to replace `/* missing code */` so that the code segment works as intended?",
       "answers": [
         {
           "id": "a",
           "text": "```java\ndouble baseArea;\ndouble volume;\npi * r * r = baseArea;\nbaseArea * h = volume;\n```",
           "is_correct": true,
-          "explanation": "Correct. Assignment statements must have a variable on the left side and a value-producing expression on the right. Choice A reverses the assignments with expressions such as `pi * r * r = baseArea`, so it will not compile."
+          "explanation": "Correct. Assignment statements must have a variable on the left side and a value-producing expression on the right. Statements such as `pi * r * r = baseArea;` reverse this, so the code will not compile."
         },
         {
           "id": "b",
@@ -526,12 +522,13 @@
           "explanation": "The single expression `pi * r * r * h` is algebraically the cylinder-volume formula and is valid Java."
         }
       ],
-      "explanation": "Assignment statements must have a variable on the left side and a value-producing expression on the right. Choice A reverses the assignments with expressions such as `pi * r * r = baseArea`, so it will not compile.",
+      "explanation": "Assignment statements must have a variable on the left side and a value-producing expression on the right. Statements such as `pi * r * r = baseArea;` reverse this, so the code will not compile.",
       "topics": [
         "T001"
       ],
       "subtopics": [
-        "ST003"
+        "ST003",
+        "ST066"
       ],
       "skills": [
         "SK004",
@@ -543,7 +540,6 @@
     {
       "id": "unit1_q013",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part B question 1 (source pk 313).",
       "text": "Consider the following code segment.\n\n```java\ndouble a = 7;\nint b = (int) (a / 2);\ndouble c = (double) b / 2;\nSystem.out.print(b);\nSystem.out.print(\" \");\nSystem.out.print(c);\n```\n\nWhat is printed as a result of executing the code segment?",
       "answers": [
         {
@@ -568,7 +564,7 @@
           "id": "d",
           "text": "`3.5 1.75`",
           "is_correct": false,
-          "explanation": "The cast to `int` truncates `a / 2` to `3`; neither printed value can begin with `3.5`."
+          "explanation": "This ignores the `int` cast: if `b` kept `3.5`, `c` would be `3.5 / 2`, or `1.75`. The cast truncates `b` to `3`, so the output is `3 1.5`."
         }
       ],
       "explanation": "`a / 2` is `3.5`, and casting to `int` truncates it to `3`. Then `(double) b / 2` is `3.0 / 2`, or `1.5`.",
@@ -588,7 +584,6 @@
     {
       "id": "unit1_q014",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part B question 2 (source pk 314).",
       "text": "Assume that `x` is a `double` variable with a positive value. Which of the following code segments can be used to round `x` to the nearest integer and store the rounded value in the variable `result`?",
       "answers": [
         {
@@ -632,7 +627,6 @@
     {
       "id": "unit1_q015",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part B question 3 (source pk 315).",
       "text": "A store sells rope only in whole-foot increments. Given three lengths of rope, in feet, the following code segment is intended to display the minimum length of rope, in feet, that must be purchased so that the rope is long enough to be cut into the three lengths.\n\nIn the following code segment, `len1`, `len2`, and `len3` are properly declared and initialized `double` variables representing the three lengths of rope.\n\n```java\ndouble total = len1 + len2 + len3;\nint minLength = (int) (total + 0.5);\nSystem.out.print(minLength);\n```\n\nWhich of the following best describes the behavior of the code segment?",
       "answers": [
         {
@@ -676,7 +670,6 @@
     {
       "id": "unit1_q016",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part B question 4 (source pk 316).",
       "text": "Consider the following code segment.\n\n```java\nint x = 0;\nx++;\nx += 1;\nx = x + 1;\nx -= -1;\nSystem.out.println(x);\n```\n\nWhat is printed when the code segment is executed?",
       "answers": [
         {
@@ -689,7 +682,7 @@
           "id": "b",
           "text": "`2`",
           "is_correct": false,
-          "explanation": "After the first two increments `x` is `2`, but two more updates still occur."
+          "explanation": "This treats `x -= -1` as subtracting 1, taking `x` from `3` to `2`. Subtracting `-1` actually adds 1, so `x` becomes `4`."
         },
         {
           "id": "c",
@@ -709,6 +702,7 @@
         "T001"
       ],
       "subtopics": [
+        "ST067",
         "ST003"
       ],
       "skills": [
@@ -720,14 +714,13 @@
     {
       "id": "unit1_q017",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part B question 5 (source pk 317).",
       "text": "Which of the following code segments can be used to print the output `2526`?",
       "answers": [
         {
           "id": "a",
           "text": "```java\nint val = 5;\nval *= val;\nSystem.out.print(val);\nval++;\nSystem.out.print(val);\n```",
           "is_correct": true,
-          "explanation": "Correct. In choice A, `val *= val` changes `val` from `5` to `25`, which is printed. Then `val++` changes it to `26`, which is printed immediately afterward."
+          "explanation": "Correct. `val *= val` changes `val` from `5` to `25`, which is printed. Then `val++` changes it to `26`, which is printed immediately afterward."
         },
         {
           "id": "b",
@@ -748,11 +741,12 @@
           "explanation": "`val += val` changes `5` to `10`, and multiplying by `1` leaves it `10`, so this prints `1010`."
         }
       ],
-      "explanation": "In choice A, `val *= val` changes `val` from `5` to `25`, which is printed. Then `val++` changes it to `26`, which is printed immediately afterward.",
+      "explanation": "`val *= val` changes `val` from `5` to `25`, which is printed. Then `val++` changes it to `26`, which is printed immediately afterward, giving `2526`.",
       "topics": [
         "T001"
       ],
       "subtopics": [
+        "ST067",
         "ST003"
       ],
       "skills": [
@@ -764,7 +758,6 @@
     {
       "id": "unit1_q018",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part B question 6 (source pk 318).",
       "text": "Consider the following code segment.\n\n```java\nint x = 0; // line 1\nx++; // line 2\nSystem.out.print(x); // line 3\nx += 1; // line 4\nSystem.out.print(x); // line 5\nx *= 2; // line 6\nSystem.out.print(x); // line 7\nx *= 4; // line 8\nSystem.out.print(x); // line 9\n```\n\nThe code segment is intended to produce the output `1248`. The code segment does not work as intended.\n\nWhich of the following changes can be made so that the code segment works as intended?",
       "answers": [
         {
@@ -797,6 +790,7 @@
         "T001"
       ],
       "subtopics": [
+        "ST067",
         "ST003"
       ],
       "skills": [
@@ -809,7 +803,6 @@
     {
       "id": "unit1_q019",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part B question 7 (source pk 319). topics corrected ['T005'] (spurious T002 removed — ST parents resolved from schema v2.3.0).",
       "text": "The following is an excerpt of a class specification that appears in an API library.\n\n```java\npublic class Vehicle\n```\n\nThe `Vehicle` class is used to create objects that represent vehicles. The `Vehicle` class has `make`, `model`, and `year` variables that hold information about the vehicle's characteristics. The `Vehicle` constructor initializes a `Vehicle` object with the given make, model, and year. The `getMake()`, `getModel()`, and `getYear()` methods return information about the vehicle.\n\nBased on the class specification, which of the following descriptions is accurate?",
       "answers": [
         {
@@ -839,10 +832,10 @@
       ],
       "explanation": "Attributes are data stored by an object. The variables `make`, `model`, and `year` describe the state of each `Vehicle` object.",
       "topics": [
-        "T005"
+        "T002"
       ],
       "subtopics": [
-        "ST024"
+        "ST072"
       ],
       "skills": [
         "SK013"
@@ -853,7 +846,6 @@
     {
       "id": "unit1_q020",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part B question 8 (source pk 320). topics corrected ['T005'] (spurious T002 removed — ST parents resolved from schema v2.3.0).",
       "text": "The following is an excerpt of a class specification that appears in an API library.\n\n```java\npublic class Robot\n```\n\nA `Robot` specifies a robot that moves around a two-dimensional coordinate grid. The `Robot` class has `xCoordinate` and `yCoordinate` variables that hold information about the robot's location on the grid. The `Robot` constructor initializes a `Robot` object with the given coordinates. The `move()` and `rotate()` methods are used to modify the robot's location on the grid.\n\nBased on the class specification, which of the following descriptions is accurate?",
       "answers": [
         {
@@ -883,10 +875,10 @@
       ],
       "explanation": "Behaviors are actions that objects can perform. Since `move()` and `rotate()` modify the robot's location, they are behaviors of `Robot` objects.",
       "topics": [
-        "T005"
+        "T002"
       ],
       "subtopics": [
-        "ST026"
+        "ST072"
       ],
       "skills": [
         "SK013"
@@ -897,7 +889,6 @@
     {
       "id": "unit1_q021",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part B question 9 (source pk 321). topics corrected ['T005'] (spurious T002 removed — ST parents resolved from schema v2.3.0).",
       "text": "The following is an excerpt of a class specification that appears in an API library.\n\n```java\npublic class Parcel\n```\n\nA `Parcel` class is used to create objects that represent the status of packages that are delivered to customers. The `Parcel` class has `status` and `location` variables that hold information about a package's shipping status and location. The `Parcel` constructor initializes a `Parcel` object with its initial status and location. The `updateStatus()` and `updateLocation()` methods are used to update the status and location of a package.\n\nBased on the class specification, which of the following is a true statement about `Parcel` objects?",
       "answers": [
         {
@@ -927,11 +918,10 @@
       ],
       "explanation": "Variables such as `status` and `location` store object data, so they are attributes. Methods such as `updateStatus()` and `updateLocation()` perform actions, so they are behaviors.",
       "topics": [
-        "T005"
+        "T002"
       ],
       "subtopics": [
-        "ST024",
-        "ST026"
+        "ST072"
       ],
       "skills": [
         "SK013"
@@ -942,7 +932,6 @@
     {
       "id": "unit1_q022",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part B question 10 (source pk 322).",
       "text": "The following code segment appears in a method. In the code segment, `num1` and `num2` are `int` variables. The method is intended to print the sum of `num1` and `num2`.\n\n```java\nint result = num1 + num2;\nSystem.out.println(result);\n```\n\nWhich of the following preconditions for the method is most appropriate to avoid an overflow error?",
       "answers": [
         {
@@ -972,10 +961,12 @@
       ],
       "explanation": "An `int` overflow occurs when the computed result is outside the range from `Integer.MIN_VALUE` to `Integer.MAX_VALUE`. Since both operands are already `int` values, the important precondition is that their sum fits in the `int` range.",
       "topics": [
-        "T001"
+        "T001",
+        "T023"
       ],
       "subtopics": [
-        "ST005"
+        "ST005",
+        "ST069"
       ],
       "skills": [
         "SK010"
@@ -986,7 +977,6 @@
     {
       "id": "unit1_q023",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part B question 11 (source pk 323).",
       "text": "The following code segment appears in a method. In the code segment, `y` is an `int` variable.\n\n```java\nint x = 5 / y;\nSystem.out.println(x);\n```\n\nWhich of the following preconditions for the method is most appropriate to avoid an `ArithmeticException`?",
       "answers": [
         {
@@ -1016,10 +1006,12 @@
       ],
       "explanation": "Integer division by zero causes an `ArithmeticException`. The necessary precondition is that `y` is not equal to `0`.",
       "topics": [
-        "T001"
+        "T001",
+        "T023"
       ],
       "subtopics": [
-        "ST004"
+        "ST004",
+        "ST069"
       ],
       "skills": [
         "SK010"
@@ -1030,7 +1022,6 @@
     {
       "id": "unit1_q024",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part B question 12 (source pk 324).",
       "text": "The following code segment appears in a method. In the code segment, `x` and `y` are `double` variables.\n\n```java\ndouble result = (x - y) / 2.0;\nSystem.out.println(result);\n```\n\nWhich of the following preconditions for the method is most appropriate to ensure that the value printed by the code segment is always positive?",
       "answers": [
         {
@@ -1060,10 +1051,12 @@
       ],
       "explanation": "The denominator `2.0` is positive, so the result is positive exactly when the numerator `x - y` is positive, which occurs when `x > y`.",
       "topics": [
-        "T001"
+        "T001",
+        "T023"
       ],
       "subtopics": [
-        "ST003"
+        "ST003",
+        "ST069"
       ],
       "skills": [
         "SK009"
@@ -1074,7 +1067,6 @@
     {
       "id": "unit1_q025",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part B question 13 (source pk 325).",
       "text": "Consider the following descriptions of two methods that appear in the same class.\n\n| Method Signature | Explanation |\n| --- | --- |\n| `public void methodA(int arg)` | Calls `methodB` with the value of `arg * 10` |\n| `public void methodB(int arg)` | Displays the value of `arg + 10` |\n\nConsider the call `methodA(4)`, which appears in a method in the same class. What, if anything, is printed as a result of the call `methodA(4)`?",
       "answers": [
         {
@@ -1107,6 +1099,7 @@
         "T012"
       ],
       "subtopics": [
+        "ST073",
         "ST049",
         "ST052"
       ],
@@ -1119,20 +1112,19 @@
     {
       "id": "unit1_q026",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part B question 14 (source pk 326).",
       "text": "Consider the following description of method `printValues`.\n\n| Method Signature | Explanation |\n| --- | --- |\n| `public void printValues(int numTimes, int val)` | Prints the value of `val` a total of `numTimes` times, then moves the cursor to a new line. |\n\nConsider the following code segment, which appears in the same class as `printValues`.\n\n```java\nprintValues(2, 3);\nprintValues(4, 5);\n```\n\nWhat is printed as a result of executing the code segment?",
       "answers": [
         {
           "id": "a",
           "text": "`222` followed by `44444`",
           "is_correct": false,
-          "explanation": "This treats the first argument as the value to print and also uses the wrong repetition counts."
+          "explanation": "This swaps the parameter roles, printing the first argument the number of times given by the second: `2` three times and `4` five times. The first argument is the count and the second is the value printed."
         },
         {
           "id": "b",
           "text": "`2222` followed by `33333`",
           "is_correct": false,
-          "explanation": "This again confuses the parameter roles; the first argument is the number of repetitions, not the printed value."
+          "explanation": "This prints `2` four times and `3` five times, which does not follow from either argument order. `printValues(2, 3)` prints `3` two times and `printValues(4, 5)` prints `5` four times."
         },
         {
           "id": "c",
@@ -1152,6 +1144,7 @@
         "T012"
       ],
       "subtopics": [
+        "ST073",
         "ST049",
         "ST052"
       ],
@@ -1164,7 +1157,6 @@
     {
       "id": "unit1_q027",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part B question 15 (source pk 327).",
       "text": "Consider the following description of method `printSomething`.\n\n| Method Signature | Explanation |\n| --- | --- |\n| `public void printSomething(int num, boolean val)` | Prints the value of `val` immediately followed by the value of `num - 1`. |\n\nConsider the following code segment, which appears in the same class as `printSomething`.\n\n```java\nprintSomething(1, true);\nprintSomething(2, true);\n```\n\nWhat is printed as a result of executing the code segment?",
       "answers": [
         {
@@ -1198,9 +1190,9 @@
         "T003"
       ],
       "subtopics": [
+        "ST073",
         "ST049",
-        "ST052",
-        "ST016"
+        "ST052"
       ],
       "skills": [
         "SK001"
@@ -1211,7 +1203,6 @@
     {
       "id": "unit1_q028",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 1 (source pk 328).",
       "text": "Consider the following information about the `calculateBill` method.\n\n- The method is a static method in the `Store` class.\n- The method has one `int` parameter.\n- The method has return type `double`.\n- The method can be accessed from another class.\n\nWhich of the following code segments, when appearing in a method in a class other than `Store`, will compile without error?",
       "answers": [
         {
@@ -1241,11 +1232,10 @@
       ],
       "explanation": "A static method in another class is called using the class name and dot notation. Since `calculateBill` is static in `Store` and takes one `int` argument, `Store.calculateBill(5)` is the correct call.",
       "topics": [
-        "T005",
         "T012"
       ],
       "subtopics": [
-        "ST027",
+        "ST071",
         "ST050"
       ],
       "skills": [
@@ -1257,7 +1247,6 @@
     {
       "id": "unit1_q029",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 2 (source pk 329).",
       "text": "Consider the following information about the `getTax` method.\n\n- The method is a static method in the `PurchaseManager` class.\n- The method has one `double` parameter.\n- The method returns a `double` equal to its parameter times `0.08`.\n\nThe following code segment appears in another method in the `PurchaseManager` class.\n\n```java\ndouble tax = getTax(100.0);\nSystem.out.println(tax);\n```\n\nWhat, if anything, is printed as a result of executing the code segment?",
       "answers": [
         {
@@ -1287,11 +1276,10 @@
       ],
       "explanation": "Because the call appears inside the same class, the static method can be called directly as `getTax(100.0)`. The method returns `100.0 * 0.08`, which is `8.0`.",
       "topics": [
-        "T005",
         "T012"
       ],
       "subtopics": [
-        "ST027",
+        "ST071",
         "ST050"
       ],
       "skills": [
@@ -1303,7 +1291,6 @@
     {
       "id": "unit1_q030",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 3 (source pk 330).",
       "text": "Consider the following information about the `generatePasscode` method.\n\n- The method appears in the `AccountManager` class.\n- The method has no parameters.\n- The method has return type `int`.\n- The method can be accessed from another class.\n\nThe following code segment appears in a method in a class other than `AccountManager`.\n\n```java\nint c = AccountManager.generatePasscode();\nSystem.out.println(c);\n```\n\nWhich of the following must be true for the code segment to compile without error?",
       "answers": [
         {
@@ -1333,11 +1320,10 @@
       ],
       "explanation": "The call uses the class name `AccountManager` rather than an object reference. That syntax is valid for a static method, so `generatePasscode` must be declared `static`.",
       "topics": [
-        "T005",
         "T012"
       ],
       "subtopics": [
-        "ST027",
+        "ST071",
         "ST050"
       ],
       "skills": [
@@ -1349,7 +1335,6 @@
     {
       "id": "unit1_q031",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 4 (source pk 331).",
       "text": "Consider the following statement, which is intended to generate an integer between `1` and `10`, inclusive, and assign it to `result`. This statement does not work as intended.\n\n```java\nint result = (int) Math.random() * 10 + 1;\n```\n\nWhich of the following changes can be made so that this statement works as intended?",
       "answers": [
         {
@@ -1396,7 +1381,6 @@
     {
       "id": "unit1_q032",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 5 (source pk 332).",
       "text": "Consider the following code segment.\n\n```java\ndouble result = Math.abs(x);\n```\n\nWhich of the following statements about the variable `x` is true?",
       "answers": [
         {
@@ -1440,7 +1424,6 @@
     {
       "id": "unit1_q033",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 6 (source pk 333).",
       "text": "Consider the following code segment.\n\n```java\nint num = (int)(Math.random() * 6);\nSystem.out.println(num);\n```\n\nWhich of the following cannot be printed as a result of executing this code segment?",
       "answers": [
         {
@@ -1486,7 +1469,6 @@
     {
       "id": "unit1_q034",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 7 (source pk 334).",
       "text": "A teacher has created a `Student` class. The class contains the following.\n\n- An `int` variable named `grade` to represent the student's grade level\n- A `String` variable named `name` to represent the student's name\n- A `double` variable named `average` to represent the student's grade point average\n- A method named `updateAverage` that updates the value of `average`\n\nThe object `greg` will be declared as type `Student`. Which of the following descriptions is accurate?",
       "answers": [
         {
@@ -1519,7 +1501,7 @@
         "T002"
       ],
       "subtopics": [
-        "ST006"
+        "ST072"
       ],
       "skills": [
         "SK013"
@@ -1530,7 +1512,6 @@
     {
       "id": "unit1_q035",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 8 (source pk 335). topics corrected ['T005'] (spurious T002 removed — ST parents resolved from schema v2.3.0).",
       "text": "A school administrator has created a `Student` class. The class contains variables to represent the following.\n\n- An `int` variable named `studentID` to represent the student's ID number\n- A `String` variable named `studentName` to represent the student's name\n\nThe school administrator has also created a `Parent` class. The class contains variables to represent the following.\n\n- A `String` variable named `parentName` to represent the parent's name\n- A `String` variable named `email` to represent the parent's e-mail address\n\nThe object `penelope` will be declared as type `Student`. The object `mrsPatel` will be declared as type `Parent`. Which of the following descriptions is accurate?",
       "answers": [
         {
@@ -1560,10 +1541,10 @@
       ],
       "explanation": "The object `mrsPatel` is a `Parent` object, and the `Parent` class includes an `email` variable. Therefore `email` is an attribute of `mrsPatel`.",
       "topics": [
-        "T005"
+        "T002"
       ],
       "subtopics": [
-        "ST024"
+        "ST072"
       ],
       "skills": [
         "SK013"
@@ -1574,7 +1555,6 @@
     {
       "id": "unit1_q036",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 9 (source pk 336).",
       "text": "The `Dog` class has a constructor that takes two parameters. The first parameter is a `String` representing a dog's name and the second parameter is an `int` representing the dog's age, in months.\n\nThe following code segment appears in a class other than `Dog`.\n\n```java\nDog dog1 = new Dog(\"Rex\", 4);\nDog dog2 = dog1;\ndog1 = new Dog(\"Fido\", 60);\n```\n\nWhich of the following best describes the contents of `dog1` and `dog2` as a result of executing this code segment?",
       "answers": [
         {
@@ -1587,7 +1567,7 @@
           "id": "b",
           "text": "`dog1` is a `Dog` variable that contains a `Dog` object representing a dog named `\"Fido\"` that is `60` months old, and `dog2` is a `Dog` variable that contains a `Dog` object representing a dog named `\"Rex\"` that is `4` months old.",
           "is_correct": false,
-          "explanation": "The object associations are described correctly, but Java reference variables store references to objects rather than containing the objects themselves; choice D states the reference semantics precisely."
+          "explanation": "The object associations are described correctly, but Java reference variables store references to objects rather than containing the objects themselves."
         },
         {
           "id": "c",
@@ -1618,7 +1598,6 @@
     {
       "id": "unit1_q037",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 10 (source pk 337).",
       "text": "The `Vbox` class includes the following two constructors.\n\n| Constructor Signature | Explanation |\n| --- | --- |\n| `public Vbox(int w, int h, int d)` | Constructs a `Vbox` object that represents a box with width `w`, height `h`, and depth `d`. |\n| `public Vbox(int len)` | Constructs a `Vbox` object that represents a box with width `len`, height `len`, and depth `len`. |\n\nWhich of the following declarations, appearing in a class other than `Vbox`, will correctly instantiate a `Vbox` object?",
       "answers": [
         {
@@ -1637,7 +1616,7 @@
           "id": "c",
           "text": "`Vbox b3 = new Vbox(2, 8, 4);`",
           "is_correct": true,
-          "explanation": "Correct. The available constructors require either one `int` argument or three `int` arguments. Choice C supplies three integer arguments, matching `Vbox(int w, int h, int d)`."
+          "explanation": "Correct. The available constructors require either one `int` argument or three `int` arguments. `new Vbox(2, 8, 4)` supplies three integer arguments, matching `Vbox(int w, int h, int d)`."
         },
         {
           "id": "d",
@@ -1646,7 +1625,7 @@
           "explanation": "The three-parameter constructor requires three `int` values, not three `double` values."
         }
       ],
-      "explanation": "The available constructors require either one `int` argument or three `int` arguments. Choice C supplies three integer arguments, matching `Vbox(int w, int h, int d)`.",
+      "explanation": "The available constructors require either one `int` argument or three `int` arguments. `new Vbox(2, 8, 4)` supplies three integer arguments, matching `Vbox(int w, int h, int d)`.",
       "topics": [
         "T002",
         "T005"
@@ -1664,7 +1643,6 @@
     {
       "id": "unit1_q038",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 11 (source pk 338).",
       "text": "The `Person` class has exactly two constructors. Partial declarations of the constructors are shown.\n\n```java\npublic Person(int idNumber, boolean isActive)\n{ /* implementation not shown */ }\n\npublic Person(int idNumber, int age, boolean isActive)\n{ /* implementation not shown */ }\n```\n\nWhich of the following statements does not correctly create an object of type `Person`?",
       "answers": [
         {
@@ -1683,7 +1661,7 @@
           "id": "c",
           "text": "`Person p3 = new Person(3544, false, 18);`",
           "is_correct": true,
-          "explanation": "Correct. The valid constructor signatures are `Person(int, boolean)` and `Person(int, int, boolean)`. Choice C provides arguments in the order `int, boolean, int`, which matches neither constructor."
+          "explanation": "Correct. The valid constructor signatures are `Person(int, boolean)` and `Person(int, int, boolean)`. `new Person(3544, false, 18)` provides arguments in the order `int, boolean, int`, which matches neither constructor."
         },
         {
           "id": "d",
@@ -1692,7 +1670,7 @@
           "explanation": "This matches the constructor signature `Person(int, boolean)`; `0` is a valid `int` argument."
         }
       ],
-      "explanation": "The valid constructor signatures are `Person(int, boolean)` and `Person(int, int, boolean)`. Choice C provides arguments in the order `int, boolean, int`, which matches neither constructor.",
+      "explanation": "The valid constructor signatures are `Person(int, boolean)` and `Person(int, int, boolean)`. `new Person(3544, false, 18)` provides arguments in the order `int, boolean, int`, which matches neither constructor.",
       "topics": [
         "T002",
         "T005"
@@ -1710,7 +1688,6 @@
     {
       "id": "unit1_q039",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 12 (source pk 339).",
       "text": "The `Player` class has only one constructor. A partial declaration of the constructor is shown.\n\n```java\npublic Player(boolean isOnline, int numLives)\n{ /* implementation not shown */ }\n```\n\nWhich of the following statements correctly creates a `Player` object?",
       "answers": [
         {
@@ -1756,7 +1733,6 @@
     {
       "id": "unit1_q040",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 13 (source pk 340).",
       "text": "The `AnimalPrinter` class includes the following two methods.\n\n| Method Signature | Explanation |\n| --- | --- |\n| `public void printDog()` | Prints the word `dog` and then moves the cursor to a new line. |\n| `public void printCat()` | Prints the word `cat` and then moves the cursor to a new line. |\n\nThe method `myMethod` appears in a class other than `AnimalPrinter`. The method is intended to produce the following output.\n\n```java\ndog\ncat\n```\n\nAssume that an `AnimalPrinter` object `myPrinter` has been properly declared and initialized inside `myMethod`. Which of the following code segments, if located in `myMethod`, will produce the intended output?",
       "answers": [
         {
@@ -1800,7 +1776,6 @@
     {
       "id": "unit1_q041",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 14 (source pk 341).",
       "text": "Consider the following information about the `Person` class.\n\n- The class has an `int` attribute `age` that represents a person's age.\n- The class has a non-static `getAge` method that has no parameters and returns the value of `age`. This method can be called from another class.\n\nThe following code segments each appear in a class other than `Person`. Assume that `p` is a `Person` object whose `age` attribute is equal to `16`.\n\nCode Segment 1\n\n```java\nint val1 = p.getAge();\nSystem.out.println(val1);\n```\n\nCode Segment 2\n\n```java\nint val2 = Person.getAge();\nSystem.out.println(val2);\n```\n\nWhat, if anything, is printed as a result of executing each of the code segments?",
       "answers": [
         {
@@ -1831,12 +1806,11 @@
       "explanation": "Because `getAge` is non-static, it must be called on a `Person` object such as `p`. Code Segment 1 prints `16`. Code Segment 2 tries to call the non-static method using the class name, so it will not compile.",
       "topics": [
         "T002",
-        "T005"
+        "T012"
       ],
       "subtopics": [
         "ST007",
-        "ST027",
-        "ST025"
+        "ST071"
       ],
       "skills": [
         "SK004",
@@ -1848,7 +1822,6 @@
     {
       "id": "unit1_q042",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 15 (source pk 342).",
       "text": "The `Dog` class contains a non-static method named `calculateWalkLength` which can be called from a class other than `Dog`. The method takes an integer parameter for the number of minutes a dog is taken for a walk and returns a `double` representing the number of miles walked during that time.\n\nThe following code segment appears in a class other than `Dog`. The statement in line 2 causes a compile-time error.\n\n```java\nDog fido = new Dog(); // line 1\ndouble miles = calculateWalkLength(fido, 90); // line 2\n```\n\nWhich of the following can be used to replace line 2 so that this code segment will compile without error?",
       "answers": [
         {
@@ -1895,7 +1868,6 @@
     {
       "id": "unit1_q043",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 16 (source pk 343).",
       "text": "Consider the following code segment.\n\n```java\nString one = \"computer\";\nString two = \"science\";\nString concat = /* missing code */;\nSystem.out.println(concat);\n```\n\nWhich of the following expressions can be used to replace `/* missing code */` so that the code segment prints the string `\"pun\"`?",
       "answers": [
         {
@@ -1928,7 +1900,8 @@
         "T013"
       ],
       "subtopics": [
-        "ST009"
+        "ST009",
+        "ST010"
       ],
       "skills": [
         "SK019"
@@ -1939,7 +1912,6 @@
     {
       "id": "unit1_q044",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 17 (source pk 344).",
       "text": "Consider the following code segment, which is intended to create a `String` that consists of the last character in `word` and assign it to the variable `lastChar`.\n\n```java\nString word = /* initialization not shown */; // line 1\nint len = word.length(); // line 2\nString lastChar = word.substring(len); // line 3\n```\n\nWhich of the following best describes why this code segment will not work as intended?",
       "answers": [
         {
@@ -1985,7 +1957,6 @@
     {
       "id": "unit1_q045",
       "status": "active",
-      "_migration_note": "Converted from AP CSA Unit 1 Progress Check MCQ, Part C question 18 (source pk 345).",
       "text": "The following code segment is intended to assign to `newWord` the result created by removing the first occurrence of `\"a\"` from `word`. Assume that the `String` variable `word` has been properly declared and initialized. This code segment works for some, but not all, values of `word`.\n\n```java\nint aLoc = word.indexOf(\"a\");\nString newWord = word.substring(0, aLoc) + word.substring(aLoc + 1);\n```\n\nWhich of the following conditions best describes the condition in which this code segment will not work as intended and will result in a runtime error?",
       "answers": [
         {
@@ -2028,62 +1999,5 @@
       "difficulty": "D2",
       "cognitive_level": "B4"
     }
-  ],
-  "audit": {
-    "verified": "2026-09-25",
-    "changes": 5,
-    "change_log": [
-      {
-        "id": "unit1_q019",
-        "field": "topics",
-        "old": [
-          "T002",
-          "T005"
-        ],
-        "new": [
-          "T005"
-        ]
-      },
-      {
-        "id": "unit1_q020",
-        "field": "topics",
-        "old": [
-          "T002",
-          "T005"
-        ],
-        "new": [
-          "T005"
-        ]
-      },
-      {
-        "id": "unit1_q021",
-        "field": "topics",
-        "old": [
-          "T002",
-          "T005"
-        ],
-        "new": [
-          "T005"
-        ]
-      },
-      {
-        "id": "unit1_q035",
-        "field": "topics",
-        "old": [
-          "T002",
-          "T005"
-        ],
-        "new": [
-          "T005"
-        ]
-      },
-      {
-        "id": "unit1_q011",
-        "field": "cognitive_level",
-        "old": "B3",
-        "new": "B4",
-        "reason": "Identifying a code error is analysis/evaluation (B4), not tracing (B3)"
-      }
-    ]
-  }
+  ]
 }
