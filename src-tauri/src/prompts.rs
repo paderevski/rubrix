@@ -170,7 +170,7 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
     } else {
         format!(
             "**Subtopics of the Target Topic(s):**\n\n{}\n\n\
-             Each question must primarily assess ONE of these subtopics. \
+             Each question should assess one or more of these subtopics. \
              Do not substitute a skill from outside this list, even one you associate with the topic. \
              When generating several questions, spread them across different subtopics.",
             config
@@ -185,7 +185,7 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
     let subtopic_hint_str = match config.assigned_subtopic {
         Some(sub) => format!(
             "**Assigned subtopic for this question:** `{}`: {}. \
-             The question must primarily assess this subtopic. Set `subtopics` to `[\"{}\"]`.",
+             The question must primarily assess this subtopic. Include `{}` in `subtopics`; add others only if the question genuinely assesses them too.",
             sub.id, sub.name, sub.id
         ),
         None => String::new(),
@@ -1199,7 +1199,7 @@ mod tests {
         );
         assert!(prompt.contains("**Subtopics of the Target Topic(s):**\n\n- `ST006`: Object Instantiation\n- `ST007`: Method Calls"));
         assert!(prompt.contains("**Assigned subtopic for this question:** `ST007`: Method Calls."));
-        assert!(prompt.contains(r#"Set `subtopics` to `["ST007"]`."#));
+        assert!(prompt.contains("Include `ST007` in `subtopics`"));
         assert!(!prompt.contains("{subtopic"));
     }
 

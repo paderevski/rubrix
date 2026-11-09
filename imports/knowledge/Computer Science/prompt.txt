@@ -388,7 +388,7 @@ Do not output planning, internal reasoning, analysis, commentary, or text before
   - Use exactly the topic codes given in the Output Format: `{topic_ids}`.
 
 - `subtopics`
-  - The ID of the one subtopic the question primarily assesses, chosen from the Subtopics of the Target Topic(s) list, e.g. `["ST007"]`.
+  - The ID(s) of the subtopic(s) the question assesses, chosen from the Subtopics of the Target Topic(s) list, e.g. `["ST007"]`.
   - If an assigned subtopic is given, use exactly that ID.
   - If no subtopic list is given, use `[]`.
 
