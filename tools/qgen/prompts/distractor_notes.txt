@@ -1,0 +1,6 @@
+Distractor design rules for every question:
+- Each wrong choice must come from a specific, nameable student error (for example: off-by-one loop bound, integer division, == versus equals, forgetting to update a variable, wrong order of operations, confusing pass-by-value with changing the caller's variable). Do not use the same error type for two wrong choices in one question.
+- At least one wrong choice must be a near-miss: the answer a student who traced almost all of the code correctly would get after a single subtle slip at the last step, not an obviously far-off value.
+- Never use filler choices (0, null, a default value, a random-looking number) unless a specific error produces exactly that value.
+- In each wrong choice's explanation, name the error and show the exact step where the student goes wrong.
+- Never put comments or wording inside a choice that reveals why it is wrong.

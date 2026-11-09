@@ -1,0 +1,593 @@
+{
+ "pt2_q002": {
+  "kind": "oracle",
+  "loops": "for (int j = -2; j <= 2; j++) for (int k = -2; k <= 2; k++)",
+  "subject": "result",
+  "show": "j + \",\" + k",
+  "choices": {
+   "a": "j == 0 && k == 0",
+   "b": "(j > 0 && k > 0) || (j < 0 && k < 0)",
+   "c": "j > k",
+   "d": "(j > 0 && k < 0) || (j < 0 && k > 0)"
+  }
+ },
+ "pt2_q035": {
+  "kind": "oracle",
+  "prelude": "class H { static boolean asc(ArrayList<Integer> l) { for (int i = 1; i < l.size(); i++) if (l.get(i) < l.get(i - 1)) return false; return true; } static boolean desc(ArrayList<Integer> l) { for (int i = 1; i < l.size(); i++) if (l.get(i) > l.get(i - 1)) return false; return true; } static List<ArrayList<Integer>> lists() { List<ArrayList<Integer>> r = new ArrayList<>(); r.add(new ArrayList<>()); for (int a = 0; a < 3; a++) { r.add(new ArrayList<>(Arrays.asList(a))); for (int b = 0; b < 3; b++) { r.add(new ArrayList<>(Arrays.asList(a, b))); for (int c = 0; c < 3; c++) r.add(new ArrayList<>(Arrays.asList(a, b, c))); } } return r; } }",
+  "loops": "for (ArrayList<Integer> numbers : H.lists())",
+  "subject": "mystery(numbers)",
+  "show": "numbers",
+  "choices": {
+   "a": "!H.asc(numbers)",
+   "b": "!H.desc(numbers)",
+   "c": "H.asc(numbers)",
+   "d": "H.desc(numbers)"
+  }
+ },
+ "pt2_q037": {
+  "kind": "oracle",
+  "prelude": "class H { static int[][][] grids() { return new int[][][]{ {{0,1,2},{1,1,0}}, {{2,2,2},{0,1,2}}, {{1,0,1},{2,2,1}} }; } static int rowCount(int[][] g, int x, int t) { int c = 0; for (int n : g[x]) if (n == t) c++; return c; } static int colCount(int[][] g, int x, int t) { int c = 0; for (int[] r : g) if (r[x] == t) c++; return c; } static int firstColWith(int[][] g, int t) { for (int c = 0; c < g[0].length; c++) for (int[] r : g) if (r[c] == t) return c; return -1; } static int firstRowWith(int[][] g, int t) { for (int r = 0; r < g.length; r++) for (int n : g[r]) if (n == t) return r; return -1; } }",
+  "loops": "for (int[][] values : H.grids()) for (int x = 0; x < values.length; x++) for (int target = 0; target < 3; target++)",
+  "subject": "enigma(values, x, target)",
+  "show": "x + \",\" + target",
+  "choices": {
+   "a": "H.firstColWith(values, target)",
+   "b": "H.firstRowWith(values, target)",
+   "c": "H.colCount(values, x, target)",
+   "d": "H.rowCount(values, x, target)"
+  }
+ },
+ "unit1_q015": {
+  "kind": "oracle",
+  "subject": "true",
+  "show": "len1 + \",\" + len2 + \",\" + len3",
+  "loops": "for (double len1 : new double[]{0.0, 0.3, 1.5}) for (double len2 : new double[]{0.0, 0.4, 2.0}) for (double len3 : new double[]{0.0, 0.2, 1.0})",
+  "fragment": "double total = len1 + len2 + len3; int minLength = (int) (total + 0.5); double frac = total - Math.floor(total); boolean works = minLength == (int) Math.ceil(total);",
+  "choices": {
+   "a": "works",
+   "b": "works == (frac == 0 || frac >= 0.5)",
+   "c": "((int) (((int) len1 + (int) len2 + (int) len3) + 0.5)) == (int) Math.ceil(total)",
+   "d": "((int) (double) (total + 0.5)) == (int) Math.ceil(total)"
+  }
+ },
+ "unit1_q022": {
+  "kind": "oracle",
+  "subject": "true",
+  "show": "num1 + \",\" + num2",
+  "loops": "for (int num1 : new int[]{Integer.MIN_VALUE, -5, 0, 1, 5, Integer.MAX_VALUE}) for (int num2 : new int[]{Integer.MIN_VALUE, -5, 0, 1, 5, Integer.MAX_VALUE})",
+  "fragment": "boolean ovf = (long) num1 + num2 != (int) (num1 + num2);",
+  "choices": {
+   "a": "!(num1 > 0 && num2 > 0) || !ovf",
+   "b": "!(num1 != num2) || !ovf",
+   "c": "!(num1 >= Integer.MIN_VALUE && num1 <= Integer.MAX_VALUE && num2 >= Integer.MIN_VALUE && num2 <= Integer.MAX_VALUE) || !ovf",
+   "d": "!((long) num1 + num2 >= Integer.MIN_VALUE && (long) num1 + num2 <= Integer.MAX_VALUE) || !ovf"
+  }
+ },
+ "unit1_q023": {
+  "kind": "oracle",
+  "subject": "true",
+  "show": "y",
+  "loops": "for (int y : new int[]{-5, -1, 0, 1, 5, 6})",
+  "fragment": "boolean ex = false; try { int x = 5 / y; } catch (ArithmeticException e) { ex = true; }",
+  "choices": {
+   "a": "!(y == 0) || !ex",
+   "b": "!(y < 5) || !ex",
+   "c": "!(y != 0) || !ex",
+   "d": "!(y >= 0) || !ex"
+  }
+ },
+ "unit1_q024": {
+  "kind": "oracle",
+  "subject": "true",
+  "show": "x + \",\" + y",
+  "loops": "for (double x : new double[]{-3.0, -1.0, 0.0, 1.0, 2.0, 4.0}) for (double y : new double[]{-3.0, -1.0, 0.0, 1.0, 2.0, 4.0})",
+  "fragment": "double result = (x - y) / 2.0;",
+  "choices": {
+   "a": "!(x > 0 && y > 0) || result > 0",
+   "b": "!(x % 2 == 0 && y % 2 == 0) || result > 0",
+   "c": "!(x > y) || result > 0",
+   "d": "!(x < y) || result > 0"
+  }
+ },
+ "pt2_q006": {
+  "kind": "patch",
+  "expect_output": "97531",
+  "variants": {
+   "a": [
+    [
+     "j >= 0",
+     "j > 0"
+    ]
+   ],
+   "b": [
+    [
+     "int j = 10",
+     "int j = 9"
+    ]
+   ],
+   "c": [
+    [
+     "j - 1",
+     "j + 1"
+    ]
+   ],
+   "d": [
+    [
+     "j - 1",
+     "j - 2"
+    ]
+   ]
+  }
+ },
+ "pt2_q009": {
+  "kind": "patch",
+  "expect": "compiles",
+  "variants": {
+   "a": [
+    [
+     "Measurement m1, Measurement m2",
+     "int m1, int m2"
+    ]
+   ],
+   "b": [
+    [
+     "public static boolean compare",
+     "public static void compare"
+    ]
+   ],
+   "c": [
+    [
+     "private int toInches()",
+     "public int toInches()"
+    ]
+   ],
+   "d": [
+    [
+     "private int feet;",
+     "public int feet;"
+    ],
+    [
+     "private int inches;",
+     "public int inches;"
+    ]
+   ]
+  }
+ },
+ "pt2_q022": {
+  "kind": "patch",
+  "expect": "compiles",
+  "variants": {
+   "a": [
+    [
+     "String pSpecies)",
+     "String pSpecies, int pAge)"
+    ]
+   ],
+   "b": [
+    [
+     "private String name;",
+     "public String name;"
+    ],
+    [
+     "private String species;",
+     "public String species;"
+    ]
+   ],
+   "c": [
+    [
+     "public void incrementAge",
+     "public int incrementAge"
+    ]
+   ],
+   "d": [
+    [
+     "return pName + \", \" + pSpecies;",
+     "return name + \", \" + species;"
+    ]
+   ]
+  }
+ },
+ "unit1_q011": {
+  "kind": "patch",
+  "expect": "compiles",
+  "variants": {
+   "a": [
+    [
+     "pi = 3.14159; // line 2",
+     ""
+    ]
+   ],
+   "b": [
+    [
+     "double other = null;",
+     "double other = 0.0;"
+    ]
+   ],
+   "c": [
+    [
+     "double example; // line 4",
+     "double example = 0.0;"
+    ]
+   ],
+   "d": [
+    [
+     "example = pi; // line 5",
+     "example = 1.0; // line 5"
+    ]
+   ]
+  }
+ },
+ "unit1_q018": {
+  "kind": "patch",
+  "expect_output": "1248",
+  "variants": {
+   "a": [
+    [
+     "x++; // line 2",
+     "x += 1; // line 2"
+    ],
+    [
+     "x += 1; // line 4",
+     "x++; // line 4"
+    ]
+   ],
+   "b": [
+    [
+     "x *= 2; // line 6",
+     "x *= 4; // line 6"
+    ],
+    [
+     "x *= 4; // line 8",
+     "x *= 2; // line 8"
+    ]
+   ],
+   "c": [
+    [
+     "x *= 2; // line 6",
+     "x += 2; // line 6"
+    ]
+   ],
+   "d": [
+    [
+     "x *= 4; // line 8",
+     "x *= 2; // line 8"
+    ]
+   ]
+  }
+ },
+ "pt2_q026": {
+  "kind": "patch",
+  "cases": [
+   {
+    "before": "int n = 302;",
+    "expect_output": "3"
+   },
+   {
+    "before": "int n = 7;",
+    "expect_output": "7"
+   },
+   {
+    "before": "int n = 45;",
+    "expect_output": "4"
+   },
+   {
+    "before": "int n = 1000;",
+    "expect_output": "1"
+   }
+  ],
+  "variants": {
+   "a": [
+    [
+     "n > 0",
+     "n / 10 > 0"
+    ]
+   ],
+   "b": [
+    [
+     "n > 0",
+     "n % 10 > 0"
+    ]
+   ],
+   "c": [
+    [
+     "n /= 10",
+     "n -= 10"
+    ]
+   ],
+   "d": [
+    [
+     "n /= 10",
+     "n %= 10"
+    ]
+   ]
+  }
+ },
+ "pt2_q012": {
+  "kind": "patch",
+  "before": "Pair p = new Pair(1, 2); p.setY(5);",
+  "cases": [
+   {
+    "after": "java.lang.reflect.Field f = Pair.class.getDeclaredField(\"y\"); f.setAccessible(true); System.out.println(f.get(p));",
+    "expect_output": "5"
+   }
+  ],
+  "variants": {
+   "a": [
+    [
+     "public int getX()",
+     "private int setY(int num) { return num; }\n   public int getX()"
+    ]
+   ],
+   "b": [
+    [
+     "public int getX()",
+     "public int setY(int num) { return num; }\n   public int getX()"
+    ]
+   ],
+   "c": [
+    [
+     "public int getX()",
+     "private void setY(int num) { y = num; }\n   public int getX()"
+    ]
+   ],
+   "d": [
+    [
+     "public int getX()",
+     "public void setY(int num) { y = num; }\n   public int getX()"
+    ]
+   ]
+  }
+ },
+ "unit1_q030": {
+  "kind": "patch",
+  "expect": "compiles",
+  "prelude": "class AccountManager { public int generatePasscode() { return 7; } }",
+  "variants": {
+   "a": [
+    [
+     "public int generatePasscode()",
+     "public void generatePasscode()"
+    ]
+   ],
+   "b": [
+    [
+     "public int generatePasscode()",
+     "public static int generatePasscode()"
+    ]
+   ],
+   "c": [
+    [
+     "public int generatePasscode() { return 7; }",
+     "public int generatePasscode() { return 7; } public int generatePasscode(int x) { return 1; }"
+    ]
+   ],
+   "d": [
+    [
+     "public int generatePasscode() { return 7; }",
+     "public int generatePasscode() { return 7; } public double generatePasscode(int x) { return 1.0; }"
+    ]
+   ]
+  }
+ },
+ "pt2_q011": {
+  "kind": "compile",
+  "expect": "compiles",
+  "before": "Pair myPair = new Pair(1, 2);"
+ },
+ "unit1_q004": {
+  "kind": "compile",
+  "expect": "compiles",
+  "template": "int x = {};"
+ },
+ "unit1_q005": {
+  "kind": "compile",
+  "expect": "compiles",
+  "template": "boolean b = {};"
+ },
+ "unit1_q038": {
+  "kind": "compile",
+  "expect": "fails",
+  "ignore_stem": true,
+  "prelude": "class Person { Person(int idNumber, boolean isActive) {} Person(int idNumber, int age, boolean isActive) {} }"
+ },
+ "unit1_q039": {
+  "kind": "compile",
+  "expect": "compiles",
+  "ignore_stem": true,
+  "prelude": "class Player { Player(boolean isOnline, int numLives) {} }"
+ },
+ "pt2_q021": {
+  "kind": "substitute",
+  "expect_output": "0\n1 1\n2 2 2\n3 3 3 3\n"
+ },
+ "pt2_q030": {
+  "kind": "substitute",
+  "cases": [
+   {
+    "after": "for (int x = 0; x < 3; x++) for (int y = 0; y < 3; y++) for (int z = 0; z < 3; z++) System.out.println(minOfThree(x, y, z) == Math.min(x, Math.min(y, z)));",
+    "expect_output": "true true true true true true true true true true true true true true true true true true true true true true true true true true true"
+   }
+  ]
+ },
+ "pt2_q032": {
+  "kind": "substitute",
+  "cases": [
+   {
+    "after": "System.out.println(result);",
+    "expect_output": "[30, 20, 10, 60, 50, 40]"
+   }
+  ]
+ },
+ "pt2_q034": {
+  "kind": "substitute",
+  "cases": [
+   {
+    "after": "System.out.println(newList);",
+    "expect_output": "[c, b, a, a, b, c]"
+   }
+  ]
+ },
+ "pt2_q038": {
+  "kind": "substitute",
+  "files": {
+   "sourceText.txt": "finest_artist\nbiggest_gamer\nnicest_teacher\nbest_athlete\n"
+  },
+  "cases": [
+   {
+    "after": "System.out.println(firstList); System.out.println(secondList);",
+    "expect_output": "[finest, biggest, nicest, best] [artist, gamer, teacher, athlete]"
+   }
+  ]
+ },
+ "unit1_q012": {
+  "kind": "substitute",
+  "expect": "fails",
+  "before": "double r = 2.0; double h = 5.0; double pi = 3.0;",
+  "expect_output": "60.0"
+ },
+ "unit1_q040": {
+  "kind": "substitute",
+  "ignore_stem": true,
+  "expect_output": "dog cat",
+  "prelude": "class AnimalPrinter { public void printDog() { System.out.println(\"dog\"); } public void printCat() { System.out.println(\"cat\"); } }",
+  "before": "AnimalPrinter myPrinter = new AnimalPrinter();"
+ },
+ "unit1_q042": {
+  "kind": "substitute",
+  "rewrite": [
+   [
+    "double miles = calculateWalkLength(fido, 90); // line 2",
+    "/* missing code */"
+   ]
+  ],
+  "prelude": "class Dog { public Dog() {} public double calculateWalkLength(int minutes) { return minutes / 30.0; } }",
+  "cases": [
+   {
+    "after": "System.out.println(miles);",
+    "expect_output": "3.0"
+   }
+  ]
+ },
+ "pt2_q018": {
+  "kind": "witness",
+  "cases": {
+   "a": {
+    "after": "System.out.println(findMaximum(new int[]{9, 2, 3}));",
+    "expect_output": "9"
+   },
+   "b": {
+    "after": "System.out.println(findMaximum(new int[]{3, 9, 9}));",
+    "expect_output": "9"
+   },
+   "c": {
+    "after": "System.out.println(findMaximum(new int[]{-4, -1, -7}));",
+    "expect_output": "-1"
+   },
+   "d": {
+    "after": "System.out.println(findMaximum(new int[]{1, 2147483647}));",
+    "expect_output": "2147483647"
+   }
+  }
+ },
+ "unit1_q045": {
+  "kind": "witness",
+  "cases": {
+   "a": {
+    "before": "String word = \"abc\";",
+    "after": "System.out.println(\"OK\");",
+    "expect_output": "OK"
+   },
+   "b": {
+    "before": "String word = \"cba\";",
+    "after": "System.out.println(\"OK\");",
+    "expect_output": "OK"
+   },
+   "c": {
+    "before": "String word = \"xyz\";",
+    "after": "System.out.println(\"OK\");",
+    "expect_output": "OK"
+   },
+   "d": {
+    "before": "String word = \"aaa\";",
+    "after": "System.out.println(\"OK\");",
+    "expect_output": "OK"
+   }
+  }
+ },
+ "pt2_q013": {
+  "kind": "run",
+  "count_lines": true
+ },
+ "pt2_q040": {
+  "kind": "run",
+  "compare": "stdout",
+  "rewrite": [
+   [
+    "/* end of outer loop */",
+    "if (j == 3) System.out.println(numList);"
+   ]
+  ],
+  "before": "ArrayList<Integer> numList = new ArrayList<Integer>(Arrays.asList(60, 30, 10, 20, 50, 40));",
+  "after": "insertionSort(numList);"
+ },
+ "pt2_q042": {
+  "kind": "equivalent",
+  "after": "System.out.println(sum);"
+ },
+ "unit1_q009": {
+  "kind": "run",
+  "claims": {
+   "a": "lines == 5",
+   "b": "lines == 4",
+   "c": "lines == 1",
+   "d": "out == ''"
+  }
+ },
+ "unit1_q026": {
+  "kind": "run",
+  "members": "public static void printValues(int numTimes, int val) { for (int i = 0; i < numTimes; i++) System.out.print(val); System.out.println(); }"
+ },
+ "unit1_q027": {
+  "kind": "run",
+  "members": "public static void printSomething(int num, boolean val) { System.out.print(val); System.out.print(num - 1); }"
+ },
+ "unit1_q029": {
+  "kind": "run",
+  "members": "public static double getTax(double p) { return p * 0.08; }"
+ },
+ "unit1_q041": {
+  "kind": "segments",
+  "prelude": "class Person { private int age = 16; public int getAge() { return age; } }",
+  "before": "Person p = new Person();",
+  "claims": {
+   "a": "r == ['16', '16']",
+   "b": "r == ['16', 'ERR']",
+   "c": "r == ['ERR', '16']",
+   "d": "r == ['ERR', 'ERR']"
+  }
+ },
+ "unit1_q019": {
+  "kind": "none",
+  "reason": "conceptual: attributes vs behaviors of a class; nothing to execute"
+ },
+ "unit1_q020": {
+  "kind": "none",
+  "reason": "conceptual: attributes vs behaviors of a class; nothing to execute"
+ },
+ "unit1_q021": {
+  "kind": "none",
+  "reason": "conceptual: attributes vs behaviors of a class; nothing to execute"
+ },
+ "unit1_q032": {
+  "kind": "none",
+  "reason": "conceptual: Math.abs accepts any numeric value; the choices are about constraints, not behavior"
+ },
+ "unit1_q036": {
+  "kind": "none",
+  "reason": "choices b and d differ only in reference/memory-address wording; the run shows dog1 != dog2 but cannot judge terminology"
+ },
+ "unit1_q044": {
+  "kind": "none",
+  "reason": "choices state a rationale; fixes a and b both produce the right output, only the stated reason separates them"
+ }
+}
