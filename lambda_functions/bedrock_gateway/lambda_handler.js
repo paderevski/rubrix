@@ -36,15 +36,9 @@ const MAX_TOKENS = process.env.ANTHROPIC_MAX_TOKENS
 const ANTHROPIC_API_KEY_PARAM =
   process.env.ANTHROPIC_API_KEY_PARAM || "/catie/anthropic_api_key";
 
-// Password verification. Stored values are `scrypt$N$r$p$<salt b64>$<hash b64>` of the
-// SHA-256 hex digest the client sends. Legacy plain SHA-256 values are accepted only while
-// ALLOW_LEGACY_PASSWORD_HASHES is not "false" (turn it off after tools/migrate_password_hashes.py).
-const ALLOW_LEGACY_PASSWORD_HASHES =
-  (process.env.ALLOW_LEGACY_PASSWORD_HASHES || "true").toLowerCase() !==
-  "false";
+// Password verification. The client sends the password over HTTPS; stored values are
+// `scrypt$N$r$p$<salt b64>$<hash b64>` of it (see tools/password_hashing.py).
 const SCRYPT_MAXMEM = 256 * 1024 * 1024;
-const AUTH_CACHE_TTL_MS = 10 * 60 * 1000;
-const AUTH_CACHE_MAX_ENTRIES = 500;
 
 const USAGE_TABLE_NAME = "catieBedrockUsage";
 const USAGE_DEFAULT_BUDGET = 1000000;
@@ -312,74 +306,34 @@ function getAnthropicClient() {
 
 // --- Password verification ---
 
-// Successful verifications, keyed by a digest of (user, presented hash, stored record) so a
-// changed stored record is a cache miss. Avoids paying for scrypt on every request.
-const authCache = new Map();
-
-function authCacheKey(safeUser, presented, stored) {
-  return crypto
-    .createHash("sha256")
-    .update(`${safeUser}\0${presented}\0${stored}`)
-    .digest("hex");
-}
-
-function timingSafeStringEqual(a, b) {
-  const left = Buffer.from(String(a), "utf8");
-  const right = Buffer.from(String(b), "utf8");
-  return left.length === right.length && crypto.timingSafeEqual(left, right);
-}
-
-async function verifyPasswordHash(presented, stored) {
-  if (typeof presented !== "string" || typeof stored !== "string") {
+async function verifyPassword(password, stored) {
+  if (typeof password !== "string" || typeof stored !== "string") {
     return { ok: false, reason: "invalid_input" };
   }
-  if (stored.startsWith("scrypt$")) {
-    const parts = stored.split("$");
-    if (parts.length !== 6) {
-      return { ok: false, reason: "malformed_record" };
-    }
-    const [, nStr, rStr, pStr, saltB64, hashB64] = parts;
-    const N = Number(nStr);
-    const r = Number(rStr);
-    const p = Number(pStr);
-    const salt = Buffer.from(saltB64, "base64");
-    const expected = Buffer.from(hashB64, "base64");
-    if (
-      ![N, r, p].every(Number.isInteger) ||
-      salt.length === 0 ||
-      expected.length === 0
-    ) {
-      return { ok: false, reason: "malformed_record" };
-    }
-    const actual = await scryptAsync(presented, salt, expected.length, {
-      N,
-      r,
-      p,
-      maxmem: SCRYPT_MAXMEM,
-    });
-    return { ok: crypto.timingSafeEqual(actual, expected), reason: "scrypt" };
+  const parts = stored.split("$");
+  if (parts.length !== 6 || parts[0] !== "scrypt") {
+    return { ok: false, reason: "malformed_record" };
   }
-  if (!ALLOW_LEGACY_PASSWORD_HASHES) {
-    return { ok: false, reason: "legacy_disabled" };
+  const [, nStr, rStr, pStr, saltB64, hashB64] = parts;
+  const N = Number(nStr);
+  const r = Number(rStr);
+  const p = Number(pStr);
+  const salt = Buffer.from(saltB64, "base64");
+  const expected = Buffer.from(hashB64, "base64");
+  if (
+    ![N, r, p].every(Number.isInteger) ||
+    salt.length === 0 ||
+    expected.length === 0
+  ) {
+    return { ok: false, reason: "malformed_record" };
   }
-  return { ok: timingSafeStringEqual(presented, stored), reason: "legacy" };
-}
-
-async function verifyPasswordHashCached(safeUser, presented, stored) {
-  const key = authCacheKey(safeUser, presented, stored);
-  const now = Date.now();
-  const expiry = authCache.get(key);
-  if (expiry && expiry > now) {
-    return { ok: true, reason: "cached" };
-  }
-  const result = await verifyPasswordHash(presented, stored);
-  if (result.ok) {
-    if (authCache.size >= AUTH_CACHE_MAX_ENTRIES) {
-      authCache.delete(authCache.keys().next().value);
-    }
-    authCache.set(key, now + AUTH_CACHE_TTL_MS);
-  }
-  return result;
+  const actual = await scryptAsync(password, salt, expected.length, {
+    N,
+    r,
+    p,
+    maxmem: SCRYPT_MAXMEM,
+  });
+  return { ok: crypto.timingSafeEqual(actual, expected), reason: "scrypt" };
 }
 
 const streamingHandler = async (event, responseStream) => {
@@ -398,7 +352,7 @@ const streamingHandler = async (event, responseStream) => {
 
   const user = body.user;
   const safeUser = normalizeUser(user);
-  const passwordHash = body.password_hash;
+  const password = body.password;
   const prompt = body.prompt;
   const questionType =
     typeof body.question_type === "string"
@@ -406,14 +360,14 @@ const streamingHandler = async (event, responseStream) => {
       : "";
   const selectedModelId = questionType === "frq" ? FRQ_MODEL_ID : MODEL_ID;
 
-  if (!user || !safeUser || !passwordHash || !prompt) {
+  if (!user || !safeUser || !password || !prompt) {
     return buildErrorResponse(
       responseStream,
       400,
-      "Missing user, password_hash, or prompt",
+      "Missing user, password, or prompt",
       {
         has_user: Boolean(user),
-        has_password_hash: Boolean(passwordHash),
+        has_password: Boolean(password),
         has_prompt: Boolean(prompt),
       },
     );
@@ -438,23 +392,13 @@ const streamingHandler = async (event, responseStream) => {
         WithDecryption: true,
       }),
     );
-    const storedHash = storedHashParam.Parameter.Value;
-    const verification = await verifyPasswordHashCached(
-      safeUser,
-      passwordHash,
-      storedHash,
-    );
-    if (
-      verification.reason === "legacy" ||
-      verification.reason === "malformed_record"
-    ) {
+    const storedRecord = storedHashParam.Parameter.Value;
+    const verification = await verifyPassword(password, storedRecord);
+    if (verification.reason === "malformed_record") {
       logGatewayError(
-        "auth_record_needs_migration",
-        "Password record is not scrypt",
-        {
-          safe_user: safeUser,
-          reason: verification.reason,
-        },
+        "auth_record_malformed",
+        "Password record is not a scrypt record",
+        { safe_user: safeUser },
       );
     }
     if (!verification.ok) {

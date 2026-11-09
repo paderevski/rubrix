@@ -72,7 +72,6 @@ rubrix/
 ├── src-tauri/src/            # Rust backend
 │   ├── main.rs               # Tauri commands, menus, exports, bug reports
 │   ├── llm.rs                # Gateway streaming client (emits `llm-stream`)
-│   ├── auth.rs               # SHA256 password hashing
 │   ├── prompts.rs            # Prompt building and response parsing
 │   ├── knowledge.rs          # Knowledge base loader (embedded + override dir)
 │   └── qti.rs                # QTI export

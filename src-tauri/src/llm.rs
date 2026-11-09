@@ -58,13 +58,14 @@ pub struct StreamEvent {
 #[derive(Clone)]
 pub struct GatewayAuth {
     pub user: String,
-    pub password_hash: String,
+    /// Sent as-is over HTTPS; the gateway verifies it against a scrypt record.
+    pub password: String,
 }
 
 #[derive(Serialize)]
 struct GatewayRequest {
     user: String,
-    password_hash: String,
+    password: String,
     prompt: String,
 }
 
@@ -89,7 +90,7 @@ pub fn gateway_url() -> Option<String> {
         .or_else(|| BUILT_GATEWAY_URL.map(|url| url.to_string()))
 }
 
-pub async fn validate_gateway_credentials(user: &str, password_hash: &str) -> Result<(), String> {
+pub async fn validate_gateway_credentials(user: &str, password: &str) -> Result<(), String> {
     let url =
         gateway_url().ok_or_else(|| "Authentication gateway is not configured".to_string())?;
     let client = Client::builder()
@@ -99,7 +100,7 @@ pub async fn validate_gateway_credentials(user: &str, password_hash: &str) -> Re
 
     let request = GatewayRequest {
         user: user.to_string(),
-        password_hash: password_hash.to_string(),
+        password: password.to_string(),
         // Minimal prompt to force auth check.
         prompt: "auth_check".to_string(),
     };
@@ -177,7 +178,7 @@ pub async fn generate(
 
     let request = GatewayRequest {
         user: gateway_auth.user,
-        password_hash: gateway_auth.password_hash,
+        password: gateway_auth.password,
         prompt: prompt.to_string(),
     };
 

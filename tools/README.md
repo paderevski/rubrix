@@ -4,7 +4,7 @@ Scripts for managing Catie user accounts in AWS SSM Parameter Store. The Bedrock
 
 ## Parameters per user
 
-- `/secrets/{user}/password_hash` - scrypt record of the SHA256 hex digest of the password: `scrypt$N$r$p$<salt>$<hash>` (format and helpers in [password_hashing.py](password_hashing.py)). The app still sends SHA256(password); the gateway runs scrypt on it and compares, so reading the parameter is not enough to log in. Legacy plain-SHA256 values are accepted only while the Lambda's `ALLOW_LEGACY_PASSWORD_HASHES` is not `false`.
+- `/secrets/{user}/password_hash` - scrypt record of the password: `scrypt$N$r$p$<salt>$<hash>` (format and helpers in [password_hashing.py](password_hashing.py)). The app sends the password over HTTPS and the gateway checks it against this record, so reading the parameter is not enough to log in.
 - `/secrets/{user}/secret` - legacy Bedrock API key slot. The gateway calls Bedrock with its own server-side credentials, so this is not used at runtime; pass `NONE`.
 
 Usernames are normalized (sanitized) the same way in the app, the scripts, and the gateway.
@@ -18,7 +18,6 @@ Usernames are normalized (sanitized) the same way in the app, the scripts, and t
 | `verify_user.py <username> [password]` | Check a user exists; optionally verify a password matches |
 | `list_users.py` | List users that have stored credentials |
 | `user_budget.py list \| get <user> \| set <user> <budget> \| add <user> <tokens> \| reset <user>` | View/update token budgets in DynamoDB `catieBedrockUsage` (see below) |
-| `migrate_password_hashes.py [--apply]` | One-time: wrap legacy SHA256 records in scrypt (dry run unless `--apply`). Users keep their passwords. Then set `ALLOW_LEGACY_PASSWORD_HASHES=false` on the Lambda |
 | `delete_user.py <username> [--purge-usage] [-y]` | Delete a user's SSM credentials (blocks login); `--purge-usage` also deletes their DynamoDB budget/usage records. Prompts for confirmation unless `-y` |
 | `old/` | Archived one-off debugging/migration scripts; not maintained |
 
@@ -74,6 +73,6 @@ What is saved: the profile (region and `login_session` ARN) is in `~/.aws/config
 
 ## Security notes
 
-- Passwords are SHA256-hashed before storage, matching the client hashing in [auth.rs](../src-tauri/src/auth.rs).
+- Passwords are stored as scrypt records (see [password_hashing.py](password_hashing.py)); the app sends the password itself over HTTPS.
 - Never commit passwords, hashes, or keys.
 - Restrict SSM access with IAM.

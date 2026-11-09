@@ -5,11 +5,10 @@
 ```mermaid
 flowchart LR
     UI[React UI\nApp.tsx + LoginModal] --> TAURI[Tauri Commands\nmain.rs]
-    TAURI --> AUTH[auth.rs\nSHA256 hash]
     TAURI --> LLM[llm.rs\nGateway streaming client]
     TAURI --> STORE[(App local data\nauth/credentials.json)]
     LLM --> GATEWAY[Bedrock Gateway API]
-    GATEWAY --> BEDROCK[AWS Bedrock]
+    GATEWAY --> ANTHROPIC[Anthropic API]
 ```
 
 ## Authentication Sequence
@@ -41,11 +40,11 @@ sequenceDiagram
     participant FE as Frontend
     participant BE as Tauri Backend
     participant GW as Gateway
-    participant BR as Bedrock
+    participant BR as Anthropic API
 
     FE->>BE: invoke("generate_questions")
     BE->>BE: read cached credentials
-    BE->>GW: POST { user, password_hash, prompt }
+    BE->>GW: POST { user, password, prompt }
     GW->>BR: Invoke model
     BR-->>GW: Stream chunks
     GW-->>BE: SSE stream

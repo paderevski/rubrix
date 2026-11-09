@@ -3,7 +3,7 @@
 Add a user/password combination to the Lambda secret store.
 
 This script stores TWO parameters in AWS SSM Parameter Store:
-1. /secrets/{user}/password_hash - scrypt record of SHA256(password) (for authentication;
+1. /secrets/{user}/password_hash - scrypt record of the password (for authentication;
    format in password_hashing.py)
 2. /secrets/{user}/secret - The Bedrock API key (returned after successful auth)
 
@@ -18,7 +18,7 @@ import sys
 import boto3
 import re
 
-from password_hashing import REGION, client_hash, make_record
+from password_hashing import REGION, make_record
 
 ssm = boto3.client("ssm", region_name=REGION)
 
@@ -33,7 +33,7 @@ def sanitize_user(username: str) -> str:
 
 def add_user(username: str, password: str, bedrock_api_key: str):
     """Store both password hash and Bedrock API key for a user"""
-    password_record = make_record(client_hash(password))
+    password_record = make_record(password)
     safe_user = sanitize_user(username)
 
     if safe_user != username:

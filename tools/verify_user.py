@@ -2,8 +2,8 @@
 """
 Verify user credentials in the Lambda secret store.
 
-This script reports whether the stored password record is scrypt or legacy
-SHA-256, and checks if the provided password matches.
+This script reports whether the stored password record is a valid scrypt
+record, and checks if the provided password matches.
 
 Usage:
     python verify_user.py <username> [password]
@@ -16,7 +16,7 @@ import sys
 import boto3
 import re
 
-from password_hashing import REGION, client_hash, is_scrypt_record, verify
+from password_hashing import REGION, is_scrypt_record, verify
 
 ssm = boto3.client("ssm", region_name=REGION)
 
@@ -44,7 +44,7 @@ def verify_user(username: str, password: str = None):
         if is_scrypt_record(stored_hash):
             print("Password record: scrypt")
         else:
-            print("Password record: LEGACY SHA-256 (run migrate_password_hashes.py)")
+            print("Password record: NOT a scrypt record (re-add the user with add_user.py)")
 
         # Check if Bedrock API key exists
         try:
@@ -60,7 +60,7 @@ def verify_user(username: str, password: str = None):
 
         # Verify password if provided
         if password:
-            if verify(client_hash(password), stored_hash):
+            if verify(password, stored_hash):
                 print("✓ Password MATCHES!")
             else:
                 print("✗ Password does NOT match")
