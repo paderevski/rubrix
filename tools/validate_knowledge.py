@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Validate a subject's question-schema.json and question banks.
 
-Usage: tools/validate_knowledge.py "imports/knowledge/Computer Science"
+Usage: tools/validate_knowledge.py "imports/knowledge/Computer Science" [--coverage]
+
+--coverage also prints how many questions use each topic and subtopic (all banks
+combined), and the AP topics with no questions.
 
 Checks: unique ids/names, subtopic parents, AP coverage (every ap_topics item
 referenced by a subtopic), bank vocabulary references, and answer rules.
@@ -9,7 +12,28 @@ referenced by a subtopic), bank vocabulary references, and answer rules.
 import glob, json, os, sys
 from collections import Counter
 
-def main(folder):
+def coverage(schema, questions):
+    tc = Counter(t for q in questions for t in q.get("topics", []))
+    sc = Counter(s for q in questions for s in q.get("subtopics", []))
+    kids = {}
+    for st in schema["subtopics"]["items"]:
+        kids.setdefault(st["parent_topic"], []).append(st)
+    print(f"\nCoverage: {len(questions)} questions")
+    for t in schema["topics"]["items"]:
+        print(f"{t['id']:5}{tc[t['id']]:4}  {t['display']}")
+        for st in kids.get(t["id"], []):
+            print(f"  {st['id']:7}{sc[st['id']]:4}  {st['display']}")
+    zero = [st["id"] for st in schema["subtopics"]["items"] if not sc[st["id"]]]
+    print(f"\nTopics with no questions: {[t['id'] for t in schema['topics']['items'] if not tc[t['id']]]}")
+    print(f"Subtopics with no questions ({len(zero)} of {len(schema['subtopics']['items'])}): {zero}")
+    if "ap_topics" in schema:
+        used = {r for st in schema["subtopics"]["items"] if sc[st["id"]] for r in st.get("ap_refs", [])}
+        missing = [a["id"] for a in schema["ap_topics"]["items"] if a["id"] not in used]
+        print(f"AP topics with no questions ({len(missing)} of {len(schema['ap_topics']['items'])}): {missing}")
+
+
+def main(folder, show_coverage=False):
+    all_questions = []
     errors = []
     schema = json.load(open(os.path.join(folder, "question-schema.json")))
     sections = {k: {i["id"] for i in v["items"] if "id" in i}
@@ -37,6 +61,7 @@ def main(folder):
         qs = bank.get("questions") if isinstance(bank, dict) else None
         if qs is None:
             continue
+        all_questions.extend(qs)
         for q in qs:
             qid = f"{os.path.basename(path)}:{q.get('id')}"
             for f, sec in vocab.items():
@@ -59,7 +84,11 @@ def main(folder):
     for e in errors:
         print(e)
     print(f"{len(errors)} problem(s)")
+    if show_coverage:
+        coverage(schema, all_questions)
     return 1 if errors else 0
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else "imports/knowledge/Computer Science"))
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    sys.exit(main(args[0] if args else "imports/knowledge/Computer Science",
+                  "--coverage" in sys.argv))
