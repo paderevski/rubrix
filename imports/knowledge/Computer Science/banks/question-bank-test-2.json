@@ -229,7 +229,7 @@
     {
       "id": "exam2_q006",
       "status": "active",
-      "text": "Which of the following methods can be added to `SomeClass` to allow other classes to modify the value of `myA`?",
+      "text": "Consider the following partial class definition.\n\n```java\npublic class SomeClass\n{\n   private int myA;\n\n   // Constructor(s) not shown\n\n   public int getA()\n   {\n      return myA;\n   }\n}\n```\n\nWhich of the following methods can be added to `SomeClass` to allow other classes to modify the value of `myA`?",
       "answers": [
         {
           "id": "a",
@@ -387,7 +387,7 @@
           "id": "d",
           "text": "`return Math.abs((d1 + d2) / 2) <= tolerance;`",
           "is_correct": false,
-          "explanation": "Takes the absolute value of the average, not of the difference. The average is large, so this does not measure how close the values are."
+          "explanation": "Takes the absolute value of the average, not of the difference. The average shows where the values are, not how far apart they are, so 7.9 and 7.8 give about 7.85, which is greater than 0.15."
         }
       ],
       "explanation": "The distance between two numbers is the absolute value of their difference. The method should return true when that distance is at most `tolerance`, which is `Math.abs(d1 - d2) <= tolerance`.",
@@ -415,13 +415,13 @@
           "id": "a",
           "text": "`14.0`",
           "is_correct": false,
-          "explanation": "Does not match the correct values of `a`, `b`, and `c`, which are 9, 5, and 6. Check the order of operations and what `%` returns."
+          "explanation": "Adds before taking the remainder in `7 % 4 + 3`, computing `7 % 7` = 0 so the total is 9 + 5 + 0 = 14. `%` has the same precedence as `*` and `/`, so `7 % 4` is 3 and `c` is 6."
         },
         {
           "id": "b",
           "text": "`18.0`",
           "is_correct": false,
-          "explanation": "Gets `a` and `c` right but the wrong value for `b`. In `4 + 3 / 2`, the division `3 / 2` is integer division and gives 1, so `b` is 5."
+          "explanation": "Adds before dividing in `4 + 3 / 2`, getting `7 / 2` = 3 for `b`, so the total is 9 + 3 + 6 = 18. Division comes first, so `3 / 2` is 1 and `b` is 5."
         },
         {
           "id": "c",
@@ -531,7 +531,8 @@
       ],
       "subtopics": [
         "ST076",
-        "ST015"
+        "ST015",
+        "ST013"
       ],
       "skills": [
         "SK009"
@@ -577,7 +578,7 @@
         "ST064"
       ],
       "skills": [
-        "SK023"
+        "SK009"
       ],
       "difficulty": "D1",
       "cognitive_level": "B2"
@@ -794,11 +795,13 @@
       ],
       "explanation": "The loop prints only when `x` is even. Starting at 1, adding 2 each time keeps `x` odd for every pass through the loop body, so the `if` never prints.",
       "topics": [
-        "T004"
+        "T004",
+        "T001"
       ],
       "subtopics": [
         "ST017",
-        "ST020"
+        "ST020",
+        "ST067"
       ],
       "skills": [
         "SK011",
@@ -816,7 +819,7 @@
           "id": "a",
           "text": "`[1, 3, 0, 1]`",
           "is_correct": false,
-          "explanation": "Gets the list positions wrong. `add(index, value)` inserts and shifts the other elements; it does not replace. The `set` call also changes only the value at index 0."
+          "explanation": "Reverses the arguments in both calls: treats `add(1, 0)` as inserting 1 at index 0, giving `[1, 3, 2, 1]`, and `set(0, 2)` as storing 0 at index 2. Both methods take the index first and the value second."
         },
         {
           "id": "b",
@@ -828,13 +831,13 @@
           "id": "c",
           "text": "`[2, 3, 2, 1]`",
           "is_correct": false,
-          "explanation": "Keeps the 3 at index 1, as if the insertion did not shift the elements or place the 0 in the list."
+          "explanation": "Treats `add(1, 0)` as inserting the value 1 at index 0, giving `[1, 3, 2, 1]`, and then `set(0, 2)` replaces that 1. The first argument of `add` is the index, so 0 is inserted at index 1."
         },
         {
           "id": "d",
           "text": "`[3, 0, 0, 1]`",
           "is_correct": false,
-          "explanation": "Misreads the `set` call and the insertion, so the first value and the inserted 0 are in the wrong positions."
+          "explanation": "Handles `add(1, 0)` correctly, giving `[3, 0, 2, 1]`, but reverses the arguments of `set(0, 2)` and stores 0 at index 2. `set(index, value)` replaces index 0 with 2."
         }
       ],
       "explanation": "Each `add(value)` appends. `add(1, 0)` inserts 0 at index 1 and moves the later elements one place to the right. `set(0, 2)` then replaces the element at index 0.",
@@ -954,7 +957,7 @@
           "id": "b",
           "text": "`\"*\"` is printed `n` fewer times than `\"@\"`.",
           "is_correct": false,
-          "explanation": "The difference is `m`, not `n`. Both segments use `n`, but the outer loop of the second segment runs `m` times."
+          "explanation": "Gets both the amount and the direction wrong. The first segment prints `m * n` stars and the second prints `m * (n - 1)` at signs, so stars are printed `m` more times, not `n` fewer."
         },
         {
           "id": "c",
@@ -971,11 +974,13 @@
       ],
       "explanation": "Segment 1 prints `m * n` stars. Segment 2 prints `@` once for each `k` from 1 to `n - 1`, for each of the `m` values of `j`. So it prints `m * (n - 1)` times. The difference is `m`.",
       "topics": [
-        "T004"
+        "T004",
+        "T022"
       ],
       "subtopics": [
         "ST019",
-        "ST018"
+        "ST018",
+        "ST079"
       ],
       "skills": [
         "SK011",
@@ -1049,7 +1054,7 @@
           "id": "c",
           "text": "```java\nint counter = 0;\nfor (int i = 1; i < nums.length; i++)\n{\n   if (nums[i] < 0)\n   {\n      counter++;\n   }\n}\n```",
           "is_correct": false,
-          "explanation": "Starts at index 1, so the first element is never checked. The loop also ends at the wrong place for the stated goal."
+          "explanation": "Starts at index 1, so `nums[0]` is never checked. If the first element is negative, it is not counted."
         },
         {
           "id": "d",
@@ -1066,7 +1071,8 @@
       "subtopics": [
         "ST031",
         "ST017",
-        "ST032"
+        "ST032",
+        "ST034"
       ],
       "skills": [
         "SK018",
@@ -1090,7 +1096,7 @@
           "id": "b",
           "text": "`1`",
           "is_correct": false,
-          "explanation": "Counts only one change, such as one call to `incrementY`, and ignores the constructors and the other call."
+          "explanation": "Treats `y` as if each object had its own copy, so only `third`'s constructor would change it. Because `y` is `static`, all three constructors and both `incrementY` calls change the same variable."
         },
         {
           "id": "c",
@@ -1134,7 +1140,7 @@
           "id": "b",
           "text": "`2`",
           "is_correct": false,
-          "explanation": "Index 2 is the second `z` in `two`, not the `x`. The `x` does not appear until index 3."
+          "explanation": "Treats each `substring(k)` call as returning only the character at index `k`, giving `zyx` with the `x` at index 2. A one-argument `substring(k)` returns everything from `k` to the end, so `two` is `zyzxyz`."
         },
         {
           "id": "c",
@@ -1146,7 +1152,7 @@
           "id": "d",
           "text": "`5`",
           "is_correct": false,
-          "explanation": "Index 5 is the last character, which is a `z`. The search did not stop at the first `x`."
+          "explanation": "Index 5 is the last character of `zyzxyz`, which is a `z`. The only `x` is at index 3, and `indexOf` returns that position."
         }
       ],
       "explanation": "`substring(2)` of `xyz` is `z`, `substring(1)` is `yz`, and `substring(0)` is `xyz`. Joining them gives `zyzxyz`. In that string the first `x` is at index 3.",
@@ -1200,7 +1206,8 @@
       ],
       "subtopics": [
         "ST031",
-        "ST033"
+        "ST033",
+        "ST034"
       ],
       "skills": [
         "SK018",
@@ -1218,7 +1225,7 @@
           "id": "a",
           "text": "A count of the positive elements in column `x` of `values`",
           "is_correct": false,
-          "explanation": "Counts rather than sums. The method adds the values, and it does not count how many are positive."
+          "explanation": "Gets two things wrong. `values[x][y]` keeps the row fixed at `x` and moves across the columns, so it uses row `x`, not column `x`, and the method adds the positive values rather than counting them."
         },
         {
           "id": "b",
@@ -1245,7 +1252,8 @@
       ],
       "subtopics": [
         "ST038",
-        "ST082"
+        "ST082",
+        "ST083"
       ],
       "skills": [
         "SK018",
@@ -1353,7 +1361,7 @@
           "id": "a",
           "text": "`\"computer\"`",
           "is_correct": false,
-          "explanation": "Returns the characters at odd indexes, but the method does not return the input. It builds a new string from the selected characters."
+          "explanation": "The method does not return its input. It builds a new string from only the characters at indexes 1, 3, 5, and 7."
         },
         {
           "id": "b",
@@ -1371,7 +1379,7 @@
           "id": "d",
           "text": "`\"ompute\"`",
           "is_correct": false,
-          "explanation": "Takes every character except the last one, which ignores the step of 2 in the loop."
+          "explanation": "Takes every character from index 1 through index 6, as if the loop moved by 1 and also dropped the final `r`. The loop moves by 2, so it takes only indexes 1, 3, 5, and 7."
         }
       ],
       "explanation": "`k` starts at 1 and increases by 2, so `substring(k, k + 1)` picks the characters at the odd indexes. Concatenating them gives `optr`.",
@@ -1381,7 +1389,8 @@
       ],
       "subtopics": [
         "ST075",
-        "ST018"
+        "ST018",
+        "ST009"
       ],
       "skills": [
         "SK019",
@@ -1541,7 +1550,7 @@
           "id": "b",
           "text": "`17`",
           "is_correct": false,
-          "explanation": "Does not match the correct total. The first column of each row is doubled, so the values there are 2 and 8."
+          "explanation": "Processes only the first two columns, as if `values[0].length` were the number of rows, 2, giving 2 + 2 + 8 + 5 = 17. `values[0].length` is 3, so the third column (3 and 6) is also added."
         },
         {
           "id": "c",
@@ -1562,7 +1571,8 @@
       ],
       "subtopics": [
         "ST038",
-        "ST082"
+        "ST082",
+        "ST083"
       ],
       "skills": [
         "SK001",
@@ -1586,7 +1596,7 @@
           "id": "b",
           "text": "`arr[j] == arr[k]` for the first missing condition and `modeCount > valCount` for the second",
           "is_correct": false,
-          "explanation": "Reverses the comparison, so the mode is replaced when the count is smaller. That returns a value with the lowest count."
+          "explanation": "`modeCount` starts at 1 and every `valCount` is at least 1, so `modeCount > valCount` is never true and the method always returns `arr[0]`. For `{6, 5, 1, 5, 2, 6, 5}` it returns 6 instead of 5."
         },
         {
           "id": "c",
@@ -1671,7 +1681,7 @@
           "id": "a",
           "text": "```java\nif (b.getPages() < maxPages)\n{\n   maxPages = b.getPages();\n}\n```",
           "is_correct": false,
-          "explanation": "Looks for the smallest page count, not the greatest, and updates in the wrong direction."
+          "explanation": "Uses `<`, which looks for a smaller value. No page count is less than `Integer.MIN_VALUE`, so `maxPages` never changes and the method returns `Integer.MIN_VALUE`."
         },
         {
           "id": "b",
@@ -1699,7 +1709,8 @@
       ],
       "subtopics": [
         "ST036",
-        "ST007"
+        "ST007",
+        "ST081"
       ],
       "skills": [
         "SK016",
@@ -1717,13 +1728,13 @@
           "id": "a",
           "text": "`{1, 0, 6, 3}`",
           "is_correct": false,
-          "explanation": "Uses the wrong elements for the products. The row index is fixed at 1 and the column index at 2, so this result is not produced."
+          "explanation": "Swaps the roles of `r` and `c`, multiplying row 2 `{1, 2, 3, 3}` by column 1 `{1, 0, 2, 1}`. The method uses row `r` = 1 and column `c` = 2."
         },
         {
           "id": "b",
           "text": "`{1, 9, 0, 4}`",
           "is_correct": false,
-          "explanation": "Uses the wrong values for the products. Each entry multiplies a row-1 value by a column-2 value."
+          "explanation": "Has the correct products 4, 0, 9, and 1 but in reverse order. `result[j]` holds the product for index `j`, so they appear in order of `j` from 0 to 3."
         },
         {
           "id": "c",
@@ -1735,7 +1746,7 @@
           "id": "d",
           "text": "`{4, 3, 6, 2}`",
           "is_correct": false,
-          "explanation": "Uses a row-1 value in one product but gets the second factor from the wrong place. The second factor must come from column 2."
+          "explanation": "Adds the two values instead of multiplying them: 2 + 2, 0 + 3, 3 + 3, and 1 + 1. The method computes `matrix[r][j] * matrix[j][c]`."
         }
       ],
       "explanation": "`matrix[r][j]` reads row `r`, and `matrix[j][c]` reads column `c`. With `r = 1` and `c = 2`, the result is `{2*2, 0*3, 3*3, 1*1}`, which is `{4, 0, 9, 1}`.",
@@ -1774,7 +1785,7 @@
           "id": "c",
           "text": "`{1, 2, 3, 6, 5, 4}`",
           "is_correct": false,
-          "explanation": "Moves the largest values to the end too early. A selection sort pass places the smallest remaining value."
+          "explanation": "Swaps `data[j]` with each smaller value as soon as it is found, which leaves the rest as `{6, 5, 4}`. This code swaps only once per pass, with the smallest remaining value, so the rest stays `{5, 4, 6}`."
         },
         {
           "id": "d",
@@ -1801,7 +1812,7 @@
     {
       "id": "exam2_q041",
       "status": "active",
-      "text": "Assume that `sort` is called with the array `{1, 2, 3, 4, 5, 6}`. How many times will the expression indicated by `/* Compare values */` and the statement indicated by `/* Assign to temp */` execute?",
+      "text": "Consider the following method.\n\n```java\npublic static void sort(int[] data)\n{\n   for (int j = 0; j < data.length - 1; j++)\n   {\n      int m = j;\n      for (int k = j + 1; k < data.length; k++)\n      {\n         if (data[k] < data[m])   /* Compare values */\n         {\n            m = k;\n         }\n      }\n      int temp = data[m];         /* Assign to temp */\n      data[m] = data[j];\n      data[j] = temp;\n      /* End of outer loop */\n   }\n}\n```\n\nAssume that `sort` is called with the array `{1, 2, 3, 4, 5, 6}`. How many times will the expression indicated by `/* Compare values */` and the statement indicated by `/* Assign to temp */` execute?",
       "answers": [
         {
           "id": "a",
@@ -1819,7 +1830,7 @@
           "id": "c",
           "text": "The comparison expression runs 21 times and the assignment to `temp` runs 5 times",
           "is_correct": false,
-          "explanation": "Counts 21 comparisons, which would happen if each inner loop started at 0. The inner loop starts at j + 1."
+          "explanation": "Gets the assignment count right but counts 21 comparisons, as if the inner loop started at `j` and the outer loop ran six times. The outer loop runs five times and the inner loop starts at `j + 1`, so the comparisons total 5 + 4 + 3 + 2 + 1 = 15."
         },
         {
           "id": "d",
@@ -1830,10 +1841,12 @@
       ],
       "explanation": "The outer loop runs 5 times. On pass `j`, the inner loop compares `data[k]` with `data[m]` for `k` from `j + 1` to 5. That gives 5 + 4 + 3 + 2 + 1 comparisons. The swap statement runs once per outer pass.",
       "topics": [
-        "T011"
+        "T011",
+        "T022"
       ],
       "subtopics": [
-        "ST046"
+        "ST046",
+        "ST079"
       ],
       "skills": [
         "SK015",
@@ -1878,7 +1891,8 @@
       ],
       "subtopics": [
         "ST043",
-        "ST042"
+        "ST042",
+        "ST041"
       ],
       "skills": [
         "SK012"
