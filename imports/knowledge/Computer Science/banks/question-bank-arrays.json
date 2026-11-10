@@ -1,0 +1,3156 @@
+{
+  "schema_version": "2.5.0",
+  "source": "AP CSA Arrays practice set, 69 MCQ (duplicates of other banks omitted)",
+  "questions": [
+    {
+      "id": "arrays_q001",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static int[] addNum(int[] array, int first,\n                           int second, int num)\n{\n  int[] newArray = new int[array.length];\n  newArray[first] = array[first] + num;\n  newArray[second] = array[second] + num;\n  return newArray;\n}\n```\n\nThe following code segment appears in a method in the same class as `addNum`. The code segment is intended to set the contents of `array2` to `{0, 13, 9, 0}`.\n\n```java\nint[] array1 = /* missing initialization */;\nint[] array2 = addNum(array1, 1, 2, 5);\n```\n\nWhich of the following can replace `/* missing initialization */` so that the code segment works as expected?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{8, 4}`",
+          "is_correct": false,
+          "explanation": "The values `8` and `4` are right, but they sit at indices `0` and `1` of a length-2 array; accessing `array[2]` throws an `ArrayIndexOutOfBoundsException`."
+        },
+        {
+          "id": "b",
+          "text": "`{18, 14}`",
+          "is_correct": false,
+          "explanation": "This adds `5` to the target values instead of subtracting it, and the length-2 array also causes an `ArrayIndexOutOfBoundsException`."
+        },
+        {
+          "id": "c",
+          "text": "`{5, 8, 4, 5}`",
+          "is_correct": true,
+          "explanation": "Correct. `newArray` has the same length as `array1` (4), and all its elements start at the default value `0`. The method sets `newArray[1]` to `array1[1] + 5`, which is `8 + 5 = 13`, and `newArray[2]` to `array1[2] + 5`, which is `4 + 5 = 9`; indices `0` and `3` stay `0`, giving `{0, 13, 9, 0}`."
+        },
+        {
+          "id": "d",
+          "text": "`{5, 18, 14, 5}`",
+          "is_correct": false,
+          "explanation": "This adds `5` to the targets instead of subtracting it; the result would be `{0, 23, 19, 0}`."
+        }
+      ],
+      "explanation": "`newArray` has the same length as `array1` (4), and all its elements start at the default value `0`. The method sets `newArray[1]` to `array1[1] + 5`, which is `8 + 5 = 13`, and `newArray[2]` to `array1[2] + 5`, which is `4 + 5 = 9`; indices `0` and `3` stay `0`, giving `{0, 13, 9, 0}`.",
+      "topics": [
+        "T006",
+        "T012"
+      ],
+      "subtopics": [
+        "ST030",
+        "ST032",
+        "ST074"
+      ],
+      "skills": [
+        "SK001",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q002",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[] arr = {4, 3, 2, 1, 0};\nint total = 0;\nfor (int k = 0; k <= total; k++)\n{\n  if (arr[k] % 2 == 0)\n  {\n    total += arr[k];\n  }\n  else\n  {\n    total -= arr[k];\n  }\n}\nSystem.out.print(total);\n```\n\nWhat, if anything, is printed as a result of executing the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "2",
+          "is_correct": false,
+          "explanation": "This is the result of processing every element (`4 - 3 + 2 - 1 + 0`), as if the loop bound were `arr.length`."
+        },
+        {
+          "id": "b",
+          "text": "1",
+          "is_correct": true,
+          "explanation": "Correct. When `k` is `0`, `arr[0]` is `4` (even), so `total` becomes `4`. When `k` is `1`, `arr[1]` is `3` (odd), so `total` becomes `4 - 3 = 1`. Now `k` is `2` and the condition `k <= total` (`2 <= 1`) is false, so the loop ends and `1` is printed. The loop bound is `total`, not `arr.length`, so the loop stops early."
+        },
+        {
+          "id": "c",
+          "text": "0",
+          "is_correct": false,
+          "explanation": "This assumes the loop body never runs, but `0 <= 0` is true, so the first iteration does execute."
+        },
+        {
+          "id": "d",
+          "text": "Nothing is printed because the code segment causes a runtime error.",
+          "is_correct": false,
+          "explanation": "Runtime error: `k` only reaches `2`, which is a valid index, so no `ArrayIndexOutOfBoundsException` occurs."
+        }
+      ],
+      "explanation": "When `k` is `0`, `arr[0]` is `4` (even), so `total` becomes `4`. When `k` is `1`, `arr[1]` is `3` (odd), so `total` becomes `4 - 3 = 1`. Now `k` is `2` and the condition `k <= total` (`2 <= 1`) is false, so the loop ends and `1` is printed. The loop bound is `total`, not `arr.length`, so the loop stops early.",
+      "topics": [
+        "T006",
+        "T004"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032",
+        "ST020"
+      ],
+      "skills": [
+        "SK001",
+        "SK011"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q003",
+      "status": "active",
+      "text": "Consider the following method. Method `allEven` is intended to return `true` if all elements in array `arr` are even numbers; otherwise, it should return `false`.\n\n```java\npublic boolean allEven(int[] arr)\n{\n  boolean isEven = /* expression */ ;\n\n  for (int k = 0; k < arr.length; k++)\n  {\n    /* loop body */\n  }\n\n  return isEven;\n}\n```\n\nWhich of the following replacements for `/* expression */` and `/* loop body */` should be used so that method `allEven` will work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "| /* expression */ | /* loop body */ |\n|---|---|\n| `false` | see code block below |\n\n```java\nif ((arr[k] % 2) == 0)\n  isEven = true;\n```",
+          "is_correct": false,
+          "explanation": "Start `false`, set `true` when an element is even: this returns `true` if at least one element is even, not if all are even."
+        },
+        {
+          "id": "b",
+          "text": "| /* expression */ | /* loop body */ |\n|---|---|\n| `false` | see code block below |\n\n```java\nif ((arr[k] % 2) != 0)\n  isEven = false;\nelse\n  isEven = true;\n```",
+          "is_correct": false,
+          "explanation": "Start `false`, set `false` if odd else `true`: each iteration overwrites `isEven`, so the result depends only on the last element."
+        },
+        {
+          "id": "c",
+          "text": "| /* expression */ | /* loop body */ |\n|---|---|\n| `true` | see code block below |\n\n```java\nif ((arr[k] % 2) != 0)\n  isEven = false;\n```",
+          "is_correct": true,
+          "explanation": "Correct. Start by assuming every element is even (`isEven = true`), and switch it to `false` as soon as an odd element is found. Because the loop never sets `isEven` back to `true`, a single odd element anywhere in the array makes the method return `false`, and an array with no odd elements returns `true`."
+        },
+        {
+          "id": "d",
+          "text": "| /* expression */ | /* loop body */ |\n|---|---|\n| `true` | see code block below |\n\n```java\nif ((arr[k] % 2) != 0)\n  isEven = false;\nelse\n  isEven = true;\n```",
+          "is_correct": false,
+          "explanation": "Start `true`, set `false` if odd else `true`: the `else` branch resets `isEven` to `true`, so an odd element early in the array is forgotten; the result depends only on the last element."
+        }
+      ],
+      "explanation": "Start by assuming every element is even (`isEven = true`), and switch it to `false` as soon as an odd element is found. Because the loop never sets `isEven` back to `true`, a single odd element anywhere in the array makes the method return `false`, and an array with no odd elements returns `true`.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034"
+      ],
+      "skills": [
+        "SK016",
+        "SK009"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q004",
+      "status": "active",
+      "text": "Consider the following instance variable and incomplete method. The method is intended to return a string from the array `words` that would be last alphabetically.\n\n```java\nprivate String[] words;\n\npublic String findLastWord()\n{\n /* missing implementation */\n}\n```\n\nAssume that `words` has been initialized with one or more strings containing only lowercase letters. Which of the following code segments can be used to replace `/* missing implementation */` so that `findLastWord` will work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nint maxIndex = 0;\nfor (int k = 0; k < words.length; k++)\n{\n if (words[k].compareTo(maxIndex) > 0)\n {\n   maxIndex = k;\n }\n}\nreturn words[maxIndex];\n```",
+          "is_correct": false,
+          "explanation": "The version calling `words[k].compareTo(maxIndex)`: `compareTo` must be given a `String`, but `maxIndex` is an `int`, so this does not compile; it confuses the index with the word at that index."
+        },
+        {
+          "id": "b",
+          "text": "```java\nint maxIndex = 0;\nfor (int k = 1; k <= words.length; k++)\n{\n if (words[k].compareTo(words[maxIndex]) > 0)\n {\n   maxIndex = k;\n }\n}\nreturn words[maxIndex];\n```",
+          "is_correct": false,
+          "explanation": "The version with `k <= words.length`: the last iteration accesses `words[words.length]`, which throws an `ArrayIndexOutOfBoundsException`."
+        },
+        {
+          "id": "c",
+          "text": "```java\nint maxIndex = 0;\nfor (int k = 1; k < words.length; k++)\n{\n if (words[k].compareTo(words[maxIndex]) > 0)\n {\n   maxIndex = k;\n }\n}\nreturn maxIndex;\n```",
+          "is_correct": false,
+          "explanation": "The version ending in `return maxIndex;`: it finds the right index but returns an `int` from a method declared to return a `String`, so it does not compile."
+        },
+        {
+          "id": "d",
+          "text": "```java\nString maxWord = words[0];\nfor (int k = 1; k < words.length; k++)\n{\n if (words[k].compareTo(maxWord) > 0)\n {\n   maxWord = words[k];\n }\n}\nreturn maxWord;\n```",
+          "is_correct": true,
+          "explanation": "Correct. `maxWord` starts as `words[0]`, and the loop visits indices `1` through `words.length - 1`. Whenever `words[k].compareTo(maxWord) > 0`, the current word comes later alphabetically, so it becomes the new `maxWord`. After the loop, `maxWord` holds the word that is last alphabetically, and it is returned as a `String`."
+        }
+      ],
+      "explanation": "`maxWord` starts as `words[0]`, and the loop visits indices `1` through `words.length - 1`. Whenever `words[k].compareTo(maxWord) > 0`, the current word comes later alphabetically, so it becomes the new `maxWord`. After the loop, `maxWord` holds the word that is last alphabetically, and it is returned as a `String`.",
+      "topics": [
+        "T006",
+        "T013"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034",
+        "ST011"
+      ],
+      "skills": [
+        "SK016",
+        "SK008"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q005",
+      "status": "active",
+      "text": "In the following code segment, assume that the string `str` has been properly declared and initialized. The code segment is intended to print the number of strings in the array `animals` that have `str` as a substring.\n\n```java\nString[] animals = {\"horse\", \"cow\", \"goat\", \"dog\", \"cat\", \"mouse\"};\nint count = 0;\nfor (int i = 0; i <= animals.length; i++)\n{\n if (animals[i].indexOf(str) >= 0)\n {\n   count++;\n }\n}\nSystem.out.println(count);\n```\n\nThe code segment does not work as intended. Which of the following changes should be made so the code segment works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The Boolean expression in the `for` loop header should be changed to `i < animals.length`.",
+          "is_correct": true,
+          "explanation": "Correct. The valid indices of `animals` are `0` through `animals.length - 1`. With `i <= animals.length`, the last iteration accesses `animals[6]` and throws an `ArrayIndexOutOfBoundsException`. Changing the condition to `i < animals.length` visits every element exactly once, and `indexOf(str) >= 0` correctly detects whether `str` is a substring."
+        },
+        {
+          "id": "b",
+          "text": "The Boolean expression in the `for` loop header should be changed to `i < animals.length - 1`.",
+          "is_correct": false,
+          "explanation": "This stops one element early and never checks `\"mouse\"`."
+        },
+        {
+          "id": "c",
+          "text": "The Boolean expression in the `for` loop header should be changed to `i < animals[i].length`.",
+          "is_correct": false,
+          "explanation": "A `String` has a `length()` method, not a `length` field, so this does not compile; it also confuses the length of one string with the length of the array."
+        },
+        {
+          "id": "d",
+          "text": "The condition in the `if` statement should be changed to `animals[i].equals(str)`.",
+          "is_correct": false,
+          "explanation": "This counts only exact matches, not substrings, and the loop bound would still cause an `ArrayIndexOutOfBoundsException`."
+        }
+      ],
+      "explanation": "The valid indices of `animals` are `0` through `animals.length - 1`. With `i <= animals.length`, the last iteration accesses `animals[6]` and throws an `ArrayIndexOutOfBoundsException`. Changing the condition to `i < animals.length` visits every element exactly once, and `indexOf(str) >= 0` correctly detects whether `str` is a substring.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST033",
+        "ST034"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q006",
+      "status": "active",
+      "text": "Consider the following class definition.\n\n```java\npublic class Toy\n{\n private int yearFirstSold;\n public int getYearFirstSold()\n {\n   return yearFirstSold;\n }\n /* There may be instance variables, constructors, and other methods not\n shown. */\n}\n```\n\nThe following code segment, which appears in a class other than `Toy`, prints the year each `Toy` object in `toyArray` was first sold by its manufacturer. Assume that `toyArray` is a properly declared and initialized array of `Toy` objects.\n\n```java\nfor (Toy k : toyArray)\n{\n  System.out.println(k.getYearFirstSold());\n}\n```\n\nWhich of the following could be used in place of the given code segment to produce the same output?\n\nI.\n\n```java\nfor (int k = 0; k < toyArray.length; k++)\n{\n  System.out.println(getYearFirstSold(k));\n}\n```\n\nII.\n\n```java\nfor (int k = 0; k < toyArray.length; k++)\n{\n  System.out.println(k.getYearFirstSold());\n}\n```\n\nIII.\n\n```java\nfor (int k = 0; k < toyArray.length; k++)\n{\n  System.out.println(toyArray[k].getYearFirstSold());\n}\n```",
+      "answers": [
+        {
+          "id": "a",
+          "text": "II only",
+          "is_correct": false,
+          "explanation": "II only: this treats the index `k` as if it were a `Toy` object, as it was in the enhanced `for` loop; an `int` has no methods."
+        },
+        {
+          "id": "b",
+          "text": "III only",
+          "is_correct": true,
+          "explanation": "Correct. In an indexed `for` loop, `k` is an `int` index, so the `Toy` object must be obtained with `toyArray[k]` before calling `getYearFirstSold()`. Only code segment III does this. Code segment I passes `k` as an argument to a `getYearFirstSold` method that does not exist in the calling class (and the real method takes no parameters), and code segment II calls a method on the `int` `k`, which does not compile."
+        },
+        {
+          "id": "c",
+          "text": "I and II",
+          "is_correct": false,
+          "explanation": "I and II: neither compiles; both misuse `k`, and the one segment that works is left out."
+        },
+        {
+          "id": "d",
+          "text": "II and III",
+          "is_correct": false,
+          "explanation": "II and III: III works, but II does not compile because `k` is an `int`, not a `Toy`."
+        }
+      ],
+      "explanation": "In an indexed `for` loop, `k` is an `int` index, so the `Toy` object must be obtained with `toyArray[k]` before calling `getYearFirstSold()`. Only code segment III does this. Code segment I passes `k` as an argument to a `getYearFirstSold` method that does not exist in the calling class (and the real method takes no parameters), and code segment II calls a method on the `int` `k`, which does not compile.",
+      "topics": [
+        "T006",
+        "T002"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032",
+        "ST007"
+      ],
+      "skills": [
+        "SK008",
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q007",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic int[] transform(int[] a)\n{\n a[0]++;\n a[2]++;\n return a;\n}\n```\n\nThe following code segment appears in a method in the same class as `transform`.\n\n```java\n/* missing code */\narr = transform(arr);\n```\n\nAfter executing the code segment, the array `arr` should contain `{1, 0, 1, 0}`. Which of the following can be used to replace `/* missing code */` so that the code segment works as intended?\n\nI. `int[] arr = {0, 0, 0, 0};`\n\nII. `int[] arr = new int[0];`\n\nIII. `int[] arr = new int[4];`",
+      "answers": [
+        {
+          "id": "a",
+          "text": "I only",
+          "is_correct": false,
+          "explanation": "I only: this misses that `new int[4]` fills the array with the default value `0`."
+        },
+        {
+          "id": "b",
+          "text": "III only",
+          "is_correct": false,
+          "explanation": "III only: the initializer list in I also produces four zeros, so I works too."
+        },
+        {
+          "id": "c",
+          "text": "I and II",
+          "is_correct": false,
+          "explanation": "I and II: `new int[0]` does not create an array holding a `0`; it creates an empty array, so accessing `a[0]` fails."
+        },
+        {
+          "id": "d",
+          "text": "I and III",
+          "is_correct": true,
+          "explanation": "Correct. `transform` adds `1` to the elements at indices `0` and `2`, so `arr` must start as `{0, 0, 0, 0}`. Statement I builds that array with an initializer list, and statement III creates an array of length 4 whose `int` elements are all given the default value `0`. Statement II creates an array of length 0 (no elements), so `a[0]++` throws an `ArrayIndexOutOfBoundsException`."
+        }
+      ],
+      "explanation": "`transform` adds `1` to the elements at indices `0` and `2`, so `arr` must start as `{0, 0, 0, 0}`. Statement I builds that array with an initializer list, and statement III creates an array of length 4 whose `int` elements are all given the default value `0`. Statement II creates an array of length 0 (no elements), so `a[0]++` throws an `ArrayIndexOutOfBoundsException`.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST029",
+        "ST030",
+        "ST032"
+      ],
+      "skills": [
+        "SK008",
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q008",
+      "status": "active",
+      "text": "Consider the following incomplete declaration of the class `BoundedIntArray` and its constructor definitions.\n\nA `BoundedIntArray` represents an indexed list of integers. In a `BoundedIntArray` the user can specify a size, in which case the indices range from `0` to `size - 1`. The user can also specify the lowest index, `low`, in which case the indices can range from `low` to `low + size - 1`.\n\n```java\npublic class BoundedIntArray\n{\n  private int[] myItems;   // storage for the list\n  private int myLowIndex;  // lowest index\n\n  public BoundedIntArray(int size)\n  {\n    myItems = new int[size];\n    myLowIndex = 0;\n  }\n\n  public BoundedIntArray(int size, int low)\n  {\n    myItems = new int[size];\n    myLowIndex = low;\n  }\n\n  // other methods not shown\n}\n```\n\nConsider the following statements.\n\n```java\nBoundedIntArray arr1 = new BoundedIntArray(100, 5);\nBoundedIntArray arr2 = new BoundedIntArray(100);\n```\n\nWhich of the following best describes `arr1` and `arr2` after these statements?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`arr1` and `arr2` both represent lists of integers indexed from `0` to `99`.",
+          "is_correct": false,
+          "explanation": "Both `0` to `99`: this ignores the `low` argument passed to the two-parameter constructor."
+        },
+        {
+          "id": "b",
+          "text": "`arr1` represents a list of integers indexed from `0` to `104`, and `arr2` represents a list of integers indexed from `0` to `99`.",
+          "is_correct": false,
+          "explanation": "This adds `low` to the top of the range but forgets that it also moves the lowest index to `5`, which would give 105 elements instead of 100."
+        },
+        {
+          "id": "c",
+          "text": "`arr1` represents a list of integers indexed from `5` to `99`, and `arr2` represents a list of integers indexed from `0` to `99`.",
+          "is_correct": false,
+          "explanation": "This treats `size - 1` as a fixed upper index, which would leave only 95 elements instead of 100."
+        },
+        {
+          "id": "d",
+          "text": "`arr1` represents a list of integers indexed from `5` to `104`, and `arr2` represents a list of integers indexed from `0` to `99`.",
+          "is_correct": true,
+          "explanation": "Correct. `arr1` is built with `size` 100 and `low` 5, so its indices run from `low` to `low + size - 1`, that is, from `5` to `104`. `arr2` uses the one-parameter constructor, so its lowest index is `0` and its indices run from `0` to `99`."
+        }
+      ],
+      "explanation": "`arr1` is built with `size` 100 and `low` 5, so its indices run from `low` to `low + size - 1`, that is, from `5` to `104`. `arr2` uses the one-parameter constructor, so its lowest index is `0` and its indices run from `0` to `99`.",
+      "topics": [
+        "T005",
+        "T006"
+      ],
+      "subtopics": [
+        "ST023",
+        "ST032"
+      ],
+      "skills": [
+        "SK001",
+        "SK009"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "arrays_q009",
+      "status": "active",
+      "text": "Consider the following incomplete declaration of the class `BoundedIntArray` and its constructor definitions.\n\nA `BoundedIntArray` represents an indexed list of integers. In a `BoundedIntArray` the user can specify a size, in which case the indices range from `0` to `size - 1`. The user can also specify the lowest index, `low`, in which case the indices can range from `low` to `low + size - 1`.\n\n```java\npublic class BoundedIntArray\n{\n  private int[] myItems;   // storage for the list\n  private int myLowIndex;  // lowest index\n\n  public BoundedIntArray(int size)\n  {\n    myItems = new int[size];\n    myLowIndex = 0;\n  }\n\n  public BoundedIntArray(int size, int low)\n  {\n    myItems = new int[size];\n    myLowIndex = low;\n  }\n\n  // other methods not shown\n}\n```\n\nWhich of the following is the best reason for declaring the data fields `myItems` and `myLowIndex` to be private rather than public?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "This permits `BoundedIntArray` objects to be initialized and modified.",
+          "is_correct": false,
+          "explanation": "Permits objects to be initialized and modified: constructors and methods can initialize and modify fields whether they are private or public, so `private` is not what makes this possible."
+        },
+        {
+          "id": "b",
+          "text": "This helps to prevent clients of the `BoundedIntArray` class from writing code that would need to be modified if the implementation of `BoundedIntArray` were changed.",
+          "is_correct": true,
+          "explanation": "Correct. Making the data fields private is encapsulation: client code can use the class only through its public constructors and methods, so it cannot depend on how the data is stored. If the implementation changes later (for example, a different way of storing the items or the low index), client code does not need to change."
+        },
+        {
+          "id": "c",
+          "text": "This prevents compile-time errors whenever public methods are called that access the private data fields.",
+          "is_correct": false,
+          "explanation": "Prevents compile-time errors in public methods: methods of the class can access its own fields regardless of access level, so `private` has no effect on whether those methods compile."
+        },
+        {
+          "id": "d",
+          "text": "This prevents run-time errors whenever public methods are called that access the private data fields.",
+          "is_correct": false,
+          "explanation": "Prevents run-time errors in public methods: access modifiers are checked at compile time and do nothing to prevent run-time errors."
+        }
+      ],
+      "explanation": "Making the data fields private is encapsulation: client code can use the class only through its public constructors and methods, so it cannot depend on how the data is stored. If the implementation changes later (for example, a different way of storing the items or the low index), client code does not need to change.",
+      "topics": [
+        "T005"
+      ],
+      "subtopics": [
+        "ST055",
+        "ST056"
+      ],
+      "skills": [
+        "SK013"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "arrays_q010",
+      "status": "active",
+      "text": "A city transportation office has a data set that contains information about bus ridership in the city. Each row in the data set corresponds to one rider's information for a single week. A sample portion of the data set is shown.\n\n| Rider ID | Age Group | Primary Route Used | Has Discount? (Yes/No) |\n|---|---|---|---|\n| 20038 | Teen (13 to 19) | Route A | Yes |\n| 31932 | Adult (20 to 64) | Route B | No |\n| 29938 | Senior (65 and older) | Route C | Yes |\n| 25571 | Adult (20 to 64) | Route A | No |\n| 38860 | Teen (13 to 19) | Route B | No |\n\nWhich of the following questions can be answered using the data set?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Which rider is entitled to a discount based on age?",
+          "is_correct": false,
+          "explanation": "Entitled to a discount based on age: the data shows who has a discount, not the rules for who is entitled to one."
+        },
+        {
+          "id": "b",
+          "text": "Which riders without a discount most frequently use Route A?",
+          "is_correct": true,
+          "explanation": "Correct. The data set has a discount column and a primary route column, so an algorithm can examine each row, select riders whose discount status is \"No\" and whose primary route is \"Route A\", and then count or list them."
+        },
+        {
+          "id": "c",
+          "text": "What time of day are teens most likely to use Route B?",
+          "is_correct": false,
+          "explanation": "Time of day for teens on Route B: the data set contains no time-of-day information."
+        },
+        {
+          "id": "d",
+          "text": "Which age group prefers Route C because of shorter travel times?",
+          "is_correct": false,
+          "explanation": "Age group preferring Route C because of shorter travel times: the data set has no travel times and no reasons for route choice."
+        }
+      ],
+      "explanation": "The data set has a discount column and a primary route column, so an algorithm can examine each row, select riders whose discount status is \"No\" and whose primary route is \"Route A\", and then count or list them.",
+      "topics": [
+        "T014"
+      ],
+      "subtopics": [
+        "ST054"
+      ],
+      "skills": [
+        "SK023"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "arrays_q011",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[] arr = {10, 20, 30, 40, 50};\nfor (int x = 1; x < arr.length - 1; x++)\n{\n  arr[x + 1] = arr[x] + arr[x + 1];\n}\n```\n\nWhich of the following represents the contents of `arr` after the code segment has been executed?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{10, 20, 50, 90, 50}`",
+          "is_correct": false,
+          "explanation": "This stops one iteration early, as if the condition were `x < arr.length - 2`, so the last element is not updated."
+        },
+        {
+          "id": "b",
+          "text": "`{10, 20, 50, 90, 140}`",
+          "is_correct": true,
+          "explanation": "Correct. The loop runs for `x` equal to `1`, `2`, and `3`, each time adding `arr[x]` into the next element. When `x` is `1`, `arr[2]` becomes `20 + 30 = 50`; when `x` is `2`, `arr[3]` becomes `50 + 40 = 90`; when `x` is `3`, `arr[4]` becomes `90 + 50 = 140`. Elements at indices `0` and `1` are never changed."
+        },
+        {
+          "id": "c",
+          "text": "`{10, 30, 60, 100, 50}`",
+          "is_correct": false,
+          "explanation": "This is what happens if the loop starts at `x = 0` and also stops one iteration early."
+        },
+        {
+          "id": "d",
+          "text": "`{10, 30, 60, 100, 150}`",
+          "is_correct": false,
+          "explanation": "This is a running total of the whole array, as if the loop started at `x = 0`; the loop actually starts at index `1`."
+        }
+      ],
+      "explanation": "The loop runs for `x` equal to `1`, `2`, and `3`, each time adding `arr[x]` into the next element. When `x` is `1`, `arr[2]` becomes `20 + 30 = 50`; when `x` is `2`, `arr[3]` becomes `50 + 40 = 90`; when `x` is `3`, `arr[4]` becomes `90 + 50 = 140`. Elements at indices `0` and `1` are never changed.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032"
+      ],
+      "skills": [
+        "SK001",
+        "SK018"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q012",
+      "status": "active",
+      "text": "Consider the following two methods that appear within a single class.\n\n```java\npublic void changeIt(int[] list, int num)\n{\n  list = new int[5];\n  num = 0;\n\n  for (int x = 0; x < list.length; x++)\n    list[x] = 0;\n}\n\npublic void start()\n{\n  int[] nums = {1, 2, 3, 4, 5};\n  int value = 6;\n\n  changeIt(nums, value);\n\n  for (int k = 0; k < nums.length; k++)\n    System.out.print(nums[k] + \" \");\n\n  System.out.print(value);\n}\n```\n\nWhat is printed as a result of the call `start()`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`0 0 0 0 0 0`",
+          "is_correct": false,
+          "explanation": "This assumes changes to the parameters `list` and `num` affect the caller's variables."
+        },
+        {
+          "id": "b",
+          "text": "`0 0 0 0 0 6`",
+          "is_correct": false,
+          "explanation": "This correctly sees that `value` is unchanged but misses that `list` was reassigned to a new array before any elements were set, so `nums` is never modified."
+        },
+        {
+          "id": "c",
+          "text": "`1 2 3 4 5 6`",
+          "is_correct": true,
+          "explanation": "Correct. Java passes arguments by value. The parameter `list` starts as a copy of the reference to `nums`, but `list = new int[5]` makes `list` refer to a brand-new array, so the loop zeroes that new array and leaves `nums` unchanged. Setting `num = 0` changes only the local copy of `value`. So `start` prints the original `1 2 3 4 5 6`."
+        },
+        {
+          "id": "d",
+          "text": "`changeIt` will throw an exception.",
+          "is_correct": false,
+          "explanation": "Throws an exception: every index used is within bounds (`0` to `4` for arrays of length 5), so no exception occurs."
+        }
+      ],
+      "explanation": "Java passes arguments by value. The parameter `list` starts as a copy of the reference to `nums`, but `list = new int[5]` makes `list` refer to a brand-new array, so the loop zeroes that new array and leaves `nums` unchanged. Setting `num = 0` changes only the local copy of `value`. So `start` prints the original `1 2 3 4 5 6`.",
+      "topics": [
+        "T012"
+      ],
+      "subtopics": [
+        "ST049",
+        "ST074"
+      ],
+      "skills": [
+        "SK001",
+        "SK009"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q013",
+      "status": "active",
+      "text": "Consider the following instance variable and method.\n\n```java\nprivate int[] array;\n\n/** Precondition: array.length > 0\n */\npublic int checkArray()\n{\n  int loc = array.length / 2;\n  for (int k = 0; k < array.length; k++)\n  {\n    if (array[k] > array[loc])\n    {\n      loc = k;\n    }\n  }\n  return loc;\n}\n```\n\nWhich of the following is the best postcondition for `checkArray`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Returns the index of the last element in array `array` whose value is greater than `array[loc]`",
+          "is_correct": false,
+          "explanation": "Last element greater than `array[loc]`: `loc` changes during the loop, so this does not describe a fixed result; the method keeps the index of the largest value, not the last element bigger than some starting value."
+        },
+        {
+          "id": "b",
+          "text": "Returns the largest value in array `array`",
+          "is_correct": false,
+          "explanation": "Returns the largest value: the method returns `loc`, an index, not `array[loc]`, the value."
+        },
+        {
+          "id": "c",
+          "text": "Returns the index of the largest value in array `array`",
+          "is_correct": true,
+          "explanation": "Correct. `loc` holds the index of the largest value seen so far (starting with the middle element). The loop examines every element from index `0` to the end, and whenever `array[k]` is larger than `array[loc]`, `loc` is updated to `k`. When the loop ends, `loc` is the index of the largest value in the whole array, and that index is returned."
+        },
+        {
+          "id": "d",
+          "text": "Returns the index of the largest value in the second half of array `array`",
+          "is_correct": false,
+          "explanation": "Largest value in the second half: `loc` starts in the middle, but the loop checks every index starting at `0`, so the first half is also searched."
+        }
+      ],
+      "explanation": "`loc` holds the index of the largest value seen so far (starting with the middle element). The loop examines every element from index `0` to the end, and whenever `array[k]` is larger than `array[loc]`, `loc` is updated to `k`. When the loop ends, `loc` is the index of the largest value in the whole array, and that index is returned.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034"
+      ],
+      "skills": [
+        "SK003",
+        "SK001"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q014",
+      "status": "active",
+      "text": "A researcher wants to investigate which age group (under 18 years old, or 18 years old and over) is more likely to have downloaded a certain application from an online store. Each customer of the store has a unique ID number. The researcher has the following data sets available.\n\n- Data set 1 contains an entry for each application available from the store. Each entry includes the name of the application and the total number of customers who have downloaded it.\n- Data set 2 contains an entry for each application available from the store. Each entry includes the ID number and age of the customer who most recently downloaded the application.\n- Data set 3 contains an entry for each customer of the store. Each entry includes the customer's ID number and the customer's age.\n- Data set 4 contains an entry for each customer of the store. Each entry includes the customer's ID number and the names of all the applications downloaded by the customer.\n\nWhich two data sets can be combined and analyzed to determine the desired information?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Data sets 1 and 2",
+          "is_correct": false,
+          "explanation": "Data sets 1 and 2: data set 1 has only a total count with no ages, and data set 2 has the age of just one customer per application."
+        },
+        {
+          "id": "b",
+          "text": "Data sets 2 and 3",
+          "is_correct": false,
+          "explanation": "Data sets 2 and 3: data set 2 identifies only the most recent downloader, so most downloaders are unknown."
+        },
+        {
+          "id": "c",
+          "text": "Data sets 2 and 4",
+          "is_correct": false,
+          "explanation": "Data sets 2 and 4: data set 4 has no ages, and data set 2 gives the age of only the most recent downloader."
+        },
+        {
+          "id": "d",
+          "text": "Data sets 3 and 4",
+          "is_correct": true,
+          "explanation": "Correct. Data set 3 gives each customer's age, so customers can be placed in an age group. Data set 4 tells which customers downloaded the application. Joining the two on the unique customer ID shows how many customers in each age group downloaded it."
+        }
+      ],
+      "explanation": "Data set 3 gives each customer's age, so customers can be placed in an age group. Data set 4 tells which customers downloaded the application. Joining the two on the unique customer ID shows how many customers in each age group downloaded it.",
+      "topics": [
+        "T014"
+      ],
+      "subtopics": [
+        "ST054"
+      ],
+      "skills": [
+        "SK023",
+        "SK006"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q015",
+      "status": "active",
+      "text": "Consider the following two code segments.\n\nI.\n\n```java\nint[] arr = {1, 2, 3, 4, 5};\nfor (int x = 0; x < arr.length; x++)\n{\n  System.out.print(arr[x + 3]);\n}\n```\n\nII.\n\n```java\nint[] arr = {1, 2, 3, 4, 5};\nfor (int x : arr)\n{\n  System.out.print(x + 3);\n}\n```\n\nWhich of the following best describes the behavior of code segment I and code segment II?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Both code segment I and code segment II will print `45678`.",
+          "is_correct": false,
+          "explanation": "Both print `45678`: this treats `arr[x + 3]` as if it meant `arr[x] + 3`; in code segment I, `x + 3` is an index."
+        },
+        {
+          "id": "b",
+          "text": "Code segment I will cause an `ArrayIndexOutOfBoundsException` and code segment II will print `45`.",
+          "is_correct": false,
+          "explanation": "I throws and II prints `45`: this mixes the two segments up. Only segment I stops after `45`, because it uses `x + 3` as an index; segment II adds 3 to each value and never indexes the array."
+        },
+        {
+          "id": "c",
+          "text": "Code segment I will cause an `ArrayIndexOutOfBoundsException` and code segment II will print `45678`.",
+          "is_correct": true,
+          "explanation": "Correct. In code segment I, `x + 3` is used as an index: it prints `arr[3]` (`4`) and `arr[4]` (`5`), then tries `arr[5]`, which is out of bounds (valid indices are `0` to `4`) and throws an `ArrayIndexOutOfBoundsException`. In code segment II, the enhanced `for` loop gives `x` each element value `1` through `5`, and `x + 3` is just arithmetic, so it prints `4`, `5`, `6`, `7`, `8`, that is, `45678`."
+        },
+        {
+          "id": "d",
+          "text": "Both code segment I and code segment II will cause an `ArrayIndexOutOfBoundsException`.",
+          "is_correct": false,
+          "explanation": "Both throw: code segment II never uses `x + 3` as an index, so it cannot go out of bounds."
+        }
+      ],
+      "explanation": "In code segment I, `x + 3` is used as an index: it prints `arr[3]` (`4`) and `arr[4]` (`5`), then tries `arr[5]`, which is out of bounds (valid indices are `0` to `4`) and throws an `ArrayIndexOutOfBoundsException`. In code segment II, the enhanced `for` loop gives `x` each element value `1` through `5`, and `x + 3` is just arithmetic, so it prints `4`, `5`, `6`, `7`, `8`, that is, `45678`.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032"
+      ],
+      "skills": [
+        "SK001",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q016",
+      "status": "active",
+      "text": "Consider a shuffle method that is intended to return a new array that contains all the elements from `nums`, but in a different order. Let `n` be the number of elements in `nums`. The shuffle method should alternate the elements from `nums[0] ... nums[n / 2 - 1]` with the elements from `nums[n / 2] ... nums[n - 1]`, as illustrated in the following examples.\n\nExample 1\n\n| Index | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n|---|---|---|---|---|---|---|---|---|\n| nums | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 |\n| result | 10 | 50 | 20 | 60 | 30 | 70 | 40 | 80 |\n\nExample 2\n\n| Index | 0 | 1 | 2 | 3 | 4 | 5 | 6 |\n|---|---|---|---|---|---|---|---|\n| nums | 10 | 20 | 30 | 40 | 50 | 60 | 70 |\n| result | 10 | 40 | 20 | 50 | 30 | 60 | 70 |\n\nThe following implementation of the shuffle method does not work as intended.\n\n```java\npublic static int[] shuffle(int[] nums)\n{\n  int n = nums.length;\n  int[] result = new int[n];\n\n  for (int j = 0; j < n / 2; j++)\n  {\n    result[j * 2] = nums[j];\n    result[j * 2 + 1] = nums[j + n / 2];\n  }\n\n  return result;\n}\n```\n\nWhich of the following best describes the problem with the given implementation of the shuffle method?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Executing `shuffle` may cause an `ArrayIndexOutOfBoundsException`.",
+          "is_correct": false,
+          "explanation": "May cause an `ArrayIndexOutOfBoundsException`: the largest indices used are `2 * (n / 2 - 1) + 1` and `n / 2 - 1 + n / 2`, both at most `n - 1`, so every access is in bounds."
+        },
+        {
+          "id": "b",
+          "text": "The last element of the returned array (`result[result.length - 1]`) may not have the correct value.",
+          "is_correct": true,
+          "explanation": "Correct. The loop runs `n / 2` times and fills two positions each time, so it fills `2 * (n / 2)` positions. When `n` is even that is every position, but when `n` is odd (as in Example 2, where `n / 2` is `3`), only indices `0` through `n - 2` are filled. `result[n - 1]` keeps its default value `0` instead of `nums[n - 1]` (Example 2 would end in `0` instead of `70`)."
+        },
+        {
+          "id": "c",
+          "text": "One or more of `nums[0] ... nums[nums.length / 2 - 1]` may have been copied to the wrong position(s) in the returned array.",
+          "is_correct": false,
+          "explanation": "First-half elements copied to the wrong position: each `nums[j]` goes to `result[2 * j]`, which is exactly where it belongs."
+        },
+        {
+          "id": "d",
+          "text": "One or more of `nums[nums.length / 2] ... nums[nums.length - 1]` may have been copied to the wrong position(s) in the returned array.",
+          "is_correct": false,
+          "explanation": "Second-half elements copied to the wrong position: each element that is copied goes to `result[2 * j + 1]`, which is correct; the only problem is that for odd `n` the final element is never copied at all."
+        }
+      ],
+      "explanation": "The loop runs `n / 2` times and fills two positions each time, so it fills `2 * (n / 2)` positions. When `n` is even that is every position, but when `n` is odd (as in Example 2, where `n / 2` is `3`), only indices `0` through `n - 2` are filled. `result[n - 1]` keeps its default value `0` instead of `nums[n - 1]` (Example 2 would end in `0` instead of `70`).",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032",
+        "ST034"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
+      "difficulty": "D3",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q017",
+      "status": "active",
+      "text": "Consider the following incomplete class declaration.\n\n```java\npublic class TimeRecord\n{\n  private int hours;\n  private int minutes; // 0 <= minutes < 60\n\n  /** Constructs a TimeRecord object.\n   * @param h the number of hours\n   *          Precondition: h >= 0\n   * @param m the number of minutes\n   *          Precondition: 0 <= m < 60\n   */\n  public TimeRecord(int h, int m)\n  {\n    hours = h;\n    minutes = m;\n  }\n\n  /** @return the number of hours\n   */\n  public int getHours()\n  { /* implementation not shown */ }\n\n  /** @return the number of minutes\n   * Postcondition: 0 <= minutes < 60\n   */\n  public int getMinutes()\n  { /* implementation not shown */ }\n\n  /** Adds h hours and m minutes to this TimeRecord.\n   * @param h the number of hours\n   *          Precondition: h >= 0\n   * @param m the number of minutes\n   *          Precondition: m >= 0\n   */\n  public void advance(int h, int m)\n  {\n    hours = hours + h;\n    minutes = minutes + m;\n    /* missing code */\n  }\n\n  // Other methods not shown\n}\n```\n\nAssume that `/* missing code */` in `advance` has been implemented correctly so that, after the call, `minutes` is again between `0` and `59` (any extra minutes are carried over into `hours`).\n\nConsider the following declaration that appears in a class other than `TimeRecord`.\n\n```java\nTimeRecord[] timeCards = new TimeRecord[100];\n```\n\nAssume that `timeCards` has been initialized with `TimeRecord` objects. Consider the following code segment that is intended to compute the total of all the times stored in `timeCards`.\n\n```java\nTimeRecord total = new TimeRecord(0, 0);\nfor (int k = 0; k < timeCards.length; k++)\n{\n  /* missing expression */ ;\n}\n```\n\nWhich of the following can be used to replace `/* missing expression */` so that the code segment will work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`total += timeCards[k].advance()`",
+          "is_correct": false,
+          "explanation": "`advance` requires two `int` arguments and returns `void`, and `+=` cannot be applied to a `TimeRecord` object, so this does not compile."
+        },
+        {
+          "id": "b",
+          "text": "`total.advance(timeCards[k].hours, timeCards[k].minutes)`",
+          "is_correct": false,
+          "explanation": "`hours` and `minutes` are private, so code in another class cannot access them directly; this does not compile."
+        },
+        {
+          "id": "c",
+          "text": "`total.advance(timeCards[k].getHours(), timeCards[k].getMinutes())`",
+          "is_correct": true,
+          "explanation": "Correct. To accumulate the total, each time card's hours and minutes must be added to `total`. Because the code is outside `TimeRecord`, it must use the public accessors `getHours()` and `getMinutes()` to read each card's values, and then pass them to `total.advance(...)`, which adds them to `total`."
+        },
+        {
+          "id": "d",
+          "text": "`timeCards[k].advance(timeCards[k].getHours(), timeCards[k].getMinutes())`",
+          "is_correct": false,
+          "explanation": "`timeCards[k].advance(...)` with the card's own values: this doubles each time card's own time and never changes `total`, which stays at 0 hours and 0 minutes."
+        }
+      ],
+      "explanation": "To accumulate the total, each time card's hours and minutes must be added to `total`. Because the code is outside `TimeRecord`, it must use the public accessors `getHours()` and `getMinutes()` to read each card's values, and then pass them to `total.advance(...)`, which adds them to `total`.",
+      "topics": [
+        "T006",
+        "T002",
+        "T005"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034",
+        "ST007",
+        "ST055"
+      ],
+      "skills": [
+        "SK016",
+        "SK008"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q018",
+      "status": "active",
+      "text": "Consider the following instance variable and method.\n\n```java\nprivate int[] numbers;\n\n/** Precondition: numbers contains int values in no particular order.\n */\npublic int mystery(int num)\n{\n  for (int k = numbers.length - 1; k >= 0; k--)\n  {\n    if (numbers[k] < num)\n    {\n      return k;\n    }\n  }\n  return -1;\n}\n```\n\nAssume that `n` is an `int` variable that has been properly declared and initialized. Which of the following best describes the contents of `numbers` after the following statement has been executed?\n\n```java\nint m = mystery(n);\n```",
+      "answers": [
+        {
+          "id": "a",
+          "text": "All values in positions 0 through `m` are less than `n`.",
+          "is_correct": false,
+          "explanation": "All values in positions 0 through `m` are less than `n`: only `numbers[m]` is known to be less than `n`; the elements before it are never examined."
+        },
+        {
+          "id": "b",
+          "text": "All values in positions `m+1` through `numbers.length-1` are less than `n`.",
+          "is_correct": false,
+          "explanation": "All values in positions `m+1` to the end are less than `n`: this reverses the condition; those positions are the ones that failed the `< n` test."
+        },
+        {
+          "id": "c",
+          "text": "All values in positions `m+1` through `numbers.length-1` are greater than or equal to `n`.",
+          "is_correct": true,
+          "explanation": "Correct. The loop searches from the end of the array toward the front and returns the first index `k` it finds where `numbers[k] < n`. Every element it passed over before that, at positions `m+1` through `numbers.length-1`, failed the test, so each of those values is greater than or equal to `n`. (If no value is less than `n`, `m` is `-1` and the statement covers the whole array.)"
+        },
+        {
+          "id": "d",
+          "text": "The largest value that is smaller than `n` is at position `m`.",
+          "is_correct": false,
+          "explanation": "The largest value smaller than `n` is at position `m`: the array is in no particular order, and the method returns the last position holding a value less than `n`, not the position of the largest such value."
+        }
+      ],
+      "explanation": "The loop searches from the end of the array toward the front and returns the first index `k` it finds where `numbers[k] < n`. Every element it passed over before that, at positions `m+1` through `numbers.length-1`, failed the test, so each of those values is greater than or equal to `n`. (If no value is less than `n`, `m` is `-1` and the statement covers the whole array.)",
+      "topics": [
+        "T006",
+        "T010"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034",
+        "ST044"
+      ],
+      "skills": [
+        "SK003",
+        "SK009"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q019",
+      "status": "active",
+      "text": "Consider the following instance variable, `arr`, and incomplete method, `partialSum`. The method is intended to return an integer array `sum` such that for all `k`, `sum[k]` is equal to `arr[0] + arr[1] + ... + arr[k]`. For instance, if `arr` contains the values `{1, 4, 1, 3}`, the array `sum` will contain the values `{1, 5, 6, 9}`.\n\n```java\nprivate int[] arr;\n\npublic int[] partialSum()\n{\n  int[] sum = new int[arr.length];\n  for (int j = 0; j < sum.length; j++)\n  {\n    sum[j] = 0;\n  }\n  /* missing code */\n  return sum;\n}\n```\n\nThe following two implementations of `/* missing code */` are proposed so that `partialSum` will work as intended.\n\nImplementation 1\n\n```java\nfor (int j = 0; j < arr.length; j++)\n{\n  sum[j] = sum[j - 1] + arr[j];\n}\n```\n\nImplementation 2\n\n```java\nfor (int j = 0; j < arr.length; j++)\n{\n  for (int k = 0; k <= j; k++)\n  {\n    sum[j] = sum[j] + arr[k];\n  }\n}\n```\n\nWhich of the following statements is true?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Both implementations work as intended, but implementation 1 is faster than implementation 2.",
+          "is_correct": false,
+          "explanation": "Both work, implementation 1 faster: implementation 1 would be faster if it started at `j = 1` (after setting `sum[0]` to `arr[0]`), but as written it fails on its first iteration."
+        },
+        {
+          "id": "b",
+          "text": "Both implementations work as intended, but implementation 2 is faster than implementation 1.",
+          "is_correct": false,
+          "explanation": "Both work, implementation 2 faster: implementation 1 does not work, and implementation 2, with its nested loops, would be slower than a correct single-loop version, not faster."
+        },
+        {
+          "id": "c",
+          "text": "Implementation 1 does not work as intended, because it will cause an `ArrayIndexOutOfBoundsException`.",
+          "is_correct": true,
+          "explanation": "Correct. In implementation 1, the first iteration has `j` equal to `0`, so it evaluates `sum[j - 1]`, which is `sum[-1]`, and throws an `ArrayIndexOutOfBoundsException`. Implementation 2 works: for each `j`, the inner loop adds `arr[0]` through `arr[j]` to `sum[j]`, which starts at `0`, and all indices stay between `0` and `arr.length - 1`."
+        },
+        {
+          "id": "d",
+          "text": "Implementation 2 does not work as intended, because it will cause an `ArrayIndexOutOfBoundsException`.",
+          "is_correct": false,
+          "explanation": "Implementation 2 throws an exception: its inner loop uses `k` from `0` to `j`, and `j` never exceeds `arr.length - 1`, so every index is valid."
+        }
+      ],
+      "explanation": "In implementation 1, the first iteration has `j` equal to `0`, so it evaluates `sum[j - 1]`, which is `sum[-1]`, and throws an `ArrayIndexOutOfBoundsException`. Implementation 2 works: for each `j`, the inner loop adds `arr[0]` through `arr[j]` to `sum[j]`, which starts at `0`, and all indices stay between `0` and `arr.length - 1`.",
+      "topics": [
+        "T006",
+        "T004"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032",
+        "ST034",
+        "ST019"
+      ],
+      "skills": [
+        "SK010",
+        "SK003"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q021",
+      "status": "active",
+      "text": "Consider the following method, which is intended to return the number of strings of length greater than or equal to 3 in an array of `String` objects.\n\n```java\npublic static int checkString(String[] arr)\n{\n  int count = 0;\n  for (int k = 0; k < arr.length; k++)\n  {\n    if (arr[k].length() >= 3)\n    {\n      count++;\n    }\n  }\n  return count;\n}\n```\n\nWhich of the following code segments compile without error?\n\nI.\n\n```java\ncheckString(new String[]);\n```\n\nII.\n\n```java\ncheckString(new String[0]);\n```\n\nIII.\n\n```java\nString[] str = {\"cat\", \"dog\"};\ncheckString(str);\n```",
+      "answers": [
+        {
+          "id": "a",
+          "text": "III only",
+          "is_correct": false,
+          "explanation": "III only: this assumes an array of length 0 cannot be created, but `new String[0]` is valid."
+        },
+        {
+          "id": "b",
+          "text": "I and III only",
+          "is_correct": false,
+          "explanation": "I and III only: `new String[]` with no size and no initializer list does not compile."
+        },
+        {
+          "id": "c",
+          "text": "II and III only",
+          "is_correct": true,
+          "explanation": "Correct. The size of an array must be set when the array is created, either explicitly inside the brackets or implicitly by an initializer list. Statement I leaves out the size, so it does not compile. Statement II creates an array of size 0, which is legal. Statement III creates an array of size 2 using an initializer list."
+        },
+        {
+          "id": "d",
+          "text": "I, II, and III",
+          "is_correct": false,
+          "explanation": "I, II, and III: statement I does not compile because the array size is missing."
+        }
+      ],
+      "explanation": "The size of an array must be set when the array is created, either explicitly inside the brackets or implicitly by an initializer list. Statement I leaves out the size, so it does not compile. Statement II creates an array of size 0, which is legal. Statement III creates an array of size 2 using an initializer list.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST029",
+        "ST030"
+      ],
+      "skills": [
+        "SK008"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "arrays_q022",
+      "status": "active",
+      "text": "Consider the following method, which is intended to return the maximum integer value contained in `ranges`.\n\n```java\n/** Precondition: ranges contains at least one element. */\npublic int findMaxValue(int[] ranges)\n{\n  int max = 0;               // line 4\n  for (int value : ranges)\n  {\n    if (value > max)         // line 7\n    {\n      max = value;           // line 9\n    }\n  }\n  return max;\n}\n```\n\nThis method does not always work as intended. Which of the following changes can be made so that the method works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Changing line 4 to `int max = ranges[0];`",
+          "is_correct": true,
+          "explanation": "Correct. Starting `max` at `0` fails when every value in `ranges` is negative, because no value is greater than `0` and the method returns `0`, which is not in the array. Starting `max` at `ranges[0]` means `max` is always an actual element, so after comparing every element it holds the true maximum."
+        },
+        {
+          "id": "b",
+          "text": "Changing line 4 to `int max = Integer.MAX_VALUE;`",
+          "is_correct": false,
+          "explanation": "No `int` is greater than `Integer.MAX_VALUE`, so `max` is never updated and the method always returns `Integer.MAX_VALUE`."
+        },
+        {
+          "id": "c",
+          "text": "Changing line 7 to `if (value < max)`",
+          "is_correct": false,
+          "explanation": "This tracks smaller values instead of larger ones, so it returns the minimum (or `0` if no value is negative), not the maximum."
+        },
+        {
+          "id": "d",
+          "text": "Changing line 9 to `value = max;`",
+          "is_correct": false,
+          "explanation": "This changes the loop variable instead of `max`, so `max` stays `0` and the method always returns `0`."
+        }
+      ],
+      "explanation": "Starting `max` at `0` fails when every value in `ranges` is negative, because no value is greater than `0` and the method returns `0`, which is not in the array. Starting `max` at `ranges[0]` means `max` is always an actual element, so after comparing every element it holds the true maximum.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q023",
+      "status": "active",
+      "text": "In the following code segment, `data` is an `int` array with at least two elements.\n\n```java\nint answer = 0;\nfor (int val : data)\n{\n  if (data[0] < val)\n  {\n    answer++;\n  }\n}\nSystem.out.println(answer);\n```\n\nWhich of the following best describes the value printed by the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The number of negative elements in `data`",
+          "is_correct": false,
+          "explanation": "Number of negative elements: each value is compared with `data[0]`, not with `0`."
+        },
+        {
+          "id": "b",
+          "text": "The number of positive elements in `data`",
+          "is_correct": false,
+          "explanation": "Number of positive elements: again, the comparison is with `data[0]`, not `0`."
+        },
+        {
+          "id": "c",
+          "text": "The number of elements in `data` that are greater than the first element in `data`",
+          "is_correct": true,
+          "explanation": "Correct. The enhanced `for` loop visits every value `val` in `data` and compares it with the first element, `data[0]`. The condition `data[0] < val` is true when `val` is greater than the first element, so `answer` counts the elements greater than the first element."
+        },
+        {
+          "id": "d",
+          "text": "The number of elements in `data` that are less than the first element in `data`",
+          "is_correct": false,
+          "explanation": "Number of elements less than the first element: this reverses the condition; `data[0] < val` means `val` is greater than `data[0]`."
+        }
+      ],
+      "explanation": "The enhanced `for` loop visits every value `val` in `data` and compares it with the first element, `data[0]`. The condition `data[0] < val` is true when `val` is greater than the first element, so `answer` counts the elements greater than the first element.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034"
+      ],
+      "skills": [
+        "SK003",
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "arrays_q025",
+      "status": "active",
+      "text": "Consider the following method, which is intended to return the number of elements in `titles` with more than 15 characters. The method does not always work as intended.\n\n```java\npublic static int findLongTitles(String[] titles)\n{\n  int count = 0;\n  for (int x = 0; x < titles.length; x++)     // Line 4\n  {\n    if (titles[x].length() > 15)              // Line 6\n    {\n      count++;\n      return count;                           // Line 9\n    }\n  }                                           // Line 11\n  return count;                               // Line 12\n}\n```\n\nWhich of the following changes can be made so that the method works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Changing the Boolean expression in line 4 to `x <= titles[x].length()`",
+          "is_correct": false,
+          "explanation": "This compares an index with a string's length, which has nothing to do with the array size, so it can skip elements or go out of bounds; the early `return` is still there too."
+        },
+        {
+          "id": "b",
+          "text": "Changing the Boolean expression in line 6 to `titles[x].length() >= 15`",
+          "is_correct": false,
+          "explanation": "This wrongly counts titles of exactly 15 characters, and the early `return` is still there."
+        },
+        {
+          "id": "c",
+          "text": "Removing line 9",
+          "is_correct": true,
+          "explanation": "Correct. The `return` statement in line 9 ends the method as soon as the first title longer than 15 characters is found, so the method can return at most `1`. Removing it lets the loop examine every title and count all of the long ones before line 12 returns the total."
+        },
+        {
+          "id": "d",
+          "text": "Interchanging lines 11 and 12",
+          "is_correct": false,
+          "explanation": "Interchanging lines 11 and 12: this moves `return count;` inside the loop, so the method returns after the first iteration (and the compiler reports a missing return statement after the loop)."
+        }
+      ],
+      "explanation": "The `return` statement in line 9 ends the method as soon as the first title longer than 15 characters is found, so the method can return at most `1`. Removing it lets the loop examine every title and count all of the long ones before line 12 returns the total.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034"
+      ],
+      "skills": [
+        "SK004",
+        "SK009"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q027",
+      "status": "active",
+      "text": "The following code segment is intended to create an `int` array named `nums` and set its contents to `{3, 1, 0, 2}`. The code segment does not work as intended.\n\n```java\nint[] nums = new int[3];\n\nnums[1] = 0;\nnums[1] = 1;\nnums[0] = 3;\n\nnums.length++;\n\nnums[3] = 2;\n```\n\nWhich of the following best explains why the code segment does not work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The assignment statements for the array elements are in the wrong order.",
+          "is_correct": false,
+          "explanation": "Assignments in the wrong order: assignments to different indices can happen in any order; the order is not the problem."
+        },
+        {
+          "id": "b",
+          "text": "The size of the array cannot be changed once the array is created.",
+          "is_correct": true,
+          "explanation": "Correct. `new int[3]` creates an array with only three elements, each given the default value `0`. The length of an array is fixed when the array is created, so `nums.length++;` is not valid and the code segment does not compile. There is no way to add a fourth element to this array."
+        },
+        {
+          "id": "c",
+          "text": "The element `nums[1]` is assigned two different values.",
+          "is_correct": false,
+          "explanation": "`nums[1]` assigned two different values: reassigning an element is legal, and its final value `1` is correct."
+        },
+        {
+          "id": "d",
+          "text": "The element `nums[2]` is never set to `0`.",
+          "is_correct": false,
+          "explanation": "It already holds the default value `0` when the array is created."
+        }
+      ],
+      "explanation": "`new int[3]` creates an array with only three elements, each given the default value `0`. The length of an array is fixed when the array is created, so `nums.length++;` is not valid and the code segment does not compile. There is no way to add a fourth element to this array.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST029",
+        "ST030",
+        "ST033"
+      ],
+      "skills": [
+        "SK008",
+        "SK004"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "arrays_q028",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic void changeIt(int[] arr, int index, int newValue)\n{\n  arr[index] += newValue;\n}\n```\n\nWhich of the following code segments, if located in a method in the same class as `changeIt`, will cause the array `myArray` to contain `{0, 5, 0, 0}`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nint[] myArray = new int[4];\nchangeIt(myArray, 1, 5);\n```",
+          "is_correct": true,
+          "explanation": "Correct. `new int[4]` creates an array of four elements, each initialized to the default value `0`. The call `changeIt(myArray, 1, 5)` adds `5` to the element at index `1`, and because the method receives a reference to the same array, `myArray` becomes `{0, 5, 0, 0}`."
+        },
+        {
+          "id": "b",
+          "text": "```java\nint[] myArray = new int[4];\nchangeIt(myArray, 2, 5);\n```",
+          "is_correct": false,
+          "explanation": "This changes index `2`, the third element, giving `{0, 0, 5, 0}`; it treats the index as 1-based."
+        },
+        {
+          "id": "c",
+          "text": "```java\nint[] myArray = new int[5];\nchangeIt(myArray, 1, 4);\n```",
+          "is_correct": false,
+          "explanation": "This gives `{0, 4, 0, 0, 0}`, which has five elements and the wrong value."
+        },
+        {
+          "id": "d",
+          "text": "```java\nint[] myArray = new int[5];\nchangeIt(myArray, 1, 5);\n```",
+          "is_correct": false,
+          "explanation": "This gives `{0, 5, 0, 0, 0}`, which has five elements instead of four."
+        }
+      ],
+      "explanation": "`new int[4]` creates an array of four elements, each initialized to the default value `0`. The call `changeIt(myArray, 1, 5)` adds `5` to the element at index `1`, and because the method receives a reference to the same array, `myArray` becomes `{0, 5, 0, 0}`.",
+      "topics": [
+        "T006",
+        "T012"
+      ],
+      "subtopics": [
+        "ST029",
+        "ST030",
+        "ST032",
+        "ST074"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q030",
+      "status": "active",
+      "text": "The method `countTarget` below is intended to return the number of times the value `target` appears in the array `arr`. The method may not work as intended.\n\n```java\npublic int countTarget(int[] arr, int target)\n{\n  int count = 0;\n  for (int j = 0; j <= arr.length; j++)   // line 4\n  {\n    if (arr[j] == target)\n    {\n      count++;\n    }\n  }\n  return count;\n}\n```\n\nWhich of the following changes, if any, can be made to line 4 so that the method will work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Changing `j <= arr.length;` to `j < arr.length;`",
+          "is_correct": true,
+          "explanation": "Correct. The last element of an array is at index `arr.length - 1`. With `j <= arr.length`, the final iteration accesses `arr[arr.length]` and throws an `ArrayIndexOutOfBoundsException`. Using `j < arr.length` visits every valid index exactly once."
+        },
+        {
+          "id": "b",
+          "text": "Changing `j <= arr.length;` to `j < arr.length - 1;`",
+          "is_correct": false,
+          "explanation": "This stops one element early and never checks the last element."
+        },
+        {
+          "id": "c",
+          "text": "Changing `j <= arr.length;` to `j < arr.length + 1;`",
+          "is_correct": false,
+          "explanation": "This is the same as `j <= arr.length`, so it still goes out of bounds."
+        },
+        {
+          "id": "d",
+          "text": "No change is necessary; the method works correctly as is.",
+          "is_correct": false,
+          "explanation": "No change is necessary: the original condition accesses `arr[arr.length]`, which is out of bounds."
+        }
+      ],
+      "explanation": "The last element of an array is at index `arr.length - 1`. With `j <= arr.length`, the final iteration accesses `arr[arr.length]` and throws an `ArrayIndexOutOfBoundsException`. Using `j < arr.length` visits every valid index exactly once.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST033",
+        "ST034"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q031",
+      "status": "active",
+      "text": "The Fibonacci numbers are a sequence of numbers. The first two numbers are 1 and 1. Each subsequent number is equal to the sum of the previous two numbers. For example, the first seven Fibonacci numbers are 1, 1, 2, 3, 5, 8, and 13.\n\nThe following code segment is intended to fill the `fibs` array with the first ten Fibonacci numbers. The code segment does not work as intended.\n\n```java\nint[] fibs = new int[10];\nfibs[0] = 1;\nfibs[1] = 1;\nfor (int j = 1; j < fibs.length; j++)\n{\n  fibs[j] = fibs[j - 2] + fibs[j - 1];\n}\n```\n\nWhich of the following best explains why the code segment does not work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "In the `for` loop header, the initial value of `j` should be `0`.",
+          "is_correct": false,
+          "explanation": "Initial value `0`: `fibs[j - 2]` would be `fibs[-2]`, which is also out of bounds."
+        },
+        {
+          "id": "b",
+          "text": "In the `for` loop header, the initial value of `j` should be `2`.",
+          "is_correct": true,
+          "explanation": "Correct. When `j` starts at `1`, the first iteration evaluates `fibs[j - 2]`, which is `fibs[-1]`, and throws an `ArrayIndexOutOfBoundsException`. `fibs[0]` and `fibs[1]` are already set, so the loop should start at `j = 2`, where `fibs[j - 2]` and `fibs[j - 1]` are both valid."
+        },
+        {
+          "id": "c",
+          "text": "The `for` loop condition should be `j < fibs.length - 1`.",
+          "is_correct": false,
+          "explanation": "Condition `j < fibs.length - 1`: the loop still starts at `1`, so it still fails on the first iteration (and would also skip the last element)."
+        },
+        {
+          "id": "d",
+          "text": "The `for` loop condition should be `j < fibs.length + 1`.",
+          "is_correct": false,
+          "explanation": "Condition `j < fibs.length + 1`: the loop still starts at `1`, and this condition would also run past the end of the array."
+        }
+      ],
+      "explanation": "When `j` starts at `1`, the first iteration evaluates `fibs[j - 2]`, which is `fibs[-1]`, and throws an `ArrayIndexOutOfBoundsException`. `fibs[0]` and `fibs[1]` are already set, so the loop should start at `j = 2`, where `fibs[j - 2]` and `fibs[j - 1]` are both valid.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032",
+        "ST034"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q032",
+      "status": "active",
+      "text": "Consider the following instance variable `nums` and method `findLongest` with line numbers added for reference. Method `findLongest` is intended to find the longest consecutive block of the value `target` occurring in the array `nums`; however, `findLongest` does not work as intended.\n\nFor example, if the array `nums` contains the values `[7, 10, 10, 15, 15, 15, 15, 10, 10, 10, 15, 10, 10]`, the call `findLongest(10)` should return `3`, the length of the longest consecutive block of 10s.\n\n```java\nprivate int[] nums;\n\npublic int findLongest(int target)\n{\n  int lenCount = 0;\n  int maxLen = 0;\n  for (int val : nums)            // Line 1\n  {                               // Line 2\n    if (val == target)            // Line 3\n    {                             // Line 4\n      lenCount++;                 // Line 5\n    }                             // Line 6\n    else                          // Line 7\n    {                             // Line 8\n      if (lenCount > maxLen)      // Line 9\n      {                           // Line 10\n        maxLen = lenCount;        // Line 11\n      }                           // Line 12\n    }                             // Line 13\n  }                               // Line 14\n  if (lenCount > maxLen)          // Line 15\n  {                               // Line 16\n    maxLen = lenCount;            // Line 17\n  }                               // Line 18\n  return maxLen;                  // Line 19\n}\n```\n\nThe method `findLongest` does not work as intended. Which of the following best describes the value returned by a call to `findLongest`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "It is the length of the array `nums`.",
+          "is_correct": false,
+          "explanation": "Length of the array: only elements equal to `target` increase `lenCount`, so other values such as `7` and `15` are not counted (the example would give `13`)."
+        },
+        {
+          "id": "b",
+          "text": "It is the number of occurrences of the value `target` in `nums`.",
+          "is_correct": true,
+          "explanation": "Correct. `lenCount` is incremented for every element equal to `target` but is never reset to `0`, so it keeps growing across blocks and counts every occurrence of `target`. Because `lenCount` never decreases, the final check after the loop sets `maxLen` to it, so the method returns the total number of occurrences. In the example, `findLongest(10)` returns `7` instead of `3`."
+        },
+        {
+          "id": "c",
+          "text": "It is the length of the first consecutive block of the value `target` in `nums`.",
+          "is_correct": false,
+          "explanation": "Length of the first block: this would be correct only if `lenCount` were reset after each block; with no reset, the counts from all blocks add up (the first block in the example has length `2`)."
+        },
+        {
+          "id": "d",
+          "text": "It is the length of the last consecutive block of the value `target` in `nums`.",
+          "is_correct": false,
+          "explanation": "Length of the last block: again this would need a reset; the last block in the example has length `2`, but the method returns `7`."
+        }
+      ],
+      "explanation": "`lenCount` is incremented for every element equal to `target` but is never reset to `0`, so it keeps growing across blocks and counts every occurrence of `target`. Because `lenCount` never decreases, the final check after the loop sets `maxLen` to it, so the method returns the total number of occurrences. In the example, `findLongest(10)` returns `7` instead of `3`.",
+      "topics": [
+        "T006",
+        "T003"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034",
+        "ST015"
+      ],
+      "skills": [
+        "SK003",
+        "SK001"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q033",
+      "status": "active",
+      "text": "Consider the following instance variable `nums` and method `findLongest` with line numbers added for reference. Method `findLongest` is intended to find the longest consecutive block of the value `target` occurring in the array `nums`; however, `findLongest` does not work as intended.\n\nFor example, if the array `nums` contains the values `[7, 10, 10, 15, 15, 15, 15, 10, 10, 10, 15, 10, 10]`, the call `findLongest(10)` should return `3`, the length of the longest consecutive block of 10s.\n\n```java\nprivate int[] nums;\n\npublic int findLongest(int target)\n{\n  int lenCount = 0;\n  int maxLen = 0;\n  for (int val : nums)            // Line 1\n  {                               // Line 2\n    if (val == target)            // Line 3\n    {                             // Line 4\n      lenCount++;                 // Line 5\n    }                             // Line 6\n    else                          // Line 7\n    {                             // Line 8\n      if (lenCount > maxLen)      // Line 9\n      {                           // Line 10\n        maxLen = lenCount;        // Line 11\n      }                           // Line 12\n    }                             // Line 13\n  }                               // Line 14\n  if (lenCount > maxLen)          // Line 15\n  {                               // Line 16\n    maxLen = lenCount;            // Line 17\n  }                               // Line 18\n  return maxLen;                  // Line 19\n}\n```\n\nWhich of the following changes should be made so that method `findLongest` will work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Insert the statement `lenCount = 0;` between lines 2 and 3.",
+          "is_correct": false,
+          "explanation": "Between lines 2 and 3: this resets `lenCount` at the start of every iteration, so it can never exceed `1`."
+        },
+        {
+          "id": "b",
+          "text": "Insert the statement `lenCount = 0;` between lines 8 and 9.",
+          "is_correct": false,
+          "explanation": "Between lines 8 and 9: this resets `lenCount` before it is compared with `maxLen`, so the comparison inside the loop never records a block; only the final check runs, and the method returns the length of a block that ends the array (`2` in the example), or `0`."
+        },
+        {
+          "id": "c",
+          "text": "Insert the statement `lenCount = 0;` between lines 11 and 12.",
+          "is_correct": false,
+          "explanation": "Between lines 11 and 12: this resets `lenCount` only when a new maximum is found, so a shorter block is not cleared and its count carries into the next block. For example, with `[10, 10, 15, 10, 15, 10, 10]` the method would return `3` instead of `2`."
+        },
+        {
+          "id": "d",
+          "text": "Insert the statement `lenCount = 0;` between lines 12 and 13.",
+          "is_correct": true,
+          "explanation": "Correct. `lenCount` must start over at `0` every time a block of `target` values ends. Placing `lenCount = 0;` between lines 12 and 13 puts it in the `else` branch after the comparison, so whenever a non-target value is reached, the length of the block that just ended is first compared with `maxLen` and then `lenCount` is reset. The check after the loop handles a block that runs to the end of the array."
+        }
+      ],
+      "explanation": "`lenCount` must start over at `0` every time a block of `target` values ends. Placing `lenCount = 0;` between lines 12 and 13 puts it in the `else` branch after the comparison, so whenever a non-target value is reached, the length of the block that just ended is first compared with `maxLen` and then `lenCount` is reset. The check after the loop handles a block that runs to the end of the array.",
+      "topics": [
+        "T006",
+        "T003"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034",
+        "ST015"
+      ],
+      "skills": [
+        "SK004",
+        "SK009"
+      ],
+      "difficulty": "D3",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q035",
+      "status": "active",
+      "text": "The following incomplete method is intended to return the largest integer in the array `numbers`.\n\n```java\n// precondition: numbers.length > 0\npublic static int findMax(int[] numbers)\n{\n  int posOfMax = 0;\n  for (int index = 1; index < numbers.length; index++)\n  {\n    if ( /* condition */ )\n    {\n      /* statement */\n    }\n  }\n  return numbers[posOfMax];\n}\n```\n\nWhich of the following can be used to replace `/* condition */` and `/* statement */` so that `findMax` will work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "| /* condition */ | /* statement */ |\n|---|---|\n| `numbers[index] > numbers[posOfMax]` | `posOfMax = numbers[index];` |",
+          "is_correct": false,
+          "explanation": "Condition `numbers[index] > numbers[posOfMax]` with `posOfMax = numbers[index];`: this stores a value in a variable meant to hold an index, so later comparisons and the final `numbers[posOfMax]` use a value as an index, which gives wrong results or an `ArrayIndexOutOfBoundsException`."
+        },
+        {
+          "id": "b",
+          "text": "| /* condition */ | /* statement */ |\n|---|---|\n| `numbers[index] > numbers[posOfMax]` | `posOfMax = index;` |",
+          "is_correct": true,
+          "explanation": "Correct. `posOfMax` holds the index of the largest value found so far, and the method returns `numbers[posOfMax]`. Each element must therefore be compared with the value at that index, `numbers[posOfMax]`, and when a larger element is found, `posOfMax` must be set to its index, `index`."
+        },
+        {
+          "id": "c",
+          "text": "| /* condition */ | /* statement */ |\n|---|---|\n| `numbers[index] > posOfMax` | `posOfMax = numbers[index];` |",
+          "is_correct": false,
+          "explanation": "Condition `numbers[index] > posOfMax` with `posOfMax = numbers[index];`: this compares elements with an index and stores values as indices; it confuses an index with the value at that index."
+        },
+        {
+          "id": "d",
+          "text": "| /* condition */ | /* statement */ |\n|---|---|\n| `numbers[index] < posOfMax` | `posOfMax = numbers[index];` |",
+          "is_correct": false,
+          "explanation": "Condition `numbers[index] < posOfMax` with `posOfMax = numbers[index];`: this mixes up indices and values the same way and also uses the wrong comparison direction."
+        }
+      ],
+      "explanation": "`posOfMax` holds the index of the largest value found so far, and the method returns `numbers[posOfMax]`. Each element must therefore be compared with the value at that index, `numbers[posOfMax]`, and when a larger element is found, `posOfMax` must be set to its index, `index`.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032",
+        "ST034"
+      ],
+      "skills": [
+        "SK016",
+        "SK018"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q036",
+      "status": "active",
+      "text": "Consider the following incomplete method. Method `findNext` is intended to return the index of the first occurrence of the value `val` beyond the position `start` in array `arr`.\n\n```java\n// returns index of first occurrence of val in arr\n// after position start;\n// returns arr.length if val is not found\npublic int findNext(int[] arr, int val, int start)\n{\n  int pos = start + 1;\n\n  while ( /* condition */ )\n    pos++;\n\n  return pos;\n}\n```\n\nFor example, consider the following code segment.\n\n```java\nint[] arr = {11, 22, 100, 33, 100, 11, 44, 100};\n\nSystem.out.println(findNext(arr, 100, 2));\n```\n\nThe execution of the code segment should result in the value `4` being printed. Which of the following expressions could be used to replace `/* condition */` so that `findNext` will work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`(pos < arr.length) && (arr[pos] != val)`",
+          "is_correct": true,
+          "explanation": "Correct. The loop should keep moving `pos` forward while `pos` is still a valid index and `arr[pos]` is not `val`. Checking `pos < arr.length` first matters: when `pos` reaches `arr.length`, short-circuit evaluation of `&&` stops before evaluating `arr[pos]`, so the method safely returns `arr.length` when `val` is not found. In the example, `pos` goes from `3` to `4`, where `arr[4]` is `100`, and `4` is returned."
+        },
+        {
+          "id": "b",
+          "text": "`(arr[pos] != val) && (pos < arr.length)`",
+          "is_correct": false,
+          "explanation": "It works in the example, but when `val` is not found, `arr[arr.length]` is evaluated before the bounds check and throws an `ArrayIndexOutOfBoundsException`."
+        },
+        {
+          "id": "c",
+          "text": "`(pos < arr.length) || (arr[pos] != val)`",
+          "is_correct": false,
+          "explanation": "With `||`, the loop continues whenever `pos` is in bounds, even after `val` is found; when `pos` reaches `arr.length`, `arr[pos]` is evaluated and throws an exception."
+        },
+        {
+          "id": "d",
+          "text": "`(arr[pos] == val) && (pos < arr.length)`",
+          "is_correct": false,
+          "explanation": "This keeps looping only while the value matches, so in the example it stops right away and returns `3`, the index of `33`."
+        }
+      ],
+      "explanation": "The loop should keep moving `pos` forward while `pos` is still a valid index and `arr[pos]` is not `val`. Checking `pos < arr.length` first matters: when `pos` reaches `arr.length`, short-circuit evaluation of `&&` stops before evaluating `arr[pos]`, so the method safely returns `arr.length` when `val` is not found. In the example, `pos` goes from `3` to `4`, where `arr[4]` is `100`, and `4` is returned.",
+      "topics": [
+        "T006",
+        "T003",
+        "T010"
+      ],
+      "subtopics": [
+        "ST034",
+        "ST014",
+        "ST044"
+      ],
+      "skills": [
+        "SK010",
+        "SK009"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q037",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static String[] strArrMethod(String[] arr)\n{\n  String[] result = new String[arr.length];\n  for (int j = 0; j < arr.length; j++)\n  {\n    String sm = arr[j];\n    for (int k = j + 1; k < arr.length; k++)\n    {\n      if (arr[k].length() < sm.length())\n      {\n        sm = arr[k]; // Line 12\n      }\n    }\n    result[j] = sm;\n  }\n  return result;\n}\n```\n\nConsider the following code segment.\n\n```java\nString[] testOne = {\"first\", \"day\", \"of\", \"spring\"};\nString[] resultOne = strArrMethod(testOne);\n```\n\nWhat are the contents of `resultOne` when the code segment has been executed?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{\"day\", \"first\", \"of\", \"spring\"}`",
+          "is_correct": false,
+          "explanation": "This is the array sorted alphabetically; the method compares lengths and does not sort."
+        },
+        {
+          "id": "b",
+          "text": "`{\"of\", \"day\", \"first\", \"spring\"}`",
+          "is_correct": false,
+          "explanation": "This is the array sorted by length, as a selection sort would produce; the method copies the shortest remaining string into `result` without removing it, so `\"of\"` can appear more than once."
+        },
+        {
+          "id": "c",
+          "text": "`{\"of\", \"day\", \"of\", \"spring\"}`",
+          "is_correct": false,
+          "explanation": "This needs `result[1]` to be `\"day\"`, but `\"of\"`, at index `2`, comes after index `1` and is shorter, so the inner loop picks `\"of\"`."
+        },
+        {
+          "id": "d",
+          "text": "`{\"of\", \"of\", \"of\", \"spring\"}`",
+          "is_correct": true,
+          "explanation": "Correct. For each index `j`, the method stores in `result[j]` the shortest string among `arr[j]` through the end of the array. The shortest string in all four elements is `\"of\"`, so `result[0]` is `\"of\"`. Starting at index `1` or index `2`, the shortest is still `\"of\"`. Starting at index `3`, only `\"spring\"` remains, so `result[3]` is `\"spring\"`. The original array is not rearranged."
+        }
+      ],
+      "explanation": "For each index `j`, the method stores in `result[j]` the shortest string among `arr[j]` through the end of the array. The shortest string in all four elements is `\"of\"`, so `result[0]` is `\"of\"`. Starting at index `1` or index `2`, the shortest is still `\"of\"`. Starting at index `3`, only `\"spring\"` remains, so `result[3]` is `\"spring\"`. The original array is not rearranged.",
+      "topics": [
+        "T006",
+        "T004",
+        "T013"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST019",
+        "ST034"
+      ],
+      "skills": [
+        "SK001",
+        "SK011"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q038",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static String[] strArrMethod(String[] arr)\n{\n  String[] result = new String[arr.length];\n  for (int j = 0; j < arr.length; j++)\n  {\n    String sm = arr[j];\n    for (int k = j + 1; k < arr.length; k++)\n    {\n      if (arr[k].length() < sm.length())\n      {\n        sm = arr[k]; // Line 12\n      }\n    }\n    result[j] = sm;\n  }\n  return result;\n}\n```\n\nConsider the following code segment.\n\n```java\nString[] testTwo = {\"last\", \"day\", \"of\", \"the\", \"school\", \"year\"};\nString[] resultTwo = strArrMethod(testTwo);\n```\n\nHow many times is the line labeled `// Line 12` in the `strArrMethod` executed as a result of executing the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "4 times",
+          "is_correct": true,
+          "explanation": "Correct. The line labeled `// Line 12` runs only when a strictly shorter string is found. When `j` is `0`, `sm` is updated for `\"day\"` and then `\"of\"` (2 times). When `j` is `1`, it is updated for `\"of\"` (1 time). When `j` is `4`, `\"year\"` replaces `\"school\"` (1 time). When `j` is `2`, `3`, or `5`, no shorter string follows, so `sm` is never updated. The total is 4."
+        },
+        {
+          "id": "b",
+          "text": "5 times",
+          "is_correct": false,
+          "explanation": "5 times: this is one more than the actual count. Note that `\"the\"` (length 3) does not replace `\"day\"` (length 3), and `\"year\"` (length 4) does not replace `\"the\"`, because the comparison is a strict `<`."
+        },
+        {
+          "id": "c",
+          "text": "6 times",
+          "is_correct": false,
+          "explanation": "6 times: this is the number of elements, that is, the number of outer-loop iterations, which matches how often `result[j] = sm;` runs, not the update line."
+        },
+        {
+          "id": "d",
+          "text": "15 times",
+          "is_correct": false,
+          "explanation": "15 times: this is the number of times the `if` condition is checked (`5 + 4 + 3 + 2 + 1`), not the number of times it is true."
+        }
+      ],
+      "explanation": "The line labeled `// Line 12` runs only when a strictly shorter string is found. When `j` is `0`, `sm` is updated for `\"day\"` and then `\"of\"` (2 times). When `j` is `1`, it is updated for `\"of\"` (1 time). When `j` is `4`, `\"year\"` replaces `\"school\"` (1 time). When `j` is `2`, `3`, or `5`, no shorter string follows, so `sm` is never updated. The total is 4.",
+      "topics": [
+        "T022",
+        "T004",
+        "T006"
+      ],
+      "subtopics": [
+        "ST079",
+        "ST019",
+        "ST031"
+      ],
+      "skills": [
+        "SK011",
+        "SK001"
+      ],
+      "difficulty": "D3",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q039",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[] arr1 = {2, 4, 6, 8, 10};\nint num = 0;\nfor (int val : arr1)\n{\n   num += 10;\n}\n```\n\nWhich of the following best describes the behavior of the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The loop adds 10 to each element in `arr1`.",
+          "is_correct": false,
+          "explanation": "Adds 10 to each element: the statement changes `num`, not the array; even `val += 10` would change only a copy, not the array."
+        },
+        {
+          "id": "b",
+          "text": "The loop adds 10 to `num` once for each element in `arr1`.",
+          "is_correct": true,
+          "explanation": "Correct. The enhanced `for` loop runs once for each of the five elements of `arr1`, and each iteration adds `10` to `num`, so `num` ends at `50`. The loop variable `val` is never used."
+        },
+        {
+          "id": "c",
+          "text": "The loop adds the value of each element in `arr1` to `num`.",
+          "is_correct": false,
+          "explanation": "Adds each element's value to `num`: that would require `num += val;`, but the code adds the constant `10`."
+        },
+        {
+          "id": "d",
+          "text": "The loop does not change the value of `num` because it uses an enhanced `for` loop.",
+          "is_correct": false,
+          "explanation": "Does not change `num`: an enhanced `for` loop cannot change array elements through its loop variable, but it can change other variables such as `num`."
+        }
+      ],
+      "explanation": "The enhanced `for` loop runs once for each of the five elements of `arr1`, and each iteration adds `10` to `num`, so `num` ends at `50`. The loop variable `val` is never used.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "arrays_q040",
+      "status": "active",
+      "text": "A university wants to determine which major has the highest average GPA among students graduating in a given year. The university has the following data sets available.\n\n- Data set 1 contains an entry for each student. Each entry includes the student's ID, declared major, and graduation year.\n- Data set 2 contains an entry for each student. Each entry includes the student's ID, declared major, and assigned faculty advisor.\n- Data set 3 contains an entry for each student. Each entry includes the student's ID, course name, and grade received.\n- Data set 4 contains an entry for each student. Each entry includes the student's ID and final GPA.\n\nWhich two data sets can be combined and analyzed to determine the information the university seeks?\n\nGPA: grade point average",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Data sets 1 and 2",
+          "is_correct": false,
+          "explanation": "Data sets 1 and 2: neither contains GPA or grades."
+        },
+        {
+          "id": "b",
+          "text": "Data sets 1 and 4",
+          "is_correct": true,
+          "explanation": "Correct. Data set 1 gives each student's major and graduation year, and data set 4 gives each student's final GPA. Joining them on student ID lets the university select students graduating in the given year and compute the average GPA for each major."
+        },
+        {
+          "id": "c",
+          "text": "Data sets 2 and 3",
+          "is_correct": false,
+          "explanation": "Data sets 2 and 3: neither contains graduation year, so students graduating in the given year cannot be identified."
+        },
+        {
+          "id": "d",
+          "text": "Data sets 3 and 4",
+          "is_correct": false,
+          "explanation": "Data sets 3 and 4: neither contains major or graduation year."
+        }
+      ],
+      "explanation": "Data set 1 gives each student's major and graduation year, and data set 4 gives each student's final GPA. Joining them on student ID lets the university select students graduating in the given year and compute the average GPA for each major.",
+      "topics": [
+        "T014"
+      ],
+      "subtopics": [
+        "ST054"
+      ],
+      "skills": [
+        "SK023"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q041",
+      "status": "active",
+      "text": "In the following code segment, `arr` is a one-dimensional array of integers.\n\n```java\nint sum = 0;\nfor (int n : arr)\n{\n  sum = sum + 2 * n;\n}\nSystem.out.print(sum);\n```\n\nWhich of the following code segments will produce the same output as the given code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nint sum = 0;\nfor (int k = 0; k < arr.length; k++)\n{\n  sum = sum + 2 * k;\n}\nSystem.out.print(sum);\n```",
+          "is_correct": false,
+          "explanation": "The loop adding `2 * k` with `k < arr.length`: this adds twice each index, not twice each element; it confuses the index with the element."
+        },
+        {
+          "id": "b",
+          "text": "```java\nint sum = 0;\nfor (int k = 0; k <= arr.length; k++)\n{\n  sum = sum + 2 * k;\n}\nSystem.out.print(sum);\n```",
+          "is_correct": false,
+          "explanation": "The loop adding `2 * k` with `k <= arr.length`: this also sums indices instead of elements, and it includes one extra index."
+        },
+        {
+          "id": "c",
+          "text": "```java\nint sum = 0;\nfor (int k = 0; k < arr.length; k++)\n{\n  sum = sum + 2 * arr[k];\n}\nSystem.out.print(sum);\n```",
+          "is_correct": true,
+          "explanation": "Correct. The original loop adds twice each element of `arr` to `sum` and prints the result. The equivalent indexed loop lets `k` run from `0` to `arr.length - 1` and adds `2 * arr[k]`, which is twice the element at each index."
+        },
+        {
+          "id": "d",
+          "text": "```java\nint sum = arr[0];\nfor (int k = 1; k <= arr.length; k++)\n{\n  sum = sum + 2 * arr[k];\n}\nSystem.out.print(sum);\n```",
+          "is_correct": false,
+          "explanation": "The loop starting with `sum = arr[0]` and `k <= arr.length`: the first element is added only once instead of twice, and `arr[arr.length]` throws an `ArrayIndexOutOfBoundsException`."
+        }
+      ],
+      "explanation": "The original loop adds twice each element of `arr` to `sum` and prints the result. The equivalent indexed loop lets `k` run from `0` to `arr.length - 1` and adds `2 * arr[k]`, which is twice the element at each index.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032",
+        "ST034"
+      ],
+      "skills": [
+        "SK001",
+        "SK018"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q042",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\n/* missing code */\nsequence[1] = 1;\nsequence[2] = 2;\n```\n\nWhich of the following code segments can be used to replace `/* missing code */` so that the code segment sets the contents of the array to `{0, 1, 2}`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nint[] sequence;\n```",
+          "is_correct": false,
+          "explanation": "This only declares the variable without creating an array, so using `sequence[1]` does not compile (the variable might not have been initialized)."
+        },
+        {
+          "id": "b",
+          "text": "```java\nint[] sequence = new int[1];\n```",
+          "is_correct": false,
+          "explanation": "The only valid index is `0`, so `sequence[1] = 1;` throws an `ArrayIndexOutOfBoundsException`."
+        },
+        {
+          "id": "c",
+          "text": "```java\nint[] sequence = new int[2];\n```",
+          "is_correct": false,
+          "explanation": "The valid indices are `0` and `1`, so `sequence[2] = 2;` throws an `ArrayIndexOutOfBoundsException`; this mistakes the largest index for the length."
+        },
+        {
+          "id": "d",
+          "text": "```java\nint[] sequence = new int[3];\n```",
+          "is_correct": true,
+          "explanation": "Correct. `new int[3]` creates an array of length 3 whose elements start as `{0, 0, 0}`. The next two statements set the elements at indices `1` and `2`, giving `{0, 1, 2}`; the element at index `0` keeps its default value `0`."
+        }
+      ],
+      "explanation": "`new int[3]` creates an array of length 3 whose elements start as `{0, 0, 0}`. The next two statements set the elements at indices `1` and `2`, giving `{0, 1, 2}`; the element at index `0` keeps its default value `0`.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST029",
+        "ST030",
+        "ST033"
+      ],
+      "skills": [
+        "SK008"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q043",
+      "status": "active",
+      "text": "The code segment below is intended to print the length of the shortest string in the array `wordArray`. Assume that `wordArray` contains at least one element.\n\n```java\nint shortest = /* missing value */;\nfor (String word : wordArray)\n{\n  if (word.length() < shortest)\n  {\n    shortest = word.length();\n  }\n}\nSystem.out.println(shortest);\n```\n\nWhich of the following should be used as the initial value assigned to `shortest` so that the code segment works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`Integer.MAX_VALUE`",
+          "is_correct": true,
+          "explanation": "Correct. The loop compares the length of each string to `shortest` and replaces `shortest` whenever a shorter length is found. Starting `shortest` at `Integer.MAX_VALUE` guarantees that the first word's length is less than the starting value, so it becomes the shortest found so far, and every later word is then compared against the true shortest length seen so far."
+        },
+        {
+          "id": "b",
+          "text": "`Integer.MIN_VALUE`",
+          "is_correct": false,
+          "explanation": "No string length is less than the smallest `int`, so `shortest` is never updated and `Integer.MIN_VALUE` is printed; this choice confuses finding a minimum with finding a maximum."
+        },
+        {
+          "id": "c",
+          "text": "`0`",
+          "is_correct": false,
+          "explanation": "No string length is less than `0`, so `0` is printed no matter what the array contains."
+        },
+        {
+          "id": "d",
+          "text": "`wordArray.length`",
+          "is_correct": false,
+          "explanation": "This is the number of strings, not a string length; if every word is longer than the number of elements in the array, `shortest` is never updated and the array's length is printed."
+        }
+      ],
+      "explanation": "The loop compares the length of each string to `shortest` and replaces `shortest` whenever a shorter length is found. Starting `shortest` at `Integer.MAX_VALUE` guarantees that the first word's length is less than the starting value, so it becomes the shortest found so far, and every later word is then compared against the true shortest length seen so far.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034"
+      ],
+      "skills": [
+        "SK010",
+        "SK018"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q045",
+      "status": "active",
+      "text": "Assume that an array of integer values has been declared as follows and has been initialized.\n\n```java\nint[] arr = new int[10];\n```\n\nWhich of the following code segments correctly interchanges the value of `arr[0]` and `arr[5]` ?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\narr[0] = 5;\narr[5] = 0;\n```",
+          "is_correct": false,
+          "explanation": "Assigns the index numbers as values, confusing indices with the values stored at them."
+        },
+        {
+          "id": "b",
+          "text": "```java\narr[0] = arr[5];\narr[5] = arr[0];\n```",
+          "is_correct": false,
+          "explanation": "The first statement overwrites the original `arr[0]` before it is saved, so both elements end up holding the original `arr[5]`."
+        },
+        {
+          "id": "c",
+          "text": "```java\nint k = arr[5];\narr[0] = arr[5];\narr[5] = k;\n```",
+          "is_correct": false,
+          "explanation": "The saved value is the one that is not overwritten, so the original `arr[0]` is lost and both elements end up holding the original `arr[5]`."
+        },
+        {
+          "id": "d",
+          "text": "```java\nint k = arr[0];\narr[0] = arr[5];\narr[5] = k;\n```",
+          "is_correct": true,
+          "explanation": "Correct. A swap needs a temporary variable to hold one value before it is overwritten. Saving the original `arr[0]` in `k`, copying `arr[5]` into `arr[0]`, and then storing `k` in `arr[5]` exchanges the two values."
+        }
+      ],
+      "explanation": "A swap needs a temporary variable to hold one value before it is overwritten. Saving the original `arr[0]` in `k`, copying `arr[5]` into `arr[0]`, and then storing `k` in `arr[5]` exchanges the two values.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST032",
+        "ST034"
+      ],
+      "skills": [
+        "SK018",
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q046",
+      "status": "active",
+      "text": "Consider the following data field and method.\n\n```java\nprivate int[] seq;\n\n// precondition: seq.length > 0\npublic int lenIncreasing()\n{\n  int k = 1;\n\n  while ((k < seq.length) && (seq[k - 1] < seq[k]))\n  {\n    k++;\n  }\n\n  // assertion\n  return k;\n}\n```\n\nWhich of the following assertions is true when execution reaches the line `// assertion` in `lenIncreasing`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`(k == seq.length) && (seq[k - 1] >= seq[k])`",
+          "is_correct": false,
+          "explanation": "Negates each part but keeps `&&`, a misapplication of De Morgan's law; when `k == seq.length` the second part would access `seq[seq.length]`, and when `k < seq.length` the first part is false, so it is never true."
+        },
+        {
+          "id": "b",
+          "text": "`(k == seq.length) || (seq[k - 1] >= seq[k])`",
+          "is_correct": true,
+          "explanation": "Correct. The loop stops when its condition `(k < seq.length) && (seq[k - 1] < seq[k])` is false. By De Morgan's law, the negation is `(k >= seq.length) || (seq[k - 1] >= seq[k])`, and since `k` never goes past `seq.length`, this is `(k == seq.length) || (seq[k - 1] >= seq[k])`. Short-circuit evaluation means `seq[k]` is not evaluated when `k == seq.length`, so this assertion is always true at that point."
+        },
+        {
+          "id": "c",
+          "text": "`(k < seq.length) && (seq[k - 1] < seq[k])`",
+          "is_correct": false,
+          "explanation": "This is the loop condition itself, which must be false for the loop to have ended."
+        },
+        {
+          "id": "d",
+          "text": "`(k < seq.length) || (seq[k - 1] < seq[k])`",
+          "is_correct": false,
+          "explanation": "When the loop ends because `k == seq.length`, the first part is false and the second part accesses `seq[seq.length]`, so this is not always true."
+        }
+      ],
+      "explanation": "The loop stops when its condition `(k < seq.length) && (seq[k - 1] < seq[k])` is false. By De Morgan's law, the negation is `(k >= seq.length) || (seq[k - 1] >= seq[k])`, and since `k` never goes past `seq.length`, this is `(k == seq.length) || (seq[k - 1] >= seq[k])`. Short-circuit evaluation means `seq[k]` is not evaluated when `k == seq.length`, so this assertion is always true at that point.",
+      "topics": [
+        "T003",
+        "T004"
+      ],
+      "subtopics": [
+        "ST076",
+        "ST014",
+        "ST020"
+      ],
+      "skills": [
+        "SK009",
+        "SK010"
+      ],
+      "difficulty": "D3",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q047",
+      "status": "active",
+      "text": "Consider the following method, which is intended to return the index `i` for which the value of `predicted[i]` is furthest from the value of `actual[i]`.\n\nFor example, if `predicted` contains the values `{60, 65, 62, 68, 70, 72, 68}` and `actual` contains the values `{64, 68, 60, 67, 76, 72, 70}`, then `difference` should return `4`, because the corresponding elements with values that are furthest from each other are `predicted[4]` and `actual[4]`.\n\n```java\n/**\n * Precondition: predicted and actual have the same\n * nonzero length.\n */\npublic static int difference(int[] predicted, int[] actual)\n{\n  int num = Integer.MIN_VALUE;\n  int idx = -1;\n  for (int i = 0; i < predicted.length; i++)\n  {\n    /* missing code */\n  }\n  return idx;\n}\n```\n\nWhich of the following can be used to replace `/* missing code */` so that the `difference` method works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nif (predicted[i] - actual[i] < num)\n{\n  num = predicted[i] - actual[i];\n  idx = i;\n}\n```",
+          "is_correct": false,
+          "explanation": "`predicted[i] - actual[i] < num` (no absolute value): no `int` is less than `Integer.MIN_VALUE`, so the condition is never true and `-1` is returned."
+        },
+        {
+          "id": "b",
+          "text": "```java\nif (predicted[i] - actual[i] > num)\n{\n  num = predicted[i] - actual[i];\n  idx = i;\n}\n```",
+          "is_correct": false,
+          "explanation": "`predicted[i] - actual[i] > num` (no absolute value): finds the largest signed difference, ignoring cases where `actual` exceeds `predicted`; in the example it returns `2` (difference `2`) instead of `4` (difference `-6`)."
+        },
+        {
+          "id": "c",
+          "text": "```java\nif (Math.abs(predicted[i] - actual[i]) < num)\n{\n  num = Math.abs(predicted[i] - actual[i]);\n  idx = i;\n}\n```",
+          "is_correct": false,
+          "explanation": "Looks for a smaller distance, but no `int` is less than `Integer.MIN_VALUE`, so `-1` is returned."
+        },
+        {
+          "id": "d",
+          "text": "```java\nif (Math.abs(predicted[i] - actual[i]) > num)\n{\n  num = Math.abs(predicted[i] - actual[i]);\n  idx = i;\n}\n```",
+          "is_correct": true,
+          "explanation": "Correct. How far apart two values are is the absolute value of their difference, which `Math.abs` computes. `num` holds the greatest distance found so far (starting at `Integer.MIN_VALUE`, the smallest possible `int`), and `idx` holds the index where it was found; whenever a larger distance appears, both are updated. In the example the distances are `4, 3, 2, 1, 6, 0, 2`, so `4` is returned."
+        }
+      ],
+      "explanation": "How far apart two values are is the absolute value of their difference, which `Math.abs` computes. `num` holds the greatest distance found so far (starting at `Integer.MIN_VALUE`, the smallest possible `int`), and `idx` holds the index where it was found; whenever a larger distance appears, both are updated. In the example the distances are `4, 3, 2, 1, 6, 0, 2`, so `4` is returned.",
+      "topics": [
+        "T006",
+        "T002"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034",
+        "ST062"
+      ],
+      "skills": [
+        "SK016",
+        "SK018"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q051",
+      "status": "active",
+      "text": "Consider the following incomplete method, which is intended to return the longest string in the string array `words`. Assume that the array contains at least one element.\n\n```java\npublic static String longestWord(String[] words)\n{\n  /* missing declaration and initialization */\n  for (int k = 1; k < words.length; k++)\n  {\n    if (words[k].length() > longest.length())\n    {\n      longest = words[k];\n    }\n  }\n  return longest;\n}\n```\n\nWhich of the following can replace `/* missing declaration and initialization */` so that the method will work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`int longest = 0;`",
+          "is_correct": false,
+          "explanation": "`longest` must be a `String`, because the code calls `longest.length()`, assigns `words[k]` to it, and returns it as a `String`; this does not compile."
+        },
+        {
+          "id": "b",
+          "text": "`int longest = words[0].length();`",
+          "is_correct": false,
+          "explanation": "Stores a length rather than the string, so `longest.length()`, `longest = words[k]`, and the `String` return do not compile."
+        },
+        {
+          "id": "c",
+          "text": "`String longest = \"\";`",
+          "is_correct": false,
+          "explanation": "Compiles, but since the loop starts at index `1`, `words[0]` is never considered; if `words[0]` is the longest string (or the only one), the wrong string is returned."
+        },
+        {
+          "id": "d",
+          "text": "`String longest = words[0];`",
+          "is_correct": true,
+          "explanation": "Correct. The loop compares the length of each string to the length of `longest` and replaces `longest` when a longer string is found. Because the loop starts at index `1`, `longest` must start as `words[0]`, the longest string seen so far before the loop begins; every later string is then compared against it."
+        }
+      ],
+      "explanation": "The loop compares the length of each string to the length of `longest` and replaces `longest` when a longer string is found. Because the loop starts at index `1`, `longest` must start as `words[0]`, the longest string seen so far before the loop begins; every later string is then compared against it.",
+      "topics": [
+        "T006",
+        "T013"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034",
+        "ST009"
+      ],
+      "skills": [
+        "SK010",
+        "SK008"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q052",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[] arr = {1, 2, 3, 4, 5, 6, 7};\nfor (int i = 1; i < arr.length; i += 2)\n{\n  arr[i] = arr[i - 1];\n}\n```\n\nWhich of the following represents the contents of the array `arr` after the code segment is executed?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{0, 1, 2, 3, 4, 5, 6}`",
+          "is_correct": false,
+          "explanation": "Shifts every element one place to the right with a `0` at the front; the code changes only the odd indices and never stores `0`."
+        },
+        {
+          "id": "b",
+          "text": "`{1, 1, 1, 1, 1, 1, 1}`",
+          "is_correct": false,
+          "explanation": "What happens if `i` increased by `1`, so the first value would be copied forward into every position; `i += 2` skips the even indices."
+        },
+        {
+          "id": "c",
+          "text": "`{1, 1, 3, 3, 5, 5, 7}`",
+          "is_correct": true,
+          "explanation": "Correct. `i` takes the values `1`, `3`, and `5`, then becomes `7` and the loop ends. Each iteration copies the element at `i - 1` into index `i`: `arr[1]` gets `1`, `arr[3]` gets `3`, and `arr[5]` gets `5`, leaving `{1, 1, 3, 3, 5, 5, 7}`."
+        },
+        {
+          "id": "d",
+          "text": "`{1, 2, 3, 4, 5, 6, 7}`",
+          "is_correct": false,
+          "explanation": "Assumes the array is unchanged, but three elements are reassigned."
+        }
+      ],
+      "explanation": "`i` takes the values `1`, `3`, and `5`, then becomes `7` and the loop ends. Each iteration copies the element at `i - 1` into index `i`: `arr[1]` gets `1`, `arr[3]` gets `3`, and `arr[5]` gets `5`, leaving `{1, 1, 3, 3, 5, 5, 7}`.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032"
+      ],
+      "skills": [
+        "SK001",
+        "SK018"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q054",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static int mystery(int value)\n{\n  int sum = 0;\n  int[] arr = {1, 4, 2, 5, 10, 3, 6, 4};\n\n  for (int item : arr)\n  {\n    if (item > value)\n    {\n      sum += item;\n    }\n  }\n  return sum;\n}\n```\n\nWhat value is returned as a result of the call `mystery(4)` ?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "6",
+          "is_correct": false,
+          "explanation": "The sum of the elements less than `4` (`1 + 2 + 3`), which reverses the comparison."
+        },
+        {
+          "id": "b",
+          "text": "15",
+          "is_correct": false,
+          "explanation": "Adds only `5` and `10` and misses the `6` that appears later in the array; the enhanced `for` loop visits every element."
+        },
+        {
+          "id": "c",
+          "text": "21",
+          "is_correct": true,
+          "explanation": "Correct. The method adds up the elements of `arr` that are greater than `value`. With `value` equal to `4`, those elements are `5`, `10`, and `6`, so the method returns `5 + 10 + 6 = 21`."
+        },
+        {
+          "id": "d",
+          "text": "29",
+          "is_correct": false,
+          "explanation": "Includes the two `4`s (`4 + 5 + 10 + 6 + 4`), treating `>` as `>=`."
+        }
+      ],
+      "explanation": "The method adds up the elements of `arr` that are greater than `value`. With `value` equal to `4`, those elements are `5`, `10`, and `6`, so the method returns `5 + 10 + 6 = 21`.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034"
+      ],
+      "skills": [
+        "SK001",
+        "SK018"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q055",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static int mystery(int[] arr)\n{\n  int count = 0;\n  int curr = arr[arr.length - 1];\n\n  for (int value : arr)\n  {\n    if (value > curr)\n    {\n      count = count + 1;\n    }\n    else\n    {\n      count = count - 1;\n    }\n    curr = value;\n  }\n\n  return count;\n}\n```\n\nThe following code segment appears in another method of the same class.\n\n```java\nint[] arr = {4, 14, 15, 3, 14, 18, 19};\nSystem.out.println(mystery(arr));\n```\n\nWhat is printed as a result of executing the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "-7",
+          "is_correct": false,
+          "explanation": "What happens if `curr` were never updated, so every element is compared with `19`; none is greater, so `count` drops seven times. The statement `curr = value;` updates it each iteration."
+        },
+        {
+          "id": "b",
+          "text": "-6",
+          "is_correct": false,
+          "explanation": "Would need six decrements and one increment, but only two elements are not greater than the element before them."
+        },
+        {
+          "id": "c",
+          "text": "3",
+          "is_correct": true,
+          "explanation": "Correct. Each element is compared with the element before it; for the first element, `curr` starts as the last element, `19`. `count` goes up for 5 comparisons (`14` vs `4`, `15` vs `14`, `14` vs `3`, `18` vs `14`, `19` vs `18`) and down for 2 comparisons (`4` vs `19`, `3` vs `15`), so the result is `5 - 2 = 3`."
+        },
+        {
+          "id": "d",
+          "text": "5",
+          "is_correct": false,
+          "explanation": "Counts only the increases and forgets that `count` is also decremented for the other two elements."
+        }
+      ],
+      "explanation": "Each element is compared with the element before it; for the first element, `curr` starts as the last element, `19`. `count` goes up for 5 comparisons (`14` vs `4`, `15` vs `14`, `14` vs `3`, `18` vs `14`, `19` vs `18`) and down for 2 comparisons (`4` vs `19`, `3` vs `15`), so the result is `5 - 2 = 3`.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034"
+      ],
+      "skills": [
+        "SK001",
+        "SK018"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q057",
+      "status": "active",
+      "text": "Consider the following data field and method.\n\n```java\nprivate int[] arr;\n\n// precondition: arr.length > 0\npublic void mystery()\n{\n  int s1 = 0;\n  int s2 = 0;\n  for (int k = 0; k < arr.length; k++)\n  {\n    int num = arr[k];\n    if ((num > 0) && (num % 2 == 0))\n      s1 += num;\n    else if (num < 0)\n      s2 += num;\n  }\n  System.out.println(s1);\n  System.out.println(s2);\n}\n```\n\nWhich of the following best describes the value of `s1` output by the method `mystery` ?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The sum of all positive values in `arr`",
+          "is_correct": false,
+          "explanation": "Ignores the second condition, `num % 2 == 0`, which leaves out positive odd values."
+        },
+        {
+          "id": "b",
+          "text": "The sum of all positive even values in `arr`",
+          "is_correct": true,
+          "explanation": "Correct. `num` is added to `s1` only when both `num > 0` and `num % 2 == 0` are true, that is, when `num` is positive and even. So `s1` is the sum of all positive even values in `arr`."
+        },
+        {
+          "id": "c",
+          "text": "The sum of all positive odd values in `arr`",
+          "is_correct": false,
+          "explanation": "Misreads `num % 2 == 0`; a remainder of `0` when dividing by `2` means the number is even, not odd."
+        },
+        {
+          "id": "d",
+          "text": "The sum of all values greater than 2 in `arr`",
+          "is_correct": false,
+          "explanation": "Odd values such as `3` are not added, and `2` itself is added."
+        }
+      ],
+      "explanation": "`num` is added to `s1` only when both `num > 0` and `num % 2 == 0` are true, that is, when `num` is positive and even. So `s1` is the sum of all positive even values in `arr`.",
+      "topics": [
+        "T006",
+        "T003"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034",
+        "ST013"
+      ],
+      "skills": [
+        "SK020",
+        "SK009"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "arrays_q058",
+      "status": "active",
+      "text": "Consider the following data field and method.\n\n```java\nprivate int[] arr;\n\n// precondition: arr.length > 0\npublic void mystery()\n{\n  int s1 = 0;\n  int s2 = 0;\n  for (int k = 0; k < arr.length; k++)\n  {\n    int num = arr[k];\n    if ((num > 0) && (num % 2 == 0))\n      s1 += num;\n    else if (num < 0)\n      s2 += num;\n  }\n  System.out.println(s1);\n  System.out.println(s2);\n}\n```\n\nWhich of the following best describes the value of `s2` output by the method `mystery` ?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The sum of all positive even values in `arr`",
+          "is_correct": false,
+          "explanation": "Describes `s1`, not `s2`."
+        },
+        {
+          "id": "b",
+          "text": "The sum of all negative values in `arr`",
+          "is_correct": true,
+          "explanation": "Correct. A negative number always fails `num > 0`, so it always reaches the `else if`, where `num < 0` is true and `num` is added to `s2`. No other value is added to `s2`, so `s2` is the sum of all negative values in `arr`, whether even or odd."
+        },
+        {
+          "id": "c",
+          "text": "The sum of all negative even values in `arr`",
+          "is_correct": false,
+          "explanation": "Assumes the even test carries over to the `else if`; the `else if` tests only `num < 0`."
+        },
+        {
+          "id": "d",
+          "text": "The sum of all negative odd values in `arr`",
+          "is_correct": false,
+          "explanation": "Assumes negative even values satisfy the first condition; they fail `num > 0`, so they also go to `s2`."
+        }
+      ],
+      "explanation": "A negative number always fails `num > 0`, so it always reaches the `else if`, where `num < 0` is true and `num` is added to `s2`. No other value is added to `s2`, so `s2` is the sum of all negative values in `arr`, whether even or odd.",
+      "topics": [
+        "T006",
+        "T003"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034",
+        "ST012"
+      ],
+      "skills": [
+        "SK020",
+        "SK009"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q059",
+      "status": "active",
+      "text": "The following code segment is intended to set the contents of the array `names` to `{\"Ana\", \"Billy\", \"Cathy\", \"Darius\"}`. The code segment does not work as intended.\n\n```java\nString[] names = new String[3]; // Line 1\nnames[0] = \"Ana\";              // Line 2\nnames[1] = \"Billy\";            // Line 3\nnames[2] = \"Cathy\";            // Line 4\nnames[3] = \"Darius\";           // Line 5\n```\n\nWhich of the following changes can be made so that the code segment works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Changing line 1 to `String[] names = new String[4];`",
+          "is_correct": true,
+          "explanation": "Correct. The original code creates an array of length 3, with indices `0` to `2`, so assigning to `names[3]` throws an `ArrayIndexOutOfBoundsException`. Creating the array with length 4 gives indices `0` to `3`, so all four strings can be stored."
+        },
+        {
+          "id": "b",
+          "text": "Changing line 1 to `String[] names = new names[3];`",
+          "is_correct": false,
+          "explanation": "Does not compile, because `new` must be followed by a type such as `String`, not a variable name; the length would also still be 3."
+        },
+        {
+          "id": "c",
+          "text": "Changing line 5 to `names[2] = \"Darius\";`",
+          "is_correct": false,
+          "explanation": "`names[2] = \"Darius\";` as line 5: avoids the exception but overwrites `\"Cathy\"`, so the array is `{\"Ana\", \"Billy\", \"Darius\"}`."
+        },
+        {
+          "id": "d",
+          "text": "Removing line 5",
+          "is_correct": false,
+          "explanation": "Avoids the exception, but `\"Darius\"` is never stored, so the array is `{\"Ana\", \"Billy\", \"Cathy\"}`."
+        }
+      ],
+      "explanation": "The original code creates an array of length 3, with indices `0` to `2`, so assigning to `names[3]` throws an `ArrayIndexOutOfBoundsException`. Creating the array with length 4 gives indices `0` to `3`, so all four strings can be stored.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST029",
+        "ST032",
+        "ST033"
+      ],
+      "skills": [
+        "SK004",
+        "SK008"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q060",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[] numbers = new int[5];\nnumbers[0] = 2;\nnumbers[1] = numbers[0] + 1;\nnumbers[numbers[0]] = numbers[1];\n\nfor (int x = 3; x < numbers.length; x++)\n{\n  numbers[x] = numbers[x - 1] * 2;\n}\n```\n\nWhich of the following represents the contents of the array `numbers` after the code segment is executed?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{2, 3, 0, 0, 0}`",
+          "is_correct": false,
+          "explanation": "Misses that `numbers[numbers[0]]` is `numbers[2]`, and ignores the loop."
+        },
+        {
+          "id": "b",
+          "text": "`{2, 3, 1, 2, 4}`",
+          "is_correct": false,
+          "explanation": "Does not follow the code; `numbers[2]` receives `numbers[1]`, which is `3`, and each later element doubles the one before it."
+        },
+        {
+          "id": "c",
+          "text": "`{2, 3, 3, 6, 9}`",
+          "is_correct": false,
+          "explanation": "Adds `3` each time instead of doubling the previous element; `6 * 2` is `12`."
+        },
+        {
+          "id": "d",
+          "text": "`{2, 3, 3, 6, 12}`",
+          "is_correct": true,
+          "explanation": "Correct. The new array starts as `{0, 0, 0, 0, 0}`. The assignments store `2` in `numbers[0]`, `2 + 1 = 3` in `numbers[1]`, and, because `numbers[0]` is `2`, store `3` in `numbers[2]`, giving `{2, 3, 3, 0, 0}`. The loop then sets `numbers[3]` to `3 * 2 = 6` and `numbers[4]` to `6 * 2 = 12`, giving `{2, 3, 3, 6, 12}`."
+        }
+      ],
+      "explanation": "The new array starts as `{0, 0, 0, 0, 0}`. The assignments store `2` in `numbers[0]`, `2 + 1 = 3` in `numbers[1]`, and, because `numbers[0]` is `2`, store `3` in `numbers[2]`, giving `{2, 3, 3, 0, 0}`. The loop then sets `numbers[3]` to `3 * 2 = 6` and `numbers[4]` to `6 * 2 = 12`, giving `{2, 3, 3, 6, 12}`.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST030",
+        "ST031",
+        "ST032"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q061",
+      "status": "active",
+      "text": "Consider the following method, which is intended to return the average (arithmetic mean) of the values in an array of `double` values. Assume the array contains at least one element.\n\n```java\npublic static double findAvg(double[] values)\n{\n  double sum = 0.0;\n  for (double val : values)\n  {\n    sum += val;\n  }\n  return sum / values.length;\n}\n```\n\nWhich of the following preconditions, if any, must be true about the array `values` so that the method works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The array `values` must be sorted in ascending order.",
+          "is_correct": false,
+          "explanation": "Addition does not depend on order, so the sum, and therefore the average, is the same for any ordering."
+        },
+        {
+          "id": "b",
+          "text": "The array `values` must be sorted in descending order.",
+          "is_correct": false,
+          "explanation": "Addition does not depend on order, so the sum, and therefore the average, is the same for any ordering."
+        },
+        {
+          "id": "c",
+          "text": "The values in the array `values` must not add up to `0`.",
+          "is_correct": false,
+          "explanation": "Confuses the sum with the divisor; a sum of `0` simply gives an average of `0.0`, and the divisor is `values.length`, which is at least `1`."
+        },
+        {
+          "id": "d",
+          "text": "No precondition is necessary; the method will always work as intended.",
+          "is_correct": true,
+          "explanation": "Correct. The loop adds every element to `sum`, and the sum is divided by `values.length`, the number of elements, which gives the average. Since the array has at least one element, the divisor is never `0`, and the order of the values does not affect their sum, so no further precondition is needed."
+        }
+      ],
+      "explanation": "The loop adds every element to `sum`, and the sum is divided by `values.length`, the number of elements, which gives the average. Since the array has at least one element, the divisor is never `0`, and the order of the values does not affect their sum, so no further precondition is needed.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034"
+      ],
+      "skills": [
+        "SK003",
+        "SK010"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q062",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static int getValue(int[] data, int j, int k)\n{\n  return data[j] + data[k];\n}\n```\n\nWhich of the following code segments, when appearing in another method in the same class as `getValue`, will print the value `70`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nint[] arr = {40, 30, 20, 10, 0};\nSystem.out.println(getValue(arr, 1, 2));\n```",
+          "is_correct": false,
+          "explanation": "Compiles, but prints `30 + 20 = 50`."
+        },
+        {
+          "id": "b",
+          "text": "```java\nint[] arr = {50, 40, 30, 20, 10};\nSystem.out.println(getValue(arr, 1, 2));\n```",
+          "is_correct": true,
+          "explanation": "Correct. The array `arr` is correctly declared as `int[]` and initialized with `{50, 40, 30, 20, 10}`. The call `getValue(arr, 1, 2)` returns the sum of the elements at indices `1` and `2`, which is `40 + 30 = 70`."
+        },
+        {
+          "id": "c",
+          "text": "```java\nint arr = {40, 30, 20, 10, 0};\nSystem.out.println(getValue(arr, 2, 1));\n```",
+          "is_correct": false,
+          "explanation": "Declares `arr` as a single `int` rather than an `int[]`, so the initializer list does not compile (and even with brackets it would print `50`)."
+        },
+        {
+          "id": "d",
+          "text": "```java\nint arr = {50, 40, 30, 20, 10};\nSystem.out.println(getValue(arr, 2, 1));\n```",
+          "is_correct": false,
+          "explanation": "The values and indices would give `70`, but `arr` is declared as a single `int` rather than an `int[]`, so the code does not compile."
+        }
+      ],
+      "explanation": "The array `arr` is correctly declared as `int[]` and initialized with `{50, 40, 30, 20, 10}`. The call `getValue(arr, 1, 2)` returns the sum of the elements at indices `1` and `2`, which is `40 + 30 = 70`.",
+      "topics": [
+        "T006",
+        "T012"
+      ],
+      "subtopics": [
+        "ST029",
+        "ST030",
+        "ST032"
+      ],
+      "skills": [
+        "SK008",
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q063",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[] arr = {1, 2, 3, 4, 5};\narr[1] = 4;\narr[3] = 2;\n```\n\nWhich of the following represents the contents of `arr` after the code segment has been executed?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{1, 2, 3, 4, 1}`",
+          "is_correct": false,
+          "explanation": "Changes only the last element, which neither statement touches."
+        },
+        {
+          "id": "b",
+          "text": "`{1, 3, 3, 1, 5}`",
+          "is_correct": false,
+          "explanation": "Changes the second and fourth elements, but to values that were not assigned; the assigned values are `4` and `2`."
+        },
+        {
+          "id": "c",
+          "text": "`{1, 4, 3, 2, 5}`",
+          "is_correct": true,
+          "explanation": "Correct. Array indices start at `0`. The statement `arr[1] = 4;` sets the element at index `1` (the second element) to `4`, and `arr[3] = 2;` sets the element at index `3` (the fourth element) to `2`, giving `{1, 4, 3, 2, 5}`."
+        },
+        {
+          "id": "d",
+          "text": "`{4, 2, 2, 4, 5}`",
+          "is_correct": false,
+          "explanation": "Treats the indices as 1-based, changing the first and third elements instead of the second and fourth."
+        }
+      ],
+      "explanation": "Array indices start at `0`. The statement `arr[1] = 4;` sets the element at index `1` (the second element) to `4`, and `arr[3] = 2;` sets the element at index `3` (the fourth element) to `2`, giving `{1, 4, 3, 2, 5}`.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST032"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q065",
+      "status": "active",
+      "text": "The following method is intended to return an array with the values of the parameter `letters` in reverse order. The method does not work as intended.\n\n```java\npublic static String[] reverseArray(String[] letters)\n{\n  String[] revLetters = new String[letters.length];  // Line 3\n  for (int x = 0; x < letters.length; x++)           // Line 4\n  {\n    revLetters[x] = letters[letters.length - x];     // Line 6\n  }\n  return revLetters;\n}\n```\n\nWhich of the following changes can be made so the method returns the intended value?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Changing line 3 to `String[] revLetters = new String[letters.length - 1];`",
+          "is_correct": false,
+          "explanation": "Line 6 still accesses `letters[letters.length]` on the first iteration, and the new array would be too short to hold every element."
+        },
+        {
+          "id": "b",
+          "text": "Changing line 4 to `for (int x = 0; x < letters.length - 1; x++)`",
+          "is_correct": false,
+          "explanation": "The first iteration still accesses `letters[letters.length]`, so the exception still occurs."
+        },
+        {
+          "id": "c",
+          "text": "Changing line 6 to `revLetters[x] = letters[letters.length - x - 1];`",
+          "is_correct": true,
+          "explanation": "Correct. On the first iteration the original line 6 accesses `letters[letters.length]`, one past the last valid index, which throws an `ArrayIndexOutOfBoundsException`. Subtracting `1` makes the index run from `letters.length - 1` down to `0`, so as `revLetters` is filled from left to right it receives the elements of `letters` from right to left."
+        },
+        {
+          "id": "d",
+          "text": "Changing line 6 to `letters[x] = revLetters[letters.length - x];`",
+          "is_correct": false,
+          "explanation": "Still uses the out-of-bounds index `letters.length` when `x` is `0`, and it copies in the wrong direction, changing `letters` instead of filling `revLetters`."
+        }
+      ],
+      "explanation": "On the first iteration the original line 6 accesses `letters[letters.length]`, one past the last valid index, which throws an `ArrayIndexOutOfBoundsException`. Subtracting `1` makes the index run from `letters.length - 1` down to `0`, so as `revLetters` is filled from left to right it receives the elements of `letters` from right to left.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032",
+        "ST034"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q066",
+      "status": "active",
+      "text": "Consider the following method, which is intended to return an array of integers that contains the elements of the parameter `arr` arranged in reverse order. For example, if `arr` contains `{7, 2, 3, -5}`, then a new array containing `{-5, 3, 2, 7}` should be returned and the parameter `arr` should be left unchanged.\n\n```java\npublic static int[] reverse(int[] arr)\n{\n  int[] newArray = new int[arr.length];\n  for (int k = 0; k < arr.length; k++)\n  {\n    /* missing statement */\n  }\n  return newArray;\n}\n```\n\nWhich of the following statements can be used to replace `/* missing statement */` so that the method works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`newArray[k] = arr[k - arr.length];`",
+          "is_correct": false,
+          "explanation": "Subtracts in the wrong order; since `k` is less than `arr.length`, the index is negative and an `ArrayIndexOutOfBoundsException` is thrown."
+        },
+        {
+          "id": "b",
+          "text": "`newArray[k] = arr[k - arr.length - 1];`",
+          "is_correct": false,
+          "explanation": "Also subtracts in the wrong order, giving a negative index and an `ArrayIndexOutOfBoundsException`."
+        },
+        {
+          "id": "c",
+          "text": "`newArray[k] = arr[arr.length - k];`",
+          "is_correct": false,
+          "explanation": "An off-by-one error; when `k` is `0` it accesses `arr[arr.length]`, which is out of bounds."
+        },
+        {
+          "id": "d",
+          "text": "`newArray[k] = arr[arr.length - k - 1];`",
+          "is_correct": true,
+          "explanation": "Correct. When `k` is `0`, `newArray[0]` must get the last element of `arr`, at index `arr.length - 1`; when `k` is `1`, `newArray[1]` must get the next-to-last element, at index `arr.length - 2`; and so on. In general, `newArray[k]` is assigned `arr[arr.length - k - 1]`."
+        }
+      ],
+      "explanation": "When `k` is `0`, `newArray[0]` must get the last element of `arr`, at index `arr.length - 1`; when `k` is `1`, `newArray[1]` must get the next-to-last element, at index `arr.length - 2`; and so on. In general, `newArray[k]` is assigned `arr[arr.length - k - 1]`.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032",
+        "ST034"
+      ],
+      "skills": [
+        "SK016",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q067",
+      "status": "active",
+      "text": "In the following code segment, assume that the `int` array `numArr` has been properly declared and initialized. The code segment is intended to reverse the order of the elements in `numArr`. For example, if `numArr` initially contains `{1, 3, 5, 7, 9}`, it should contain `{9, 7, 5, 3, 1}` after the code segment executes.\n\n```java\n/* missing loop header */\n{\n  int temp = numArr[k];\n  numArr[k] = numArr[numArr.length - k - 1];\n  numArr[numArr.length - k - 1] = temp;\n}\n```\n\nWhich of the following can be used to replace `/* missing loop header */` so that the code segment works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nfor (int k = 0; k < numArr.length / 2; k++)\n```",
+          "is_correct": true,
+          "explanation": "Correct. Each iteration swaps the element `k` positions from the front with the element `k` positions from the end. Running `k` from `0` up to (but not including) `numArr.length / 2` swaps each pair exactly once and stops at the middle, leaving the array reversed; for an odd length the middle element stays in place."
+        },
+        {
+          "id": "b",
+          "text": "```java\nfor (int k = 0; k < numArr.length; k++)\n```",
+          "is_correct": false,
+          "explanation": "Goes past the middle and swaps every pair a second time, which puts the elements back in their original order."
+        },
+        {
+          "id": "c",
+          "text": "```java\nfor (int k = 0; k < numArr.length / 2; k--)\n```",
+          "is_correct": false,
+          "explanation": "After the first swap `k` becomes `-1`, so `numArr[-1]` throws an `ArrayIndexOutOfBoundsException`."
+        },
+        {
+          "id": "d",
+          "text": "```java\nfor (int k = numArr.length - 1; k >= 0; k--)\n```",
+          "is_correct": false,
+          "explanation": "Also visits every index, so every pair is swapped twice and the array ends up unchanged."
+        }
+      ],
+      "explanation": "Each iteration swaps the element `k` positions from the front with the element `k` positions from the end. Running `k` from `0` up to (but not including) `numArr.length / 2` swaps each pair exactly once and stops at the middle, leaving the array reversed; for an odd length the middle element stays in place.",
+      "topics": [
+        "T006",
+        "T004"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034",
+        "ST020"
+      ],
+      "skills": [
+        "SK010",
+        "SK018"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q068",
+      "status": "active",
+      "text": "A retail store has a data set that contains the following information for each sales transaction.\n\n- Store location\n- Transaction date\n- Time of purchase\n- Sales amount, in dollars\n- Product category (electronics, clothing, home goods, grocery, etc.)\n\nWhich of the following is most easily determined from the data in the data set?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Customer purchasing preferences by category for each store location",
+          "is_correct": true,
+          "explanation": "Correct. Each transaction records its store location, product category, and sales amount, so grouping the transactions by location and category shows which categories customers buy most at each store."
+        },
+        {
+          "id": "b",
+          "text": "Customer satisfaction levels by category for each date",
+          "is_correct": false,
+          "explanation": "The data set records sales, not ratings or feedback, so satisfaction cannot be determined."
+        },
+        {
+          "id": "c",
+          "text": "The name of the most popular product at each location",
+          "is_correct": false,
+          "explanation": "Only the product category is recorded, not the name of each product."
+        },
+        {
+          "id": "d",
+          "text": "The quantity available for each product at each store location",
+          "is_correct": false,
+          "explanation": "The data set records sales, not inventory, and it does not identify individual products."
+        }
+      ],
+      "explanation": "Each transaction records its store location, product category, and sales amount, so grouping the transactions by location and category shows which categories customers buy most at each store.",
+      "topics": [
+        "T014"
+      ],
+      "subtopics": [
+        "ST054"
+      ],
+      "skills": [
+        "SK023"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "arrays_q069",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[] scores = {85, 92, 78, 90, 88};\nscores[1] *= 2;            // Line 2\nscores[2] += 10;           // Line 3\n```\n\nWhich of the following best describes the behavior of lines 2 and 3 in the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Line 2 doubles the first element in the array and line 3 adds 10 to the second element.",
+          "is_correct": false,
+          "explanation": "Treats the indices as 1-based, but index `1` is the second element."
+        },
+        {
+          "id": "b",
+          "text": "Line 2 doubles the second element in the array and line 3 adds 10 to the third element.",
+          "is_correct": true,
+          "explanation": "Correct. Array indices start at `0`, so `scores[1]` is the second element and `scores[2]` is the third. The statement `scores[1] *= 2` doubles the second element (`92` becomes `184`), and `scores[2] += 10` adds `10` to the third element (`78` becomes `88`)."
+        },
+        {
+          "id": "c",
+          "text": "Line 2 doubles the third element in the array and line 3 adds 10 to the fourth element.",
+          "is_correct": false,
+          "explanation": "Places each element one position too far along; index `1` is the second element, not the third."
+        },
+        {
+          "id": "d",
+          "text": "Lines 2 and 3 do not change the contents of the array.",
+          "is_correct": false,
+          "explanation": "Compound assignment operators such as `*=` and `+=` store the result back into the array element."
+        }
+      ],
+      "explanation": "Array indices start at `0`, so `scores[1]` is the second element and `scores[2]` is the third. The statement `scores[1] *= 2` doubles the second element (`92` becomes `184`), and `scores[2] += 10` adds `10` to the third element (`78` becomes `88`).",
+      "topics": [
+        "T006",
+        "T001"
+      ],
+      "subtopics": [
+        "ST032",
+        "ST067"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "arrays_q071",
+      "status": "active",
+      "text": "A software developer wants to determine which programming language is most commonly used in different types of software projects. They have access to the following data sets.\n\n- Data set 1 contains entries for each registered developer, including their unique developer ID and their favorite programming language.\n- Data set 2 contains entries for each software project, including project name, type of project, and the developer ID of the project creator.\n- Data set 3 contains entries for each completed project, including project name and user ratings.\n- Data set 4 contains entries for each software project, including project name and all programming languages used in the project.\n\nWhich two data sets can be combined and analyzed to determine the desired information?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Data sets 1 and 2",
+          "is_correct": false,
+          "explanation": "Data set 1 gives each creator's favorite language, which is not necessarily a language used in the project."
+        },
+        {
+          "id": "b",
+          "text": "Data sets 2 and 4",
+          "is_correct": true,
+          "explanation": "Correct. Data set 2 gives the type of each project and data set 4 gives the languages used in each project. Both have the project name, so the two can be matched by project name to count how often each language is used in each type of project."
+        },
+        {
+          "id": "c",
+          "text": "Data sets 3 and 4",
+          "is_correct": false,
+          "explanation": "Data set 3 has ratings but no project types, so languages cannot be grouped by type of project."
+        },
+        {
+          "id": "d",
+          "text": "Data sets 1 and 3",
+          "is_correct": false,
+          "explanation": "Neither data set has the project type or the languages actually used, and they share no common field."
+        }
+      ],
+      "explanation": "Data set 2 gives the type of each project and data set 4 gives the languages used in each project. Both have the project name, so the two can be matched by project name to count how often each language is used in each type of project.",
+      "topics": [
+        "T014"
+      ],
+      "subtopics": [
+        "ST054"
+      ],
+      "skills": [
+        "SK023"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q073",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static void sort(String[] arr)\n{\n  for (int pass = arr.length - 1; pass >= 1; pass--)\n  {\n    String large = arr[0];\n    int index = 0;\n    for (int k = 0; k <= pass; k++)\n    {\n      if ((arr[k].compareTo(large)) > 0)\n      {\n        large = arr[k];\n        index = k;\n      }\n    }\n    arr[index] = arr[pass];\n    arr[pass] = large;\n  }\n}\n```\n\nAssume `arr` is the following array.\n\n| `\"Ann\"` | `\"Mike\"` | `\"Walt\"` | `\"Lisa\"` | `\"Shari\"` | `\"Jose\"` | `\"Mary\"` | `\"Bill\"` |\n|---|---|---|---|---|---|---|---|\n\nWhat is the intermediate value of `arr` after two iterations of the outer `for` loop in the call `sort(arr)`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "| `\"Ann\"` | `\"Mike\"` | `\"Walt\"` | `\"Lisa\"` | `\"Shari\"` | `\"Jose\"` | `\"Mary\"` | `\"Bill\"` |\n|---|---|---|---|---|---|---|---|",
+          "is_correct": false,
+          "explanation": "`\"Ann\", \"Mike\", \"Walt\", ...` (the original order): assumes nothing changes, but each pass swaps the largest remaining string into place."
+        },
+        {
+          "id": "b",
+          "text": "| `\"Ann\"` | `\"Mike\"` | `\"Lisa\"` | `\"Shari\"` | `\"Jose\"` | `\"Mary\"` | `\"Bill\"` | `\"Walt\"` |\n|---|---|---|---|---|---|---|---|",
+          "is_correct": false,
+          "explanation": "`\"Walt\"` moved to the end with the other strings shifted left: this is the result of one pass of bubble sort, not two passes of this method, which swaps two elements and does not shift the others."
+        },
+        {
+          "id": "c",
+          "text": "| `\"Ann\"` | `\"Bill\"` | `\"Jose\"` | `\"Lisa\"` | `\"Mary\"` | `\"Mike\"` | `\"Shari\"` | `\"Walt\"` |\n|---|---|---|---|---|---|---|---|",
+          "is_correct": false,
+          "explanation": "`\"Ann\", \"Bill\", \"Jose\", ...` (fully sorted): the array is completely sorted only after all seven passes, not after two."
+        },
+        {
+          "id": "d",
+          "text": "| `\"Ann\"` | `\"Mike\"` | `\"Bill\"` | `\"Lisa\"` | `\"Mary\"` | `\"Jose\"` | `\"Shari\"` | `\"Walt\"` |\n|---|---|---|---|---|---|---|---|",
+          "is_correct": true,
+          "explanation": "Correct. Each pass of this selection sort finds the alphabetically largest string among indices `0` through `pass` and swaps it with the element at `pass`. In the first pass (`pass` is `7`), the largest is `\"Walt\"` at index `2`, so `\"Walt\"` and `\"Bill\"` trade places. In the second pass (`pass` is `6`), the largest among indices `0` to `6` is `\"Shari\"` at index `4`, so `\"Shari\"` and `\"Mary\"` trade places, giving `\"Ann\", \"Mike\", \"Bill\", \"Lisa\", \"Mary\", \"Jose\", \"Shari\", \"Walt\"`."
+        }
+      ],
+      "explanation": "Each pass of this selection sort finds the alphabetically largest string among indices `0` through `pass` and swaps it with the element at `pass`. In the first pass (`pass` is `7`), the largest is `\"Walt\"` at index `2`, so `\"Walt\"` and `\"Bill\"` trade places. In the second pass (`pass` is `6`), the largest among indices `0` to `6` is `\"Shari\"` at index `4`, so `\"Shari\"` and `\"Mary\"` trade places, giving `\"Ann\", \"Mike\", \"Bill\", \"Lisa\", \"Mary\", \"Jose\", \"Shari\", \"Walt\"`.",
+      "topics": [
+        "T011",
+        "T013"
+      ],
+      "subtopics": [
+        "ST046",
+        "ST011"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q074",
+      "status": "active",
+      "text": "A teacher has a data set about the average daily number of hours that students spend on homework, extracurricular activities, and sleep for a given week. Each row in the data set corresponds to one student's data. A sample portion of the data set is shown.\n\n| Student | Homework | Extracurricular Activities | Sleep |\n|---|---|---|---|\n| Elena | 2.5 | 1.5 | 9.0 |\n| Marcus | 2.0 | 2.0 | 8.5 |\n| Jayla | 3.5 | 2.0 | 8.0 |\n| Theo | 4.0 | 1.0 | 8.0 |\n| Aisha | 2.5 | 3.5 | 7.5 |\n| Priya | 1.8 | 2.5 | 10.0 |\n\nWhich of the following questions can be answered using this data set?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Does the amount of sleep affect a student's homework grade?",
+          "is_correct": false,
+          "explanation": "The data set contains no grades."
+        },
+        {
+          "id": "b",
+          "text": "How many students spent a total of at least 20 hours per week on homework?",
+          "is_correct": true,
+          "explanation": "Correct. The data set gives each student's average daily homework hours for the week. Multiplying that average by 7 gives the student's total homework hours for the week, which can be compared with 20 and counted."
+        },
+        {
+          "id": "c",
+          "text": "What is the maximum number of hours spent on extracurricular activities in a single day?",
+          "is_correct": false,
+          "explanation": "Only weekly averages are recorded, and an average does not reveal the largest single-day value."
+        },
+        {
+          "id": "d",
+          "text": "Which day of the week are students assigned the most homework?",
+          "is_correct": false,
+          "explanation": "There is no day-by-day breakdown, only an average over the week."
+        }
+      ],
+      "explanation": "The data set gives each student's average daily homework hours for the week. Multiplying that average by 7 gives the student's total homework hours for the week, which can be compared with 20 and counted.",
+      "topics": [
+        "T014"
+      ],
+      "subtopics": [
+        "ST054"
+      ],
+      "skills": [
+        "SK023"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "arrays_q075",
+      "status": "active",
+      "text": "A data set contains information for all high schools in a school district. The following information from the previous year is available for each school in the district.\n\n- The name of the high school\n- The number of students who arrived at school late 1 or more times during the year\n- The number of students who arrived at school late 10 or more times during the year\n- The number of students who submitted medical excuse documentation for 1 or more of their late arrivals\n- The percentage of students who voted to delay the school start time by one hour\n\nThe following shows a portion of the data set for a district with 13 high schools.\n\n| High School Name | Number of Students Late at Least 1 Time | Number of Students Late at Least 10 Times | Number of Students Who Submitted Medical Excuse Documentation | Percent of Student Population Who Voted for Later Start Time |\n|---|---|---|---|---|\n| School A | 402 | 59 | 179 | 62% |\n| School B | 63 | 2 | 48 | 29% |\n| ⋮ | ⋮ | ⋮ | ⋮ | ⋮ |\n| School M | 163 | 37 | 44 | 84% |\n\nWhich of the following information **cannot** be determined using only the information in the data set?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The district-wide total number of students who were late to school at least 10 times",
+          "is_correct": false,
+          "explanation": "Add the \"late at least 10 times\" column over all 13 schools."
+        },
+        {
+          "id": "b",
+          "text": "The district-wide total number of students who were late to school between 1 and 9 times, inclusive",
+          "is_correct": false,
+          "explanation": "For each school, subtract the \"at least 10 times\" count from the \"at least 1 time\" count, then add the results."
+        },
+        {
+          "id": "c",
+          "text": "The district-wide percentage of students who voted for a later school start time",
+          "is_correct": true,
+          "explanation": "Correct. Each school's vote is given only as a percentage of that school's population, and the data set does not include how many students attend each school. Without the school sizes, the percentages cannot be weighted correctly, so neither the number of students voting for a later start nor the district-wide percentage can be calculated."
+        },
+        {
+          "id": "d",
+          "text": "The district-wide percentage of the students who were late at least 1 time who submitted medical excuse documentation for at least 1 late arrival",
+          "is_correct": false,
+          "explanation": "Divide the total of the documentation column by the total of the \"late at least 1 time\" column; both are counts, so no school sizes are needed."
+        }
+      ],
+      "explanation": "Each school's vote is given only as a percentage of that school's population, and the data set does not include how many students attend each school. Without the school sizes, the percentages cannot be weighted correctly, so neither the number of students voting for a later start nor the district-wide percentage can be calculated.",
+      "topics": [
+        "T014"
+      ],
+      "subtopics": [
+        "ST054"
+      ],
+      "skills": [
+        "SK023"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q076",
+      "status": "active",
+      "text": "In the following code segment, `arr1` and `minArray` are properly declared and initialized `int` arrays of equal length. During the traversal of the array, each element of `arr1` is compared to the corresponding element of `minArray` located at the same index. If any element of `arr1` is smaller than the corresponding element of `minArray`, the code segment is intended to replace that element of `minArray` with the corresponding element of `arr1`. After the code segment is executed, `arr1` should remain unchanged and `minArray` should hold the lesser of the two elements originally found at corresponding indices in `arr1` and `minArray`.\n\nThe code segment does not work as intended.\n\n```java\nfor (int c = 0; c < arr1.length; c++)  // Line 1\n{                                       // Line 2\n  if (arr1[c] < minArray[c])            // Line 3\n  {                                     // Line 4\n    arr1[c] = minArray[c];              // Line 5\n  }                                     // Line 6\n  else                                  // Line 7\n  {                                     // Line 8\n    minArray[c] = arr1[c];              // Line 9\n  }                                     // Line 10\n}                                       // Line 11\n```\n\nWhich of the following changes can be made so that the code segment works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Changing the relational operator in line 3 to `>`",
+          "is_correct": false,
+          "explanation": "Line 5 still assigns to `arr1`, now replacing larger `arr1` values with smaller `minArray` values, so `arr1` is changed."
+        },
+        {
+          "id": "b",
+          "text": "Removing lines 5 through 8",
+          "is_correct": true,
+          "explanation": "Correct. Line 5 changes `arr1`, which should never happen, and the `else` branch copies a larger or equal `arr1` value into `minArray`. Removing lines 5 through 8 leaves `if (arr1[c] < minArray[c]) { minArray[c] = arr1[c]; }`, which replaces an element of `minArray` only when the element of `arr1` is smaller and never modifies `arr1`."
+        },
+        {
+          "id": "c",
+          "text": "Swapping the positions of line 5 and line 9",
+          "is_correct": false,
+          "explanation": "The `if` branch becomes correct, but the `else` branch now assigns `minArray[c]` to `arr1[c]`, changing `arr1` whenever its element is not smaller."
+        },
+        {
+          "id": "d",
+          "text": "Removing lines 7 through 10",
+          "is_correct": false,
+          "explanation": "Only line 5 remains, which changes `arr1` and never updates `minArray`."
+        }
+      ],
+      "explanation": "Line 5 changes `arr1`, which should never happen, and the `else` branch copies a larger or equal `arr1` value into `minArray`. Removing lines 5 through 8 leaves `if (arr1[c] < minArray[c]) { minArray[c] = arr1[c]; }`, which replaces an element of `minArray` only when the element of `arr1` is smaller and never modifies `arr1`.",
+      "topics": [
+        "T006",
+        "T003"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034",
+        "ST012"
+      ],
+      "skills": [
+        "SK004",
+        "SK020"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q078",
+      "status": "active",
+      "text": "The array `fruits` is declared below.\n\n```java\nString [] fruits = {\"apples\", \"bananas\", \"cherries\", \"dates\"};\n```\n\nWhich of the following code segments will cause an `ArrayIndexOutOfBoundsException` ?\n\nI.\n\n```java\nfor (int i = 0; i <= fruits.length; i++)\n{\n  System.out.println(fruits[i]);\n}\n```\n\nII.\n\n```java\nfor (int i = 0; i <= fruits.length - 1; i++)\n{\n  System.out.println(fruits[i]);\n}\n```\n\nIII.\n\n```java\nfor (int i = 1; i <= fruits.length; i++)\n{\n  System.out.println(fruits[i - 1]);\n}\n```",
+      "answers": [
+        {
+          "id": "a",
+          "text": "I only",
+          "is_correct": true,
+          "explanation": "Correct. The valid indices of `fruits` are `0` to `3`. Code segment I runs `i` from `0` to `4` and accesses `fruits[4]`, which throws the exception. Code segment II runs `i` from `0` to `3`, and code segment III runs `i` from `1` to `4` but accesses `fruits[i - 1]`, that is, indices `0` to `3`, so neither causes an error."
+        },
+        {
+          "id": "b",
+          "text": "II only",
+          "is_correct": false,
+          "explanation": "`i <= fruits.length - 1` stops at index `3`, the last valid index, so II is safe; and I, which does go out of bounds, is left out."
+        },
+        {
+          "id": "c",
+          "text": "I and III only",
+          "is_correct": false,
+          "explanation": "III's loop variable reaches `4`, but the index used is `i - 1`, which never goes past `3`."
+        },
+        {
+          "id": "d",
+          "text": "II and III only",
+          "is_correct": false,
+          "explanation": "Both are safe, and the one segment that does go out of bounds, I, is left out."
+        }
+      ],
+      "explanation": "The valid indices of `fruits` are `0` to `3`. Code segment I runs `i` from `0` to `4` and accesses `fruits[4]`, which throws the exception. Code segment II runs `i` from `0` to `3`, and code segment III runs `i` from `1` to `4` but accesses `fruits[i - 1]`, that is, indices `0` to `3`, so neither causes an error.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032",
+        "ST033"
+      ],
+      "skills": [
+        "SK010"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q079",
+      "status": "active",
+      "text": "The following code segment is intended to set the array `numbers` to `{10, 20, 30, 40}`.\n\n```java\nint[] numbers = new int[4];\n/* missing code */\n```\n\nWhich of the following can replace `/* missing code */` so that the code segment will work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nint x = 10;\nfor (int value : numbers)\n{\n  value = x;\n  x += 10;\n}\n```",
+          "is_correct": false,
+          "explanation": "`value` is a copy of each element, so assigning to it does not change the array, which stays `{0, 0, 0, 0}`."
+        },
+        {
+          "id": "b",
+          "text": "```java\nfor (int j = 0; j < numbers.length; j++)\n{\n  numbers[j] = j * 10;\n}\n```",
+          "is_correct": false,
+          "explanation": "An off-by-one error caused by starting indices at `0`; it produces `{0, 10, 20, 30}`."
+        },
+        {
+          "id": "c",
+          "text": "```java\nnumbers[0] = 10;\nfor (int j = 0; j < numbers.length; j++)\n{\n  numbers[j] = numbers[j] + 10;\n}\n```",
+          "is_correct": false,
+          "explanation": "Adds `10` to the current value rather than to the previous element, producing `{20, 10, 10, 10}`."
+        },
+        {
+          "id": "d",
+          "text": "```java\nnumbers[3] = 40;\nfor (int j = numbers.length - 1; j > 0; j--)\n{\n  numbers[j - 1] = numbers[j] - 10;\n}\n```",
+          "is_correct": true,
+          "explanation": "Correct. This code sets the last element to `40`, then moves from right to left, setting each element to `10` less than the element to its right: `numbers[2]` becomes `30`, `numbers[1]` becomes `20`, and `numbers[0]` becomes `10`. The result is `{10, 20, 30, 40}`."
+        }
+      ],
+      "explanation": "This code sets the last element to `40`, then moves from right to left, setting each element to `10` less than the element to its right: `numbers[2]` becomes `30`, `numbers[1]` becomes `20`, and `numbers[0]` becomes `10`. The result is `{10, 20, 30, 40}`.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST030",
+        "ST031",
+        "ST034"
+      ],
+      "skills": [
+        "SK018",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arrays_q080",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nboolean[] oldVals = {true, false, true, true};\nboolean[] newVals = new boolean[4];\nfor (int j = oldVals.length - 1; j >= 0; j--)\n{\n  newVals[j] = !(oldVals[j]);\n}\n```\n\nWhat, if anything, will be the contents of `newVals` after executing the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{true, false, true, true}`",
+          "is_correct": false,
+          "explanation": "A copy of `oldVals` that ignores the `!` operator."
+        },
+        {
+          "id": "b",
+          "text": "`{false, true, false, false}`",
+          "is_correct": true,
+          "explanation": "Correct. The loop visits the indices from right to left, but each element of `newVals` is assigned the negation (`!`) of the element of `oldVals` at the same index. The order of the visits does not matter, so `newVals` is `{false, true, false, false}`."
+        },
+        {
+          "id": "c",
+          "text": "`{false, false, true, false}`",
+          "is_correct": false,
+          "explanation": "The negated values in reverse order; traversing from right to left does not reverse the array, because `newVals[j]` and `oldVals[j]` use the same index."
+        },
+        {
+          "id": "d",
+          "text": "The array `newVals` will not contain any values because the code segment does not compile.",
+          "is_correct": false,
+          "explanation": "`boolean` arrays and the `!` operator applied to a `boolean` element are valid Java."
+        }
+      ],
+      "explanation": "The loop visits the indices from right to left, but each element of `newVals` is assigned the negation (`!`) of the element of `oldVals` at the same index. The order of the visits does not matter, so `newVals` is `{false, true, false, false}`.",
+      "topics": [
+        "T006",
+        "T003"
+      ],
+      "subtopics": [
+        "ST030",
+        "ST031",
+        "ST013"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q081",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static void methodX(int[] values)\n{\n  for (int j = 0; j < values.length - 1; j++)\n  {\n    for (int k = j + 1; k < values.length; k++)\n    {\n      if (values[k] < values[j])\n      {\n        values[j] = values[k];\n      }\n    }\n  }\n}\n```\n\nThe following code segment appears in another method of the same class.\n\n```java\nint[] numbers = {45, 1, 56, 10};\nmethodX(numbers);\n```\n\nWhich of the following represents the contents of the array `numbers` after the code segment is executed?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{1, 1, 10, 10}`",
+          "is_correct": true,
+          "explanation": "Correct. When `j` is `0` and `k` is `1`, `1 < 45`, so `values[0]` becomes `1`, giving `{1, 1, 56, 10}`. No other comparisons with `j` equal to `0` or `1` make a change. When `j` is `2` and `k` is `3`, `10 < 56`, so `values[2]` becomes `10`, giving `{1, 1, 10, 10}`."
+        },
+        {
+          "id": "b",
+          "text": "`{1, 10, 45, 56}`",
+          "is_correct": false,
+          "explanation": "Assumes the method sorts the array, but it copies the smaller value over `values[j]` instead of swapping, so values are duplicated and lost."
+        },
+        {
+          "id": "c",
+          "text": "`{45, 1, 56, 10}`",
+          "is_correct": false,
+          "explanation": "Assumes the array is unchanged, but the method changes the caller's array through the reference it receives."
+        },
+        {
+          "id": "d",
+          "text": "`{45, 45, 56, 45}`",
+          "is_correct": false,
+          "explanation": "Copies in the wrong direction (assigning `values[j]` to `values[k]`); the method replaces `values[j]`, so the first element becomes `1`."
+        }
+      ],
+      "explanation": "When `j` is `0` and `k` is `1`, `1 < 45`, so `values[0]` becomes `1`, giving `{1, 1, 56, 10}`. No other comparisons with `j` equal to `0` or `1` make a change. When `j` is `2` and `k` is `3`, `10 < 56`, so `values[2]` becomes `10`, giving `{1, 1, 10, 10}`.",
+      "topics": [
+        "T006",
+        "T004"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST019",
+        "ST034"
+      ],
+      "skills": [
+        "SK001",
+        "SK011"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q082",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[] nums = {5, 10, 15, 20, 25, 30};\nfor (int k = 0; k < nums.length - 1; k += 2)\n{\n  nums[k] = nums[k + 1];\n}\n```\n\nWhat are the contents of `nums` after executing the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{5, 5, 15, 15, 25, 25}`",
+          "is_correct": false,
+          "explanation": "Copies in the wrong direction, as if the statement were `nums[k + 1] = nums[k]`."
+        },
+        {
+          "id": "b",
+          "text": "`{10, 10, 20, 20, 25, 30}`",
+          "is_correct": false,
+          "explanation": "Stops one iteration early; `4 < 5` is true, so the loop also runs when `k` is `4`."
+        },
+        {
+          "id": "c",
+          "text": "`{10, 10, 20, 20, 30, 30}`",
+          "is_correct": true,
+          "explanation": "Correct. `k` takes the values `0`, `2`, and `4`, and each element at those indices is assigned the value of the element just after it: `nums[0]` becomes `10`, `nums[2]` becomes `20`, and `nums[4]` becomes `30`. The elements at indices `1`, `3`, and `5` are unchanged, giving `{10, 10, 20, 20, 30, 30}`."
+        },
+        {
+          "id": "d",
+          "text": "`{10, 15, 20, 25, 30, 30}`",
+          "is_correct": false,
+          "explanation": "Shifts every element left, as if `k` increased by `1` instead of `2`."
+        }
+      ],
+      "explanation": "`k` takes the values `0`, `2`, and `4`, and each element at those indices is assigned the value of the element just after it: `nums[0]` becomes `10`, `nums[2]` becomes `20`, and `nums[4]` becomes `30`. The elements at indices `1`, `3`, and `5` are unchanged, giving `{10, 10, 20, 20, 30, 30}`.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032"
+      ],
+      "skills": [
+        "SK001",
+        "SK018"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q083",
+      "status": "active",
+      "text": "The `twoInARow` method below is intended to return `true` if any two consecutive elements of the parameter `arr` are equal in value and return `false` otherwise.\n\n```java\npublic boolean twoInARow(int[] arr)\n{\n  /* missing loop header */\n  {\n    if (arr[k] == arr[k + 1])\n    {\n      return true;\n    }\n  }\n  return false;\n}\n```\n\nWhich of the following can be used to replace `/* missing loop header */` so that the method will work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`for (int k = 0; k < arr.length - 1; k++)`",
+          "is_correct": true,
+          "explanation": "Correct. The loop compares each element with the one after it, `arr[k + 1]`. Running `k` from `0` through the next-to-last index, `arr.length - 2`, compares every consecutive pair, and `k + 1` never goes past the last valid index."
+        },
+        {
+          "id": "b",
+          "text": "`for (int k = 0; k < arr.length; k++)`",
+          "is_correct": false,
+          "explanation": "When no earlier pair matches, `k` reaches `arr.length - 1`, and `arr[k + 1]` throws an `ArrayIndexOutOfBoundsException`."
+        },
+        {
+          "id": "c",
+          "text": "`for (int k = 1; k < arr.length; k++)`",
+          "is_correct": false,
+          "explanation": "Skips the pair at indices `0` and `1`, and when `k` reaches `arr.length - 1`, `arr[k + 1]` is out of bounds."
+        },
+        {
+          "id": "d",
+          "text": "`for (int k = arr.length - 1; k >= 0; k--)`",
+          "is_correct": false,
+          "explanation": "`k` starting at `arr.length - 1` and counting down: the first comparison accesses `arr[arr.length]`, which throws an `ArrayIndexOutOfBoundsException`."
+        }
+      ],
+      "explanation": "The loop compares each element with the one after it, `arr[k + 1]`. Running `k` from `0` through the next-to-last index, `arr.length - 2`, compares every consecutive pair, and `k + 1` never goes past the last valid index.",
+      "topics": [
+        "T006"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST034"
+      ],
+      "skills": [
+        "SK010"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arrays_q084",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[] arr = {3, 1, 0, 4, 2};\nfor(int j = 0; j < arr.length; j++)\n{\n  System.out.print(arr[j] + j + \" \");\n}\n```\n\nWhat, if anything, is printed as a result of executing the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`3 1 0 4 2`",
+          "is_correct": false,
+          "explanation": "Prints only the elements, ignoring that `j` is added to each one."
+        },
+        {
+          "id": "b",
+          "text": "`3 2 2 7 6`",
+          "is_correct": true,
+          "explanation": "Correct. The expression `arr[j] + j + \" \"` is evaluated from left to right, so `arr[j] + j` is added as integers before the space is joined. For `j` from `0` to `4`, it prints `3 + 0`, `1 + 1`, `0 + 2`, `4 + 3`, and `2 + 4`, that is, `3 2 2 7 6`."
+        },
+        {
+          "id": "c",
+          "text": "`6 2 0 8 4`",
+          "is_correct": false,
+          "explanation": "Doubles each element (`arr[j] + arr[j]`), confusing the index `j` with the element `arr[j]`."
+        },
+        {
+          "id": "d",
+          "text": "Nothing is printed, because an `ArrayIndexOutOfBoundsException` is thrown.",
+          "is_correct": false,
+          "explanation": "`j` stops at `4`, the last valid index, so no out-of-bounds access occurs."
+        }
+      ],
+      "explanation": "The expression `arr[j] + j + \" \"` is evaluated from left to right, so `arr[j] + j` is added as integers before the space is joined. For `j` from `0` to `4`, it prints `3 + 0`, `1 + 1`, `0 + 2`, `4 + 3`, and `2 + 4`, that is, `3 2 2 7 6`.",
+      "topics": [
+        "T006",
+        "T013"
+      ],
+      "subtopics": [
+        "ST031",
+        "ST032",
+        "ST010"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    }
+  ]
+}
