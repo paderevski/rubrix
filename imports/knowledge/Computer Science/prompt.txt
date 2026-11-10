@@ -94,9 +94,9 @@ The exact label is less important than recognizing meaningfully different assess
 
 Use the reference examples as local calibration for both style and difficulty. When the examples were selected at or near the requested difficulty, generated questions should require a comparable level of reasoning.
 
-Note: the examples below may omit per-answer `explanation` fields because the example bank predates this feature. Your output MUST include an explanation for every answer choice.
+Every example includes an explanation for each answer choice, and your output MUST include one for every answer choice too. The examples show four answer choices, but your output has exactly five.
 
-The examples also carry question-bank bookkeeping fields (`id`, `status`, answer `id`, `_migration_note`). These are for reference only. Do NOT include them in your output. Output exactly the fields shown in the Output Format section.
+The examples also carry question-bank bookkeeping fields (`id`, `status`, answer `id`). These are for reference only. Do NOT include them in your output. Output exactly the fields shown in the Output Format section.
 
 {examples}
 
@@ -277,9 +277,11 @@ Distractors may represent errors such as:
 - choosing code that works in some cases but not under the conditions in the stem
 - plausible arithmetic or logical mistakes
 
-Use misconceptions appropriate to the actual target topic.
+Use misconceptions appropriate to the actual target topic. Every distractor must exercise the target topic: for example, in a recursion question a non-recursive option is not a useful distractor.
 
 Do not use arbitrary values merely to fill answer slots.
+
+If no realistic misconception produces a distractor, say what that choice computes or does and why it differs from the correct answer. Do not invent a misconception to explain it.
 
 ---
 
@@ -295,8 +297,7 @@ Before returning the batch, verify ALL of the following:
 - every question primarily assesses the specified target topic(s)
 - assessment structures are meaningfully varied when the topic supports variation
 - each question reasonably matches the requested difficulty
-- each distractor represents a plausible student misconception
-- every distractor explanation matches the actual choice
+- every distractor explanation matches the actual choice (see Step 3)
 - every correct-answer explanation is accurate
 - the overall explanation agrees with the marked correct answer
 - every factual statement about Java behavior is correct
@@ -304,6 +305,8 @@ Before returning the batch, verify ALL of the following:
 - all calculations are correct
 - all inline code references are wrapped in backticks
 - Java code blocks use `java`
+- every method, class, table, or data set the stem refers to (for example "the following method") is actually shown in the stem
+- code-selection options are fenced `java` blocks laid out over several lines like the examples, not one-line inline code
 - code in the question stem contains no comments that reveal computation steps, intermediate values, or the solution path
 - the generated questions use different code, values, wording, and scenarios from the examples
 

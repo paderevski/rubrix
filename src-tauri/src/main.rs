@@ -297,6 +297,35 @@ fn subtopics_for_request(
     result
 }
 
+/// Keep only the questions already in the set that belong to the requested topics.
+/// Requested ids may be topic or subtopic ids; both resolve to their parent topic and its
+/// subtopics. Questions on other topics can't repeat the new question, so listing them in the
+/// prompt only distorts the variety guidance. If no requested id resolves, nothing is filtered.
+fn existing_for_request(
+    existing: Vec<Question>,
+    topics: &[TopicInfo],
+    requested: &[String],
+) -> Vec<Question> {
+    let mut allowed: HashSet<&str> = HashSet::new();
+    for topic in topics {
+        let selected = requested.contains(&topic.id)
+            || topic.children.iter().any(|c| requested.contains(&c.id));
+        if selected {
+            allowed.insert(topic.id.as_str());
+            for child in &topic.children {
+                allowed.insert(child.id.as_str());
+            }
+        }
+    }
+    if allowed.is_empty() {
+        return existing;
+    }
+    existing
+        .into_iter()
+        .filter(|q| q.topics.iter().chain(q.subtopics.iter()).any(|id| allowed.contains(id.as_str())))
+        .collect()
+}
+
 /// Pick a subtopic at random from those least used by questions already in the set.
 fn pick_subtopic(
     subtopics: &[prompts::SubtopicRef],
@@ -577,7 +606,7 @@ pub struct QuestionBankEntry {
     pub id: String,
     #[serde(default = "default_question_bank_status")]
     pub status: String,
-    #[serde(default, rename = "_migration_note")]
+    #[serde(default, rename = "_migration_note", skip_serializing_if = "Option::is_none")]
     pub migration_note: Option<String>,
     pub text: String,
     pub answers: Vec<QuestionBankAnswer>,
@@ -893,7 +922,8 @@ async fn generate_questions(
 
     // Questions already in the set (generation appends), so the prompt can steer away from them
     let existing_set: Vec<Question> = if request.append {
-        state.questions.lock().unwrap().clone()
+        let all = state.questions.lock().unwrap().clone();
+        existing_for_request(all, &state.knowledge.get_topics(&request.subject), &request.topics)
     } else {
         Vec::new()
     };
@@ -2275,6 +2305,52 @@ mod subtopic_selection_tests {
         for _ in 0..50 {
             assert_eq!(pick_subtopic(&available, &existing).unwrap().id, "ST007");
         }
+    }
+
+    fn question_with_topics(topics: &[&str], subs: &[&str]) -> Question {
+        let mut q = question_with_subtopics(subs);
+        q.topics = topics.iter().map(|t| t.to_string()).collect();
+        q
+    }
+
+    fn topic(id: &str, children: &[&str]) -> TopicInfo {
+        TopicInfo {
+            id: id.to_string(),
+            name: id.to_string(),
+            description: String::new(),
+            example_count: 0,
+            children: children
+                .iter()
+                .map(|c| SubtopicInfo {
+                    id: c.to_string(),
+                    name: c.to_string(),
+                    description: String::new(),
+                    example_count: 0,
+                    parent_topic: Some(id.to_string()),
+                })
+                .collect(),
+        }
+    }
+
+    #[test]
+    fn existing_set_only_lists_questions_on_requested_topics() {
+        let topics = vec![topic("T008", &["ST038", "ST083"]), topic("T009", &["ST041", "ST042"])];
+        let existing = vec![
+            question_with_topics(&["T008"], &["ST038"]),
+            question_with_topics(&["T009"], &["ST041"]),
+            question_with_topics(&["T009", "T010"], &[]),
+        ];
+        // Parent topic request keeps only that topic's questions.
+        let kept = existing_for_request(existing.clone(), &topics, &["T009".to_string()]);
+        assert_eq!(kept.len(), 2);
+        assert!(kept.iter().all(|q| q.topics.contains(&"T009".to_string())));
+        // A subtopic request resolves to its parent topic.
+        let kept = existing_for_request(existing.clone(), &topics, &["ST038".to_string()]);
+        assert_eq!(kept.len(), 1);
+        assert_eq!(kept[0].topics, vec!["T008".to_string()]);
+        // Unresolvable requests leave the set untouched.
+        let kept = existing_for_request(existing, &topics, &["T999".to_string()]);
+        assert_eq!(kept.len(), 3);
     }
 
     #[test]
