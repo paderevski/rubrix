@@ -11,6 +11,14 @@ use tokio::time::Duration;
 
 const BUILT_GATEWAY_URL: Option<&str> = option_env!("BEDROCK_GATEWAY_URL");
 
+/// Generation streams for a long time (the model reasons before answering), so there is no
+/// fixed deadline on the whole request. Instead: a short connect timeout, a limit on waiting
+/// for the response to start, a limit on silence between chunks, and a generous overall cap.
+const GATEWAY_CONNECT_TIMEOUT: Duration = Duration::from_secs(15);
+const GATEWAY_RESPONSE_START_TIMEOUT: Duration = Duration::from_secs(120);
+const GATEWAY_STREAM_IDLE_TIMEOUT: Duration = Duration::from_secs(60);
+const GATEWAY_STREAM_MAX_TOTAL: Duration = Duration::from_secs(900);
+
 /// Log prompt and response to a file (appends each time)
 fn log_llm_interaction(prompt: &str, response: &str) {
     // Write to parent directory (rubrix/) to avoid triggering Tauri's file watcher
@@ -194,7 +202,7 @@ pub async fn generate(
         .ok_or_else(|| "Authentication required. No gateway credentials found.".to_string())?;
 
     let client = Client::builder()
-        .timeout(Duration::from_secs(90))
+        .connect_timeout(GATEWAY_CONNECT_TIMEOUT)
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
 
@@ -210,12 +218,18 @@ pub async fn generate(
             .map(|value| value.to_string()),
     };
 
-    let response = client
-        .post(&gateway_url)
-        .json(&request)
-        .send()
-        .await
-        .map_err(|e| format!("Failed to connect to gateway: {}", e))?;
+    let response = tokio::time::timeout(
+        GATEWAY_RESPONSE_START_TIMEOUT,
+        client.post(&gateway_url).json(&request).send(),
+    )
+    .await
+    .map_err(|_| {
+        format!(
+            "Gateway did not respond within {} seconds",
+            GATEWAY_RESPONSE_START_TIMEOUT.as_secs()
+        )
+    })?
+    .map_err(|e| format!("Failed to connect to gateway: {}", e))?;
 
     let status = response.status();
     let content_type = response
@@ -282,7 +296,31 @@ pub async fn generate(
     let mut buffer = String::new();
     let mut accumulated = String::new();
 
-    while let Some(chunk) = stream.next().await {
+    let stream_started = tokio::time::Instant::now();
+    loop {
+        if stream_started.elapsed() > GATEWAY_STREAM_MAX_TOTAL {
+            let msg = format!(
+                "Gateway stream exceeded {} seconds",
+                GATEWAY_STREAM_MAX_TOTAL.as_secs()
+            );
+            log_gateway_error("gateway_stream_max_total", Some(prompt), &msg);
+            return Err(msg);
+        }
+        let next = match tokio::time::timeout(GATEWAY_STREAM_IDLE_TIMEOUT, stream.next()).await {
+            Ok(next) => next,
+            Err(_) => {
+                let msg = format!(
+                    "Gateway stream stalled: no data for {} seconds",
+                    GATEWAY_STREAM_IDLE_TIMEOUT.as_secs()
+                );
+                log_gateway_error("gateway_stream_idle_timeout", Some(prompt), &msg);
+                return Err(msg);
+            }
+        };
+        let chunk = match next {
+            Some(chunk) => chunk,
+            None => break,
+        };
         let chunk = match chunk {
             Ok(value) => value,
             Err(e) => {

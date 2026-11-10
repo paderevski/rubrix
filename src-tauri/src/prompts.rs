@@ -1093,7 +1093,7 @@ mod tests {
 
         assert_eq!(
             prompt,
-            r#"Target difficulty: D2 (Medium) - Requires analysis or multi-step reasoning, 3-5 steps\n{\"difficulty\": \"D2\", \"topics\": [\"ST021\"]}"#
+            r#"Target difficulty: D2 (Medium) - Requires analysis or multi-step reasoning, 3-5 steps\n{\"difficulty\": \"D2\", \"topics\": ["ST021"]}"#
         );
     }
 

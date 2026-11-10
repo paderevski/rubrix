@@ -1133,7 +1133,7 @@ mod tests {
 
         let without_explanations =
             export_md_with_options("Quiz", &questions, ExportMdOptions::default()).unwrap();
-        assert!(!without_explanations.contains("## Explanations"));
+        assert!(!without_explanations.contains("## Solutions and Rubrics"));
 
         let with_explanations = export_md_with_options(
             "Quiz",
@@ -1147,7 +1147,7 @@ mod tests {
         .unwrap();
 
         let answers_idx = with_explanations.find("## Answers").unwrap();
-        let explanations_idx = with_explanations.find("## Explanations").unwrap();
+        let explanations_idx = with_explanations.find("## Solutions and Rubrics").unwrap();
         assert!(explanations_idx > answers_idx);
         assert!(with_explanations.contains("### Question 1"));
         assert!(with_explanations.contains("Add the two integers directly."));
