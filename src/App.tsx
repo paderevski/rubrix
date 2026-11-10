@@ -12,6 +12,7 @@ import SubmitBugModal from "./components/SubmitBugModal";
 import ExportOptionsModal from "./components/ExportOptionsModal";
 import PreferencesModal from "./components/PreferencesModal";
 import OpenRecentModal from "./components/OpenRecentModal";
+import StartScreen from "./components/StartScreen";
 import SaveChangesModal from "./components/SaveChangesModal";
 import {
   Question,
@@ -57,9 +58,10 @@ type PendingDocumentAction =
   | { type: "open" }
   | { type: "open-recent"; filePath: string };
 
-const catieFileFilter = { name: "Catie Document", extensions: ["kt"] };
+const catieFileFilter = { name: "Catie Document", extensions: ["catie"] };
 const llmQuestionFileFilter = { name: "LLM Question JSON", extensions: ["json"] };
-const legacySessionFileFilter = { name: "Legacy Session", extensions: ["json", "md"] };
+// Older Catie documents used the .kt extension (also Kotlin's), so they are still readable.
+const legacySessionFileFilter = { name: "Legacy Session", extensions: ["kt", "json", "md"] };
 const remainingTokensStorageKey = "remainingTokens";
 const exportPresetStorageKey = "exportPresets";
 const preferredSubjectStorageKey = "preferredSubject";
@@ -514,7 +516,7 @@ function App() {
   const documentName = currentDocumentPath
     ? currentDocumentPath.split(/[/\\]/).pop() || currentDocumentPath
     : documentMode === "new"
-    ? "Untitled.kt"
+    ? "Untitled.catie"
     : null;
   const defaultWordExportTitle = useMemo(() => {
     if (activeTab === "bank") {
@@ -787,6 +789,26 @@ function App() {
       }
     });
 
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, []);
+
+  // Window close button: close the open document (prompting to save) and return to the start
+  // screen; with no document open, quit. The latest handler is kept in a ref so the listener
+  // registers once.
+  const windowCloseHandlerRef = useRef<() => void>(() => {});
+  windowCloseHandlerRef.current = () => {
+    if (documentMode === "blank") {
+      void invoke("quit_app");
+      return;
+    }
+    void requestDocumentAction({ type: "close" });
+  };
+
+  useEffect(() => {
+    const unlisten = listen("close-requested", () => windowCloseHandlerRef.current());
+    void unlisten.then(() => invoke("register_close_handler"));
     return () => {
       unlisten.then((f) => f());
     };
@@ -1530,7 +1552,7 @@ function App() {
     setCurrentDocumentPath(null);
     setDocumentMode("new");
     setSavedQuestionsSnapshot(JSON.stringify([]));
-    setStatus("New document • Unsaved (Untitled.json)");
+    setStatus("New document • Unsaved (Untitled.catie)");
     try {
       await invoke("set_questions", { newQuestions: [] as Question[] });
     } catch (err) {
@@ -1581,7 +1603,7 @@ function App() {
 
   const handleSaveDocumentToPath = async (
     requestedPath?: string | null,
-    defaultPath = "untitled.json"
+    defaultPath = "untitled.catie"
   ): Promise<boolean> => {
     if (questions.length === 0) {
       setStatus("No questions to save");
@@ -1593,14 +1615,15 @@ function App() {
     if (!filePath) {
       filePath = await save({
         defaultPath,
-        filters: [llmQuestionFileFilter, catieFileFilter],
+        filters: [catieFileFilter, llmQuestionFileFilter],
       });
     }
 
     if (!filePath) return false;
 
     try {
-      const isLegacySession = filePath.toLowerCase().endsWith(".kt");
+      const lowerPath = filePath.toLowerCase();
+      const isCatieDocument = lowerPath.endsWith(".catie") || lowerPath.endsWith(".kt");
       const llmQuestions = questions.map(({ id, rubric, subject, ...question }) => ({
         ...question,
         explanation: question.explanation ?? "",
@@ -1612,7 +1635,7 @@ function App() {
           explanation: answer.explanation ?? "",
         })),
       }));
-      const payload = isLegacySession
+      const payload = isCatieDocument
         ? {
             version: 1,
             savedAt: new Date().toISOString(),
@@ -1638,14 +1661,14 @@ function App() {
 
   const handleSaveDocumentAs = async (): Promise<boolean> => {
     const currentName = currentDocumentPath?.split(/[/\\]/).pop();
-    const defaultPath = currentName && currentName.trim().length > 0 ? currentName : "untitled.json";
+    const defaultPath = currentName && currentName.trim().length > 0 ? currentName : "untitled.catie";
     return handleSaveDocumentToPath(null, defaultPath);
   };
 
   const handleOpenDocument = async () => {
     const selection = await open({
       multiple: false,
-      filters: [llmQuestionFileFilter, catieFileFilter, legacySessionFileFilter],
+      filters: [catieFileFilter, llmQuestionFileFilter, legacySessionFileFilter],
     });
 
     if (!selection) return;
@@ -1739,6 +1762,8 @@ function App() {
   }, [topics]);
   const selectedSubjectName = subjects.find((s) => s.id === selectedSubject)?.name ?? selectedSubject;
   const appHeading = `${selectedSubjectName || "Catie"} Question Generator`;
+  // With no document open, the generator is replaced by a launch view (New / Open / Recent).
+  const showStartScreen = documentMode === "blank" && activeTab === "generate";
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -1758,7 +1783,7 @@ function App() {
       />
       <SaveChangesModal
         open={saveChangesOpen}
-        documentName={documentName ?? "Untitled.kt"}
+        documentName={documentName ?? "Untitled.catie"}
         onCancel={() => {
           setSaveChangesOpen(false);
           setPendingDocumentAction(null);
@@ -1793,7 +1818,18 @@ function App() {
         </span>
       </header>
 
-      <div className="flex flex-1 min-h-0">
+      {showStartScreen && (
+        <StartScreen
+          recentPaths={recentDocuments}
+          status={status}
+          onNew={() => void requestDocumentAction({ type: "new" })}
+          onOpen={() => void requestDocumentAction({ type: "open" })}
+          onOpenRecent={(filePath) => void requestDocumentAction({ type: "open-recent", filePath })}
+          onClearRecent={handleClearRecent}
+        />
+      )}
+
+      <div className={showStartScreen ? "hidden" : "flex flex-1 min-h-0"}>
         {/* Sidebar */}
         <div
           className={documentMode === "blank" ? "pointer-events-none opacity-50" : ""}

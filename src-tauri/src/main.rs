@@ -15,7 +15,7 @@ use std::env;
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use tauri::api::dialog::MessageDialogBuilder;
 use tauri::{AppHandle, CustomMenuItem, Manager, Menu, MenuItem, State, Submenu, WindowEvent};
@@ -1916,6 +1916,22 @@ fn save_question_bank_file(
     Ok(())
 }
 
+/// Set once the frontend is listening for `close-requested`. Until then (or if the UI fails to
+/// load) the window's close button works normally, so it can never become unclosable.
+static CLOSE_HANDLER_READY: AtomicBool = AtomicBool::new(false);
+
+/// The frontend calls this after registering its `close-requested` listener.
+#[tauri::command]
+fn register_close_handler() {
+    CLOSE_HANDLER_READY.store(true, Ordering::SeqCst);
+}
+
+/// Quit the app (the frontend calls this when the close button is used with no document open).
+#[tauri::command]
+fn quit_app(app_handle: AppHandle) {
+    app_handle.exit(0);
+}
+
 #[tauri::command]
 fn read_document_file(path: String) -> Result<String, String> {
     fs::read_to_string(&path).map_err(|e| format!("Failed to read {}: {}", path, e))
@@ -2168,7 +2184,16 @@ fn main() {
             }
         })
         .on_window_event(|event| match event.event() {
-            WindowEvent::Resized(_) | WindowEvent::Moved(_) | WindowEvent::CloseRequested { .. } => {
+            WindowEvent::CloseRequested { api, .. } => {
+                save_window_state(event.window());
+                // Let the frontend decide: close the open document (prompting to save) and
+                // return to the start screen, or quit if no document is open.
+                if CLOSE_HANDLER_READY.load(Ordering::SeqCst) {
+                    api.prevent_close();
+                    let _ = event.window().emit("close-requested", ());
+                }
+            }
+            WindowEvent::Resized(_) | WindowEvent::Moved(_) => {
                 save_window_state(event.window());
             }
             _ => {}
@@ -2201,6 +2226,8 @@ fn main() {
             save_question_bank_file,
             read_document_file,
             write_document_file,
+            register_close_handler,
+            quit_app,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
