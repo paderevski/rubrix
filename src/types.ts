@@ -3,40 +3,39 @@ export interface Question {
   text: string; // Question text in markdown format (may include code blocks)
   answers: Answer[];
   explanation?: string; // Correct answer explanation
-  distractors?: string; // Why wrong answers are tempting
+  rubric?: string; // Optional rubric (primarily used for FRQ)
   subject?: string;
   topics?: string[];
   difficulty?: string;
+  cognitive_level?: string;
+  subtopics?: string[];
 }
 
-// Question bank (rich) entries
+export interface QuestionBankDocument {
+  schema_version: string;
+  source: string;
+  questions: QuestionBankEntry[];
+}
+
+// Flat V2 question bank entries
 export interface QuestionBankEntry {
   id: string;
+  status: string;
+  _migration_note?: string;
   text: string;
-  options: QuestionBankOption[];
+  answers: QuestionBankAnswer[];
   explanation: string;
   difficulty: string;
   cognitive_level: string;
   topics: string[];
   subtopics?: string[];
-  skills: string[];
-  distractors: DistractorInfo;
 }
 
-export interface QuestionBankOption {
+export interface QuestionBankAnswer {
   id: string;
   text: string;
   is_correct: boolean;
-}
-
-export interface DistractorInfo {
-  common_mistakes: CommonMistake[];
-  common_errors: string[];
-}
-
-export interface CommonMistake {
-  option_id: string;
-  misconception: string;
+  explanation: string;
 }
 
 export interface Answer {
@@ -74,6 +73,8 @@ export interface GenerationRequest {
   count: number;
   notes: string | null;
   append: boolean;
+  question_type?: string;
+  frq_question_type?: string;
 }
 
 export interface WordExportOptions {
@@ -82,6 +83,7 @@ export interface WordExportOptions {
   version_count: number;
   shuffle_choices: boolean;
   shuffle_questions: boolean;
+  template_docx_path?: string;
 }
 
 export type BugSeverity = "low" | "medium" | "high" | "critical";

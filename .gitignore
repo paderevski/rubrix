@@ -30,3 +30,7 @@ src-tauri/.env
 # Tauri
 src-tauri/WixTools/
 llm_log.txt
+
+# Files created by Catie
+exports/
+llm_log_09252026.txt

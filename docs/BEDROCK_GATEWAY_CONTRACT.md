@@ -17,7 +17,8 @@ must match the existing `llm-stream` event format.
 {
   "user": "string",
   "password": "string",
-  "prompt": "string"
+  "prompt": "string",
+  "question_type": "multiple_choice | frq"
 }
 ```
 
@@ -25,8 +26,24 @@ must match the existing `llm-stream` event format.
 - `user`: Username.
 - `password`: The user's password, sent over HTTPS. The gateway checks it against the user's scrypt record in SSM.
 - `prompt`: Fully rendered prompt text sent to the model.
-- The client currently sends only these three fields. The gateway should ignore unknown keys, so optional metadata can be added later.
+- `question_type`: Optional. `multiple_choice` or `frq`; FRQ requests run at a higher reasoning effort (`ANTHROPIC_EFFORT_FRQ`). When omitted, the standard settings are used.
+- The gateway ignores unknown keys, so optional metadata can be added later.
 - `user` is normalized by the gateway (characters outside `A-Za-z0-9._-` become `_`) before the password lookup, and the same normalization is used for usage tracking.
+
+## Model Routing
+
+The gateway can route by `question_type`:
+
+- `frq` requests: FRQ model
+- all other values: default model
+
+Environment variables:
+
+- `BEDROCK_MODEL_ID` (default model, fallback `openai.gpt-oss-120b-1:0`)
+- `BEDROCK_MODEL_ID_FRQ` (preferred FRQ model override)
+- `BEDROCK_FRQ_MODEL_ID` (legacy FRQ model override alias)
+
+Current FRQ fallback model ID: `deepseek.v3.2`.
 
 ## Response (SSE)
 - Content-Type: text/event-stream

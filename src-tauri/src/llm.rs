@@ -11,6 +11,14 @@ use tokio::time::Duration;
 
 const BUILT_GATEWAY_URL: Option<&str> = option_env!("BEDROCK_GATEWAY_URL");
 
+/// Generation streams for a long time (the model reasons before answering), so there is no
+/// fixed deadline on the whole request. Instead: a short connect timeout, a limit on waiting
+/// for the response to start, a limit on silence between chunks, and a generous overall cap.
+const GATEWAY_CONNECT_TIMEOUT: Duration = Duration::from_secs(15);
+const GATEWAY_RESPONSE_START_TIMEOUT: Duration = Duration::from_secs(120);
+const GATEWAY_STREAM_IDLE_TIMEOUT: Duration = Duration::from_secs(60);
+const GATEWAY_STREAM_MAX_TOTAL: Duration = Duration::from_secs(900);
+
 /// Log prompt and response to a file (appends each time)
 fn log_llm_interaction(prompt: &str, response: &str) {
     // Write to parent directory (rubrix/) to avoid triggering Tauri's file watcher
@@ -46,6 +54,14 @@ TIMESTAMP: {}
     }
 }
 
+fn log_gateway_error(stage: &str, prompt: Option<&str>, details: &str) {
+    eprintln!("GATEWAY_ERROR [{}]: {}", stage, details);
+    if let Some(p) = prompt {
+        let response = format!("[GATEWAY_ERROR][{}] {}", stage, details);
+        log_llm_interaction(p, &response);
+    }
+}
+
 /// Streaming event payload consumed by the frontend.
 #[derive(Clone, Serialize)]
 pub struct StreamEvent {
@@ -53,6 +69,10 @@ pub struct StreamEvent {
     pub done: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub remaining_tokens: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub block_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning_done: Option<bool>,
 }
 
 #[derive(Clone)]
@@ -67,6 +87,8 @@ struct GatewayRequest {
     user: String,
     password: String,
     prompt: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    question_type: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -75,6 +97,14 @@ struct GatewayStreamChunk {
     done: bool,
     #[serde(default)]
     remaining_tokens: Option<u64>,
+    #[serde(default)]
+    block_type: Option<String>,
+    #[serde(default)]
+    reasoning_done: Option<bool>,
+    #[serde(default)]
+    error: Option<String>,
+    #[serde(default)]
+    error_type: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -103,6 +133,7 @@ pub async fn validate_gateway_credentials(user: &str, password: &str) -> Result<
         password: password.to_string(),
         // Minimal prompt to force auth check.
         prompt: "auth_check".to_string(),
+        question_type: None,
     };
 
     let response = client
@@ -162,6 +193,7 @@ pub async fn generate(
     prompt: &str,
     app_handle: Option<tauri::AppHandle>,
     gateway_auth: Option<GatewayAuth>,
+    question_type: Option<&str>,
 ) -> Result<String, String> {
     let gateway_url = gateway_url().ok_or_else(|| {
         "Gateway mode is required, but BEDROCK_GATEWAY_URL is not configured.".to_string()
@@ -170,24 +202,34 @@ pub async fn generate(
         .ok_or_else(|| "Authentication required. No gateway credentials found.".to_string())?;
 
     let client = Client::builder()
-        .timeout(Duration::from_secs(90))
+        .connect_timeout(GATEWAY_CONNECT_TIMEOUT)
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
 
-    emit_stream(&app_handle, "", false, None);
+    emit_stream(&app_handle, "", false, None, None, None);
 
     let request = GatewayRequest {
         user: gateway_auth.user,
         password: gateway_auth.password,
         prompt: prompt.to_string(),
+        question_type: question_type
+            .map(|value| value.trim())
+            .filter(|value| !value.is_empty())
+            .map(|value| value.to_string()),
     };
 
-    let response = client
-        .post(&gateway_url)
-        .json(&request)
-        .send()
-        .await
-        .map_err(|e| format!("Failed to connect to gateway: {}", e))?;
+    let response = tokio::time::timeout(
+        GATEWAY_RESPONSE_START_TIMEOUT,
+        client.post(&gateway_url).json(&request).send(),
+    )
+    .await
+    .map_err(|_| {
+        format!(
+            "Gateway did not respond within {} seconds",
+            GATEWAY_RESPONSE_START_TIMEOUT.as_secs()
+        )
+    })?
+    .map_err(|e| format!("Failed to connect to gateway: {}", e))?;
 
     let status = response.status();
     let content_type = response
@@ -202,6 +244,15 @@ pub async fn generate(
         let trimmed = body.trim();
         if let Ok(err) = serde_json::from_str::<GatewayErrorResponse>(trimmed) {
             if let Some(message) = err.error.filter(|msg| !msg.trim().is_empty()) {
+                log_gateway_error(
+                    "gateway_json_error",
+                    Some(prompt),
+                    &format!(
+                        "Gateway error ({}): {}",
+                        err.status.unwrap_or(status.as_u16()),
+                        message
+                    ),
+                );
                 return Err(format!(
                     "Gateway error ({}): {}",
                     err.status.unwrap_or(status.as_u16()),
@@ -209,15 +260,35 @@ pub async fn generate(
                 ));
             }
             if let Some(code) = err.status {
+                log_gateway_error(
+                    "gateway_json_error",
+                    Some(prompt),
+                    &format!("Gateway error ({})", code),
+                );
                 return Err(format!("Gateway error ({})", code));
             }
         }
         if !status.is_success() {
+            log_gateway_error(
+                "gateway_http_error",
+                Some(prompt),
+                &format!("Gateway error ({}): {}", status.as_u16(), body),
+            );
             return Err(format!("Gateway error ({}): {}", status.as_u16(), body));
         }
+        log_gateway_error(
+            "gateway_protocol_error",
+            Some(prompt),
+            "Gateway returned JSON instead of stream.",
+        );
         return Err("Gateway returned JSON instead of stream.".to_string());
     } else if !status.is_success() {
         let body = response.text().await.unwrap_or_default();
+        log_gateway_error(
+            "gateway_http_error",
+            Some(prompt),
+            &format!("Gateway error ({}): {}", status.as_u16(), body),
+        );
         return Err(format!("Gateway error ({}): {}", status.as_u16(), body));
     }
 
@@ -225,8 +296,39 @@ pub async fn generate(
     let mut buffer = String::new();
     let mut accumulated = String::new();
 
-    while let Some(chunk) = stream.next().await {
-        let chunk = chunk.map_err(|e| format!("Gateway stream error: {}", e))?;
+    let stream_started = tokio::time::Instant::now();
+    loop {
+        if stream_started.elapsed() > GATEWAY_STREAM_MAX_TOTAL {
+            let msg = format!(
+                "Gateway stream exceeded {} seconds",
+                GATEWAY_STREAM_MAX_TOTAL.as_secs()
+            );
+            log_gateway_error("gateway_stream_max_total", Some(prompt), &msg);
+            return Err(msg);
+        }
+        let next = match tokio::time::timeout(GATEWAY_STREAM_IDLE_TIMEOUT, stream.next()).await {
+            Ok(next) => next,
+            Err(_) => {
+                let msg = format!(
+                    "Gateway stream stalled: no data for {} seconds",
+                    GATEWAY_STREAM_IDLE_TIMEOUT.as_secs()
+                );
+                log_gateway_error("gateway_stream_idle_timeout", Some(prompt), &msg);
+                return Err(msg);
+            }
+        };
+        let chunk = match next {
+            Some(chunk) => chunk,
+            None => break,
+        };
+        let chunk = match chunk {
+            Ok(value) => value,
+            Err(e) => {
+                let msg = format!("Gateway stream error: {}", e);
+                log_gateway_error("gateway_stream_error", Some(prompt), &msg);
+                return Err(msg);
+            }
+        };
         let text = String::from_utf8_lossy(&chunk);
         buffer.push_str(&text);
 
@@ -245,16 +347,72 @@ pub async fn generate(
                 }
 
                 if let Ok(chunk) = serde_json::from_str::<GatewayStreamChunk>(payload) {
-                    if !chunk.text.is_empty() {
-                        let cleaned = chunk
-                            .text
-                            .replace("<reasoning>", "")
-                            .replace("</reasoning>", "");
-                        accumulated.push_str(&cleaned);
-                        emit_stream(&app_handle, &accumulated, false, None);
+                    if let Some(err_msg) = chunk
+                        .error
+                        .as_ref()
+                        .map(|msg| msg.trim())
+                        .filter(|msg| !msg.is_empty())
+                    {
+                        let err_type = chunk
+                            .error_type
+                            .as_ref()
+                            .map(|s| s.trim())
+                            .filter(|s| !s.is_empty())
+                            .unwrap_or("GatewayStreamError");
+                        log_gateway_error(
+                            "gateway_stream_chunk_error",
+                            Some(prompt),
+                            &format!("{}: {}", err_type, err_msg),
+                        );
+                        return Err(format!("{}: {}", err_type, err_msg));
                     }
+
+                    let cleaned = chunk
+                        .text
+                        .replace("<reasoning>", "")
+                        .replace("</reasoning>", "");
+
+                    if !cleaned.is_empty() {
+                        accumulated.push_str(&cleaned);
+                    }
+
+                    if !cleaned.is_empty() || chunk.block_type.is_some() {
+                        // For tagged chunks, forward incrementally so the frontend can
+                        // mark reasoning/response transitions in real time.
+                        if chunk.block_type.is_some() {
+                            emit_stream(
+                                &app_handle,
+                                &cleaned,
+                                false,
+                                None,
+                                chunk.block_type.clone(),
+                                chunk.reasoning_done,
+                            );
+                        } else {
+                            // Legacy path: keep emitting full accumulated buffer.
+                            emit_stream(&app_handle, &accumulated, false, None, None, None);
+                        }
+                    }
+
                     if chunk.done {
-                        emit_stream(&app_handle, &accumulated, true, chunk.remaining_tokens);
+                        if accumulated.trim().is_empty() {
+                            log_gateway_error(
+                                "empty_model_response",
+                                Some(prompt),
+                                "Gateway returned an empty response from the model",
+                            );
+                            return Err(
+                                "Gateway returned an empty response from the model".to_string()
+                            );
+                        }
+                        emit_stream(
+                            &app_handle,
+                            "",
+                            true,
+                            chunk.remaining_tokens,
+                            None,
+                            chunk.reasoning_done,
+                        );
                         log_llm_interaction(prompt, &accumulated);
                         return Ok(accumulated);
                     }
@@ -263,7 +421,7 @@ pub async fn generate(
         }
     }
 
-    emit_stream(&app_handle, &accumulated, true, None);
+    emit_stream(&app_handle, "", true, None, None, None);
     log_llm_interaction(prompt, &accumulated);
     Ok(accumulated)
 }
@@ -274,12 +432,16 @@ fn emit_stream(
     text: &str,
     done: bool,
     remaining_tokens: Option<u64>,
+    block_type: Option<String>,
+    reasoning_done: Option<bool>,
 ) {
     if let Some(handle) = app_handle {
         let event = StreamEvent {
             text: text.to_string(),
             done,
             remaining_tokens,
+            block_type,
+            reasoning_done,
         };
         let _ = handle.emit_all("llm-stream", event);
     }

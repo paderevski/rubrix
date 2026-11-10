@@ -1,0 +1,44 @@
+Generate exactly 1 AP Calculus free-response question focused on Taylor or Maclaurin series.
+
+The problem should be multi-part (for example, parts a, b, c) and suitable for a classroom FRQ.
+
+Return exactly one complete block wrapped in <question> and </question> tags.
+Inside those tags, return ONLY a JSON array with exactly one object and this structure:
+<question>
+[
+  {
+    "question": "Full FRQ prompt in markdown, including all parts",
+    "solution": "Step-by-step solution in markdown",
+    "rubric": "Scoring rubric in markdown with point breakdown",
+    "subject": "Calculus",
+    "topics": ["Taylor Series", "Maclaurin Series"],
+    "difficulty": "hard"
+  }
+]
+</question>
+
+Rules:
+1. Output must contain exactly one complete <question>...</question> block.
+2. Inside the tags, output must be valid JSON only. No prose.
+3. Use markdown-friendly formatting inside question, solution, and rubric.
+4. Use LaTeX math in markdown with proper delimiters:
+  - Inline math must use $...$
+  - Display math must use $$...$$
+  - Do not use plain-text math when an expression is mathematical
+  - Do not use \\(...\\) or \\[...\\]
+4. Rubric should be specific and scoreable (for example, 0-1 or 0-2 point items per part).
+5. Keep terminology aligned with AP Calculus conventions.
+
+Example of correct output format (style reference based on a real AP Calculus FRQ):
+<question>
+[
+  {
+    "question": "An invasive species of plant appears in a fruit grove at time $t=0$ and begins to spread. The function $C$ defined by $C(t)=7.6\\arctan(0.2t)$ models the number of acres affected $t$ weeks after the species appears. It can be shown that $$C'(t)=\\frac{38}{25+t^2}.$$\\n\\n### Part (a)\\nFind the average number of acres affected from $t=0$ to $t=4$ weeks. Show setup.\\n\\n### Part (b)\\nFind the time $t$ when the instantaneous rate $C'(t)$ equals the average rate of change of $C$ on $0\\le t\\le 4$. Show setup.\\n\\n### Part (c)\\nWrite a limit expression that describes the end behavior of $C'(t)$ as $t\\to\\infty$, and evaluate the limit.\\n\\n### Part (d)\\nFor $4\\le t\\le 36$, let $$A(t)=C(t)-\\int_4^t 0.1\\ln(x)\\,dx.$$ Determine when $A$ attains a maximum on $[4,36]$. Justify your answer.",
+    "solution": "(a) Average rate is $$\\frac{C(4)-C(0)}{4}.$$\\n\\n(b) Solve $$C'(t)=\\frac{C(4)-C(0)}{4}$$ for $t\\in[0,4]$.\\n\\n(c) Evaluate $$\\lim_{t\\to\\infty} \\frac{38}{25+t^2}=0.$$\\n\\n(d) Compute $$A'(t)=C'(t)-0.1\\ln(t),$$ find critical points where $A'(t)=0$ on $[4,36]$, then compare endpoint and critical-point values to identify the absolute maximum.",
+    "rubric": "Part (a): 1 pt correct average-rate setup, 1 pt correct value.\\nPart (b): 1 pt correct equation setup, 1 pt valid solving process, 1 pt correct t value.\\nPart (c): 1 pt correct limit expression, 1 pt correct limit value with justification.\\nPart (d): 1 pt correct derivative and critical-point condition, 1 pt proper endpoint/critical comparison, 1 pt justified maximum conclusion.",
+    "subject": "Calculus",
+    "topics": ["Rates of Change", "Applications of Derivatives", "Integrals"],
+    "difficulty": "hard"
+  }
+]
+</question>

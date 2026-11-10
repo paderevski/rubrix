@@ -50,6 +50,8 @@ Without `BEDROCK_GATEWAY_URL`, login and generation fail with a configuration er
 
 On first Generate, Catie asks for a username and password. Credentials are stored in the app's local data directory (`auth/credentials.json`) for automatic login; Logout clears them. Details: [docs/CREDENTIALS.md](docs/CREDENTIALS.md).
 
+FRQ requests send `question_type=frq`; the gateway runs them at a higher reasoning effort. Request/response details: [docs/BEDROCK_GATEWAY_CONTRACT.md](docs/BEDROCK_GATEWAY_CONTRACT.md).
+
 ## Documentation for developers
 
 - [Architecture](docs/ARCHITECTURE_DIAGRAM.md)

@@ -1,0 +1,118 @@
+0 problem(s)
+
+Coverage: 286 questions
+T001   37  Primitive Types
+  ST001     7  Variable Declaration
+  ST002     9  Type Casting
+  ST003    14  Arithmetic Operators
+  ST004     7  Integer Division
+  ST005     1  Integer Overflow
+  ST066     4  Assignment Statements and Input
+  ST067     7  Compound Assignment Operators
+  ST087     2  Output and Escape Sequences
+T002   26  Using Objects
+  ST006     6  Object Instantiation
+  ST007     7  Method Calls
+  ST008     1  Null References
+  ST062     7  Math Class Methods
+  ST070     0  APIs and Libraries
+  ST072     5  Objects: Instances of Classes
+T003   21  Boolean Expressions and if Statements
+  ST012     6  Conditional Statements
+  ST013     7  Logical Operators
+  ST014     2  Short-Circuit Evaluation
+  ST015     8  Nested Conditionals
+  ST016     2  Boolean Comparison
+  ST076     4  Comparing Boolean Expressions
+T004   29  Iteration
+  ST017    10  while Loops
+  ST018     7  for Loops
+  ST019    11  Nested Loops
+  ST020    10  Loop Conditions
+  ST021     0  Infinite Loops
+  ST077     0  Implementing Selection and Iteration Algorithms
+  ST078     0  Algorithms with Selection and Repetition
+T005   21  Writing Classes
+  ST022     1  Class Definition
+  ST023    10  Constructors
+  ST024     2  Instance Variables
+  ST025     1  Accessor Methods (Getters)
+  ST026     2  Mutator Methods (Setters)
+  ST027     3  Static vs Instance
+  ST028     0  this Keyword
+  ST055     9  Access Modifiers (public/private)
+  ST056     3  Encapsulation
+T006   74  Array
+  ST029     7  Array Declaration
+  ST030    10  Array Initialization
+  ST031    55  Array Traversal
+  ST032    28  Array Indexing
+  ST033     7  Array Length
+  ST034    44  Array Manipulation
+T007   10  ArrayList
+  ST035     4  ArrayList Methods
+  ST036     6  ArrayList Traversal
+  ST037     1  Wrapper Classes
+  ST081     7  Implementing ArrayList Algorithms
+T008   44  2D Array
+  ST038    32  2D Array Traversal
+  ST039     7  Row-Major Order
+  ST040     3  Column-Major Order
+  ST082    28  2D Array Creation and Access
+  ST083    21  Implementing 2D Array Algorithms
+T009   39  Recursion
+  ST041    21  Base Case
+  ST042    33  Recursive Case
+  ST043     8  Call Stack
+T010   17  Searching
+  ST044    10  Linear Search
+  ST045     7  Binary Search
+T011   16  Sorting
+  ST046    12  Selection Sort
+  ST047     2  Insertion Sort
+  ST048     2  Merge Sort
+T012   15  Methods
+  ST049     5  Parameter Passing
+  ST050     4  Return Values
+  ST051     0  Method Overloading
+  ST052     3  Void Methods
+  ST063     2  Variable Scope
+  ST071     4  Calling Class (static) Methods
+  ST073     3  Method Signatures
+  ST074     4  Passing and Returning Object References
+T013   25  Strings
+  ST009    15  String Methods
+  ST010     8  String Concatenation
+  ST011     4  String Comparison
+  ST075     3  String Algorithms
+T014   11  Data Sets and File I/O
+  ST053     2  File I/O with Scanner
+  ST054    10  Data Processing
+T015    4  Ethical and Social Implications
+  ST064     3  System Reliability and Testing
+  ST065     1  Bias in Data Collection
+T016    0  Inheritance (Extends/Super)
+  ST057     0  Extends and Class Hierarchy
+  ST058     0  Method Overriding
+  ST059     0  super Keyword (constructors/methods)
+  ST084     0  Writing Constructors for Subclasses
+  ST086     0  Object Superclass
+T017    0  Polymorphism
+  ST060     0  Dynamic Binding / Polymorphism
+  ST085     0  References Using Inheritance Hierarchies
+T018    0  Abstract Classes
+T019    0  Interfaces
+  ST061     0  Implementing Interfaces
+T020    0  Number Systems (Binary/Hex)
+T021    1  Program Design and Abstraction
+  ST080     1  Abstraction and Program Design
+T022   14  Run-Time Analysis
+  ST079    14  Informal Run-Time Analysis
+T023    3  Documentation and Comments
+  ST069     3  Documentation with Comments
+T024    3  Algorithms, Programming, and Compilation
+  ST068     3  Algorithms, Programming, and Compilers
+
+Topics with no questions: ['T016', 'T017', 'T018', 'T019', 'T020']
+Subtopics with no questions (14 of 87): ['ST021', 'ST028', 'ST051', 'ST057', 'ST058', 'ST059', 'ST060', 'ST061', 'ST070', 'ST077', 'ST078', 'ST084', 'ST085', 'ST086']
+AP topics with no questions (11 of 60): ['1.7', '2.1', '2.9', '3.9', 'OLD_9.1', 'OLD_9.2', 'OLD_9.3', 'OLD_9.4', 'OLD_9.5', 'OLD_9.6', 'OLD_9.7']

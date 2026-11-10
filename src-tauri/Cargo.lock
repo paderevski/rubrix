@@ -423,6 +423,7 @@ dependencies = [
 name = "catie"
 version = "0.12.0"
 dependencies = [
+ "base64 0.22.1",
  "chrono",
  "dotenvy",
  "futures-util",

@@ -6,6 +6,7 @@ mod llm;
 mod prompts;
 mod qti;
 
+use base64::Engine as _;
 use futures_util::stream::{self, StreamExt};
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
@@ -14,7 +15,7 @@ use std::env;
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use tauri::api::dialog::MessageDialogBuilder;
 use tauri::{AppHandle, CustomMenuItem, Manager, Menu, MenuItem, State, Submenu, WindowEvent};
@@ -127,7 +128,11 @@ fn log_startup_env_diagnostics() {
     eprintln!("[Startup] Configuration diagnostics:");
     eprintln!(
         "[Startup] BEDROCK_GATEWAY_URL: {}",
-        if gateway_configured { "configured" } else { "missing" }
+        if gateway_configured {
+            "configured"
+        } else {
+            "missing"
+        }
     );
 
     if !gateway_configured {
@@ -138,21 +143,36 @@ fn log_startup_env_diagnostics() {
 
     eprintln!(
         "[Startup] BUG_REPORT_URL: {}",
-        if bug_url_configured { "configured" } else { "missing (bug submit disabled)" }
+        if bug_url_configured {
+            "configured"
+        } else {
+            "missing (bug submit disabled)"
+        }
     );
     eprintln!(
         "[Startup] BUG_REPORT_API_KEY: {}",
-        if bug_api_key_configured { "configured" } else { "not set" }
+        if bug_api_key_configured {
+            "configured"
+        } else {
+            "not set"
+        }
     );
     eprintln!(
         "[Startup] BUG_REPORT_BEARER_TOKEN: {}",
-        if bug_bearer_configured { "configured" } else { "not set" }
+        if bug_bearer_configured {
+            "configured"
+        } else {
+            "not set"
+        }
     );
 
     if let Some(path_str) = knowledge_override {
         let path = PathBuf::from(&path_str);
         if path.exists() {
-            eprintln!("[Startup] RUBRIX_KNOWLEDGE_DIR: configured ({})", path.display());
+            eprintln!(
+                "[Startup] RUBRIX_KNOWLEDGE_DIR: configured ({})",
+                path.display()
+            );
         } else {
             eprintln!(
                 "[Startup] RUBRIX_KNOWLEDGE_DIR: configured but path not found ({})",
@@ -216,14 +236,14 @@ fn topic_labels_for_prompt(
     let mut id_to_name: HashMap<String, String> = HashMap::new();
 
     for topic in knowledge.get_topics(subject) {
-        id_to_name.insert(topic.id.clone(), topic.name.clone());
+        id_to_name.insert(topic.id.clone(), format!("{}: {}", topic.id, topic.name));
 
         for child in topic.children {
             // Include parent context so subtopic labels are self-explanatory in prompts.
             let child_label = if topic.name.trim().is_empty() {
-                child.name.clone()
+                format!("{}: {}", child.id, child.name)
             } else {
-                format!("{} > {}", topic.name, child.name)
+                format!("{}: {} > {}", child.id, topic.name, child.name)
             };
             id_to_name.insert(child.id.clone(), child_label);
         }
@@ -248,6 +268,86 @@ fn topic_labels_for_prompt(
     labels.join(", ")
 }
 
+/// Schema subtopics in scope for a request. For each topic, if the user selected specific
+/// subtopics use just those; otherwise, if the parent topic is selected, use all its subtopics.
+fn subtopics_for_request(
+    subject: &str,
+    topic_ids: &[String],
+    knowledge: &knowledge::KnowledgeBase,
+) -> Vec<prompts::SubtopicRef> {
+    let mut result = Vec::new();
+    for topic in knowledge.get_topics(subject) {
+        let selected_children: Vec<&SubtopicInfo> = topic
+            .children
+            .iter()
+            .filter(|c| topic_ids.contains(&c.id))
+            .collect();
+        let children: Vec<&SubtopicInfo> = if !selected_children.is_empty() {
+            selected_children
+        } else if topic_ids.contains(&topic.id) {
+            topic.children.iter().collect()
+        } else {
+            Vec::new()
+        };
+        result.extend(children.into_iter().map(|c| prompts::SubtopicRef {
+            id: c.id.clone(),
+            name: c.name.clone(),
+        }));
+    }
+    result
+}
+
+/// Keep only the questions already in the set that belong to the requested topics.
+/// Requested ids may be topic or subtopic ids; both resolve to their parent topic and its
+/// subtopics. Questions on other topics can't repeat the new question, so listing them in the
+/// prompt only distorts the variety guidance. If no requested id resolves, nothing is filtered.
+fn existing_for_request(
+    existing: Vec<Question>,
+    topics: &[TopicInfo],
+    requested: &[String],
+) -> Vec<Question> {
+    let mut allowed: HashSet<&str> = HashSet::new();
+    for topic in topics {
+        let selected = requested.contains(&topic.id)
+            || topic.children.iter().any(|c| requested.contains(&c.id));
+        if selected {
+            allowed.insert(topic.id.as_str());
+            for child in &topic.children {
+                allowed.insert(child.id.as_str());
+            }
+        }
+    }
+    if allowed.is_empty() {
+        return existing;
+    }
+    existing
+        .into_iter()
+        .filter(|q| q.topics.iter().chain(q.subtopics.iter()).any(|id| allowed.contains(id.as_str())))
+        .collect()
+}
+
+/// Pick a subtopic at random from those least used by questions already in the set.
+fn pick_subtopic(
+    subtopics: &[prompts::SubtopicRef],
+    existing: &[Question],
+) -> Option<prompts::SubtopicRef> {
+    use rand::seq::SliceRandom;
+    let usage = |id: &str| existing.iter().filter(|q| q.subtopics.iter().any(|s| s == id)).count();
+    let min_use = subtopics.iter().map(|s| usage(&s.id)).min()?;
+    let least_used: Vec<&prompts::SubtopicRef> =
+        subtopics.iter().filter(|s| usage(&s.id) == min_use).collect();
+    least_used.choose(&mut rand::thread_rng()).map(|s| (*s).clone())
+}
+
+fn difficulty_code(difficulty: &str) -> &str {
+    match difficulty {
+        "easy" => "D1",
+        "medium" => "D2",
+        "hard" => "D3",
+        _ => "D2",
+    }
+}
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -257,20 +357,29 @@ fn topic_labels_for_prompt(
 pub struct Question {
     #[serde(default)]
     pub id: String,
-    #[serde(default)]
+    #[serde(default, alias = "question")]
     pub text: String, // Question text in markdown format (may include code blocks)
-    #[serde(alias = "options")]
+    #[serde(default, alias = "options")]
     pub answers: Vec<Answer>,
-    #[serde(default, deserialize_with = "de_opt_string_or_json")]
+    #[serde(
+        default,
+        alias = "solution",
+        deserialize_with = "de_opt_string_or_json"
+    )]
     pub explanation: Option<String>, // Correct answer explanation
     #[serde(default, deserialize_with = "de_opt_string_or_json")]
-    pub distractors: Option<String>, // Why wrong answers are tempting
+    pub rubric: Option<String>, // Optional scoring rubric (primarily FRQ)
     #[serde(default)]
     pub subject: String,
     #[serde(default)]
     pub topics: Vec<String>,
     #[serde(default)]
     pub difficulty: String,
+    #[serde(default)]
+    pub cognitive_level: String,
+    /// Schema subtopic IDs this question assesses (e.g. `ST007`)
+    #[serde(default)]
+    pub subtopics: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -317,6 +426,10 @@ pub struct GenerationRequest {
     pub notes: Option<String>,
     #[serde(default)]
     pub append: bool, // If true, append to existing questions
+    #[serde(default)]
+    pub question_type: String, // "multiple_choice" | "frq"
+    #[serde(default)]
+    pub frq_question_type: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -347,6 +460,8 @@ pub struct WordExportOptions {
     pub shuffle_choices: bool,
     #[serde(default)]
     pub shuffle_questions: bool,
+    #[serde(default)]
+    pub template_docx_path: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -477,75 +592,42 @@ pub struct SubmitBugResult {
 // Question Bank Types (for few-shot examples)
 // ============================================================================
 
-/// Rich question entry from question-bank.json
+/// Flat V2 question-bank document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuestionBankDocument {
+    pub schema_version: String,
+    pub source: String,
+    pub questions: Vec<QuestionBankEntry>,
+}
+
+/// Flat V2 question entry from question-bank.json.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QuestionBankEntry {
     pub id: String,
+    #[serde(default = "default_question_bank_status")]
+    pub status: String,
+    #[serde(default, rename = "_migration_note", skip_serializing_if = "Option::is_none")]
+    pub migration_note: Option<String>,
     pub text: String,
-    pub options: Vec<QuestionBankOption>,
+    pub answers: Vec<QuestionBankAnswer>,
     pub explanation: String,
     pub difficulty: String,
     pub cognitive_level: String,
     pub topics: Vec<String>,
     #[serde(default)]
     pub subtopics: Option<Vec<String>>,
-    pub skills: Vec<String>,
-    pub distractors: DistractorInfo,
+}
+
+fn default_question_bank_status() -> String {
+    "active".to_string()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct QuestionBankFile {
-    questions: Vec<QuestionBankJsonEntry>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct QuestionBankJsonEntry {
-    id: String,
-    difficulty: String,
-    cognitive_level: String,
-    content: QuestionContent,
-    pedagogy: Pedagogy,
-    distractors: DistractorsJson,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct QuestionContent {
-    text: String,
-    options: Vec<QuestionBankOption>,
-    explanation: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct Pedagogy {
-    topics: Vec<String>,
-    #[serde(default)]
-    subtopics: Option<Vec<String>>,
-    skills: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct DistractorsJson {
-    common_mistakes: Vec<CommonMistake>,
-    common_errors: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuestionBankOption {
+pub struct QuestionBankAnswer {
     pub id: String,
     pub text: String,
     pub is_correct: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DistractorInfo {
-    pub common_mistakes: Vec<CommonMistake>,
-    pub common_errors: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommonMistake {
-    pub option_id: String,
-    pub misconception: String,
+    pub explanation: String,
 }
 
 // ============================================================================
@@ -698,11 +780,20 @@ fn latest_llm_log_snapshot() -> Option<(String, String, String)> {
     Some((prompt, response, source))
 }
 
-async fn convert_markdown_to_docx(markdown: String) -> Result<Vec<u8>, String> {
-    let payload = serde_json::json!({
+async fn convert_markdown_to_docx(
+    markdown: String,
+    template_docx_base64: Option<String>,
+) -> Result<Vec<u8>, String> {
+    let mut payload = serde_json::json!({
         "markdown": markdown,
         "format": "docx"
     });
+
+    if let Some(template_b64) = template_docx_base64 {
+        // Include a couple common keys for compatibility with simple pandoc wrappers.
+        payload["reference_docx_base64"] = serde_json::Value::String(template_b64);
+        payload["use_reference_docx"] = serde_json::Value::Bool(true);
+    }
 
     let client = reqwest::Client::new();
     let response = client
@@ -713,7 +804,12 @@ async fn convert_markdown_to_docx(markdown: String) -> Result<Vec<u8>, String> {
         .map_err(|e| format!("Failed to call API: {}", e))?;
 
     if !response.status().is_success() {
-        return Err(format!("API returned error: {}", response.status()));
+        let status = response.status();
+        let body = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "<no response body>".to_string());
+        return Err(format!("API returned error: {} - {}", status, body));
     }
 
     let docx_bytes = response
@@ -728,89 +824,43 @@ fn docx_page_break_marker() -> &'static str {
     "```{=openxml}\n<w:p><w:r><w:br w:type=\"page\"/></w:r></w:p>\n```"
 }
 
-fn load_question_bank_entries(
-    subject: &str,
-    state: &AppState,
-    app_handle: &AppHandle,
-) -> Result<Vec<QuestionBankEntry>, String> {
-    let from_disk: Result<Vec<QuestionBankEntry>, String> = (|| {
-        let base = knowledge_base_dir(app_handle)
-            .ok_or_else(|| "No knowledge base directory available".to_string())?;
-        let path = base.join(subject).join("question-bank.json");
-
-        // Prefer user-edited bank in app data; fall back to packaged file if missing
-        let data = if path.exists() {
-            fs::read_to_string(&path)
-                .map_err(|e| format!("Failed to read {}: {}", path.display(), e))?
-        } else {
-            // Fallback to bundled asset path (dev/prod) if present
-            let embedded_path = app_handle
-                .path_resolver()
-                .resolve_resource(format!("knowledge/{}/question-bank.json", subject))
-                .unwrap_or_else(|| {
-                    PathBuf::from("src-tauri/knowledge")
-                        .join(subject)
-                        .join("question-bank.json")
-                });
-            fs::read_to_string(&embedded_path).map_err(|e| {
-                format!(
-                    "Failed to read embedded bank {}: {}",
-                    embedded_path.display(),
-                    e
-                )
-            })?
-        };
-
-        let parsed: QuestionBankFile = serde_json::from_str(&data)
-            .map_err(|e| format!("Failed to parse question-bank.json: {}", e))?;
-
-        Ok(parsed
-            .questions
-            .into_iter()
-            .map(|q| QuestionBankEntry {
-                id: q.id,
-                text: q.content.text,
-                options: q.content.options,
-                explanation: q.content.explanation,
-                difficulty: q.difficulty,
-                cognitive_level: q.cognitive_level,
-                topics: q.pedagogy.topics,
-                subtopics: q.pedagogy.subtopics,
-                skills: q.pedagogy.skills,
-                distractors: DistractorInfo {
-                    common_mistakes: q.distractors.common_mistakes,
-                    common_errors: q.distractors.common_errors,
-                },
-            })
-            .collect())
-    })();
-
-    if let Ok(entries) = &from_disk {
-        return Ok(entries.clone());
-    }
-
-    let disk_error = from_disk
-        .as_ref()
-        .err()
-        .cloned()
-        .unwrap_or_else(|| "unknown error".to_string());
-
-    // Fallback to the in-memory bank loaded at startup (from embedded assets) so the editor still has data
-    if let Some(entries) = state.knowledge.bank_entries.get(subject) {
-        if !entries.is_empty() {
-            eprintln!(
-                "Warning: Using embedded question bank for {} because disk load failed: {}",
-                subject, disk_error
-            );
-            return Ok(entries.clone());
+fn sanitize_filename_component(input: &str) -> String {
+    let mut out = String::with_capacity(input.len());
+    for ch in input.chars() {
+        if ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.') {
+            out.push(ch);
+        } else if ch.is_whitespace() {
+            out.push('_');
         }
     }
 
-    Err(format!(
-        "No question bank found for {}. Set RUBRIX_KNOWLEDGE_DIR to the knowledge folder or add a packaged bank. Last error: {}",
-        subject,
-        disk_error
-    ))
+    let trimmed = out.trim_matches('_');
+    if trimmed.is_empty() {
+        "untitled".to_string()
+    } else {
+        trimmed.to_string()
+    }
+}
+
+fn save_intermediate_docx_markdown_if_dev(label: &str, markdown: &str) -> Result<(), String> {
+    if !config::is_dev_mode() {
+        return Ok(());
+    }
+
+    let dir = PathBuf::from("../exports/dev-docx-markdown");
+    fs::create_dir_all(&dir).map_err(|e| format!("Failed to create {}: {}", dir.display(), e))?;
+
+    let timestamp = chrono::Local::now().format("%Y%m%d_%H%M%S");
+    let safe_label = sanitize_filename_component(label);
+    let path = dir.join(format!("{}_{}.md", timestamp, safe_label));
+
+    fs::write(&path, markdown).map_err(|e| format!("Failed to write {}: {}", path.display(), e))?;
+
+    eprintln!(
+        "[DOCX DEV] Saved intermediate markdown snapshot: {}",
+        path.display()
+    );
+    Ok(())
 }
 
 fn save_saved_credentials(app_handle: &AppHandle, creds: &SavedCredentials) -> Result<(), String> {
@@ -868,23 +918,96 @@ async fn generate_questions(
     state: State<'_, AppState>,
     app_handle: tauri::AppHandle,
 ) -> Result<Vec<Question>, String> {
-    // Get rich examples from question bank (prefer these for better distractors)
+    let is_mcq = request.question_type != "frq";
+
+    // Questions already in the set (generation appends), so the prompt can steer away from them
+    let existing_set: Vec<Question> = if request.append {
+        let all = state.questions.lock().unwrap().clone();
+        existing_for_request(all, &state.knowledge.get_topics(&request.subject), &request.topics)
+    } else {
+        Vec::new()
+    };
+
+    // Ground the prompt in the schema's subtopics, and for single-question requests pick
+    // one (favoring subtopics the set hasn't covered yet) so the skill isn't left to the model.
+    let subtopics = subtopics_for_request(&request.subject, &request.topics, &state.knowledge);
+    let assigned_subtopic = if is_mcq && request.count == 1 {
+        pick_subtopic(&subtopics, &existing_set)
+    } else {
+        None
+    };
+
+    // Get rich examples from question bank (prefer these for better distractors).
+    // With an assigned subtopic, prefer examples tagged with it (falls back to the parent topic).
+    let example_topics = match &assigned_subtopic {
+        Some(sub) => vec![sub.id.clone()],
+        None => request.topics.clone(),
+    };
     let bank_examples = state.knowledge.get_bank_examples(
         &request.subject,
-        &request.topics,
+        &example_topics,
         Some(&request.difficulty),
         3, // Get up to 3 examples
     );
 
-    // Get prompt template for this subject
-    let prompt_template = state.knowledge.get_prompt(&request.subject);
-
     // Convert selected topic IDs to display names for the prompt while keeping IDs for retrieval
     let topics_label = topic_labels_for_prompt(&request.subject, &request.topics, &state.knowledge);
 
-    // Build prompt with JSON examples
-    let prompt =
-        prompts::build_generation_prompt(&request, &bank_examples, prompt_template, &topics_label);
+    // Build prompt based on generation mode.
+    let prompt = if request.question_type == "frq" {
+        let base_frq_prompt = state
+            .knowledge
+            .get_frq_prompt(&request.subject)
+            .or_else(|| state.knowledge.get_frq_prompt("Calculus"))
+            .unwrap_or(
+                "Generate exactly 1 Calculus FRQ about Taylor or Maclaurin series. Return exactly one <question>...</question> block containing ONLY a JSON array with fields: question, solution, rubric, subject, topics, difficulty.",
+            )
+            .to_string();
+
+        let mut frq_prompt = base_frq_prompt;
+
+        if let Some(frq_type) = request.frq_question_type.as_ref() {
+            if !frq_type.trim().is_empty() {
+                frq_prompt.push_str("\n\nRequested FRQ type: ");
+                frq_prompt.push_str(frq_type.trim());
+            }
+        }
+
+        if let Some(notes) = request.notes.as_ref() {
+            if !notes.trim().is_empty() {
+                frq_prompt.push_str("\n\nAdditional Instructions from User:\n");
+                frq_prompt.push_str(notes.trim());
+            }
+        }
+
+        frq_prompt
+    } else {
+        // Get prompt template for this subject
+        let prompt_template = state.knowledge.get_prompt(&request.subject);
+        // Show the model what's already in the set so repeated single-question
+        // requests don't collapse onto the same question type or skill.
+        let context = prompts::GenerationContext {
+            existing_questions: existing_set
+                .iter()
+                .map(|q| {
+                    if q.subtopics.is_empty() {
+                        q.text.clone()
+                    } else {
+                        format!("[{}] {}", q.subtopics.join(", "), q.text)
+                    }
+                })
+                .collect(),
+            subtopics: subtopics.clone(),
+            assigned_subtopic: assigned_subtopic.clone(),
+        };
+        prompts::build_generation_prompt(
+            &request,
+            &bank_examples,
+            prompt_template,
+            &topics_label,
+            &context,
+        )
+    };
 
     let gateway_auth = state
         .credentials
@@ -897,7 +1020,18 @@ async fn generate_questions(
         });
 
     // Call LLM with streaming
-    let response = llm::generate(&prompt, Some(app_handle), gateway_auth).await?;
+    let question_type = request.question_type.trim();
+    let response = llm::generate(
+        &prompt,
+        Some(app_handle),
+        gateway_auth,
+        if question_type.is_empty() {
+            None
+        } else {
+            Some(question_type)
+        },
+    )
+    .await?;
 
     // Parse response into questions
     let mut new_questions = prompts::parse_llm_response(&response)?;
@@ -906,7 +1040,17 @@ async fn generate_questions(
     for question in &mut new_questions {
         question.subject = request.subject.clone();
         question.topics = request.topics.clone();
-        question.difficulty = request.difficulty.clone();
+        question.difficulty = difficulty_code(&request.difficulty).to_string();
+        // Keep only subtopic IDs we offered; an assigned subtopic always wins.
+        question.subtopics = match &assigned_subtopic {
+            Some(sub) => vec![sub.id.clone()],
+            None => question
+                .subtopics
+                .iter()
+                .filter(|id| subtopics.iter().any(|s| &s.id == *id))
+                .cloned()
+                .collect(),
+        };
     }
 
     // Store in state (append or replace)
@@ -987,7 +1131,19 @@ async fn regenerate_question(
             password: creds.password.clone(),
         });
 
-    let response = llm::generate(&prompt, Some(app_handle), gateway_auth).await?;
+    let inferred_question_type = if current.rubric.is_some() {
+        Some("frq")
+    } else {
+        Some("multiple_choice")
+    };
+
+    let response = llm::generate(
+        &prompt,
+        Some(app_handle),
+        gateway_auth,
+        inferred_question_type,
+    )
+    .await?;
 
     // Parse the single question
     let mut new_questions = prompts::parse_llm_response(&response)?;
@@ -1000,6 +1156,8 @@ async fn regenerate_question(
     new_question.subject = current.subject.clone();
     new_question.topics = current.topics.clone();
     new_question.difficulty = current.difficulty.clone();
+    new_question.cognitive_level = current.cognitive_level.clone();
+    new_question.subtopics = current.subtopics.clone();
 
     // Update in state
     let mut stored = state.questions.lock().unwrap();
@@ -1037,92 +1195,103 @@ async fn regenerate_all_questions_parallel(
     let all_questions = snapshot.clone();
     let completed_counter = Arc::new(AtomicUsize::new(0));
 
-    let mut results: Vec<RegenerateAllQuestionResult> = stream::iter(
-        snapshot
-            .into_iter()
-            .enumerate()
-            .map(|(index, current)| {
-                let gateway_auth = gateway_auth.clone();
-                let all_questions = all_questions.clone();
-                let app_handle = app_handle.clone();
-                let completed_counter = Arc::clone(&completed_counter);
-                async move {
-                    let subject = if !current.subject.is_empty() {
-                        current.subject.clone()
-                    } else {
-                        "Computer Science".to_string()
-                    };
+    let mut results: Vec<RegenerateAllQuestionResult> =
+        stream::iter(snapshot.into_iter().enumerate().map(|(index, current)| {
+            let gateway_auth = gateway_auth.clone();
+            let all_questions = all_questions.clone();
+            let app_handle = app_handle.clone();
+            let completed_counter = Arc::clone(&completed_counter);
+            async move {
+                let subject = if !current.subject.is_empty() {
+                    current.subject.clone()
+                } else {
+                    "Computer Science".to_string()
+                };
 
-                    let topics: Vec<String> = if !current.topics.is_empty() {
-                        current.topics.clone()
-                    } else {
-                        vec!["recursion".to_string()]
-                    };
+                let topics: Vec<String> = if !current.topics.is_empty() {
+                    current.topics.clone()
+                } else {
+                    vec!["recursion".to_string()]
+                };
 
-                    let bank_examples = knowledge.get_bank_examples(&subject, &topics, None, 1);
-                    let regeneration_prompt_template = knowledge.get_regeneration_prompt(&subject);
-                    let topics_label = topic_labels_for_prompt(&subject, &topics, knowledge);
+                let bank_examples = knowledge.get_bank_examples(&subject, &topics, None, 1);
+                let regeneration_prompt_template = knowledge.get_regeneration_prompt(&subject);
+                let topics_label = topic_labels_for_prompt(&subject, &topics, knowledge);
 
-                    let prompt = prompts::build_regenerate_prompt(
-                        &current,
-                        &all_questions,
-                        &bank_examples,
-                        None,
-                        regeneration_prompt_template,
-                        Some(&topics_label),
-                    );
+                let prompt = prompts::build_regenerate_prompt(
+                    &current,
+                    &all_questions,
+                    &bank_examples,
+                    None,
+                    regeneration_prompt_template,
+                    Some(&topics_label),
+                );
 
-                    let result = match llm::generate(&prompt, None, gateway_auth).await {
-                        Ok(response) => match prompts::parse_llm_response(&response) {
-                            Ok(mut new_questions) if !new_questions.is_empty() => {
-                                let mut new_question = new_questions.remove(0);
-                                new_question.id = current.id.clone();
-                                new_question.subject = current.subject.clone();
-                                new_question.topics = current.topics.clone();
-                                new_question.difficulty = current.difficulty.clone();
+                let inferred_question_type = if current.rubric.is_some() {
+                    Some("frq")
+                } else {
+                    Some("multiple_choice")
+                };
 
-                                RegenerateAllQuestionResult {
-                                    index,
-                                    question: Some(new_question),
-                                    error: None,
-                                }
+                let result = match llm::generate(
+                    &prompt,
+                    None,
+                    gateway_auth,
+                    inferred_question_type,
+                )
+                .await
+                {
+                    Ok(response) => match prompts::parse_llm_response(&response) {
+                        Ok(mut new_questions) if !new_questions.is_empty() => {
+                            let mut new_question = new_questions.remove(0);
+                            new_question.id = current.id.clone();
+                            new_question.subject = current.subject.clone();
+                            new_question.topics = current.topics.clone();
+                            new_question.difficulty = current.difficulty.clone();
+                            new_question.cognitive_level = current.cognitive_level.clone();
+                            new_question.subtopics = current.subtopics.clone();
+
+                            RegenerateAllQuestionResult {
+                                index,
+                                question: Some(new_question),
+                                error: None,
                             }
-                            Ok(_) => RegenerateAllQuestionResult {
-                                index,
-                                question: None,
-                                error: Some("Failed to generate replacement question".to_string()),
-                            },
-                            Err(err) => RegenerateAllQuestionResult {
-                                index,
-                                question: None,
-                                error: Some(err),
-                            },
+                        }
+                        Ok(_) => RegenerateAllQuestionResult {
+                            index,
+                            question: None,
+                            error: Some("Failed to generate replacement question".to_string()),
                         },
                         Err(err) => RegenerateAllQuestionResult {
                             index,
                             question: None,
                             error: Some(err),
                         },
-                    };
+                    },
+                    Err(err) => RegenerateAllQuestionResult {
+                        index,
+                        question: None,
+                        error: Some(err),
+                    },
+                };
 
-                    let completed = completed_counter.fetch_add(1, Ordering::SeqCst) + 1;
-                    let _ = app_handle.emit_all(
-                        "regenerate-all-progress",
-                        RegenerateAllProgressEvent {
-                            completed,
-                            total,
-                            index,
-                            success: result.question.is_some(),
-                        },
-                    );
+                let completed = completed_counter.fetch_add(1, Ordering::SeqCst) + 1;
+                let _ = app_handle.emit_all(
+                    "regenerate-all-progress",
+                    RegenerateAllProgressEvent {
+                        completed,
+                        total,
+                        index,
+                        success: result.question.is_some(),
+                    },
+                );
 
-                    result
-                }
-            }),
-    )
-    .buffer_unordered(concurrency)
-    .collect()
-    .await;
+                result
+            }
+        }))
+        .buffer_unordered(concurrency)
+        .collect()
+        .await;
 
     results.sort_by_key(|item| item.index);
 
@@ -1158,10 +1327,12 @@ fn add_question(state: State<AppState>) -> Question {
         id: format!("q{}", stored.len() + 1),
         text: "New question".to_string(),
         explanation: None,
-        distractors: None,
+        rubric: None,
         subject: String::new(),
         topics: Vec::new(),
         difficulty: String::new(),
+        cognitive_level: String::new(),
+        subtopics: Vec::new(),
         answers: vec![
             Answer {
                 text: "Correct answer".to_string(),
@@ -1492,6 +1663,7 @@ fn export_to_md(
             include_choices: true,
             shuffle_choices: true,
             shuffle_questions: false,
+            pandoc_docx_styles: false,
         },
     )
 }
@@ -1529,7 +1701,20 @@ async fn export_to_docx(
         version_count: 1,
         shuffle_choices: false,
         shuffle_questions: false,
+        template_docx_path: None,
     });
+
+    let template_docx_base64 = if let Some(path) = opts.template_docx_path.as_ref() {
+        if path.trim().is_empty() {
+            None
+        } else {
+            let bytes = fs::read(path)
+                .map_err(|e| format!("Failed to read template DOCX at {}: {}", path, e))?;
+            Some(base64::engine::general_purpose::STANDARD.encode(bytes))
+        }
+    } else {
+        None
+    };
 
     let version_count = opts.version_count.clamp(1, 20);
     let include_choices = opts.include_choices;
@@ -1546,6 +1731,7 @@ async fn export_to_docx(
                 include_choices,
                 shuffle_choices,
                 shuffle_questions,
+                pandoc_docx_styles: true,
             },
         )?
     } else {
@@ -1562,6 +1748,7 @@ async fn export_to_docx(
                     include_choices,
                     shuffle_choices,
                     shuffle_questions,
+                    pandoc_docx_styles: true,
                 },
             )?;
 
@@ -1583,7 +1770,13 @@ async fn export_to_docx(
         sections.join(&format!("\n\n{}\n\n", docx_page_break_marker()))
     };
 
-    convert_markdown_to_docx(markdown).await
+    if let Err(err) =
+        save_intermediate_docx_markdown_if_dev(&format!("generated_{}", title), &markdown)
+    {
+        eprintln!("[DOCX DEV] Warning: {}", err);
+    }
+
+    convert_markdown_to_docx(markdown, template_docx_base64).await
 }
 
 #[tauri::command]
@@ -1591,17 +1784,31 @@ async fn export_question_bank_to_docx(
     subject: String,
     title: String,
     options: Option<WordExportOptions>,
-    state: State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<Vec<u8>, String> {
-    let entries = load_question_bank_entries(&subject, &state, &app_handle)?;
+    let base = knowledge_base_dir(&app_handle)
+        .ok_or_else(|| "No knowledge base directory available".to_string())?;
+    let entries = knowledge::load_question_bank_entries(&subject, Some(&base));
     let opts = options.unwrap_or(WordExportOptions {
         include_explanations: false,
         include_choices: true,
         version_count: 1,
         shuffle_choices: false,
         shuffle_questions: false,
+        template_docx_path: None,
     });
+
+    let template_docx_base64 = if let Some(path) = opts.template_docx_path.as_ref() {
+        if path.trim().is_empty() {
+            None
+        } else {
+            let bytes = fs::read(path)
+                .map_err(|e| format!("Failed to read template DOCX at {}: {}", path, e))?;
+            Some(base64::engine::general_purpose::STANDARD.encode(bytes))
+        }
+    } else {
+        None
+    };
 
     let version_count = opts.version_count.clamp(1, 20);
     let include_choices = opts.include_choices;
@@ -1617,6 +1824,7 @@ async fn export_question_bank_to_docx(
                 include_choices,
                 shuffle_choices,
                 shuffle_questions,
+                pandoc_docx_styles: true,
             },
         )?
     } else {
@@ -1632,6 +1840,7 @@ async fn export_question_bank_to_docx(
                     include_choices,
                     shuffle_choices,
                     shuffle_questions,
+                    pandoc_docx_styles: true,
                 },
             )?;
             sections.push(section);
@@ -1639,29 +1848,47 @@ async fn export_question_bank_to_docx(
 
         sections.join(&format!("\n\n{}\n\n", docx_page_break_marker()))
     };
-    convert_markdown_to_docx(markdown).await
+    if let Err(err) =
+        save_intermediate_docx_markdown_if_dev(&format!("bank_{}_{}", subject, title), &markdown)
+    {
+        eprintln!("[DOCX DEV] Warning: {}", err);
+    }
+
+    convert_markdown_to_docx(markdown, template_docx_base64).await
 }
 
-/// Load question bank JSON for a subject from disk
+/// List available V2 question-bank files for a subject.
 #[tauri::command]
-fn load_question_bank(
+fn list_question_bank_files(subject: String, app_handle: AppHandle) -> Result<Vec<String>, String> {
+    let base = knowledge_base_dir(&app_handle)
+        .ok_or_else(|| "No knowledge base directory available".to_string())?;
+    knowledge::list_question_bank_files(&subject, Some(&base))
+}
+
+/// Load one V2 question-bank file.
+#[tauri::command]
+fn load_question_bank_file(
     subject: String,
-    state: State<AppState>,
+    file_name: String,
     app_handle: AppHandle,
-) -> Result<Vec<QuestionBankEntry>, String> {
-    load_question_bank_entries(&subject, &state, &app_handle)
+) -> Result<QuestionBankDocument, String> {
+    let base = knowledge_base_dir(&app_handle)
+        .ok_or_else(|| "No knowledge base directory available".to_string())?;
+    knowledge::read_question_bank_document(&subject, &file_name, Some(&base))
 }
 
-/// Save question bank JSON for a subject to disk (atomic write)
+/// Save one V2 question-bank file to its writable override path (atomic write).
 #[tauri::command]
-fn save_question_bank(
+fn save_question_bank_file(
     subject: String,
-    entries: Vec<QuestionBankEntry>,
+    file_name: String,
+    document: QuestionBankDocument,
     app_handle: AppHandle,
 ) -> Result<(), String> {
+    knowledge::validate_bank_location(&subject, &file_name)?;
     let base =
         knowledge_base_dir(&app_handle).ok_or_else(|| "No app data dir available".to_string())?;
-    let path = base.join(&subject).join("question-bank.json");
+    let path = base.join(&subject).join("banks").join(&file_name);
     let parent = path
         .parent()
         .ok_or_else(|| format!("Invalid path for subject: {}", subject))?;
@@ -1670,33 +1897,8 @@ fn save_question_bank(
     fs::create_dir_all(parent)
         .map_err(|e| format!("Failed to create dir {}: {}", parent.display(), e))?;
 
-    let file_model = QuestionBankFile {
-        questions: entries
-            .into_iter()
-            .map(|e| QuestionBankJsonEntry {
-                id: e.id,
-                difficulty: e.difficulty,
-                cognitive_level: e.cognitive_level,
-                content: QuestionContent {
-                    text: e.text,
-                    options: e.options,
-                    explanation: e.explanation,
-                },
-                pedagogy: Pedagogy {
-                    topics: e.topics,
-                    subtopics: e.subtopics,
-                    skills: e.skills,
-                },
-                distractors: DistractorsJson {
-                    common_mistakes: e.distractors.common_mistakes,
-                    common_errors: e.distractors.common_errors,
-                },
-            })
-            .collect(),
-    };
-
-    let json = serde_json::to_string_pretty(&file_model)
-        .map_err(|e| format!("Failed to serialize question bank: {}", e))?;
+    let json = serde_json::to_string_pretty(&document)
+        .map_err(|e| format!("Failed to serialize question bank {}: {}", file_name, e))?;
 
     let tmp_path = path.with_extension("json.tmp");
     {
@@ -1712,6 +1914,22 @@ fn save_question_bank(
         .map_err(|e| format!("Failed to replace {}: {}", path.display(), e))?;
 
     Ok(())
+}
+
+/// Set once the frontend is listening for `close-requested`. Until then (or if the UI fails to
+/// load) the window's close button works normally, so it can never become unclosable.
+static CLOSE_HANDLER_READY: AtomicBool = AtomicBool::new(false);
+
+/// The frontend calls this after registering its `close-requested` listener.
+#[tauri::command]
+fn register_close_handler() {
+    CLOSE_HANDLER_READY.store(true, Ordering::SeqCst);
+}
+
+/// Quit the app (the frontend calls this when the close button is used with no document open).
+#[tauri::command]
+fn quit_app(app_handle: AppHandle) {
+    app_handle.exit(0);
 }
 
 #[tauri::command]
@@ -1736,13 +1954,6 @@ fn write_document_file(path: String, content: String) -> Result<(), String> {
 fn main() {
     load_env_vars();
     log_startup_env_diagnostics();
-    let knowledge = knowledge::KnowledgeBase::load();
-
-    let state = AppState {
-        questions: Mutex::new(Vec::new()),
-        knowledge,
-        credentials: Mutex::new(None),
-    };
 
     let new_document = CustomMenuItem::new("new_document", "New").accelerator("CmdOrCtrl+N");
     let add_custom_question = CustomMenuItem::new("add_custom_question", "Add Custom Question...")
@@ -1794,7 +2005,7 @@ fn main() {
             .add_item(open_session)
             .add_item(open_recent.clone())
             .add_item(save_session)
-            .add_item(save_session_as)
+            .add_item(save_session_as.clone())
             .add_item(close_document.clone())
             .add_item(regenerate_all_questions.clone())
             .add_native_item(MenuItem::Separator)
@@ -1904,12 +2115,18 @@ fn main() {
         .add_submenu(help_menu);
 
     tauri::Builder::default()
-        .manage(state)
         .menu(menu)
         .setup(|app| {
             if let Some(main_window) = app.get_window("main") {
                 restore_window_state(&main_window);
             }
+            let writable_root = knowledge_base_dir(&app.handle());
+            let knowledge = knowledge::KnowledgeBase::load(writable_root.as_deref());
+            app.manage(AppState {
+                questions: Mutex::new(Vec::new()),
+                knowledge,
+                credentials: Mutex::new(None),
+            });
             Ok(())
         })
         .on_menu_event(|event| {
@@ -1967,7 +2184,16 @@ fn main() {
             }
         })
         .on_window_event(|event| match event.event() {
-            WindowEvent::Resized(_) | WindowEvent::Moved(_) | WindowEvent::CloseRequested { .. } => {
+            WindowEvent::CloseRequested { api, .. } => {
+                save_window_state(event.window());
+                // Let the frontend decide: close the open document (prompting to save) and
+                // return to the start screen, or quit if no document is open.
+                if CLOSE_HANDLER_READY.load(Ordering::SeqCst) {
+                    api.prevent_close();
+                    let _ = event.window().emit("close-requested", ());
+                }
+            }
+            WindowEvent::Resized(_) | WindowEvent::Moved(_) => {
                 save_window_state(event.window());
             }
             _ => {}
@@ -1995,11 +2221,176 @@ fn main() {
             export_to_qti,
             export_to_docx,
             export_question_bank_to_docx,
-            load_question_bank,
-            save_question_bank,
+            list_question_bank_files,
+            load_question_bank_file,
+            save_question_bank_file,
             read_document_file,
             write_document_file,
+            register_close_handler,
+            quit_app,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn question_bank_v2_round_trip_preserves_supported_fields() {
+        let input = r#"{
+    "schema_version": "2.0.0",
+    "source": "AP CSA Practice Exam",
+    "questions": [
+        {
+            "id": "pt1_q001",
+            "status": "active",
+            "_migration_note": "Imported from a legacy source.",
+            "text": "What is printed?",
+            "answers": [
+                {"id": "a", "text": "42", "is_correct": true, "explanation": "Correct trace."}
+            ],
+            "explanation": "Trace the expression.",
+            "topics": ["T009"],
+            "subtopics": ["ST041"],
+            "difficulty": "D2",
+            "cognitive_level": "B3"
+        }
+    ]
+}"#;
+
+        let document: QuestionBankDocument = serde_json::from_str(input).unwrap();
+        assert_eq!(document.source, "AP CSA Practice Exam");
+        assert_eq!(
+            document.questions[0].migration_note.as_deref(),
+            Some("Imported from a legacy source.")
+        );
+        assert_eq!(
+            document.questions[0].answers[0].explanation,
+            "Correct trace."
+        );
+
+        let serialized = serde_json::to_string(&document).unwrap();
+        assert!(serialized.contains("\"_migration_note\""));
+        assert!(!serialized.contains("\"skills\""));
+        assert!(!serialized.contains("\"distractors\""));
+    }
+
+    #[test]
+    fn question_bank_v2_rejects_nested_legacy_entries() {
+        let legacy = r#"{
+    "questions": [
+        {
+            "id": "legacy_q1",
+            "difficulty": "D1",
+            "cognitive_level": "B2",
+            "content": {"text": "Legacy", "options": [], "explanation": "Legacy"},
+            "pedagogy": {"topics": [], "subtopics": null, "skills": []},
+            "distractors": {"common_mistakes": [], "common_errors": []}
+        }
+    ]
+}"#;
+
+        assert!(serde_json::from_str::<QuestionBankDocument>(legacy).is_err());
+    }
+}
+
+#[cfg(test)]
+mod subtopic_selection_tests {
+    use super::*;
+
+    fn question_with_subtopics(subs: &[&str]) -> Question {
+        Question {
+            id: String::new(),
+            text: String::new(),
+            answers: Vec::new(),
+            explanation: None,
+            rubric: None,
+            subject: String::new(),
+            topics: Vec::new(),
+            difficulty: String::new(),
+            cognitive_level: String::new(),
+            subtopics: subs.iter().map(|s| s.to_string()).collect(),
+        }
+    }
+
+    fn subs(ids: &[&str]) -> Vec<prompts::SubtopicRef> {
+        ids.iter()
+            .map(|id| prompts::SubtopicRef { id: id.to_string(), name: id.to_string() })
+            .collect()
+    }
+
+    #[test]
+    fn pick_subtopic_prefers_unused_subtopics() {
+        let available = subs(&["ST006", "ST007", "ST008"]);
+        let existing = vec![
+            question_with_subtopics(&["ST006"]),
+            question_with_subtopics(&["ST008"]),
+            question_with_subtopics(&[]),
+        ];
+        for _ in 0..50 {
+            assert_eq!(pick_subtopic(&available, &existing).unwrap().id, "ST007");
+        }
+    }
+
+    fn question_with_topics(topics: &[&str], subs: &[&str]) -> Question {
+        let mut q = question_with_subtopics(subs);
+        q.topics = topics.iter().map(|t| t.to_string()).collect();
+        q
+    }
+
+    fn topic(id: &str, children: &[&str]) -> TopicInfo {
+        TopicInfo {
+            id: id.to_string(),
+            name: id.to_string(),
+            description: String::new(),
+            example_count: 0,
+            children: children
+                .iter()
+                .map(|c| SubtopicInfo {
+                    id: c.to_string(),
+                    name: c.to_string(),
+                    description: String::new(),
+                    example_count: 0,
+                    parent_topic: Some(id.to_string()),
+                })
+                .collect(),
+        }
+    }
+
+    #[test]
+    fn existing_set_only_lists_questions_on_requested_topics() {
+        let topics = vec![topic("T008", &["ST038", "ST083"]), topic("T009", &["ST041", "ST042"])];
+        let existing = vec![
+            question_with_topics(&["T008"], &["ST038"]),
+            question_with_topics(&["T009"], &["ST041"]),
+            question_with_topics(&["T009", "T010"], &[]),
+        ];
+        // Parent topic request keeps only that topic's questions.
+        let kept = existing_for_request(existing.clone(), &topics, &["T009".to_string()]);
+        assert_eq!(kept.len(), 2);
+        assert!(kept.iter().all(|q| q.topics.contains(&"T009".to_string())));
+        // A subtopic request resolves to its parent topic.
+        let kept = existing_for_request(existing.clone(), &topics, &["ST038".to_string()]);
+        assert_eq!(kept.len(), 1);
+        assert_eq!(kept[0].topics, vec!["T008".to_string()]);
+        // Unresolvable requests leave the set untouched.
+        let kept = existing_for_request(existing, &topics, &["T999".to_string()]);
+        assert_eq!(kept.len(), 3);
+    }
+
+    #[test]
+    fn pick_subtopic_handles_empty_and_fully_used_lists() {
+        assert!(pick_subtopic(&[], &[]).is_none());
+        let available = subs(&["ST006", "ST007"]);
+        let existing = vec![
+            question_with_subtopics(&["ST006"]),
+            question_with_subtopics(&["ST007"]),
+            question_with_subtopics(&["ST007"]),
+        ];
+        for _ in 0..50 {
+            assert_eq!(pick_subtopic(&available, &existing).unwrap().id, "ST006");
+        }
+    }
 }

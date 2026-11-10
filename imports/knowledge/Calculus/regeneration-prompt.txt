@@ -5,17 +5,12 @@ Here is the current question JSON (full object):
 {current_question_json}
 ```
 
-It is a level {difficulty} question about {topics}.
-Metadata:
-- subject: {subject}
-- style/cognitive target: {style}
-
 Please craft a NEW question that is similar in topic, complexity, and style, but not a paraphrase.
 
 Avoid duplicating these other questions in this set:
 {other_questions}
 
-Additional human instructions (optional):
+Additional human instructions (IMPORTANT PRIORITY):
 {user_instructions}
 
 Required guards:

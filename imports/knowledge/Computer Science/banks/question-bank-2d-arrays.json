@@ -1,0 +1,1672 @@
+{
+  "schema_version": "2.5.0",
+  "source": "AP CSA 2D Arrays practice set, 37 MCQ (duplicates of other banks omitted)",
+  "questions": [
+    {
+      "id": "arr2d_q001",
+      "status": "active",
+      "text": "In the following code segment, `board` is a properly declared and initialized 2D array of `int` values.\n\n```java\nint sum = 0;\nfor (int r = 0; r < board.length; r++)        // Line 2\n{\n   for (int c = 0; c < board[0].length; c++)   // Line 4\n   {\n      if (c % 2 != 0)                          // Line 6\n      {\n         sum += board[r][c];                   // Line 8\n      }\n   }\n}\n```\n\nThe code segment is intended to compute the sum of all elements in all rows that have odd-numbered row indices. However, the code segment is not working as intended. Which of the following changes can be made so that the code segment works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Changing line 2 to `for (int r = 0; r < board.length; r += 2)`",
+          "is_correct": false,
+          "explanation": "This visits only the even-numbered rows 0, 2, 4, ..., and the column test is still there, so it sums the odd-numbered columns of the even-numbered rows."
+        },
+        {
+          "id": "b",
+          "text": "Changing line 4 to `for (int c = 1; c < board[0].length; c += 2)`",
+          "is_correct": false,
+          "explanation": "This visits the same odd-numbered columns the original `if` already selects, so the result is unchanged (the sum of the odd-numbered columns in all rows); it confuses columns with rows."
+        },
+        {
+          "id": "c",
+          "text": "Changing line 6 to `if (r % 2 != 0)`",
+          "is_correct": true,
+          "explanation": "Correct. The test must use the row index `r`, not the column index `c`, to decide whether a row is odd-numbered. With `if (r % 2 != 0)`, every element of rows 1, 3, 5, ... is added to `sum`, and every column in those rows is visited by the inner loop."
+        },
+        {
+          "id": "d",
+          "text": "Changing line 6 to `if (r % 2 == 0)`",
+          "is_correct": false,
+          "explanation": "This tests the row index but selects the even-numbered rows instead of the odd-numbered ones."
+        }
+      ],
+      "explanation": "The test must use the row index `r`, not the column index `c`, to decide whether a row is odd-numbered. With `if (r % 2 != 0)`, every element of rows 1, 3, 5, ... is added to `sum`, and every column in those rows is visited by the inner loop.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST083"
+      ],
+      "skills": [
+        "SK004",
+        "SK020"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arr2d_q002",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[][] anArray = new int[10][8];\n\nfor (int j = 0; j < 8; j++)\n{\n   for (int k = 0; k < 10; k++)\n   {\n      anArray[j][k] = 5;\n   }\n}\n```\n\nThe code segment causes an `ArrayIndexOutOfBoundsException` to be thrown. How many elements in `anArray` will be set to `5` before the exception is thrown?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "8",
+          "is_correct": true,
+          "explanation": "Correct. `anArray` has 10 rows and 8 columns, but the inner loop uses `k` (up to 9) as the column index. When `j` is `0`, the assignments to `anArray[0][0]` through `anArray[0][7]` succeed, and the attempt to access `anArray[0][8]` throws the exception, so 8 elements are set to `5`."
+        },
+        {
+          "id": "b",
+          "text": "9",
+          "is_correct": false,
+          "explanation": "The failing assignment to `anArray[0][8]` never stores a value, so it should not be counted."
+        },
+        {
+          "id": "c",
+          "text": "64",
+          "is_correct": false,
+          "explanation": "This assumes the loops run to completion over 8 rows and 8 columns, but the exception is thrown during the first row."
+        },
+        {
+          "id": "d",
+          "text": "80",
+          "is_correct": false,
+          "explanation": "This is the total number of elements in the array; the exception stops the code long before every element is set."
+        }
+      ],
+      "explanation": "`anArray` has 10 rows and 8 columns, but the inner loop uses `k` (up to 9) as the column index. When `j` is `0`, the assignments to `anArray[0][0]` through `anArray[0][7]` succeed, and the attempt to access `anArray[0][8]` throws the exception, so 8 elements are set to `5`.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082",
+        "ST038"
+      ],
+      "skills": [
+        "SK010",
+        "SK001"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q003",
+      "status": "active",
+      "text": "Assume `mat` is defined as follows.\n\n```java\nint dim = 4;\nint[][] mat = new int[dim][dim];\n```\n\nConsider the following code segment.\n\n```java\nint sum = 0;\nfor (int row = 0; row < dim; row++)\n{\n   sum = sum + mat[row][dim - 1];\n}\n```\n\nAssume that `mat` contains the following values before the code segment is executed. Note that `mat[0][3]` is `2`.\n\n| | 0 | 1 | 2 | 3 |\n|---|---|---|---|---|\n| **0** | 1 | 1 | 2 | 2 |\n| **1** | 1 | 2 | 2 | 4 |\n| **2** | 1 | 3 | 2 | 6 |\n| **3** | 1 | 4 | 2 | 8 |\n\nWhat value will `sum` contain after the code segment is executed?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "6",
+          "is_correct": false,
+          "explanation": "This is the sum of row 0 (`1 + 1 + 2 + 2`), which would result from traversing a row instead of a column."
+        },
+        {
+          "id": "b",
+          "text": "8",
+          "is_correct": false,
+          "explanation": "This is the sum of column 2 (`2 + 2 + 2 + 2`), which results from an off-by-one error that uses column index `2` instead of `3`; it is also the single value `mat[3][3]`."
+        },
+        {
+          "id": "c",
+          "text": "15",
+          "is_correct": false,
+          "explanation": "This is the sum of row 3 (`1 + 4 + 2 + 8`), which results from swapping the indices to `mat[dim - 1][row]`."
+        },
+        {
+          "id": "d",
+          "text": "20",
+          "is_correct": true,
+          "explanation": "Correct. The column index is always `dim - 1`, which is `3`, while `row` goes from `0` to `3`. The loop therefore adds the last column: `2 + 4 + 6 + 8 = 20`."
+        }
+      ],
+      "explanation": "The column index is always `dim - 1`, which is `3`, while `row` goes from `0` to `3`. The loop therefore adds the last column: `2 + 4 + 6 + 8 = 20`.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082",
+        "ST040",
+        "ST083"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q005",
+      "status": "active",
+      "text": "Assume that `mat` has been declared as a 4 × 4 array of integers and has been initialized to contain all `1`s. Consider the following code segment.\n\n```java\nint n = mat.length;\nfor (int j = 1; j < n; j++)\n{\n   for (int k = 1; k < n; k++)\n   {\n      mat[j][k] = mat[j - 1][k] + mat[j][k - 1];\n   }\n}\n```\n\nWhat is the value of `mat[2][2]` after the code segment has completed execution?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "2",
+          "is_correct": false,
+          "explanation": "This uses the original value `1` for both neighbors, ignoring that the neighbors were updated earlier in the traversal."
+        },
+        {
+          "id": "b",
+          "text": "3",
+          "is_correct": false,
+          "explanation": "This is the value of `mat[1][2]` or `mat[2][1]`, one of the two neighbors, not their sum."
+        },
+        {
+          "id": "c",
+          "text": "4",
+          "is_correct": false,
+          "explanation": "This adds the updated `mat[1][2]` (3) to the original `mat[2][1]` (1), overlooking that `mat[2][1]` is updated just before `mat[2][2]`."
+        },
+        {
+          "id": "d",
+          "text": "6",
+          "is_correct": true,
+          "explanation": "Correct. The first row and first column keep their value `1`; every other element, visited in row-major order, becomes the sum of the (already updated) element above it and the element to its left. Row 1 becomes `1, 2, 3, 4`; then `mat[2][1] = mat[1][1] + mat[2][0] = 2 + 1 = 3` and `mat[2][2] = mat[1][2] + mat[2][1] = 3 + 3 = 6`."
+        }
+      ],
+      "explanation": "The first row and first column keep their value `1`; every other element, visited in row-major order, becomes the sum of the (already updated) element above it and the element to its left. Row 1 becomes `1, 2, 3, 4`; then `mat[2][1] = mat[1][1] + mat[2][0] = 2 + 1 = 3` and `mat[2][2] = mat[1][2] + mat[2][1] = 3 + 3 = 6`.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082",
+        "ST038",
+        "ST039"
+      ],
+      "skills": [
+        "SK001",
+        "SK018"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q006",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[][] board = new int[5][4];\n\n/* code to initialize board */\n\nint total = 0;\nfor (int r = 1; r < board.length; r += 2)\n{\n   for (int c = 0; c < board[0].length; c++)\n   {\n      total += board[r][c];\n   }\n}\n```\n\nWhich of the following best describes the value of `total` as a result of executing the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "It contains the sum of elements in even-numbered rows.",
+          "is_correct": false,
+          "explanation": "Sum of the even-numbered rows: rows 0, 2, and 4 are skipped because `r` starts at `1`, not `0`."
+        },
+        {
+          "id": "b",
+          "text": "It contains the sum of elements in odd-numbered rows.",
+          "is_correct": true,
+          "explanation": "Correct. The outer loop variable `r` starts at `1` and increases by `2`, so only rows 1 and 3 (the odd-numbered rows) are visited. The inner loop visits every column of those rows, so `total` is the sum of all elements in the odd-numbered rows."
+        },
+        {
+          "id": "c",
+          "text": "It contains the sum of elements in even-numbered columns.",
+          "is_correct": false,
+          "explanation": "Sum of the even-numbered columns: the inner loop visits every column; the stepping by `2` applies to rows, not columns."
+        },
+        {
+          "id": "d",
+          "text": "It contains the sum of elements in odd-numbered columns.",
+          "is_correct": false,
+          "explanation": "Sum of the odd-numbered columns: this confuses the row index `r` (the first index) with the column index."
+        }
+      ],
+      "explanation": "The outer loop variable `r` starts at `1` and increases by `2`, so only rows 1 and 3 (the odd-numbered rows) are visited. The inner loop visits every column of those rows, so `total` is the sum of all elements in the odd-numbered rows.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST083"
+      ],
+      "skills": [
+        "SK003",
+        "SK005"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "arr2d_q007",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nString[][] words = {{\"Hello,\", \"Hi,\", \"Hey,\"},\n                    {\"it's\", \"it is\", \"it really is\"},\n                    {\"nice\", \"great\", \"a pleasure\"},\n                    {\"to\", \"to get to\", \"to finally\"},\n                    {\"meet\", \"see\", \"catch up with\"},\n                    {\"you\", \"you again\", \"you all\"}};\n\nfor (int j = 0; j < words.length; j++)\n{\n   for (int k = 0; k < words[j].length; k++)\n   {\n      if (k == 1)\n      {\n         System.out.print(words[j][k] + \" \");\n      }\n   }\n}\n```\n\nWhat, if anything, is printed as a result of executing the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Nothing is printed due to an `ArrayIndexOutOfBoundsException`.",
+          "is_correct": false,
+          "explanation": "No output due to an exception: both loops stay within the bounds of `words` (`j < words.length`, `k < words[j].length`), so no exception occurs."
+        },
+        {
+          "id": "b",
+          "text": "Hello, it's nice to meet you",
+          "is_correct": false,
+          "explanation": "This is column index `0`, which results from treating `k == 1` as the first column (1-based indexing)."
+        },
+        {
+          "id": "c",
+          "text": "Hey, it really is a pleasure to finally catch up with you all",
+          "is_correct": false,
+          "explanation": "This is column index `2`, the last column, not column index `1`."
+        },
+        {
+          "id": "d",
+          "text": "Hi, it is great to get to see you again",
+          "is_correct": true,
+          "explanation": "Correct. The outer loop visits each of the six rows, and the `if` statement selects only the element in column index `1` of each row. Those elements are printed in order: `Hi, it is great to get to see you again`."
+        }
+      ],
+      "explanation": "The outer loop visits each of the six rows, and the `if` statement selects only the element in column index `1` of each row. Those elements are printed in order: `Hi, it is great to get to see you again`.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082",
+        "ST038"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q008",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[][] data = {{5, 8, 6},\n                {8, 2, 5},\n                {9, 8, 8},\n                {6, 8, 3}};\n\nint result = data[0][0];\nfor (int col = 0; col < data[0].length; col++)\n{\n   for (int row = 0; row < data.length; row++)\n   {\n      if (result > data[row][col])\n      {\n         result = data[row][col];\n      }\n   }\n}\n```\n\nWhat is the value of `result` after executing the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "2",
+          "is_correct": true,
+          "explanation": "Correct. `result` starts at `5` and is replaced whenever a smaller element is found, so after the traversal (column by column) it holds the minimum value in the array, `2`. The order of traversal does not affect which value is the minimum."
+        },
+        {
+          "id": "b",
+          "text": "3",
+          "is_correct": false,
+          "explanation": "This is the last element visited in column-major order (`data[3][2]`), but `result` only changes when a smaller value is found, and `3` is not smaller than `2`."
+        },
+        {
+          "id": "c",
+          "text": "5",
+          "is_correct": false,
+          "explanation": "This is the initial value `data[0][0]`; it is replaced when the smaller value `2` is found."
+        },
+        {
+          "id": "d",
+          "text": "9",
+          "is_correct": false,
+          "explanation": "This is the maximum value, which would result from reversing the comparison to `result < data[row][col]`."
+        }
+      ],
+      "explanation": "`result` starts at `5` and is replaced whenever a smaller element is found, so after the traversal (column by column) it holds the minimum value in the array, `2`. The order of traversal does not affect which value is the minimum.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST040",
+        "ST083"
+      ],
+      "skills": [
+        "SK001",
+        "SK018"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q009",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[][] mat = new int[3][4];\nfor (int row = 0; row < mat.length; row++)\n{\n   for (int col = 0; col < mat[0].length; col++)\n   {\n      if (row < col)\n      {\n         mat[row][col] = 1;\n      }\n      else if (row == col)\n      {\n         mat[row][col] = 2;\n      }\n      else\n      {\n         mat[row][col] = 3;\n      }\n   }\n}\n```\n\nWhat are the contents of `mat` after the code segment has been executed?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{{2, 1, 1}, {3, 2, 1}, {3, 3, 2}, {3, 3, 3}}`",
+          "is_correct": false,
+          "explanation": "This applies the rule to a 4-row, 3-column array, which results from reading `new int[3][4]` as 3 columns and 4 rows."
+        },
+        {
+          "id": "b",
+          "text": "`{{2, 3, 3, 3}, {1, 2, 3, 3}, {1, 1, 2, 3}}`",
+          "is_correct": false,
+          "explanation": "This puts `3` above the diagonal and `1` below it, reversing the meaning of `row < col`."
+        },
+        {
+          "id": "c",
+          "text": "`{{2, 1, 1, 1}, {3, 2, 1, 1}, {3, 3, 2, 1}}`",
+          "is_correct": true,
+          "explanation": "Correct. `mat` has 3 rows and 4 columns. Elements on the diagonal (`row == col`) get `2`, elements above it (`row < col`) get `1`, and elements below it (`row > col`) get `3`, giving `{{2, 1, 1, 1}, {3, 2, 1, 1}, {3, 3, 2, 1}}`."
+        },
+        {
+          "id": "d",
+          "text": "`{{1, 1, 1, 1}, {2, 2, 2, 2}, {3, 3, 3, 3}}`",
+          "is_correct": false,
+          "explanation": "This fills each row with a single value as if the value depended only on the row, but it depends on comparing `row` with `col`."
+        }
+      ],
+      "explanation": "`mat` has 3 rows and 4 columns. Elements on the diagonal (`row == col`) get `2`, elements above it (`row < col`) get `1`, and elements below it (`row > col`) get `3`, giving `{{2, 1, 1, 1}, {3, 2, 1, 1}, {3, 3, 2, 1}}`.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082",
+        "ST038"
+      ],
+      "skills": [
+        "SK001",
+        "SK020"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q010",
+      "status": "active",
+      "text": "In the following method, the parameter `temps` is a two-dimensional array of temperatures. The method is intended to return the number of temperatures in a rectangular portion of the array that are greater than 100. The portion is defined by rows `r1` to `r2`, inclusive, and columns `c1` to `c2`, inclusive.\n\n```java\n/**\n * Preconditions: 0 <= r1 <= r2 < temps.length\n *                0 <= c1 <= c2 < temps[0].length\n */\npublic static int countHighTempsInRegion(int[][] temps,\n                                         int r1, int r2, int c1, int c2)\n{\n   int count = 0;\n   /* missing code */\n   return count;\n}\n```\n\nWhich of the following can replace `/* missing code */` so that the method works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nfor (int r = 0; r < temps.length; r++)\n{\n   for (int c = 0; c < temps[0].length; c++)\n   {\n      if (temps[r][c] > 100)\n      {\n         count++;\n      }\n   }\n}\n```",
+          "is_correct": false,
+          "explanation": "Loops from `0` to `temps.length` and `temps[0].length`: this counts high temperatures in the entire array, not just the requested region."
+        },
+        {
+          "id": "b",
+          "text": "```java\nfor (int r = r1; r < r2; r++)\n{\n   for (int c = c1; c < c2; c++)\n   {\n      if (temps[r][c] > 100)\n      {\n         count++;\n      }\n   }\n}\n```",
+          "is_correct": false,
+          "explanation": "Loops using `r < r2` and `c < c2`: this treats the bounds as exclusive, so row `r2` and column `c2` are skipped even though the region includes them."
+        },
+        {
+          "id": "c",
+          "text": "```java\nfor (int r = r1; r <= r2; r++)\n{\n   for (int c = c1; c <= c2; c++)\n   {\n      if (temps[r][c] > 100)\n      {\n         count++;\n      }\n   }\n}\n```",
+          "is_correct": true,
+          "explanation": "Correct. The outer loop must visit rows `r1` through `r2` and the inner loop columns `c1` through `c2`, both inclusive, so the loop conditions use `<=`. Each element `temps[r][c]` in that region is compared to `100`, and `count` is incremented when it is greater."
+        },
+        {
+          "id": "d",
+          "text": "```java\nfor (int r = r1; r <= r2; r++)\n{\n   for (int c = c1; c <= c2; c++)\n   {\n      if (temps[c][r] > 100)\n      {\n         count++;\n      }\n   }\n}\n```",
+          "is_correct": false,
+          "explanation": "Loops using `<=` but accessing `temps[c][r]`: the indices are swapped, so it examines the wrong elements and can throw an `ArrayIndexOutOfBoundsException` when the array is not square."
+        }
+      ],
+      "explanation": "The outer loop must visit rows `r1` through `r2` and the inner loop columns `c1` through `c2`, both inclusive, so the loop conditions use `<=`. Each element `temps[r][c]` in that region is compared to `100`, and `count` is incremented when it is greater.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST083"
+      ],
+      "skills": [
+        "SK018",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arr2d_q012",
+      "status": "active",
+      "text": "The following method is intended to return `true` if all elements in row `x` of the 2D array `nums` are positive and `false` otherwise.\n\n```java\n/**\n * Precondition: x is a valid row index of nums.\n */\npublic static boolean allPositiveInRow(int[][] nums, int x)\n{\n   boolean allPositive = /* initial value */;\n   for (int y = 0; y < nums[0].length; y++)\n   {\n      if (nums[x][y] <= 0)\n      {\n         allPositive = /* updated value */;\n      }\n   }\n   return allPositive;\n}\n```\n\nWhich of the following replacements for `/* initial value */` and `/* updated value */` can be used so that the method works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Replace `/* initial value */` with `true` and replace `/* updated value */` with `true`.",
+          "is_correct": false,
+          "explanation": "Initial `true`, updated `true`: the variable can never become `false`, so the method always returns `true`."
+        },
+        {
+          "id": "b",
+          "text": "Replace `/* initial value */` with `true` and replace `/* updated value */` with `false`.",
+          "is_correct": true,
+          "explanation": "Correct. The method should assume the row is all positive (`true`) and change its answer to `false` as soon as a non-positive element (`nums[x][y] <= 0`) is found. Once set to `false`, nothing sets it back, so the method returns `true` only if every element in the row is positive."
+        },
+        {
+          "id": "c",
+          "text": "Replace `/* initial value */` with `false` and replace `/* updated value */` with `true`.",
+          "is_correct": false,
+          "explanation": "Initial `false`, updated `true`: this returns `true` exactly when the row contains a non-positive element, the opposite of the intended result."
+        },
+        {
+          "id": "d",
+          "text": "Replace `/* initial value */` with `false` and replace `/* updated value */` with `false`.",
+          "is_correct": false,
+          "explanation": "Initial `false`, updated `false`: the variable can never become `true`, so the method always returns `false`."
+        }
+      ],
+      "explanation": "The method should assume the row is all positive (`true`) and change its answer to `false` as soon as a non-positive element (`nums[x][y] <= 0`) is found. Once set to `false`, nothing sets it back, so the method returns `true` only if every element in the row is positive.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST083"
+      ],
+      "skills": [
+        "SK020",
+        "SK009"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q013",
+      "status": "active",
+      "text": "A two-dimensional array `arr` is to be created with the following contents.\n\n```java\nboolean[][] arr = {{false, true, false},\n                   {false, false, true}};\n```\n\nWhich of the following code segments can be used to correctly create and initialize `arr`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nboolean arr[][] = new boolean[2][3];\narr[0][1] = true;\narr[1][2] = true;\n```",
+          "is_correct": true,
+          "explanation": "Correct. `new boolean[2][3]` creates 2 rows and 3 columns with every element set to the default value `false`. Setting `arr[0][1]` and `arr[1][2]` to `true` produces exactly the required contents."
+        },
+        {
+          "id": "b",
+          "text": "```java\nboolean arr[][] = new boolean[2][3];\narr[1][2] = true;\narr[2][3] = true;\n```",
+          "is_correct": false,
+          "explanation": "This counts positions starting at 1; `arr[2][3]` is out of bounds and throws an `ArrayIndexOutOfBoundsException`."
+        },
+        {
+          "id": "c",
+          "text": "```java\nboolean arr[][] = new boolean[3][2];\narr[0][1] = true;\narr[1][2] = true;\n```",
+          "is_correct": false,
+          "explanation": "The dimensions are swapped (3 rows, 2 columns), so `arr[1][2]` is out of bounds and throws an exception."
+        },
+        {
+          "id": "d",
+          "text": "```java\nboolean arr[][] = new boolean[3][2];\narr[1][0] = true;\narr[2][1] = true;\n```",
+          "is_correct": false,
+          "explanation": "This swaps both the dimensions and the indices, creating the 3-by-2 transpose of the required array."
+        }
+      ],
+      "explanation": "`new boolean[2][3]` creates 2 rows and 3 columns with every element set to the default value `false`. Setting `arr[0][1]` and `arr[1][2]` to `true` produces exactly the required contents.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082"
+      ],
+      "skills": [
+        "SK008",
+        "SK010"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q015",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static boolean checkIndices(double[][] data,\n                                   int row, int col)\n{\n   int numRows = data.length;\n\n   if (row < numRows)\n   {\n      int numCols = data[0].length;\n      return col < numCols;\n   }\n   else\n   {\n      return false;\n   }\n}\n```\n\nConsider the following statement, which appears in a method in the same class as `checkIndices`.\n\n```java\ndouble[][] table = new double[5][6];\n```\n\nWhich of the following method calls will return the value `true`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`checkIndices(table, 4, 5)`",
+          "is_correct": true,
+          "explanation": "Correct. For `table`, `numRows` is `5` and `numCols` is `6`, so the method returns `true` only when `row < 5` and `col < 6`, that is, when the indices are valid. In `checkIndices(table, 4, 5)`, `4 < 5` and `5 < 6`, so it returns `true`."
+        },
+        {
+          "id": "b",
+          "text": "`checkIndices(table, 4, 6)`",
+          "is_correct": false,
+          "explanation": "`6 < 6` is false; the last valid column index is `5`, not the number of columns."
+        },
+        {
+          "id": "c",
+          "text": "`checkIndices(table, 5, 4)`",
+          "is_correct": false,
+          "explanation": "`5 < 5` is false, so the `else` branch returns `false`; the last valid row index is `4`."
+        },
+        {
+          "id": "d",
+          "text": "`checkIndices(table, 5, 6)`",
+          "is_correct": false,
+          "explanation": "Both values equal the dimensions, which is one past the last valid index in each direction, so it returns `false`."
+        }
+      ],
+      "explanation": "For `table`, `numRows` is `5` and `numCols` is `6`, so the method returns `true` only when `row < 5` and `col < 6`, that is, when the indices are valid. In `checkIndices(table, 4, 5)`, `4 < 5` and `5 < 6`, so it returns `true`.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082"
+      ],
+      "skills": [
+        "SK010",
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q016",
+      "status": "active",
+      "text": "Consider the following method, which is intended to return the number of columns in the two-dimensional array `arr` for which the sum of the elements in the column is greater than the parameter `val`.\n\n```java\npublic int countCols(int[][] arr, int val)\n{\n   int count = 0;\n\n   for (int col = 0; col < arr[0].length; col++) // Line 5\n   {\n      int sum = 0;\n      for (int[] row : col) // Line 8\n      {\n         sum += row[col]; // Line 10\n      }\n      if (sum > val)\n      {\n         count++;\n      }\n   }\n   return count;\n}\n```\n\nThe `countCols` method does not work as intended. Which of the following changes should be made so the method works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Line 5 should be changed to `for (int col = 0; col < arr.length; col++)`",
+          "is_correct": false,
+          "explanation": "Changing line 5 to use `arr.length`: this would loop over the number of rows instead of columns, and line 8 would still try to iterate over an `int`, so the code still does not compile."
+        },
+        {
+          "id": "b",
+          "text": "Line 8 should be changed to `for (int row : col)`",
+          "is_correct": false,
+          "explanation": "Changing line 8 to `for (int row : col)`: `col` is still an `int`, which cannot be traversed with an enhanced `for` loop."
+        },
+        {
+          "id": "c",
+          "text": "Line 8 should be changed to `for (int[] row : arr)`",
+          "is_correct": true,
+          "explanation": "Correct. A 2D array is an array of rows, so an enhanced `for` loop over `arr` assigns each row (an `int[]`) to `row` in turn. The original line 8 tries to iterate over `col`, which is an `int` and not an array, so it does not compile. With `for (int[] row : arr)`, `row[col]` picks the element of the current column from each row, and the column sums are computed correctly."
+        },
+        {
+          "id": "d",
+          "text": "Line 10 should be changed to `sum += arr[row][col];`",
+          "is_correct": false,
+          "explanation": "Changing line 10 to `sum += arr[row][col];`: line 8 is still invalid, and even with a valid loop `row` would be an `int[]`, which cannot be used as an index."
+        }
+      ],
+      "explanation": "A 2D array is an array of rows, so an enhanced `for` loop over `arr` assigns each row (an `int[]`) to `row` in turn. The original line 8 tries to iterate over `col`, which is an `int` and not an array, so it does not compile. With `for (int[] row : arr)`, `row[col]` picks the element of the current column from each row, and the column sums are computed correctly.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST040",
+        "ST083"
+      ],
+      "skills": [
+        "SK004",
+        "SK008"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arr2d_q017",
+      "status": "active",
+      "text": "Consider the following code segment, which is intended to create and initialize the two-dimensional array `num` so that columns with an even index will contain only even integers and columns with an odd index will contain only odd integers.\n\n```java\nint[][] num = /* missing code */;\n```\n\nWhich of the following initializer lists could replace `/* missing code */` so that the code segment will work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{{0, 1, 2}, {4, 5, 6}, {8, 3, 6}}`",
+          "is_correct": true,
+          "explanation": "Correct. Each inner list is a row, so the columns are read down the rows. For `{{0, 1, 2}, {4, 5, 6}, {8, 3, 6}}`, column 0 is `0, 4, 8` (even), column 1 is `1, 5, 3` (odd), and column 2 is `2, 6, 6` (even), which meets the requirement."
+        },
+        {
+          "id": "b",
+          "text": "`{{1, 2, 3}, {3, 4, 5}, {5, 6, 7}}`",
+          "is_correct": false,
+          "explanation": "Column 0 is `1, 3, 5`, which is odd, the reverse of the requirement."
+        },
+        {
+          "id": "c",
+          "text": "`{{2, 1, 4}, {5, 2, 3}, {2, 7, 1}}`",
+          "is_correct": false,
+          "explanation": "Only the first row follows the pattern; column 0 contains `5` and column 1 contains `2`."
+        },
+        {
+          "id": "d",
+          "text": "`{{2, 4, 6}, {1, 3, 5}, {6, 4, 2}}`",
+          "is_correct": false,
+          "explanation": "This applies the even/odd rule to rows instead of columns (rows 0 and 2 are even, row 1 is odd)."
+        }
+      ],
+      "explanation": "Each inner list is a row, so the columns are read down the rows. For `{{0, 1, 2}, {4, 5, 6}, {8, 3, 6}}`, column 0 is `0, 4, 8` (even), column 1 is `1, 5, 3` (odd), and column 2 is `2, 6, 6` (even), which meets the requirement.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082"
+      ],
+      "skills": [
+        "SK005",
+        "SK009"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q018",
+      "status": "active",
+      "text": "Consider the following code segment, which is intended to declare and initialize the two-dimensional `String` array `things`.\n\n```java\n/* missing code */ = {{\"spices\", \"garlic\", \"onion\", \"pepper\"},\n                      {\"clothing\", \"hat\", \"scarf\", \"gloves\"},\n                      {\"plants\", \"tree\", \"bush\", \"flower\"},\n                      {\"vehicles\", \"car\", \"boat\", \"airplane\"}};\n```\n\nWhich of the following could replace `/* missing code */` so that `things` is properly declared?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`new String[][] things`",
+          "is_correct": false,
+          "explanation": "`new` creates an array object and cannot appear in a variable declaration's type."
+        },
+        {
+          "id": "b",
+          "text": "`new(String[][]) things`",
+          "is_correct": false,
+          "explanation": "This is not valid Java syntax; `new` is not called like a method."
+        },
+        {
+          "id": "c",
+          "text": "`String[] String[] things`",
+          "is_correct": false,
+          "explanation": "A 2D array type is written with both bracket pairs after a single element type, not by repeating the type."
+        },
+        {
+          "id": "d",
+          "text": "`String[][] things`",
+          "is_correct": true,
+          "explanation": "Correct. A 2D array variable is declared with the element type, two pairs of brackets, and the name: `String[][] things`. An initializer list can then supply the contents directly, with no `new` needed."
+        }
+      ],
+      "explanation": "A 2D array variable is declared with the element type, two pairs of brackets, and the name: `String[][] things`. An initializer list can then supply the contents directly, with no `new` needed.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082"
+      ],
+      "skills": [
+        "SK008"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B1"
+    },
+    {
+      "id": "arr2d_q019",
+      "status": "active",
+      "text": "Consider the following method, `countAs`, which is intended to traverse all the elements in the two-dimensional (2D) `String` array `things` and return the total number of elements that contain at least one `\"a\"`. The method does not always work as intended.\n\n```java\npublic static int countAs(String[][] things)\n{\n   int count = 0;\n   for (int r = 0; r < things.length; r++)\n   {\n      for (int c = 0; c < things[r].length - 1; c++)\n      {\n         if (things[r][c].indexOf(\"a\") >= 0)\n         {\n            count++;\n         }\n      }\n   }\n   return count;\n}\n```\n\nFor example, consider the following initialization.\n\n```java\nString[][] order = {{\"salad\", \"soup\"},\n                    {\"water\", \"coffee\"}};\n```\n\nThe method call `countAs(order)` should return `2`.\n\nFor which of the following two-dimensional arrays arguments does `countAs` **not** work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{{\"lemon\"}, {\"lime\"}}`",
+          "is_correct": false,
+          "explanation": "No element contains `\"a\"`, so the correct answer is `0`, and the method returns `0` even though it skips every element."
+        },
+        {
+          "id": "b",
+          "text": "`{{\"rabbit\", \"bird\"}, {\"cat\", \"dog\"}, {\"gecko\", \"turtle\"}}`",
+          "is_correct": false,
+          "explanation": "The skipped last elements (`\"bird\"`, `\"dog\"`, `\"turtle\"`) contain no `\"a\"`, so the method correctly returns `2`."
+        },
+        {
+          "id": "c",
+          "text": "`{{\"scarf\", \"gloves\", \"hat\"}, {\"shoes\", \"shirt\", \"socks\"}}`",
+          "is_correct": true,
+          "explanation": "Correct. The inner loop condition `c < things[r].length - 1` skips the last element of every row, so the method fails only when some row's last element contains `\"a\"`. In `{{\"scarf\", \"gloves\", \"hat\"}, {\"shoes\", \"shirt\", \"socks\"}}`, the last element `\"hat\"` is skipped, so the method returns `1` instead of `2`."
+        },
+        {
+          "id": "d",
+          "text": "`{{\"math\", \"english\", \"physics\"}, {\"golf\", \"baseball\", \"soccer\"}}`",
+          "is_correct": false,
+          "explanation": "The skipped last elements (`\"physics\"`, `\"soccer\"`) contain no `\"a\"`, so the method correctly returns `2`."
+        }
+      ],
+      "explanation": "The inner loop condition `c < things[r].length - 1` skips the last element of every row, so the method fails only when some row's last element contains `\"a\"`. In `{{\"scarf\", \"gloves\", \"hat\"}, {\"shoes\", \"shirt\", \"socks\"}}`, the last element `\"hat\"` is skipped, so the method returns `1` instead of `2`.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST083"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arr2d_q020",
+      "status": "active",
+      "text": "Consider the following method, `sumRows`, which is intended to traverse all the rows in the two-dimensional (2D) integer array `num` and print the sum of all the elements in each row.\n\n```java\npublic static void sumRows(int[][] num)\n{\n   for (int[] r : num)\n   {\n      int sum = 0;\n      for (int j = 0; j < num.length; j++)\n      {\n         sum += r[j];\n      }\n      System.out.print(sum + \" \");\n   }\n}\n```\n\nFor example, if `num` contains `{{3, 5}, {6, 8}}`, then `sumRows(num)` should print the following.\n\n```text\n8 14\n```\n\nThe method does not always work as intended. For which of the following two-dimensional array input values does `sumRows` **not** work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{{10, -18}, {48, 17}}`",
+          "is_correct": false,
+          "explanation": "The array is square, so `num.length` equals the row length and every element is added."
+        },
+        {
+          "id": "b",
+          "text": "`{{-5, 2, 0}, {4, 11, 0}}`",
+          "is_correct": false,
+          "explanation": "The third element of each row is skipped, but it is `0`, so the printed sums `-3 15` are still correct."
+        },
+        {
+          "id": "c",
+          "text": "`{{4, 1, 7}, {-10, -11, -12}}`",
+          "is_correct": true,
+          "explanation": "Correct. The inner loop uses `num.length` (the number of rows) instead of `r.length` (the number of elements in the row). For `{{4, 1, 7}, {-10, -11, -12}}`, there are 2 rows of 3 elements, so only the first two elements of each row are added: it prints `5 -21` instead of `12 -33`."
+        },
+        {
+          "id": "d",
+          "text": "`{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}`",
+          "is_correct": false,
+          "explanation": "The array is square, so every element is added and the sums are correct."
+        }
+      ],
+      "explanation": "The inner loop uses `num.length` (the number of rows) instead of `r.length` (the number of elements in the row). For `{{4, 1, 7}, {-10, -11, -12}}`, there are 2 rows of 3 elements, so only the first two elements of each row are added: it prints `5 -21` instead of `12 -33`.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST082",
+        "ST083"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arr2d_q021",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[][] arr = {{6, 2, 5, 7},\n               {7, 6, 1, 2}};\nfor (int j = 0; j < arr.length; j++)\n{\n   for (int k = 0; k < arr[0].length; k++)\n   {\n      if (arr[j][k] > j + k)\n      {\n         System.out.println(\"!\");\n      }\n   }\n}\n```\n\nHow many times will `\"!\"` be printed when the code segment is executed?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "2 times",
+          "is_correct": false,
+          "explanation": "This counts only the qualifying elements in row 1."
+        },
+        {
+          "id": "b",
+          "text": "4 times",
+          "is_correct": false,
+          "explanation": "This counts only the qualifying elements in row 0."
+        },
+        {
+          "id": "c",
+          "text": "6 times",
+          "is_correct": true,
+          "explanation": "Correct. `\"!\"` is printed for each element greater than the sum of its row and column indexes. In row 0 the index sums are `0, 1, 2, 3` and all four elements (`6, 2, 5, 7`) are greater. In row 1 the sums are `1, 2, 3, 4`, and only `7` and `6` are greater, so `\"!\"` is printed `4 + 2 = 6` times."
+        },
+        {
+          "id": "d",
+          "text": "8 times",
+          "is_correct": false,
+          "explanation": "This counts every element, but `1` (compared with `3`) and `2` (compared with `4`) in row 1 are not greater than their index sums."
+        }
+      ],
+      "explanation": "`\"!\"` is printed for each element greater than the sum of its row and column indexes. In row 0 the index sums are `0, 1, 2, 3` and all four elements (`6, 2, 5, 7`) are greater. In row 1 the sums are `1, 2, 3, 4`, and only `7` and `6` are greater, so `\"!\"` is printed `4 + 2 = 6` times.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST082",
+        "ST083"
+      ],
+      "skills": [
+        "SK001",
+        "SK020"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q022",
+      "status": "active",
+      "text": "Consider the following two-dimensional array definition.\n\n```java\nint[][] data = new int[5][10];\n```\n\nConsider the following code segment, where all elements in `data` have been initialized.\n\n```java\nfor (int j = 0; j < data.length; j++)\n{\n   for (int k = 0; k < data[0].length; k++)\n   {\n      if (j == k)\n      {\n         System.out.println(data[j][k]);\n      }\n   }\n}\n```\n\nHow many times is the `println` method called when the code segment is executed?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "4",
+          "is_correct": false,
+          "explanation": "This is off by one; `j` takes the five values `0` through `4`."
+        },
+        {
+          "id": "b",
+          "text": "5",
+          "is_correct": true,
+          "explanation": "Correct. `data.length` is `5` (rows) and `data[0].length` is `10` (columns), so `j` runs from `0` to `4` and `k` from `0` to `9`. The condition `j == k` is true once for each value of `j`, when `j` and `k` are both `0`, `1`, `2`, `3`, or `4`, so `println` is called 5 times."
+        },
+        {
+          "id": "c",
+          "text": "9",
+          "is_correct": false,
+          "explanation": "This is the largest column index, not the number of matching index pairs."
+        },
+        {
+          "id": "d",
+          "text": "10",
+          "is_correct": false,
+          "explanation": "This is the number of columns; `j == k` can only hold for the 5 values `j` takes."
+        }
+      ],
+      "explanation": "`data.length` is `5` (rows) and `data[0].length` is `10` (columns), so `j` runs from `0` to `4` and `k` from `0` to `9`. The condition `j == k` is true once for each value of `j`, when `j` and `k` are both `0`, `1`, `2`, `3`, or `4`, so `println` is called 5 times.",
+      "topics": [
+        "T008",
+        "T022"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST082",
+        "ST079"
+      ],
+      "skills": [
+        "SK011",
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q023",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[][] array2D = {{1, 2, 3, 4},\n                   {5, 6, 7, 8},\n                   {9, 10, 11, 12},\n                   {13, 14, 15, 16}};\nfor (int[] i : array2D)\n{\n   for (int x : i)\n   {\n      System.out.print(x + \" \");\n   }\n   System.out.println(\" \");\n}\n```\n\nHow many times will the statement `System.out.print(x + \" \")` be executed?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "4 times",
+          "is_correct": false,
+          "explanation": "This is the number of rows (or the number of `println` calls), not the number of elements."
+        },
+        {
+          "id": "b",
+          "text": "6 times",
+          "is_correct": false,
+          "explanation": "This does not correspond to any loop count here; every element in every row is printed."
+        },
+        {
+          "id": "c",
+          "text": "12 times",
+          "is_correct": false,
+          "explanation": "This would be correct for 3 rows of 4 (or 4 rows of 3), but the array is 4 by 4."
+        },
+        {
+          "id": "d",
+          "text": "16 times",
+          "is_correct": true,
+          "explanation": "Correct. The outer loop visits each of the 4 rows, and the inner loop visits each of the 4 elements in the current row. The `print` statement therefore runs once per element, `4 * 4 = 16` times."
+        }
+      ],
+      "explanation": "The outer loop visits each of the 4 rows, and the inner loop visits each of the 4 elements in the current row. The `print` statement therefore runs once per element, `4 * 4 = 16` times.",
+      "topics": [
+        "T008",
+        "T022"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST079"
+      ],
+      "skills": [
+        "SK011"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q024",
+      "status": "active",
+      "text": "A two-dimensional array `myArray` is to be created with the following contents.\n\n```java\n{{0, 0, 3},\n {0, 0, 0},\n {7, 0, 0}}\n```\n\nWhich of the following code segments can be used to correctly create and initialize `myArray`?\n\nI.\n\n```java\nint[][] myArray = new int[3][3];\nmyArray[0][2] = 3;\nmyArray[2][0] = 7;\n```\n\nII.\n\n```java\nint[][] myArray = new int[3][3];\nmyArray[0][2] = 7;\nmyArray[2][0] = 3;\n```\n\nIII.\n\n```java\nint[][] myArray = {{0, 0, 3}, {0, 0, 0}, {7, 0, 0}};\n```",
+      "answers": [
+        {
+          "id": "a",
+          "text": "I only",
+          "is_correct": false,
+          "explanation": "I only: code segment III also works, since an initializer list can create the array directly."
+        },
+        {
+          "id": "b",
+          "text": "III only",
+          "is_correct": false,
+          "explanation": "III only: code segment I also works, because `new int[3][3]` fills the array with `0` and the two assignments place `3` and `7` correctly."
+        },
+        {
+          "id": "c",
+          "text": "I and III",
+          "is_correct": true,
+          "explanation": "Correct. Code segment I creates a 3-by-3 array of default `0` values, then puts `3` at row 0, column 2 and `7` at row 2, column 0, which matches. Code segment III uses an initializer list whose rows are exactly the required rows. Code segment II swaps the two values, so it is incorrect."
+        },
+        {
+          "id": "d",
+          "text": "II and III",
+          "is_correct": false,
+          "explanation": "II and III: code segment II places `7` at row 0, column 2 and `3` at row 2, column 0, which results from swapping row and column indexes; code segment I is the correct one."
+        }
+      ],
+      "explanation": "Code segment I creates a 3-by-3 array of default `0` values, then puts `3` at row 0, column 2 and `7` at row 2, column 0, which matches. Code segment III uses an initializer list whose rows are exactly the required rows. Code segment II swaps the two values, so it is incorrect.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082"
+      ],
+      "skills": [
+        "SK008",
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q025",
+      "status": "active",
+      "text": "In the following code segment, `num` is a properly declared and initialized integer variable. The code segment is intended to perform a linear search on the two-dimensional array `arr`. Each time an array element equal to `num` is found, its value should be printed. If no element equal to `num` is found, then nothing is printed. The code segment does not always work as intended.\n\n```java\nint[][] arr = {{7, 3, 6, 4},\n               {9, 2, 0, 5},\n               {1, 4, 3, 8}};\n\nfor (int j = 0; j < arr.length - 1; j++)\n{\n   for (int k = 0; k < arr[0].length; k++)\n   {\n      if (arr[j][k] == num)\n      {\n         System.out.println(arr[j][k]);\n      }\n   }\n}\n```\n\nWhich of the following values of `num` can be used to show that the code segment does not always work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "5",
+          "is_correct": false,
+          "explanation": "It appears in row 1, which is searched, so `5` is printed correctly."
+        },
+        {
+          "id": "b",
+          "text": "6",
+          "is_correct": false,
+          "explanation": "It appears in row 0, which is searched, so `6` is printed correctly."
+        },
+        {
+          "id": "c",
+          "text": "7",
+          "is_correct": false,
+          "explanation": "It appears in row 0, which is searched, so `7` is printed correctly."
+        },
+        {
+          "id": "d",
+          "text": "8",
+          "is_correct": true,
+          "explanation": "Correct. The condition `j < arr.length - 1` makes the outer loop skip the last row, `{1, 4, 3, 8}`. The value `8` appears only in that row, so the code should print `8` but prints nothing, which shows the error."
+        }
+      ],
+      "explanation": "The condition `j < arr.length - 1` makes the outer loop skip the last row, `{1, 4, 3, 8}`. The value `8` appears only in that row, so the code should print `8` but prints nothing, which shows the error.",
+      "topics": [
+        "T008",
+        "T010"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST083",
+        "ST044"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arr2d_q026",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[][] mat = {{1, 2, 3, 4},\n               {1, 2, 3, 4},\n               {5, 6, 7, 8},\n               {5, 6, 7, 8}};\n\nint numRows = mat.length;\nint numCols = mat[0].length;\nint[][] changedMat = new int[numRows][numCols];\nfor (int row = 0; row < numRows; row++)\n{\n   for (int col = 0; col < numCols; col++)\n   {\n      changedMat[numRows - row - 1][col] = mat[row][col];\n   }\n}\n```\n\nWhich of the following represents the contents of `changedMat` after executing this code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{{5, 6, 7, 8}, {5, 6, 7, 8}, {1, 2, 3, 4}, {1, 2, 3, 4}}`",
+          "is_correct": true,
+          "explanation": "Correct. Row `row` of `mat` is copied into row `numRows - row - 1` of `changedMat`, with columns unchanged. So row 0 goes to row 3, row 1 to row 2, row 2 to row 1, and row 3 to row 0, reversing the order of the rows."
+        },
+        {
+          "id": "b",
+          "text": "`{{1, 2, 3, 4}, {5, 6, 7, 8}, {1, 2, 3, 4}, {5, 6, 7, 8}}`",
+          "is_correct": false,
+          "explanation": "This interleaves the rows, which no index mapping in the code produces; every row is moved to its mirror position."
+        },
+        {
+          "id": "c",
+          "text": "`{{4, 3, 2, 1}, {4, 3, 2, 1}, {8, 7, 6, 5}, {8, 7, 6, 5}}`",
+          "is_correct": false,
+          "explanation": "This reverses each row's columns, but the reversed index `numRows - row - 1` is the row index, not the column index."
+        },
+        {
+          "id": "d",
+          "text": "`{{1, 2, 3, 4}, {1, 2, 3, 4}, {5, 6, 7, 8}, {5, 6, 7, 8}}`",
+          "is_correct": false,
+          "explanation": "This is an unchanged copy, which ignores that each row is written to the mirrored row position."
+        }
+      ],
+      "explanation": "Row `row` of `mat` is copied into row `numRows - row - 1` of `changedMat`, with columns unchanged. So row 0 goes to row 3, row 1 to row 2, row 2 to row 1, and row 3 to row 0, reversing the order of the rows.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST082",
+        "ST083"
+      ],
+      "skills": [
+        "SK001",
+        "SK018"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q028",
+      "status": "active",
+      "text": "Consider the following data field and method.\n\n```java\nprivate int[][] mat;\n\npublic int mystery(int r, int c)\n{\n   if (r != 0 || c != 0)\n   {\n      return (mat[r][c] + mystery(r - 1, c - 1));\n   }\n   else\n   {\n      return mat[r][c];\n   }\n}\n```\n\nAssume that `mat` is the 2-D array shown below.\n\n| | 0 | 1 | 2 | 3 |\n|---|---|---|---|---|\n| **0** | 0 | 1 | 2 | 3 |\n| **1** | 4 | 5 | 6 | 7 |\n| **2** | 8 | 9 | 10 | 11 |\n| **3** | 12 | 13 | 14 | 15 |\n\nWhat value is returned as a result of the call `mystery(2, 3)`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "11",
+          "is_correct": false,
+          "explanation": "This is just `mat[2][3]`, ignoring the recursive call that is added to it."
+        },
+        {
+          "id": "b",
+          "text": "17",
+          "is_correct": false,
+          "explanation": "This is `mat[2][3] + mat[1][2]` (`11 + 6`), stopping the recursion too early."
+        },
+        {
+          "id": "c",
+          "text": "18",
+          "is_correct": false,
+          "explanation": "This is `11 + 6 + 1`, which assumes the recursion stops at `mystery(0, 1)` because `r` is `0`; the base case requires both `r` and `c` to be `0`."
+        },
+        {
+          "id": "d",
+          "text": "No value is returned because `mystery` throws an `ArrayIndexOutOfBoundsException`.",
+          "is_correct": true,
+          "explanation": "Correct. The recursion stops only when both `r` and `c` are `0`. The calls go `mystery(2, 3)`, `mystery(1, 2)`, `mystery(0, 1)`, and then `mystery(-1, 0)`, because `r` reaches `0` while `c` is still `1`. In `mystery(-1, 0)`, the condition is true and `mat[-1][0]` is accessed, which throws an `ArrayIndexOutOfBoundsException`."
+        }
+      ],
+      "explanation": "The recursion stops only when both `r` and `c` are `0`. The calls go `mystery(2, 3)`, `mystery(1, 2)`, `mystery(0, 1)`, and then `mystery(-1, 0)`, because `r` reaches `0` while `c` is still `1`. In `mystery(-1, 0)`, the condition is true and `mat[-1][0]` is accessed, which throws an `ArrayIndexOutOfBoundsException`.",
+      "topics": [
+        "T009",
+        "T008"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST042",
+        "ST082"
+      ],
+      "skills": [
+        "SK012",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arr2d_q029",
+      "status": "active",
+      "text": "Consider the following data field and method.\n\n```java\nprivate int[][] mat;\n\npublic void mystery()\n{\n   for (int row = 1; row < mat.length; row++)\n   {\n      for (int col = 0; col < mat[0].length; col++)\n      {\n         if (row != col)\n            mat[row][col] = mat[row - 1][col];\n      }\n   }\n}\n```\n\nAssume that `mat` contains the following values. Note that `mat[0][4]` is `2`.\n\n| | | | | |\n|---|---|---|---|---|\n| 4 | 1 | 3 | 4 | 2 |\n| 1 | 8 | 7 | 5 | 3 |\n| 7 | 4 | 6 | 9 | 2 |\n| 3 | 8 | 1 | 2 | 4 |\n| 5 | 6 | 7 | 0 | 3 |\n\nWhat values does `mat` contain after a call to `mystery`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "| | | | | |\n|---|---|---|---|---|\n| 4 | 1 | 3 | 4 | 2 |\n| 4 | 8 | 3 | 4 | 2 |\n| 4 | 8 | 6 | 4 | 2 |\n| 4 | 8 | 6 | 2 | 2 |\n| 4 | 8 | 6 | 2 | 3 |",
+          "is_correct": true,
+          "explanation": "Correct. Starting at row 1, each element is replaced by the (already updated) element directly above it, except the diagonal element where `row == col`, which keeps its value. Row 1 becomes `4 8 3 4 2` (keeping `8`), row 2 becomes `4 8 6 4 2` (keeping `6`), row 3 becomes `4 8 6 2 2` (keeping `2`), and row 4 becomes `4 8 6 2 3` (keeping `3`)."
+        },
+        {
+          "id": "b",
+          "text": "| | | | | |\n|---|---|---|---|---|\n| 4 | 1 | 3 | 4 | 2 |\n| 4 | 1 | 3 | 4 | 2 |\n| 4 | 1 | 3 | 4 | 2 |\n| 4 | 1 | 3 | 4 | 2 |\n| 4 | 1 | 3 | 4 | 2 |",
+          "is_correct": false,
+          "explanation": "Every row equal to `4 1 3 4 2`: this ignores the `if (row != col)` test, which leaves the diagonal elements unchanged and lets them be copied down."
+        },
+        {
+          "id": "c",
+          "text": "| | | | | |\n|---|---|---|---|---|\n| 4 | 1 | 3 | 4 | 2 |\n| 4 | 1 | 3 | 4 | 2 |\n| 1 | 8 | 7 | 5 | 3 |\n| 7 | 4 | 6 | 9 | 2 |\n| 3 | 8 | 1 | 2 | 4 |",
+          "is_correct": false,
+          "explanation": "The rows shifted down by one (`4 1 3 4 2`, `4 1 3 4 2`, `1 8 7 5 3`, `7 4 6 9 2`, `3 8 1 2 4`): this copies each original row into the next row, but rows are updated in place from the top, so each row copies the already updated row above it, and the diagonal elements are kept."
+        },
+        {
+          "id": "d",
+          "text": "| | | | | |\n|---|---|---|---|---|\n| 4 | 4 | 4 | 4 | 4 |\n| 1 | 1 | 1 | 1 | 1 |\n| 7 | 7 | 7 | 7 | 7 |\n| 3 | 3 | 3 | 3 | 3 |\n| 5 | 5 | 5 | 5 | 5 |",
+          "is_correct": false,
+          "explanation": "Each row filled with its first value (`4 4 4 4 4`, `1 1 1 1 1`, ...): this treats the copy as going across a row from the left, but `mat[row - 1][col]` copies from the row above in the same column."
+        }
+      ],
+      "explanation": "Starting at row 1, each element is replaced by the (already updated) element directly above it, except the diagonal element where `row == col`, which keeps its value. Row 1 becomes `4 8 3 4 2` (keeping `8`), row 2 becomes `4 8 6 4 2` (keeping `6`), row 3 becomes `4 8 6 2 2` (keeping `2`), and row 4 becomes `4 8 6 2 3` (keeping `3`).",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST039",
+        "ST083"
+      ],
+      "skills": [
+        "SK001",
+        "SK018"
+      ],
+      "difficulty": "D3",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q030",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[][] table = {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}};\nSystem.out.println(table[2][1]);\n```\n\nWhat value is printed as a result of executing the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "2",
+          "is_correct": true,
+          "explanation": "Correct. The first index selects the row and the second selects the column, both starting at `0`. Row 2 is `{3, 2, 1}`, and its element at column 1 is `2`."
+        },
+        {
+          "id": "b",
+          "text": "3",
+          "is_correct": false,
+          "explanation": "This is `table[2][0]`, the first element of row 2, an off-by-one error in the column index."
+        },
+        {
+          "id": "c",
+          "text": "4",
+          "is_correct": false,
+          "explanation": "This is `table[1][2]`, which results from swapping the row and column indexes."
+        },
+        {
+          "id": "d",
+          "text": "6",
+          "is_correct": false,
+          "explanation": "This is the element in the second row and first column, which results from counting rows and columns starting at 1."
+        }
+      ],
+      "explanation": "The first index selects the row and the second selects the column, both starting at `0`. Row 2 is `{3, 2, 1}`, and its element at column 1 is `2`.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q031",
+      "status": "active",
+      "text": "Assume that `arr` is a properly declared and initialized two-dimensional array of `String` objects with 3 rows and 4 columns. Which of the following statements can be used to print the four corner elements of `arr`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`System.out.print(arr[1][1] + arr[1][4] + arr[3][1] + arr[3][4]);`",
+          "is_correct": false,
+          "explanation": "This counts rows and columns starting at 1; `arr[1][4]` is out of bounds and throws an `ArrayIndexOutOfBoundsException`."
+        },
+        {
+          "id": "b",
+          "text": "`System.out.print(arr[0][0] + arr[0][4] + arr[3][0] + arr[3][4]);`",
+          "is_correct": false,
+          "explanation": "This uses the number of columns (4) and rows (3) as the last indexes; `arr[0][4]` is out of bounds and throws an exception."
+        },
+        {
+          "id": "c",
+          "text": "`System.out.print(arr[0][0] + arr[0][2] + arr[3][0] + arr[3][2]);`",
+          "is_correct": false,
+          "explanation": "This swaps the dimensions, treating the array as 4 rows and 3 columns; `arr[3][0]` is out of bounds and throws an exception."
+        },
+        {
+          "id": "d",
+          "text": "`System.out.print(arr[0][0] + arr[0][3] + arr[2][0] + arr[2][3]);`",
+          "is_correct": true,
+          "explanation": "Correct. With 3 rows and 4 columns, valid row indexes are `0` to `2` and valid column indexes are `0` to `3`. The corners are therefore `arr[0][0]`, `arr[0][3]`, `arr[2][0]`, and `arr[2][3]`."
+        }
+      ],
+      "explanation": "With 3 rows and 4 columns, valid row indexes are `0` to `2` and valid column indexes are `0` to `3`. The corners are therefore `arr[0][0]`, `arr[0][3]`, `arr[2][0]`, and `arr[2][3]`.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082"
+      ],
+      "skills": [
+        "SK010"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q032",
+      "status": "active",
+      "text": "Consider the following code segment, where `letters` is a two-dimensional (2D) array that contains possible letters. The code segment is intended to print `\"DIG\"`.\n\n```java\nString[][] letters = {{\"A\", \"B\", \"C\"},\n                      {\"D\", \"E\", \"F\"},\n                      {\"G\", \"H\", \"I\"}};\nSystem.out.println( /* missing code */ );\n```\n\nWhich of the following could replace `/* missing code */` so that the code segment works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`letters[2][1] + letters[3][3] + letters[3][1]`",
+          "is_correct": false,
+          "explanation": "These are the positions counted starting at 1; `letters[3][3]` is out of bounds and throws an `ArrayIndexOutOfBoundsException`."
+        },
+        {
+          "id": "b",
+          "text": "`letters[2][0] + letters[2][2] + letters[1][0]`",
+          "is_correct": false,
+          "explanation": "These are the right letters in the wrong order, printing `\"GID\"`."
+        },
+        {
+          "id": "c",
+          "text": "`letters[1][0] + letters[2][2] + letters[2][0]`",
+          "is_correct": true,
+          "explanation": "Correct. The first index is the row and the second is the column, starting at `0`. `\"D\"` is at row 1, column 0; `\"I\"` is at row 2, column 2; and `\"G\"` is at row 2, column 0. Concatenating `letters[1][0] + letters[2][2] + letters[2][0]` gives `\"DIG\"`."
+        },
+        {
+          "id": "d",
+          "text": "`letters[0][1] + letters[2][2] + letters[0][2]`",
+          "is_correct": false,
+          "explanation": "This swaps the row and column indexes, printing `\"BIC\"`."
+        }
+      ],
+      "explanation": "The first index is the row and the second is the column, starting at `0`. `\"D\"` is at row 1, column 0; `\"I\"` is at row 2, column 2; and `\"G\"` is at row 2, column 0. Concatenating `letters[1][0] + letters[2][2] + letters[2][0]` gives `\"DIG\"`.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082"
+      ],
+      "skills": [
+        "SK001",
+        "SK010"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q033",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[][] points = {{11, 12, 13, 14, 15},\n                  {21, 22, 23, 24, 25},\n                  {31, 32, 33, 34, 35},\n                  {41, 42, 43, 44, 45}};\nfor (int row = 0; row < points.length; row++)\n{\n   for (int col = points[0].length - 1; col >= row; col--)\n   {\n      System.out.print(points[row][col] + \" \");\n   }\n   System.out.println();\n}\n```\n\nWhat is printed when this code segment is executed?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```text\n15 14 13 12\n25 24 23\n35 34\n45\n```",
+          "is_correct": false,
+          "explanation": "Output starting `15 14 13 12` and ending with `45`: this stops one column early in each row, as if the condition were `col > row`."
+        },
+        {
+          "id": "b",
+          "text": "```text\n11 12 13 14 15\n21 22 23 24\n31 32 33\n41 42\n```",
+          "is_correct": false,
+          "explanation": "Output in increasing order (`11 12 13 14 15`, ...): the inner loop counts down from the last column, so each row is printed right to left."
+        },
+        {
+          "id": "c",
+          "text": "```text\n15 14 13 12 11\n25 24 23 22\n35 34 33\n45 44\n```",
+          "is_correct": true,
+          "explanation": "Correct. For each row, the inner loop starts at the last column (index 4) and counts down to column `row`, inclusive. Row 0 prints columns 4 to 0 (`15 14 13 12 11`), row 1 prints columns 4 to 1 (`25 24 23 22`), row 2 prints columns 4 to 2 (`35 34 33`), and row 3 prints columns 4 to 3 (`45 44`)."
+        },
+        {
+          "id": "d",
+          "text": "```text\n15 14 13 12 11\n25 24 23 22 21\n35 34 33 32 31\n45 44 43 42 41\n```",
+          "is_correct": false,
+          "explanation": "Every row printed in full (`15 14 13 12 11`, `25 24 23 22 21`, ...): this ignores the condition `col >= row`, as if the loop always ran down to column 0."
+        }
+      ],
+      "explanation": "For each row, the inner loop starts at the last column (index 4) and counts down to column `row`, inclusive. Row 0 prints columns 4 to 0 (`15 14 13 12 11`), row 1 prints columns 4 to 1 (`25 24 23 22`), row 2 prints columns 4 to 2 (`35 34 33`), and row 3 prints columns 4 to 3 (`45 44`).",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST039",
+        "ST082"
+      ],
+      "skills": [
+        "SK001",
+        "SK011"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q034",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[][] mat = {{1, 2, 3, 4},\n               {5, 6, 7, 8},\n               {8, 7, 6, 5},\n               {4, 3, 2, 1}};\n\nfor (int r = 0; r < mat.length; r++)\n{\n   /* missing code */\n}\n```\n\nThis code segment is intended to produce the following output.\n\n```text\n1\n5 6\n8 7 6\n4 3 2 1\n```\n\nWhich of the following can be used to replace `/* missing code */` so that the code segment works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nfor (int c = 0; c <= r; c++)\n{\n   System.out.print(mat[c][r] + \" \");\n}\nSystem.out.println();\n```",
+          "is_correct": false,
+          "explanation": "The loop printing `mat[c][r]`: the indexes are swapped, so it prints down column `r`; the second line would be `2 6` instead of `5 6`."
+        },
+        {
+          "id": "b",
+          "text": "```java\nfor (int c = 0; c <= r; c++)\n{\n   System.out.print(mat[r][c] + \" \");\n}\nSystem.out.println();\n```",
+          "is_correct": true,
+          "explanation": "Correct. For row `r`, the inner loop prints columns `0` through `r` of that row, then moves to a new line. Row 0 prints `1`, row 1 prints `5 6`, row 2 prints `8 7 6`, and row 3 prints all of `4 3 2 1`, which is the intended output."
+        },
+        {
+          "id": "c",
+          "text": "```java\nfor (int c = 1; c < r; c++)\n{\n   System.out.print(mat[r][c] + \" \");\n}\nSystem.out.println();\n```",
+          "is_correct": false,
+          "explanation": "The loop from `c = 1` while `c < r`: it skips column 0 and stops before column `r`, so the first two lines are blank and the last line is `3 2`."
+        },
+        {
+          "id": "d",
+          "text": "```java\nfor (int c = 0; c <= r; c++)\n{\n   System.out.print(mat[r][c] + \" \");\n   System.out.println();\n}\n```",
+          "is_correct": false,
+          "explanation": "The loop with `System.out.println()` inside it: it ends the line after every element, so each value appears on its own line."
+        }
+      ],
+      "explanation": "For row `r`, the inner loop prints columns `0` through `r` of that row, then moves to a new line. Row 0 prints `1`, row 1 prints `5 6`, row 2 prints `8 7 6`, and row 3 prints all of `4 3 2 1`, which is the intended output.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST039"
+      ],
+      "skills": [
+        "SK002",
+        "SK011"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arr2d_q035",
+      "status": "active",
+      "text": "Consider the following code segment, where `nums` is a two-dimensional (2D) array of integers. The code segment is intended to print `\"test1234\"`.\n\n```java\nSystem.out.print(\"test\" + nums[0][0] + nums[1][0] + nums[1][1] +\n                 nums[0][1]);\n```\n\nWhich of the following code segments properly declares and initializes `nums` so that the code segment works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`int[][] nums = {{1, 2}, {3, 4}};`",
+          "is_correct": false,
+          "explanation": "The printed elements are `1, 3, 4, 2`, so it prints `\"test1342\"`."
+        },
+        {
+          "id": "b",
+          "text": "`int[][] nums = {{1, 2}, {4, 3}};`",
+          "is_correct": false,
+          "explanation": "The printed elements are `1, 4, 3, 2`, so it prints `\"test1432\"`."
+        },
+        {
+          "id": "c",
+          "text": "`int[][] nums = {{1, 3}, {2, 4}};`",
+          "is_correct": false,
+          "explanation": "The printed elements are `1, 2, 4, 3`, so it prints `\"test1243\"`."
+        },
+        {
+          "id": "d",
+          "text": "`int[][] nums = {{1, 4}, {2, 3}};`",
+          "is_correct": true,
+          "explanation": "Correct. The elements are printed in the order `nums[0][0]`, `nums[1][0]`, `nums[1][1]`, `nums[0][1]`, so these must hold `1`, `2`, `3`, and `4`. That means row 0 is `{1, 4}` and row 1 is `{2, 3}`."
+        }
+      ],
+      "explanation": "The elements are printed in the order `nums[0][0]`, `nums[1][0]`, `nums[1][1]`, `nums[0][1]`, so these must hold `1`, `2`, `3`, and `4`. That means row 0 is `{1, 4}` and row 1 is `{2, 3}`.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082"
+      ],
+      "skills": [
+        "SK001",
+        "SK009"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q036",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[][] arr = {{10, -7, 19, 14},\n               {-3, -2, -6, 11},\n               {-9, 12, 10, -1}};\nint ans = 1;\nfor (int[] row : arr)\n{\n   for (int value : row)\n   {\n      if (value > 0)\n      {\n         ans = ans * value;\n      }\n   }\n}\nSystem.out.println(ans);\n```\n\nWhich of the following best describes the behavior of the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "It prints the product of all the elements in `arr`.",
+          "is_correct": false,
+          "explanation": "Product of all the elements: the `if (value > 0)` test skips every negative element."
+        },
+        {
+          "id": "b",
+          "text": "It prints the product of all the negative elements in `arr`.",
+          "is_correct": false,
+          "explanation": "Product of the negative elements: the condition `value > 0` selects positive values, not negative ones."
+        },
+        {
+          "id": "c",
+          "text": "It prints the product of all the positive elements in `arr`.",
+          "is_correct": true,
+          "explanation": "Correct. `ans` starts at `1`, and the nested enhanced `for` loops visit every element. Only elements that pass `value > 0` are multiplied into `ans`, so the code prints the product of the positive elements."
+        },
+        {
+          "id": "d",
+          "text": "It prints nothing because of a run-time error.",
+          "is_correct": false,
+          "explanation": "Prints nothing because of a run-time error: enhanced `for` loops cannot go out of bounds, and the product (`3511200`) fits in an `int`, so the code runs normally."
+        }
+      ],
+      "explanation": "`ans` starts at `1`, and the nested enhanced `for` loops visit every element. Only elements that pass `value > 0` are multiplied into `ans`, so the code prints the product of the positive elements.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST083"
+      ],
+      "skills": [
+        "SK003"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "arr2d_q038",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[][] arr = {{1, 2, 3, 4},\n               {5, 6, 7, 8},\n               {9, 10, 11, 12}};\nint sum = 0;\nfor (int[] x : arr)\n{\n   for (int y = 0; y < x.length - 1; y++)\n   {\n      sum += x[y];\n   }\n}\n```\n\nWhat is the value of `sum` as a result of executing the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "36",
+          "is_correct": false,
+          "explanation": "This is the sum of all elements in the first two rows, which results from applying the `- 1` to the rows instead of the columns."
+        },
+        {
+          "id": "b",
+          "text": "54",
+          "is_correct": true,
+          "explanation": "Correct. The outer loop visits every row, but the inner condition `y < x.length - 1` stops before the last element of each row. The sum is `(1 + 2 + 3) + (5 + 6 + 7) + (9 + 10 + 11) = 6 + 18 + 30 = 54`."
+        },
+        {
+          "id": "c",
+          "text": "63",
+          "is_correct": false,
+          "explanation": "This is the sum of everything except the first column, which results from skipping the first element of each row instead of the last."
+        },
+        {
+          "id": "d",
+          "text": "78",
+          "is_correct": false,
+          "explanation": "This is the sum of all the elements, ignoring that `x.length - 1` excludes the last column."
+        }
+      ],
+      "explanation": "The outer loop visits every row, but the inner condition `y < x.length - 1` stops before the last element of each row. The sum is `(1 + 2 + 3) + (5 + 6 + 7) + (9 + 10 + 11) = 6 + 18 + 30 = 54`.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST083"
+      ],
+      "skills": [
+        "SK001",
+        "SK010"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q039",
+      "status": "active",
+      "text": "The following method is intended to return the total number of elements in the 2D array `arr`. The method does not work as intended.\n\n```java\npublic int totalElements(int[][] arr)\n{\n   return arr.length * arr.length; // Line 3\n}\n```\n\nWhich of the following changes can be made so that the method works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Changing line 3 to `return (arr.length - 1) * (arr.length - 1);`",
+          "is_correct": false,
+          "explanation": "This uses the last row index instead of the number of rows and still ignores the number of columns."
+        },
+        {
+          "id": "b",
+          "text": "Changing line 3 to `return arr.length + arr.length;`",
+          "is_correct": false,
+          "explanation": "This adds instead of multiplying and never uses the number of columns."
+        },
+        {
+          "id": "c",
+          "text": "Changing line 3 to `return (arr.length - 1) * (arr[0].length - 1);`",
+          "is_correct": false,
+          "explanation": "This multiplies the last valid indexes, which are each one less than the dimensions."
+        },
+        {
+          "id": "d",
+          "text": "Changing line 3 to `return arr.length * arr[0].length;`",
+          "is_correct": true,
+          "explanation": "Correct. `arr.length` is the number of rows and `arr[0].length` is the number of columns (the length of a row). The total number of elements is the number of rows times the number of columns, `arr.length * arr[0].length`; the original code multiplies the number of rows by itself."
+        }
+      ],
+      "explanation": "`arr.length` is the number of rows and `arr[0].length` is the number of columns (the length of a row). The total number of elements is the number of rows times the number of columns, `arr.length * arr[0].length`; the original code multiplies the number of rows by itself.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082"
+      ],
+      "skills": [
+        "SK004"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "arr2d_q040",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[][] arr = {{1, 2, 3},\n               {4, 5, 6},\n               {7, 8, 9},\n               {3, 2, 1}};\nfor (int j = 0; j < arr.length; j++)\n{\n   for (int k = j; k < arr[0].length; k++)\n   {\n      System.out.print(arr[j][k] + \" \");\n   }\n   System.out.println();\n}\n```\n\nWhat is printed as a result of executing the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```text\n1 2 3\n4 5\n7\n```",
+          "is_correct": false,
+          "explanation": "This starts every row at column 0 and prints one fewer element each time, but `k` starts at `j`, so the skipped elements are at the start of each row."
+        },
+        {
+          "id": "b",
+          "text": "```text\n1 2 3\n5 6\n9\n```",
+          "is_correct": true,
+          "explanation": "Correct. In row `j`, the inner loop starts at column `j` and runs to the last column (index 2). Row 0 prints `1 2 3`, row 1 prints `5 6`, and row 2 prints `9`. For row 3, `k` starts at `3`, which is not less than `3`, so nothing is printed from that row (only an empty line)."
+        },
+        {
+          "id": "c",
+          "text": "```text\n1 4 7\n5 8\n9\n```",
+          "is_correct": false,
+          "explanation": "This reads down the columns, swapping the row and column indexes."
+        },
+        {
+          "id": "d",
+          "text": "```text\n1 2 3\n5 6\n9\n1\n```",
+          "is_correct": false,
+          "explanation": "Output with a fourth line `1`: for row 3 the inner loop does not run at all because `k` starts at `3`, so no element of the last row (such as `arr[3][2]`, which is `1`) is printed."
+        }
+      ],
+      "explanation": "In row `j`, the inner loop starts at column `j` and runs to the last column (index 2). Row 0 prints `1 2 3`, row 1 prints `5 6`, and row 2 prints `9`. For row 3, `k` starts at `3`, which is not less than `3`, so nothing is printed from that row (only an empty line).",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST039",
+        "ST082"
+      ],
+      "skills": [
+        "SK001",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q041",
+      "status": "active",
+      "text": "Consider the following code segment, where `num` is an integer variable.\n\n```java\nint[][] arr = {{11, 13, 14, 15},\n               {12, 18, 17, 26},\n               {13, 21, 26, 29},\n               {14, 17, 22, 28}};\nfor (int j = 0; j < arr.length; j++)\n{\n   for (int k = 0; k < arr[0].length; k++)\n   {\n      if (arr[j][k] == num)\n      {\n         System.out.print(j + k + arr[j][k] + \" \");\n      }\n   }\n}\n```\n\nWhat is printed when `num` has the value `14`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "14 14",
+          "is_correct": false,
+          "explanation": "This prints only the matching value and ignores that the row and column indexes are added to it."
+        },
+        {
+          "id": "b",
+          "text": "16 17",
+          "is_correct": true,
+          "explanation": "Correct. The array is traversed in row-major order. The first `14` is at row 0, column 2, so `0 + 2 + 14 = 16` is printed; the second is at row 3, column 0, so `3 + 0 + 14 = 17` is printed. The integer additions happen before `\" \"` is concatenated, so the output is `16 17`."
+        },
+        {
+          "id": "c",
+          "text": "17 16",
+          "is_correct": false,
+          "explanation": "These are the right values in the wrong order, which results from traversing in column-major order; the outer loop goes through rows."
+        },
+        {
+          "id": "d",
+          "text": "18 19",
+          "is_correct": false,
+          "explanation": "This adds indexes counted starting at 1 (`1 + 3 + 14` and `4 + 1 + 14`), but Java indexes start at 0."
+        }
+      ],
+      "explanation": "The array is traversed in row-major order. The first `14` is at row 0, column 2, so `0 + 2 + 14 = 16` is printed; the second is at row 3, column 0, so `3 + 0 + 14 = 17` is printed. The integer additions happen before `\" \"` is concatenated, so the output is `16 17`.",
+      "topics": [
+        "T008",
+        "T013"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST039",
+        "ST010"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "arr2d_q043",
+      "status": "active",
+      "text": "Consider the following code segment.\n\n```java\nint[][] arr2D = /* missing initialization */;\nint sum = 0;\n\nfor (int j = 0; j < arr2D.length; j++)\n{\n   sum += arr2D[j][2];\n}\n\nSystem.out.println(sum);\n```\n\nWhich of the following replacements for `/* missing initialization */` will cause the code segment to print the value `3`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{{0, 0, 1}, {0, 0, 2}, {0, 0, 1}}`",
+          "is_correct": false,
+          "explanation": "Column 2 is `1, 2, 1`, so the sum printed is `4`."
+        },
+        {
+          "id": "b",
+          "text": "`{{0, 0, 0}, {0, 1, 2}, {0, 0, 0}}`",
+          "is_correct": false,
+          "explanation": "Column 2 sums to `2`; this choice comes from summing row 1 (`0 + 1 + 2 = 3`), confusing a row with a column."
+        },
+        {
+          "id": "c",
+          "text": "`{{0, 0, 0}, {0, 0, 0}, {1, 1, 1}, {0, 0, 0}}`",
+          "is_correct": false,
+          "explanation": "Column 2 sums to `1`; this choice comes from summing row 2 (`1 + 1 + 1 = 3`), treating the fixed index `2` as a row index."
+        },
+        {
+          "id": "d",
+          "text": "`{{0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}}`",
+          "is_correct": true,
+          "explanation": "Correct. The loop adds `arr2D[j][2]` for every row `j`, which is the sum of column 2. For `{{0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}}`, column 2 is `1, 1, 1`, so `3` is printed."
+        }
+      ],
+      "explanation": "The loop adds `arr2D[j][2]` for every row `j`, which is the sum of column 2. For `{{0, 0, 1, 0}, {0, 0, 1, 0}, {0, 0, 1, 0}}`, column 2 is `1, 1, 1`, so `3` is printed.",
+      "topics": [
+        "T008"
+      ],
+      "subtopics": [
+        "ST082",
+        "ST038",
+        "ST083"
+      ],
+      "skills": [
+        "SK001",
+        "SK009"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    }
+  ]
+}

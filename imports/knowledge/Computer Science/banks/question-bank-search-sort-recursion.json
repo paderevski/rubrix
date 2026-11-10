@@ -1,0 +1,2350 @@
+{
+  "schema_version": "2.5.0",
+  "source": "AP CSA Search, Sort and Recursion practice set, 51 MCQ (duplicates of other banks omitted)",
+  "questions": [
+    {
+      "id": "searchsort_q001",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static int findTarget(int[] nums, int target)\n{\n   int answer = -1;\n   for (int j = nums.length - 1; j >= nums.length / 2; j--)\n   {\n     if (nums[j] == target)\n     {\n       answer = j;\n     }\n   }\n   return answer;\n}\n```\n\nThe following code segment appears in another method in the same class as `findTarget`.\n\n```java\nint[] arr = {4, 5, 8, 3, 8, 9, 8, 1};\nSystem.out.println(findTarget(arr, 8));\n```\n\nWhat is printed as a result of executing the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "2",
+          "is_correct": false,
+          "explanation": "This is the index of the first `8` in the whole array, but the loop never looks below index `nums.length / 2`, which is `4`."
+        },
+        {
+          "id": "b",
+          "text": "4",
+          "is_correct": true,
+          "explanation": "Correct. The loop starts at the last index (`7`) and works backward only through the second half of the array, stopping after `j == 4` because `nums.length / 2` is `4`. Each time the element equals `target`, `answer` is overwritten, so `8` at index `6` sets `answer` to `6` and then `8` at index `4` sets it to `4`. The last match found is at index `4`, so `4` is printed."
+        },
+        {
+          "id": "c",
+          "text": "5",
+          "is_correct": false,
+          "explanation": "`arr[5]` is `9`, not `8`, so the method never assigns `5` to `answer`."
+        },
+        {
+          "id": "d",
+          "text": "6",
+          "is_correct": false,
+          "explanation": "This is the first `8` found when scanning backward, but the loop does not stop there; it keeps going and overwrites `answer` with `4`."
+        }
+      ],
+      "explanation": "The loop starts at the last index (`7`) and works backward only through the second half of the array, stopping after `j == 4` because `nums.length / 2` is `4`. Each time the element equals `target`, `answer` is overwritten, so `8` at index `6` sets `answer` to `6` and then `8` at index `4` sets it to `4`. The last match found is at index `4`, so `4` is printed.",
+      "topics": [
+        "T010",
+        "T006"
+      ],
+      "subtopics": [
+        "ST044",
+        "ST031",
+        "ST034"
+      ],
+      "skills": [
+        "SK001",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q005",
+      "status": "active",
+      "text": "Consider the following method, which implements a recursive binary search.\n\n```java\n/** Returns an index in arr where the value x appears if x appears\n *  in arr between arr[left] and arr[right], inclusive;\n *  otherwise returns -1.\n *  Precondition: arr is sorted in ascending order.\n *                left >= 0, right < arr.length, arr.length > 0\n */\npublic static int bSearch(int[] arr, int left, int right, int x)\n{\n  if (right >= left)\n  {\n    int mid = (left + right) / 2;\n    if (arr[mid] == x)\n    {\n      return mid;\n    }\n    else if (arr[mid] > x)\n    {\n      return bSearch(arr, left, mid - 1, x);\n    }\n    else\n    {\n      return bSearch(arr, mid + 1, right, x);\n    }\n  }\n  return -1;\n}\n```\n\nThe following code segment appears in a method in the same class as `bSearch`.\n\n```java\nint[] nums = {0, 4, 4, 5, 6, 7};\nint result = bSearch(nums, 0, nums.length - 1, 4);\n```\n\nWhat is the value of `result` after the code segment has been executed?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "1",
+          "is_correct": false,
+          "explanation": "This is the first index where `4` appears, which a linear search would return; binary search returns whichever matching index it checks first, here the middle index `2`."
+        },
+        {
+          "id": "b",
+          "text": "2",
+          "is_correct": true,
+          "explanation": "Correct. On the first call, `left` is `0` and `right` is `5`, so `mid` is `(0 + 5) / 2`, or `2`. Since `arr[2]` is `4`, which equals `x`, the method returns `2` immediately without any recursive call."
+        },
+        {
+          "id": "c",
+          "text": "3",
+          "is_correct": false,
+          "explanation": "`nums[3]` is `5`, not `4`."
+        },
+        {
+          "id": "d",
+          "text": "4",
+          "is_correct": false,
+          "explanation": "This is the value being searched for, not an index; `nums[4]` is `6`."
+        }
+      ],
+      "explanation": "On the first call, `left` is `0` and `right` is `5`, so `mid` is `(0 + 5) / 2`, or `2`. Since `arr[2]` is `4`, which equals `x`, the method returns `2` immediately without any recursive call.",
+      "topics": [
+        "T010"
+      ],
+      "subtopics": [
+        "ST045"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q006",
+      "status": "active",
+      "text": "Consider the following method, which implements a recursive binary search.\n\n```java\n/** Returns an index in myList where target appears,\n * if target appears in myList between the elements at indices\n * low and high, inclusive; otherwise returns -1.\n * Precondition: myList is sorted in ascending order.\n * low >= 0, high < myList.size(), myList.size() > 0\n */\npublic static int binarySearch(ArrayList<Integer> myList,\n                               int low, int high, int target)\n{\n  if (low > high)\n  {\n    return -1;\n  }\n  int mid = (high + low) / 2;\n  if (target < myList.get(mid))\n  {\n    return binarySearch(myList, low, mid - 1, target);\n  }\n  else if (target > myList.get(mid))\n  {\n    return binarySearch(myList, mid + 1, high, target);\n  }\n  else if (myList.get(mid).equals(target))\n  {\n    return mid;\n  }\n  return -1;\n}\n```\n\nAssume that `inputList` is an `ArrayList` of `Integer` objects that contains the following values.\n\n[0, 10, 30, 40, 50, 70, 70, 70, 70]\n\nWhat value will be returned by the call `binarySearch(inputList, 0, 8, 70)` ?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "-1",
+          "is_correct": false,
+          "explanation": "`70` is in the list and is found on the second call, so the method does not return `-1`."
+        },
+        {
+          "id": "b",
+          "text": "5",
+          "is_correct": false,
+          "explanation": "This is the first index of `70`, which a linear search would return; binary search returns the first matching index it checks, which is `6`."
+        },
+        {
+          "id": "c",
+          "text": "6",
+          "is_correct": true,
+          "explanation": "Correct. On the first call, `low` is `0`, `high` is `8`, and `mid` is `4`; the value at index `4` is `50`, which is less than `70`, so the search continues with `low` = `5` and `high` = `8`. On the second call `mid` is `(8 + 5) / 2`, or `6`, and the value at index `6` is `70`, so `6` is returned."
+        },
+        {
+          "id": "d",
+          "text": "7",
+          "is_correct": false,
+          "explanation": "Index `7` is never checked; `mid` is `6` on the second call, and the search stops there."
+        }
+      ],
+      "explanation": "On the first call, `low` is `0`, `high` is `8`, and `mid` is `4`; the value at index `4` is `50`, which is less than `70`, so the search continues with `low` = `5` and `high` = `8`. On the second call `mid` is `(8 + 5) / 2`, or `6`, and the value at index `6` is `70`, so `6` is returned.",
+      "topics": [
+        "T010",
+        "T009"
+      ],
+      "subtopics": [
+        "ST045",
+        "ST042"
+      ],
+      "skills": [
+        "SK001",
+        "SK012"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q007",
+      "status": "active",
+      "text": "Consider the following method `findValue`, which returns `true` if `key` is found in the `ArrayList` `words` and returns `false` otherwise.\n\n```java\npublic static boolean findValue(ArrayList<String> words,\n                                String key)\n{\n  for (int j = 0; j < words.size(); j++)   // Line 4\n  {\n    if (words.get(j).equals(key))\n    {\n      return true;\n    }\n  }\n  return false;\n}\n```\n\nSuppose the `for` loop initialization `int j = 0` in line 4 of the method is replaced with `int j = 1`. Which of the following best explains the effect of this change?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "It will have no effect on the behavior of the method.",
+          "is_correct": false,
+          "explanation": "The element at index `0` is no longer checked, so the result changes when `key` is only there."
+        },
+        {
+          "id": "b",
+          "text": "It will cause the method to return a different result when `key` is not in `words`.",
+          "is_correct": false,
+          "explanation": "Both versions check elements, find no match, and return `false`."
+        },
+        {
+          "id": "c",
+          "text": "It will cause the method to return a different result when `key` is found only at the first index in `words`.",
+          "is_correct": true,
+          "explanation": "Correct. Starting the loop at index `1` skips the element at index `0`. If `key` appears only at index `0`, the modified method never finds it and returns `false` instead of `true`."
+        },
+        {
+          "id": "d",
+          "text": "It will cause the method to return a different result when `key` is found only at the last index in the list.",
+          "is_correct": false,
+          "explanation": "The loop still runs up to `words.size() - 1`, so the last element is still checked."
+        }
+      ],
+      "explanation": "Starting the loop at index `1` skips the element at index `0`. If `key` appears only at index `0`, the modified method never finds it and returns `false` instead of `true`.",
+      "topics": [
+        "T010",
+        "T007"
+      ],
+      "subtopics": [
+        "ST044",
+        "ST036",
+        "ST081"
+      ],
+      "skills": [
+        "SK010",
+        "SK009"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q008",
+      "status": "active",
+      "text": "Consider the following method, `inCommon`, which takes two `Integer` `ArrayList` parameters. The method returns `true` if the same integer value appears in both lists at least one time, and `false` otherwise.\n\n```java\npublic static boolean inCommon(ArrayList<Integer> a, ArrayList<Integer> b)\n{\n  for (int i = 0; i < a.size(); i++)\n  {\n    for (int j = 0; j < b.size(); j++)    // Line 5\n    {\n      if (a.get(i).equals(b.get(j)))\n      {\n        return true;\n      }\n    }\n  }\n  return false;\n}\n```\n\nWhich of the following best explains the impact to the `inCommon` method when line 5 is replaced by `for (int j = b.size() - 1; j > 0; j--)` ?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The change has no impact on the behavior of the method.",
+          "is_correct": false,
+          "explanation": "If the only common value is at index `0` of `b`, the modified method returns `false` instead of `true`."
+        },
+        {
+          "id": "b",
+          "text": "After the change, the method will never check the first element in list `b`.",
+          "is_correct": true,
+          "explanation": "Correct. The original inner loop checks every index of `b` from `0` to `b.size() - 1`. The modified loop starts at the last index, `b.size() - 1`, and stops when `j > 0` is false, so its last iteration uses index `1` and the element at index `0` is never checked."
+        },
+        {
+          "id": "c",
+          "text": "After the change, the method will never check the last element in list `b`.",
+          "is_correct": false,
+          "explanation": "The loop starts at `b.size() - 1`, so the last element is the first one checked."
+        },
+        {
+          "id": "d",
+          "text": "After the change, the method will never check the first and the last elements in list `b`.",
+          "is_correct": false,
+          "explanation": "Only the first element is skipped; the last element is checked first."
+        }
+      ],
+      "explanation": "The original inner loop checks every index of `b` from `0` to `b.size() - 1`. The modified loop starts at the last index, `b.size() - 1`, and stops when `j > 0` is false, so its last iteration uses index `1` and the element at index `0` is never checked.",
+      "topics": [
+        "T010",
+        "T007",
+        "T004"
+      ],
+      "subtopics": [
+        "ST044",
+        "ST081",
+        "ST019"
+      ],
+      "skills": [
+        "SK010",
+        "SK011"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q009",
+      "status": "active",
+      "text": "Consider the following instance variable and method.\n\n```java\nprivate int[] arr;\n\n/** Precondition: arr contains no duplicates;\n *                the elements in arr are in ascending order.\n *  @param low an int value such that 0 <= low <= arr.length\n *  @param high an int value such that low - 1 <= high < arr.length\n *  @param num an int value\n */\npublic int mystery(int low, int high, int num)\n{\n  int mid = (low + high) / 2;\n  if (low > high)\n  {\n    return low;\n  }\n  else if (arr[mid] < num)\n  {\n    return mystery(mid + 1, high, num);\n  }\n  else if (arr[mid] > num)\n  {\n    return mystery(low, mid - 1, num);\n  }\n  else // arr[mid] == num\n  {\n    return mid;\n  }\n}\n```\n\nWhat is returned by the call `mystery(0, arr.length - 1, num)` ?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The number of elements in `arr` that are less than `num`",
+          "is_correct": true,
+          "explanation": "Correct. The method is a binary search. If `num` is found, it returns its index `mid`; because `arr` is sorted with no duplicates, that index equals the number of elements less than `num`. If `num` is not found, the search ends with `low > high` and `low` is the position where `num` would be inserted, which is again the number of elements less than `num`. For example, if `arr` is `{2, 5, 9}`, then `num` = `5` returns `1` and `num` = `6` returns `2`."
+        },
+        {
+          "id": "b",
+          "text": "The number of elements in `arr` that are less than or equal to `num`",
+          "is_correct": false,
+          "explanation": "When `num` is in `arr`, the method returns its index, which is one less than this count (for `{2, 5, 9}` and `5` it returns `1`, not `2`)."
+        },
+        {
+          "id": "c",
+          "text": "The number of elements in `arr` that are equal to `num`",
+          "is_correct": false,
+          "explanation": "That count is always `0` or `1` here, but the method returns values such as `2` for `{2, 5, 9}` and `6`."
+        },
+        {
+          "id": "d",
+          "text": "The index of the middle element in `arr`",
+          "is_correct": false,
+          "explanation": "The middle index is returned only if `num` happens to be the middle element; otherwise the search moves left or right."
+        }
+      ],
+      "explanation": "The method is a binary search. If `num` is found, it returns its index `mid`; because `arr` is sorted with no duplicates, that index equals the number of elements less than `num`. If `num` is not found, the search ends with `low > high` and `low` is the position where `num` would be inserted, which is again the number of elements less than `num`. For example, if `arr` is `{2, 5, 9}`, then `num` = `5` returns `1` and `num` = `6` returns `2`.",
+      "topics": [
+        "T010",
+        "T009"
+      ],
+      "subtopics": [
+        "ST045",
+        "ST041"
+      ],
+      "skills": [
+        "SK012",
+        "SK003"
+      ],
+      "difficulty": "D3",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q010",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\n/** @param x an int value such that x >= 0\n */\npublic void mystery(int x)\n{\n  System.out.print(x % 10);\n  if ((x / 10) != 0)\n  {\n    mystery(x / 10);\n  }\n  System.out.print(x % 10);\n}\n```\n\nWhich of the following is printed as a result of the call `mystery(1234)`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "4321",
+          "is_correct": false,
+          "explanation": "This counts only the print before the recursive call and ignores the print after it."
+        },
+        {
+          "id": "b",
+          "text": "12344321",
+          "is_correct": false,
+          "explanation": "This reverses the order; the print before the recursive call happens first, so the digits start from the rightmost digit `4`."
+        },
+        {
+          "id": "c",
+          "text": "43211234",
+          "is_correct": true,
+          "explanation": "Correct. Each call prints its last digit, recurses on the number with that digit removed, and then prints the same last digit again after the recursive call returns. The calls are `mystery(1234)`, `mystery(123)`, `mystery(12)`, `mystery(1)`, so the first prints on the way down give `4321`, and the second prints on the way back up give `1234`. The full output is `43211234`."
+        },
+        {
+          "id": "d",
+          "text": "Many digits are printed due to infinite recursion.",
+          "is_correct": false,
+          "explanation": "`x / 10` shrinks the number each call, and the recursion stops when `x / 10` is `0` (at `x` = `1`)."
+        }
+      ],
+      "explanation": "Each call prints its last digit, recurses on the number with that digit removed, and then prints the same last digit again after the recursive call returns. The calls are `mystery(1234)`, `mystery(123)`, `mystery(12)`, `mystery(1)`, so the first prints on the way down give `4321`, and the second prints on the way back up give `1234`. The full output is `43211234`.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST042",
+        "ST043"
+      ],
+      "skills": [
+        "SK012",
+        "SK001"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q011",
+      "status": "active",
+      "text": "Consider the following recursive method.\n\n```java\npublic static int mystery(int n)\n{\n  if (n <= 1)\n  {\n    return 0;\n  }\n  else\n  {\n    return 1 + mystery(n / 2);\n  }\n}\n```\n\nAssume that `k` is a nonnegative integer and `m` is equal to 2 raised to the power `k`. What value is returned as a result of the call `mystery(m)` ?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "0",
+          "is_correct": false,
+          "explanation": "This is returned only when `k` is `0` (so `m` is `1`); for larger `k` each halving adds `1`."
+        },
+        {
+          "id": "b",
+          "text": "`k`",
+          "is_correct": true,
+          "explanation": "Correct. Each call halves its argument and adds `1`, and the base case `n <= 1` returns `0`. Starting from 2 to the power `k`, it takes exactly `k` halvings to reach `1`, so the result is `k`. For example, `mystery(8)` returns `1 + 1 + 1 + mystery(1)`, which is `3`, and 8 is 2 to the power 3."
+        },
+        {
+          "id": "c",
+          "text": "`m / 2 + 1`",
+          "is_correct": false,
+          "explanation": "For `m` = `8` this is `5`, but the method returns `3`; the method counts halvings rather than halving the value once."
+        },
+        {
+          "id": "d",
+          "text": "`k / 2 + 1`",
+          "is_correct": false,
+          "explanation": "For `k` = `3` this is `2` (or 2.5), not `3`; every halving adds `1`, not every other one."
+        }
+      ],
+      "explanation": "Each call halves its argument and adds `1`, and the base case `n <= 1` returns `0`. Starting from 2 to the power `k`, it takes exactly `k` halvings to reach `1`, so the result is `k`. For example, `mystery(8)` returns `1 + 1 + 1 + mystery(1)`, which is `3`, and 8 is 2 to the power 3.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST042"
+      ],
+      "skills": [
+        "SK012",
+        "SK005"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q012",
+      "status": "active",
+      "text": "The following method is a correct implementation of the selection sort algorithm. The method sorts the elements of `arr` so that they are in order from least to greatest.\n\n```java\npublic static void selectionSort(int[] arr)\n{\n  for (int j = 0; j < arr.length - 1; j++)\n  {\n    int minIndex = j;\n    for (int k = j + 1; k < arr.length; k++)\n    {\n      if (arr[k] < arr[minIndex])\n      {\n        minIndex = k;\n      }\n    }\n\n    int temp = arr[j];\n    arr[j] = arr[minIndex];\n    arr[minIndex] = temp;\n    /* end of outer loop */\n  }\n}\n```\n\nAssume that `selectionSort` has been called with an `int[]` argument that has been initialized with the following contents.\n\n{40, 30, 50, 60, 10, 20}\n\nWhat will the contents of `arr` be after three iterations of the outer loop (i.e., when `j == 2` at the point indicated by `/* end of outer loop */`)?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{10, 20, 30, 40, 60, 50}`",
+          "is_correct": false,
+          "explanation": "This is the array after four iterations, when `60` and `40` have also been swapped."
+        },
+        {
+          "id": "b",
+          "text": "`{10, 20, 30, 60, 40, 50}`",
+          "is_correct": true,
+          "explanation": "Correct. Each iteration swaps the element at index `j` with the minimum element among `arr[j]` through the end of the array. Iteration 1 swaps `40` and `10`, giving `{10, 30, 50, 60, 40, 20}`; iteration 2 swaps `30` and `20`, giving `{10, 20, 50, 60, 40, 30}`; iteration 3 swaps `50` and `30`, giving `{10, 20, 30, 60, 40, 50}`."
+        },
+        {
+          "id": "c",
+          "text": "`{10, 20, 50, 60, 40, 30}`",
+          "is_correct": false,
+          "explanation": "This is the array after only two iterations."
+        },
+        {
+          "id": "d",
+          "text": "`{10, 30, 50, 60, 40, 20}`",
+          "is_correct": false,
+          "explanation": "This is the array after only one iteration."
+        }
+      ],
+      "explanation": "Each iteration swaps the element at index `j` with the minimum element among `arr[j]` through the end of the array. Iteration 1 swaps `40` and `10`, giving `{10, 30, 50, 60, 40, 20}`; iteration 2 swaps `30` and `20`, giving `{10, 20, 50, 60, 40, 30}`; iteration 3 swaps `50` and `30`, giving `{10, 20, 30, 60, 40, 50}`.",
+      "topics": [
+        "T011",
+        "T006"
+      ],
+      "subtopics": [
+        "ST046"
+      ],
+      "skills": [
+        "SK001",
+        "SK003"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q013",
+      "status": "active",
+      "text": "Consider the following method, which is intended to return `true` if `0` is found in its two-dimensional array parameter `mat` and `false` otherwise. The method does not work as intended.\n\n```java\npublic static boolean findZero(int[][] mat)\n{\n  for (int row = 0; row <= mat.length; row++)\n  {\n    for (int col = 0; col < mat[0].length; col++)\n    {\n      if (mat[row][col] == 0)\n      {\n        return true;\n      }\n    }\n  }\n  return false;\n}\n```\n\nWhich of the following values of `mat` can be used to show that the method does **not** work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{{30, 20}, {10, 0}}`",
+          "is_correct": false,
+          "explanation": "`0` is found in the last real row, so the method returns `true` before the out-of-bounds row is reached."
+        },
+        {
+          "id": "b",
+          "text": "`{{4, 3}, {2, 1}, {0, -1}}`",
+          "is_correct": false,
+          "explanation": "`0` is found in the last real row, so the method correctly returns `true`."
+        },
+        {
+          "id": "c",
+          "text": "`{{0, 1, 2}, {3, 4, 5}, {6, 7, 8}}`",
+          "is_correct": false,
+          "explanation": "`0` is the very first element, so the method correctly returns `true` immediately."
+        },
+        {
+          "id": "d",
+          "text": "`{{5, 10, 15, 20}, {25, 30, 35, 40}}`",
+          "is_correct": true,
+          "explanation": "Correct. The outer loop condition is `row <= mat.length` instead of `row < mat.length`. If `0` is not found in the real rows, the loop goes on to `row == mat.length` and `mat[row]` throws an `ArrayIndexOutOfBoundsException` instead of returning `false`. The array `{{5, 10, 15, 20}, {25, 30, 35, 40}}` contains no `0`, so it exposes the error."
+        }
+      ],
+      "explanation": "The outer loop condition is `row <= mat.length` instead of `row < mat.length`. If `0` is not found in the real rows, the loop goes on to `row == mat.length` and `mat[row]` throws an `ArrayIndexOutOfBoundsException` instead of returning `false`. The array `{{5, 10, 15, 20}, {25, 30, 35, 40}}` contains no `0`, so it exposes the error.",
+      "topics": [
+        "T008",
+        "T010"
+      ],
+      "subtopics": [
+        "ST038",
+        "ST083",
+        "ST044"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q014",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic String goAgain(String str, int index)\n{\n  if (index >= str.length())\n    return str;\n\n  return str + goAgain(str.substring(index), index + 1);\n}\n```\n\nWhat is printed as a result of executing the following statement?\n\n```java\nSystem.out.println(goAgain(\"today\", 1));\n```",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`todayto`",
+          "is_correct": false,
+          "explanation": "This treats the recursive argument as the first characters of `str`, but `substring(index)` returns the characters from `index` to the end."
+        },
+        {
+          "id": "b",
+          "text": "`todayoday`",
+          "is_correct": false,
+          "explanation": "This stops one call too early; the base case call `goAgain(\"ay\", 3)` still returns `\"ay\"`, which is appended."
+        },
+        {
+          "id": "c",
+          "text": "`todayodayay`",
+          "is_correct": true,
+          "explanation": "Correct. `goAgain(\"today\", 1)` returns `\"today\" + goAgain(\"oday\", 2)`, because `\"today\".substring(1)` is `\"oday\"`. Then `goAgain(\"oday\", 2)` returns `\"oday\" + goAgain(\"ay\", 3)`, because `\"oday\".substring(2)` is `\"ay\"`. Finally `goAgain(\"ay\", 3)` hits the base case (`3 >= 2`) and returns `\"ay\"`, so the result is `\"today\" + \"oday\" + \"ay\"`, or `todayodayay`."
+        },
+        {
+          "id": "d",
+          "text": "`todayodaydayayy`",
+          "is_correct": false,
+          "explanation": "This assumes each call removes only one character (`\"oday\"`, `\"day\"`, `\"ay\"`, `\"y\"`), but `index` grows each call, so more characters are removed each time."
+        }
+      ],
+      "explanation": "`goAgain(\"today\", 1)` returns `\"today\" + goAgain(\"oday\", 2)`, because `\"today\".substring(1)` is `\"oday\"`. Then `goAgain(\"oday\", 2)` returns `\"oday\" + goAgain(\"ay\", 3)`, because `\"oday\".substring(2)` is `\"ay\"`. Finally `goAgain(\"ay\", 3)` hits the base case (`3 >= 2`) and returns `\"ay\"`, so the result is `\"today\" + \"oday\" + \"ay\"`, or `todayodayay`.",
+      "topics": [
+        "T009",
+        "T013"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST042",
+        "ST009"
+      ],
+      "skills": [
+        "SK012",
+        "SK019"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q015",
+      "status": "active",
+      "text": "Consider the following correct implementation of the selection sort algorithm.\n\n```java\npublic static void selectionSort(int[] elements)\n{\n  for (int j = 0; j < elements.length - 1; j++)\n  {\n    int minIndex = j;\n    for (int k = j + 1; k < elements.length; k++)\n    {\n      if (elements[k] < elements[minIndex])\n      {\n        minIndex = k;\n      }\n    }\n    if (j != minIndex)\n    {\n      int temp = elements[j];\n      elements[j] = elements[minIndex];\n      elements[minIndex] = temp;        // Line 17\n    }\n  }\n}\n```\n\nThe following declaration and method call appear in a method in the same class as `selectionSort`.\n\n```java\nint[] arr = {9, 8, 7, 6, 5};\nselectionSort(arr);\n```\n\nHow many times is the statement in line 17 of the method executed as a result of the call `selectionSort(arr)`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "2",
+          "is_correct": true,
+          "explanation": "Correct. Line 17 executes only when an actual swap happens (`j != minIndex`). With `j` = `0`, `9` and `5` are swapped, giving `{5, 8, 7, 6, 9}`; with `j` = `1`, `8` and `6` are swapped, giving `{5, 6, 7, 8, 9}`. For `j` = `2` and `j` = `3` the minimum is already in place, so no more swaps occur, for a total of 2."
+        },
+        {
+          "id": "b",
+          "text": "3",
+          "is_correct": false,
+          "explanation": "After the second swap the array is already sorted, so no third swap is needed."
+        },
+        {
+          "id": "c",
+          "text": "4",
+          "is_correct": false,
+          "explanation": "This is the number of outer loop iterations; it ignores the `if (j != minIndex)` check that skips swaps for elements already in place."
+        },
+        {
+          "id": "d",
+          "text": "5",
+          "is_correct": false,
+          "explanation": "This is the length of the array; the outer loop runs only `elements.length - 1` times and not every iteration swaps."
+        }
+      ],
+      "explanation": "Line 17 executes only when an actual swap happens (`j != minIndex`). With `j` = `0`, `9` and `5` are swapped, giving `{5, 8, 7, 6, 9}`; with `j` = `1`, `8` and `6` are swapped, giving `{5, 6, 7, 8, 9}`. For `j` = `2` and `j` = `3` the minimum is already in place, so no more swaps occur, for a total of 2.",
+      "topics": [
+        "T011",
+        "T022"
+      ],
+      "subtopics": [
+        "ST046",
+        "ST079"
+      ],
+      "skills": [
+        "SK001",
+        "SK011"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q016",
+      "status": "active",
+      "text": "The following method is intended to sort an array of integers into ascending order.\n\n```java\npublic static void sort(int[] arr)\n{\n  for (int j = 0; j < arr.length - 1; j++)\n  {\n    int minIndex = j;\n    for (int k = j + 1; k < arr.length - 1; k++)\n    {\n      if (arr[k] < arr[minIndex])\n      {\n        minIndex = k;\n      }\n    }\n    int temp = arr[minIndex];\n    arr[minIndex] = arr[j];\n    arr[j] = temp;\n  }\n}\n```\n\nThis method works as intended for some, but not all, `int` arrays. Which of the following arrays can be used to show that the method does not work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{1, 2, 3, 4, 5}`",
+          "is_correct": false,
+          "explanation": "The array is already sorted, and the method leaves it sorted."
+        },
+        {
+          "id": "b",
+          "text": "`{1, 2, 3, 5, 4}`",
+          "is_correct": true,
+          "explanation": "Correct. The inner loop stops at `k < arr.length - 1`, so the last element is never compared. In `{1, 2, 3, 5, 4}` the only element out of place is the `4` in the last position; when `j` is `3`, the inner loop does not run, so `5` and `4` are never swapped and the array stays unsorted."
+        },
+        {
+          "id": "c",
+          "text": "`{1, 2, 4, 3, 5}`",
+          "is_correct": false,
+          "explanation": "When `j` is `2`, the inner loop checks index `3`, finds `3`, and swaps it with `4`, so the array is sorted."
+        },
+        {
+          "id": "d",
+          "text": "`{1, 3, 2, 4, 5}`",
+          "is_correct": false,
+          "explanation": "When `j` is `1`, the inner loop checks index `2`, finds `2`, and swaps it with `3`, so the array is sorted."
+        }
+      ],
+      "explanation": "The inner loop stops at `k < arr.length - 1`, so the last element is never compared. In `{1, 2, 3, 5, 4}` the only element out of place is the `4` in the last position; when `j` is `3`, the inner loop does not run, so `5` and `4` are never swapped and the array stays unsorted.",
+      "topics": [
+        "T011",
+        "T004"
+      ],
+      "subtopics": [
+        "ST046",
+        "ST020"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q017",
+      "status": "active",
+      "text": "The following method is a correct implementation of the insertion sort algorithm. The method correctly sorts the elements of `arr` so that they appear in order from least to greatest.\n\n```java\npublic static void insertionSort(int[] arr)\n{\n  for (int j = 1; j < arr.length; j++)\n  {\n    int temp = arr[j];\n    int possibleIndex = j;\n    while (possibleIndex > 0 && temp < arr[possibleIndex - 1])\n    {\n      arr[possibleIndex] = arr[possibleIndex - 1];\n      possibleIndex--;                     // Line 10\n    }\n    arr[possibleIndex] = temp;\n  }\n}\n```\n\nThe following code segment appears in a method in the same class as `insertionSort`.\n\n```java\nint[] numbers = {4, 12, 4, 7, 19, 6};\ninsertionSort(numbers);\n```\n\nHow many times is the statement in line 10 of the method executed as a result of the call to `insertionSort`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "2",
+          "is_correct": false,
+          "explanation": "This counts only the shifts for the second `4` and for `7`, and leaves out the three shifts needed to insert `6`."
+        },
+        {
+          "id": "b",
+          "text": "3",
+          "is_correct": false,
+          "explanation": "This counts only the shifts made when inserting `6`, or the number of passes that shift at all, rather than every shift."
+        },
+        {
+          "id": "c",
+          "text": "4",
+          "is_correct": false,
+          "explanation": "This misses one shift; `6` must move past `19`, `12`, and `7` (three shifts), in addition to the two earlier shifts."
+        },
+        {
+          "id": "d",
+          "text": "5",
+          "is_correct": true,
+          "explanation": "Correct. Line 10 executes once each time an element is shifted one place to the right. Inserting `12` (`j` = `1`) shifts nothing; inserting the second `4` (`j` = `2`) shifts `12` once, giving `{4, 4, 12, 7, 19, 6}`; inserting `7` (`j` = `3`) shifts `12` once, giving `{4, 4, 7, 12, 19, 6}`; inserting `19` shifts nothing; inserting `6` (`j` = `5`) shifts `19`, `12`, and `7`, giving `{4, 4, 6, 7, 12, 19}`. The total is 1 + 1 + 3 = 5."
+        }
+      ],
+      "explanation": "Line 10 executes once each time an element is shifted one place to the right. Inserting `12` (`j` = `1`) shifts nothing; inserting the second `4` (`j` = `2`) shifts `12` once, giving `{4, 4, 12, 7, 19, 6}`; inserting `7` (`j` = `3`) shifts `12` once, giving `{4, 4, 7, 12, 19, 6}`; inserting `19` shifts nothing; inserting `6` (`j` = `5`) shifts `19`, `12`, and `7`, giving `{4, 4, 6, 7, 12, 19}`. The total is 1 + 1 + 3 = 5.",
+      "topics": [
+        "T011",
+        "T022"
+      ],
+      "subtopics": [
+        "ST047",
+        "ST079"
+      ],
+      "skills": [
+        "SK001",
+        "SK011"
+      ],
+      "difficulty": "D3",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q018",
+      "status": "active",
+      "text": "Consider the following `mergeSortHelper` method, which is part of an algorithm to recursively sort an array of integers.\n\n```java\n/** Precondition: (arr.length == 0 or 0 <= from <= to <= arr.length)\n * arr.length == temp.length\n */\npublic static void mergeSortHelper(int[] arr,\n                                   int from, int to, int[] temp)\n{\n  if (from < to)\n  {\n    int middle = (from + to) / 2;\n    mergeSortHelper(arr, from, middle, temp);\n    mergeSortHelper(arr, middle + 1, to, temp);\n    merge(arr, from, middle, to, temp);\n  }\n}\n```\n\nThe `merge` method is used to merge two halves of an array (`arr[from]` through `arr[middle]`, inclusive, and `arr[middle + 1]` through `arr[to]`, inclusive) when each half has already been sorted into ascending order. For example, consider the array `arr1`, which contains the values `{1, 3, 5, 7, 2, 4, 6, 8}`. The lower half of `arr1` is sorted in ascending order (elements `arr1[0]` through `arr1[3]`, or `{1, 3, 5, 7}`), as is the upper half of `arr1` (elements `arr1[4]` through `arr1[7]`, or `{2, 4, 6, 8}`). The array will contain the values `{1, 2, 3, 4, 5, 6, 7, 8}` after the method call `merge(arr1, 0, 3, 7, temp)`. The array `temp` is a temporary array declared in the calling program.\n\nConsider the following code segment, which appears in a method in the same class as `mergeSortHelper` and `merge`.\n\n```java\nint[] vals = {80, 50, 30, 20, 60, 70};\nint[] temp = new int[vals.length];\nmergeSortHelper(vals, 0, vals.length - 1, temp);\n```\n\nWhich of the following represents the arrays merged the last time the `merge` method is executed as a result of the code segment above?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{20, 30, 50}` and `{60, 70, 80}` are merged to form `{20, 30, 50, 60, 70, 80}`.",
+          "is_correct": false,
+          "explanation": "Merge sort splits by position, not by value, so the left half holds the sorted values from indices `0` to `2` (`80, 50, 30`), not the three smallest values."
+        },
+        {
+          "id": "b",
+          "text": "`{20, 50, 70}` and `{30, 60, 80}` are merged to form `{20, 30, 50, 60, 70, 80}`.",
+          "is_correct": false,
+          "explanation": "`{20, 50, 70}` and `{30, 60, 80}` forming a sorted result: the halves are contiguous index ranges, not alternating elements."
+        },
+        {
+          "id": "c",
+          "text": "`{20, 50, 70}` and `{30, 60, 80}` are merged to form `{20, 50, 70, 30, 60, 80}`.",
+          "is_correct": false,
+          "explanation": "The halves are wrong, and `merge` produces a sorted result rather than placing one half after the other."
+        },
+        {
+          "id": "d",
+          "text": "`{30, 50, 80}` and `{20, 60, 70}` are merged to form `{20, 30, 50, 60, 70, 80}`.",
+          "is_correct": true,
+          "explanation": "Correct. The first call uses `from` = `0` and `to` = `5`, so `middle` is `2` and the array is split into indices `0` to `2` (`80, 50, 30`) and `3` to `5` (`20, 60, 70`). Each half is sorted by its own recursive calls before the final `merge`, so the left half becomes `{30, 50, 80}` and the right half becomes `{20, 60, 70}`. The last `merge` combines these two halves into `{20, 30, 50, 60, 70, 80}`."
+        }
+      ],
+      "explanation": "The first call uses `from` = `0` and `to` = `5`, so `middle` is `2` and the array is split into indices `0` to `2` (`80, 50, 30`) and `3` to `5` (`20, 60, 70`). Each half is sorted by its own recursive calls before the final `merge`, so the left half becomes `{30, 50, 80}` and the right half becomes `{20, 60, 70}`. The last `merge` combines these two halves into `{20, 30, 50, 60, 70, 80}`.",
+      "topics": [
+        "T011",
+        "T009"
+      ],
+      "subtopics": [
+        "ST048",
+        "ST042"
+      ],
+      "skills": [
+        "SK012",
+        "SK003"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q019",
+      "status": "active",
+      "text": "Consider the method `linearSearch`, which takes an `ArrayList` of `Integer` elements and a target `int` value as parameters and returns the index of the first appearance of the target value in the list or `-1` if the target value does not appear in the list.\n\n```java\npublic static int linearSearch(ArrayList<Integer> elements, int target)\n{\n  for (int j = 0; j < elements.size(); j++)    // Line 3\n  {\n    if (elements.get(j) == target)\n    {\n      return j;\n    }\n  }\n  return -1;\n}\n```\n\nWhich of the following describes how replacing line 3 with `for (int j = (elements.size() - 1); j >= 0; j--)` will affect the behavior of `linearSearch`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The modification has no effect: the modified method will continue to return the index of the first appearance of the target value in the list, or `-1` if the target value does not appear in the list.",
+          "is_correct": false,
+          "explanation": "When the target appears more than once, scanning from the right finds the last appearance first, so a different index is returned."
+        },
+        {
+          "id": "b",
+          "text": "The modified method will return the index of the last appearance of the target value in the list, or `-1` if the target value does not appear in the list.",
+          "is_correct": true,
+          "explanation": "Correct. The modified loop searches the list from right to left, still visiting every index from `elements.size() - 1` down to `0`. Because the method returns as soon as it finds a match, it now returns the index of the last appearance of the target value, and it still returns `-1` when the target is not in the list."
+        },
+        {
+          "id": "c",
+          "text": "The modified method will throw an `IndexOutOfBoundsException`.",
+          "is_correct": false,
+          "explanation": "Every index used is between `0` and `elements.size() - 1`, and for an empty list the loop does not run at all."
+        },
+        {
+          "id": "d",
+          "text": "The modified method will return `-1` regardless of the inputs.",
+          "is_correct": false,
+          "explanation": "The loop still checks every element and returns its index on a match."
+        }
+      ],
+      "explanation": "The modified loop searches the list from right to left, still visiting every index from `elements.size() - 1` down to `0`. Because the method returns as soon as it finds a match, it now returns the index of the last appearance of the target value, and it still returns `-1` when the target is not in the list.",
+      "topics": [
+        "T010",
+        "T007"
+      ],
+      "subtopics": [
+        "ST044",
+        "ST036",
+        "ST081"
+      ],
+      "skills": [
+        "SK010",
+        "SK009"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q021",
+      "status": "active",
+      "text": "Consider the following data field and method. Method `maxHelper` is intended to return the largest value among the first `numVals` values in an array; however, `maxHelper` does not work as intended.\n\n```java\nprivate int[] nums;\n\n// precondition: 0 < numVals <= nums.length\nprivate int maxHelper(int numVals)\n{\n  int max = maxHelper(numVals - 1);     // Line 1\n  if (max > nums[numVals - 1])          // Line 2\n    return max;\n  else\n    return nums[numVals - 1];\n}\n```\n\nWhich of the following best describes the conditions under which `maxHelper` does not work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "When `numVals` is 1",
+          "is_correct": false,
+          "explanation": "The method fails for every value of `numVals`, not just `1`, because Line 1 always recurses before anything is returned."
+        },
+        {
+          "id": "b",
+          "text": "When the elements of `nums` are in nonincreasing order",
+          "is_correct": false,
+          "explanation": "The order of the elements never matters, because no element is examined before the endless recursion."
+        },
+        {
+          "id": "c",
+          "text": "When the elements of `nums` are in nondecreasing order",
+          "is_correct": false,
+          "explanation": "The order of the elements never matters, because no element is examined before the endless recursion."
+        },
+        {
+          "id": "d",
+          "text": "Method `maxHelper` never works as intended.",
+          "is_correct": true,
+          "explanation": "Correct. The method has no base case: the first thing every call does is call `maxHelper(numVals - 1)` on Line 1. The argument keeps decreasing (`numVals - 1`, `numVals - 2`, ..., `0`, `-1`, ...) and no call ever returns, so every call ends in infinite recursion (a `StackOverflowError`) regardless of `numVals` or the contents of `nums`."
+        }
+      ],
+      "explanation": "The method has no base case: the first thing every call does is call `maxHelper(numVals - 1)` on Line 1. The argument keeps decreasing (`numVals - 1`, `numVals - 2`, ..., `0`, `-1`, ...) and no call ever returns, so every call ends in infinite recursion (a `StackOverflowError`) regardless of `numVals` or the contents of `nums`.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST041"
+      ],
+      "skills": [
+        "SK004",
+        "SK012"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q022",
+      "status": "active",
+      "text": "Consider the following data field and method. Method `maxHelper` is intended to return the largest value among the first `numVals` values in an array; however, `maxHelper` does not work as intended.\n\n```java\nprivate int[] nums;\n\n// precondition: 0 < numVals <= nums.length\nprivate int maxHelper(int numVals)\n{\n  int max = maxHelper(numVals - 1);     // Line 1\n  if (max > nums[numVals - 1])          // Line 2\n    return max;\n  else\n    return nums[numVals - 1];\n}\n```\n\nWhich of the following corrects the method `maxHelper` so that it works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Insert the following statement before Line 1.\n\n```java\nif (numVals == 0)\n  return numVals;\n```",
+          "is_correct": false,
+          "explanation": "`if (numVals == 0) return numVals;` before Line 1: the recursion stops, but it treats `0` as the maximum of no values, so if every value is negative (for example `nums` = `{-3, -5}`), the method returns `0` instead of `-3`."
+        },
+        {
+          "id": "b",
+          "text": "Insert the following statement before Line 1.\n\n```java\nif (numVals == 1)\n  return nums[0];\n```",
+          "is_correct": true,
+          "explanation": "Correct. The method needs a base case that is checked before the recursive call. With `if (numVals == 1) return nums[0];` before Line 1, the largest of the first one value is `nums[0]`, and each larger `numVals` recursively finds the max of the first `numVals - 1` values and compares it with `nums[numVals - 1]`, so the recursion stops and returns the correct maximum."
+        },
+        {
+          "id": "c",
+          "text": "Insert the following statement between Line 1 and Line 2.\n\n```java\nif (numVals == 0)\n  return numVals;\n```",
+          "is_correct": false,
+          "explanation": "`if (numVals == 0) return numVals;` between Line 1 and Line 2: the recursive call on Line 1 runs before the check is reached, so the recursion is still infinite."
+        },
+        {
+          "id": "d",
+          "text": "Insert the following statement between Line 1 and Line 2.\n\n```java\nif (numVals == 1)\n  return nums[0];\n```",
+          "is_correct": false,
+          "explanation": "`if (numVals == 1) return nums[0];` between Line 1 and Line 2: the recursive call on Line 1 runs before the check is reached, so the recursion is still infinite."
+        }
+      ],
+      "explanation": "The method needs a base case that is checked before the recursive call. With `if (numVals == 1) return nums[0];` before Line 1, the largest of the first one value is `nums[0]`, and each larger `numVals` recursively finds the max of the first `numVals - 1` values and compares it with `nums[numVals - 1]`, so the recursion stops and returns the correct maximum.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST042"
+      ],
+      "skills": [
+        "SK004",
+        "SK012"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q023",
+      "status": "active",
+      "text": "Consider the following method, which is intended to return the largest value in the portion of the `int` array `data` that begins at the index `start` and goes to the end of the array.\n\n```java\n/** Precondition: 0 <= start < data.length */\npublic int maximum(int[] data, int start)\n{\n  if (start == data.length - 1)\n  {\n    return data[start];\n  }\n  /* missing statement */\n  if (val > data[start])\n  {\n    return val;\n  }\n  else\n  {\n    return data[start];\n  }\n}\n```\n\nWhich of the following can be used as a replacement for `/* missing statement */` so that the `maximum` method works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`int val = maximum(data, start - 1);`",
+          "is_correct": false,
+          "explanation": "This moves away from the base case at the end of the array, so `start` eventually becomes `-1` and `data[start]` throws an `ArrayIndexOutOfBoundsException`."
+        },
+        {
+          "id": "b",
+          "text": "`int val = maximum(data, start + 1);`",
+          "is_correct": true,
+          "explanation": "Correct. The call `maximum(data, start + 1)` sets `val` to the largest value in the portion of `data` from index `start + 1` to the end. The method then returns the larger of `data[start]` and `val`, which is the largest value from `start` to the end. Each recursive call moves one index closer to the base case `start == data.length - 1`."
+        },
+        {
+          "id": "c",
+          "text": "`int val = maximum(data[start - 1], start);`",
+          "is_correct": false,
+          "explanation": "`data[start - 1]` is an `int`, but the first parameter must be an `int[]`, so this does not compile."
+        },
+        {
+          "id": "d",
+          "text": "`int val = maximum(data[start + 1], start);`",
+          "is_correct": false,
+          "explanation": "`data[start + 1]` is an `int`, but the first parameter must be an `int[]`, so this does not compile."
+        }
+      ],
+      "explanation": "The call `maximum(data, start + 1)` sets `val` to the largest value in the portion of `data` from index `start + 1` to the end. The method then returns the larger of `data[start]` and `val`, which is the largest value from `start` to the end. Each recursive call moves one index closer to the base case `start == data.length - 1`.",
+      "topics": [
+        "T009",
+        "T006"
+      ],
+      "subtopics": [
+        "ST042",
+        "ST034"
+      ],
+      "skills": [
+        "SK012",
+        "SK016"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q024",
+      "status": "active",
+      "text": "Assume that methods `f` and `g` are defined as follows.\n\n```java\npublic int f(int x)\n{\n  if (x <= 0)\n  {\n    return 0;\n  }\n  else\n  {\n    return g(x - 1);\n  }\n}\n\npublic int g(int x)\n{\n  if (x <= 0)\n  {\n    return 0;\n  }\n  else\n  {\n    return (f(x - 1) + x);\n  }\n}\n```\n\nWhat value is returned as a result of the call `f(6)`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "0",
+          "is_correct": false,
+          "explanation": "This is only the base case value; the `g` calls add `5`, `3`, and `1` on the way back."
+        },
+        {
+          "id": "b",
+          "text": "6",
+          "is_correct": false,
+          "explanation": "This is the original argument, but `f` never adds its own argument; the total is the sum of the arguments passed to `g` (`5 + 3 + 1`)."
+        },
+        {
+          "id": "c",
+          "text": "9",
+          "is_correct": true,
+          "explanation": "Correct. The calls alternate: `f(6)` returns `g(5)`, which is `f(4) + 5`; `f(4)` returns `g(3)`, which is `f(2) + 3`; `f(2)` returns `g(1)`, which is `f(0) + 1`; and `f(0)` returns `0`. Only `g` adds its argument, so the result is `0 + 1 + 3 + 5`, or `9`."
+        },
+        {
+          "id": "d",
+          "text": "12",
+          "is_correct": false,
+          "explanation": "This adds the even arguments passed to `f` (`6 + 4 + 2`), but only `g` adds its argument, and `g` receives the odd values `5`, `3`, and `1`."
+        }
+      ],
+      "explanation": "The calls alternate: `f(6)` returns `g(5)`, which is `f(4) + 5`; `f(4)` returns `g(3)`, which is `f(2) + 3`; `f(2)` returns `g(1)`, which is `f(0) + 1`; and `f(0)` returns `0`. Only `g` adds its argument, so the result is `0 + 1 + 3 + 5`, or `9`.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST042",
+        "ST043"
+      ],
+      "skills": [
+        "SK012",
+        "SK001"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q025",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static int mystery(int n)\n{\n  if (n <= 0)\n  {\n    return 0;\n  }\n  else\n  {\n    return n + mystery(n - 2);\n  }\n}\n```\n\nWhat value is returned as a result of the call `mystery(9)` ?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "0",
+          "is_correct": false,
+          "explanation": "This is only the base case value; each earlier call adds its `n`."
+        },
+        {
+          "id": "b",
+          "text": "16",
+          "is_correct": false,
+          "explanation": "This is `9 + 7`, which stops after two calls instead of continuing until `n <= 0`."
+        },
+        {
+          "id": "c",
+          "text": "24",
+          "is_correct": false,
+          "explanation": "This is `9 + 7 + 5 + 3`, which leaves out the `1` added by `mystery(1)`; the base case is `n <= 0`, not `n <= 1`."
+        },
+        {
+          "id": "d",
+          "text": "25",
+          "is_correct": true,
+          "explanation": "Correct. `mystery(9)` = `9 + mystery(7)` = `9 + 7 + mystery(5)` = `9 + 7 + 5 + mystery(3)` = `9 + 7 + 5 + 3 + mystery(1)` = `9 + 7 + 5 + 3 + 1 + mystery(-1)`. The call `mystery(-1)` returns `0`, so the result is `9 + 7 + 5 + 3 + 1`, or `25`."
+        }
+      ],
+      "explanation": "`mystery(9)` = `9 + mystery(7)` = `9 + 7 + mystery(5)` = `9 + 7 + 5 + mystery(3)` = `9 + 7 + 5 + 3 + mystery(1)` = `9 + 7 + 5 + 3 + 1 + mystery(-1)`. The call `mystery(-1)` returns `0`, so the result is `9 + 7 + 5 + 3 + 1`, or `25`.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST042"
+      ],
+      "skills": [
+        "SK012",
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q027",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\n// precondition: arr contains no duplicates;\n//               the elements in arr are in sorted order;\n//               0 <= low <= arr.length; low - 1 <= high < arr.length\npublic static int mystery(int[] arr, int low, int high, int num)\n{\n  int mid = (low + high) / 2;\n\n  if (low > high)\n  {\n    return low;\n  }\n  else if (arr[mid] < num)\n  {\n    return mystery(arr, mid + 1, high, num);\n  }\n  else if (arr[mid] > num)\n  {\n    return mystery(arr, low, mid - 1, num);\n  }\n  else // arr[mid] == num\n  {\n    return mid;\n  }\n}\n```\n\nHow many calls to `mystery` (including the initial call) are made as a result of the call `mystery(arr, 0, arr.length - 1, 14)` if `arr` is the following array?\n\n| | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| arr | 11 | 13 | 25 | 26 | 29 | 30 | 31 | 32 |",
+      "answers": [
+        {
+          "id": "a",
+          "text": "2",
+          "is_correct": false,
+          "explanation": "This stops after the first recursive call, but the search must keep narrowing until `low > high`, because `14` is not in the array."
+        },
+        {
+          "id": "b",
+          "text": "4",
+          "is_correct": true,
+          "explanation": "Correct. Call 1: `low` = `0`, `high` = `7`, `mid` = `3`, and `26 > 14`, so it calls `mystery(arr, 0, 2, 14)`. Call 2: `mid` = `1`, and `13 < 14`, so it calls `mystery(arr, 2, 2, 14)`. Call 3: `mid` = `2`, and `25 > 14`, so it calls `mystery(arr, 2, 1, 14)`. Call 4: `low > high`, so it returns `2`. That is 4 calls in total."
+        },
+        {
+          "id": "c",
+          "text": "7",
+          "is_correct": false,
+          "explanation": "This resembles a linear search count; binary search halves the range each call and needs only 4 calls here."
+        },
+        {
+          "id": "d",
+          "text": "8",
+          "is_correct": false,
+          "explanation": "This is the length of the array, as if every element were checked; binary search halves the range each call."
+        }
+      ],
+      "explanation": "Call 1: `low` = `0`, `high` = `7`, `mid` = `3`, and `26 > 14`, so it calls `mystery(arr, 0, 2, 14)`. Call 2: `mid` = `1`, and `13 < 14`, so it calls `mystery(arr, 2, 2, 14)`. Call 3: `mid` = `2`, and `25 > 14`, so it calls `mystery(arr, 2, 1, 14)`. Call 4: `low > high`, so it returns `2`. That is 4 calls in total.",
+      "topics": [
+        "T010",
+        "T009",
+        "T022"
+      ],
+      "subtopics": [
+        "ST045",
+        "ST042",
+        "ST079"
+      ],
+      "skills": [
+        "SK001",
+        "SK012"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q028",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\n// precondition: x >= 0\npublic void mystery(int x)\n{\n  if ((x / 10) != 0)\n  {\n    mystery(x / 10);\n  }\n\n  System.out.print(x % 10);\n}\n```\n\nWhich of the following is printed as a result of the call `mystery(123456)` ?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "56",
+          "is_correct": false,
+          "explanation": "Every call prints one digit, not only the last two calls."
+        },
+        {
+          "id": "b",
+          "text": "123456",
+          "is_correct": true,
+          "explanation": "Correct. Each call first recurses on `x / 10` (the number without its last digit) and only then prints its last digit `x % 10`. The deepest call, `mystery(1)`, prints `1` first, then `mystery(12)` prints `2`, and so on back up to `mystery(123456)`, which prints `6`. The output is `123456`."
+        },
+        {
+          "id": "c",
+          "text": "654321",
+          "is_correct": false,
+          "explanation": "This would happen if the digit were printed before the recursive call; here the print comes after it, so the leftmost digit is printed first."
+        },
+        {
+          "id": "d",
+          "text": "Many digits are printed due to infinite recursion.",
+          "is_correct": false,
+          "explanation": "`x / 10` gets smaller each call and the recursion stops when `x / 10` is `0`."
+        }
+      ],
+      "explanation": "Each call first recurses on `x / 10` (the number without its last digit) and only then prints its last digit `x % 10`. The deepest call, `mystery(1)`, prints `1` first, then `mystery(12)` prints `2`, and so on back up to `mystery(123456)`, which prints `6`. The output is `123456`.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST042",
+        "ST043"
+      ],
+      "skills": [
+        "SK012",
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q029",
+      "status": "active",
+      "text": "Consider the following `mergeSortHelper` method, which is part of a correctly implemented algorithm to recursively sort an array of integers.\n\n```java\n/** Preconditions: (arr.length == 0 or\n *               0 <= from <= to <= arr.length)\n *               arr.length == temp.length\n */\npublic static void mergeSortHelper(int[] arr, int from,\n                                   int to, int[] temp)\n{\n  if (from < to)\n  {\n    int middle = (from + to) / 2;\n    mergeSortHelper(arr, from, middle, temp);\n    mergeSortHelper(arr, middle + 1, to, temp);\n    merge(arr, from, middle, to, temp);\n  }\n}\n```\n\nThe `merge` method (not shown) is used to merge two halves of an array (`arr[from]` through `arr[middle]`, inclusive, and `arr[middle + 1]` through `arr[to]`, inclusive) when each half has already been sorted into ascending order. For example, if `arr1` contains `{1, 3, 5, 7, 2, 4, 6, 8}`, then `arr1` will contain `{1, 2, 3, 4, 5, 6, 7, 8}` after the method call `merge(arr1, 0, 3, 7, temp)`.\n\nConsider the following code segment, which appears in a method in the same class as `mergeSortHelper` and `merge`.\n\n```java\nint[] numbers = {40, 10, 20, 30};\nint[] temp = new int[numbers.length];\nmergeSortHelper(numbers, 0, numbers.length - 1, temp);\n```\n\nHow many times will the `merge` method be called as a result of running the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "1",
+          "is_correct": false,
+          "explanation": "This counts only the final merge, but each half of size 2 must also be merged before the final merge."
+        },
+        {
+          "id": "b",
+          "text": "2",
+          "is_correct": false,
+          "explanation": "This counts only the merges of the single elements and leaves out the final merge of the two halves."
+        },
+        {
+          "id": "c",
+          "text": "3",
+          "is_correct": true,
+          "explanation": "Correct. `merge` is called once for every call to `mergeSortHelper` in which `from < to`. Those calls are `(0, 3)`, `(0, 1)`, and `(2, 3)`; the calls `(0, 0)`, `(1, 1)`, `(2, 2)`, and `(3, 3)` do nothing. So `merge` combines `40` and `10` into `{10, 40}`, combines `20` and `30` into `{20, 30}`, and finally combines those two halves into `{10, 20, 30, 40}`, for 3 calls."
+        },
+        {
+          "id": "d",
+          "text": "4",
+          "is_correct": false,
+          "explanation": "This is the number of elements; single-element ranges (`from == to`) do not call `merge`."
+        }
+      ],
+      "explanation": "`merge` is called once for every call to `mergeSortHelper` in which `from < to`. Those calls are `(0, 3)`, `(0, 1)`, and `(2, 3)`; the calls `(0, 0)`, `(1, 1)`, `(2, 2)`, and `(3, 3)` do nothing. So `merge` combines `40` and `10` into `{10, 40}`, combines `20` and `30` into `{20, 30}`, and finally combines those two halves into `{10, 20, 30, 40}`, for 3 calls.",
+      "topics": [
+        "T011",
+        "T009",
+        "T022"
+      ],
+      "subtopics": [
+        "ST048",
+        "ST041",
+        "ST079"
+      ],
+      "skills": [
+        "SK012",
+        "SK003"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q030",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static void mystery(int[] a, int index)\n{\n  if (index < a.length)\n  {\n    mystery(a, index + 1);\n  }\n  if (index > 0)\n  {\n    System.out.print(a[index - 1]);\n  }\n}\n```\n\nWhat is printed as a result of executing the following code segment?\n\n```java\nint[] array = {6, 8, 7, 9, 5};\nmystery(array, 0);\n```",
+      "answers": [
+        {
+          "id": "a",
+          "text": "5978",
+          "is_correct": false,
+          "explanation": "This leaves out `a[0]`, but the call with `index` = `1` prints `a[index - 1]`, which is `a[0]`; only the call with `index` = `0` prints nothing."
+        },
+        {
+          "id": "b",
+          "text": "59786",
+          "is_correct": true,
+          "explanation": "Correct. The calls go `mystery(array, 0)` through `mystery(array, 5)` before anything is printed, because each call recurses first. `mystery(array, 5)` does not recurse and prints `a[4]`, which is `5`; then, as the calls return, `index` = `4` prints `a[3]` (`9`), `index` = `3` prints `a[2]` (`7`), `index` = `2` prints `a[1]` (`8`), and `index` = `1` prints `a[0]` (`6`). The call with `index` = `0` prints nothing, so the output is `59786`."
+        },
+        {
+          "id": "c",
+          "text": "68795",
+          "is_correct": false,
+          "explanation": "This would happen if the print came before the recursive call; here printing happens as the calls return, so the order is reversed."
+        },
+        {
+          "id": "d",
+          "text": "Many digits are printed because of infinite recursion.",
+          "is_correct": false,
+          "explanation": "`index` increases each call and the recursion stops when `index` reaches `a.length`."
+        }
+      ],
+      "explanation": "The calls go `mystery(array, 0)` through `mystery(array, 5)` before anything is printed, because each call recurses first. `mystery(array, 5)` does not recurse and prints `a[4]`, which is `5`; then, as the calls return, `index` = `4` prints `a[3]` (`9`), `index` = `3` prints `a[2]` (`7`), `index` = `2` prints `a[1]` (`8`), and `index` = `1` prints `a[0]` (`6`). The call with `index` = `0` prints nothing, so the output is `59786`.",
+      "topics": [
+        "T009",
+        "T006"
+      ],
+      "subtopics": [
+        "ST042",
+        "ST043",
+        "ST031"
+      ],
+      "skills": [
+        "SK012",
+        "SK001"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q031",
+      "status": "active",
+      "text": "The `printRightToLeft` method is intended to print the elements in the `ArrayList` `words` in reverse order. For example, if `words` contains `[\"jelly bean\", \"jukebox\", \"jewelry\"]`, the method should produce the following output.\n\n```text\njewelry\njukebox\njelly bean\n```\n\nThe method is shown below.\n\n```java\npublic static void printRightToLeft(ArrayList<String> words)\n{\n  if (words.size() > 0)\n  {\n    System.out.println(words.get(words.size() - 1));\n    /* missing code */\n  }\n}\n```\n\nWhich of the following can be used to replace `/* missing code */` so that the `printRightToLeft` method works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "```java\nwords.remove(0);\nprintRightToLeft(words);\n```",
+          "is_correct": false,
+          "explanation": "This removes the first word instead of the one just printed, so `\"jewelry\"` is printed three times for the example."
+        },
+        {
+          "id": "b",
+          "text": "```java\nwords.remove(words.size());\nprintRightToLeft(words);\n```",
+          "is_correct": false,
+          "explanation": "`words.size()` is not a valid index, so this throws an `IndexOutOfBoundsException`."
+        },
+        {
+          "id": "c",
+          "text": "```java\nwords.remove(words.size() - 1);\nprintRightToLeft(words);\n```",
+          "is_correct": true,
+          "explanation": "Correct. The word at index `words.size() - 1` has just been printed, so it is removed from the list. The recursive call then prints the last element of the shorter list, which is the next word to the left, and the recursion stops when the list is empty."
+        },
+        {
+          "id": "d",
+          "text": "```java\nprintRightToLeft(words);\nwords.remove(words.size() - 1);\n```",
+          "is_correct": false,
+          "explanation": "The recursive call happens before anything is removed, so the list never shrinks and the method recurses infinitely, printing `\"jewelry\"` until a `StackOverflowError` occurs."
+        }
+      ],
+      "explanation": "The word at index `words.size() - 1` has just been printed, so it is removed from the list. The recursive call then prints the last element of the shorter list, which is the next word to the left, and the recursion stops when the list is empty.",
+      "topics": [
+        "T009",
+        "T007"
+      ],
+      "subtopics": [
+        "ST042",
+        "ST035"
+      ],
+      "skills": [
+        "SK012",
+        "SK016"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q032",
+      "status": "active",
+      "text": "Consider the following static method.\n\n```java\nprivate static void recur(int n)\n{\n  if (n != 0)\n  {\n    recur(n - 2);\n    System.out.print(n + \" \");\n  }\n}\n```\n\nWhat numbers will be printed as a result of the call `recur(7)` ?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`1 3 5 7`",
+          "is_correct": false,
+          "explanation": "This assumes the recursion stops after `1`, but `1 - 2` is `-1`, not `0`, so the base case is skipped."
+        },
+        {
+          "id": "b",
+          "text": "`7 5 3 1`",
+          "is_correct": false,
+          "explanation": "This assumes printing happens before the recursive call and that the recursion stops; neither is true."
+        },
+        {
+          "id": "c",
+          "text": "Many numbers will be printed because of infinite recursion.",
+          "is_correct": false,
+          "explanation": "The recursion is infinite, but the print comes after the recursive call, so it is never reached."
+        },
+        {
+          "id": "d",
+          "text": "No numbers will be printed because of infinite recursion.",
+          "is_correct": true,
+          "explanation": "Correct. Starting at `7` and subtracting `2` each time gives `7, 5, 3, 1, -1, -3, ...`, which never equals `0`, so the recursion never stops. Each print statement comes after the recursive call, so no call ever reaches its print statement before the program fails with a `StackOverflowError`, and nothing is printed."
+        }
+      ],
+      "explanation": "Starting at `7` and subtracting `2` each time gives `7, 5, 3, 1, -1, -3, ...`, which never equals `0`, so the recursion never stops. Each print statement comes after the recursive call, so no call ever reaches its print statement before the program fails with a `StackOverflowError`, and nothing is printed.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST043"
+      ],
+      "skills": [
+        "SK012",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q033",
+      "status": "active",
+      "text": "Consider the following recursive method.\n\n```java\npublic static String recur(int val)\n{\n  String dig = \"\" + (val % 3);\n\n  if (val / 3 > 0)\n    return dig + recur(val / 3);\n\n  return dig;\n}\n```\n\nWhat is printed as a result of executing the following statement?\n\n```java\nSystem.out.println(recur(32));\n```",
+      "answers": [
+        {
+          "id": "a",
+          "text": "102",
+          "is_correct": false,
+          "explanation": "This has only three digits; the recursion continues while `val / 3 > 0`, so four digits are produced (one each for `32`, `10`, `3`, and `1`)."
+        },
+        {
+          "id": "b",
+          "text": "210",
+          "is_correct": false,
+          "explanation": "This leaves out the final digit `1` from `recur(1)`, which is still added as the base case result."
+        },
+        {
+          "id": "c",
+          "text": "1020",
+          "is_correct": false,
+          "explanation": "The digits are produced in the order `2`, `1`, `0`, `1`, because each call puts its own digit before the result of the recursive call."
+        },
+        {
+          "id": "d",
+          "text": "2101",
+          "is_correct": true,
+          "explanation": "Correct. `recur(32)`: `32 % 3` is `2` and `32 / 3` is `10`, so it returns `\"2\" + recur(10)`. `recur(10)`: `10 % 3` is `1` and `10 / 3` is `3`, so it returns `\"1\" + recur(3)`. `recur(3)`: `3 % 3` is `0` and `3 / 3` is `1`, so it returns `\"0\" + recur(1)`. `recur(1)`: `1 % 3` is `1` and `1 / 3` is `0`, so it returns `\"1\"`. The result is `\"2101\"`."
+        }
+      ],
+      "explanation": "`recur(32)`: `32 % 3` is `2` and `32 / 3` is `10`, so it returns `\"2\" + recur(10)`. `recur(10)`: `10 % 3` is `1` and `10 / 3` is `3`, so it returns `\"1\" + recur(3)`. `recur(3)`: `3 % 3` is `0` and `3 / 3` is `1`, so it returns `\"0\" + recur(1)`. `recur(1)`: `1 % 3` is `1` and `1 / 3` is `0`, so it returns `\"1\"`. The result is `\"2101\"`.",
+      "topics": [
+        "T009",
+        "T001",
+        "T013"
+      ],
+      "subtopics": [
+        "ST042",
+        "ST004",
+        "ST010"
+      ],
+      "skills": [
+        "SK012",
+        "SK001"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q034",
+      "status": "active",
+      "text": "Consider the following recursive method.\n\n```java\nprivate int recur(int n)\n{\n  if (n <= 1)\n  {\n    return 1;\n  }\n  else\n  {\n    return (recur(n - 2) + recur(n - 1));\n  }\n}\n```\n\nWhat value will be returned by the call `recur(4)` ?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "2",
+          "is_correct": false,
+          "explanation": "This is `recur(2)`, not `recur(4)`."
+        },
+        {
+          "id": "b",
+          "text": "3",
+          "is_correct": false,
+          "explanation": "This is `recur(3)`, not `recur(4)`."
+        },
+        {
+          "id": "c",
+          "text": "5",
+          "is_correct": true,
+          "explanation": "Correct. `recur(0)` and `recur(1)` both return `1`. Then `recur(2)` = `recur(0) + recur(1)` = `2`, `recur(3)` = `recur(1) + recur(2)` = `3`, and `recur(4)` = `recur(2) + recur(3)` = `2 + 3` = `5`."
+        },
+        {
+          "id": "d",
+          "text": "8",
+          "is_correct": false,
+          "explanation": "This is `recur(5)`, one step too far."
+        }
+      ],
+      "explanation": "`recur(0)` and `recur(1)` both return `1`. Then `recur(2)` = `recur(0) + recur(1)` = `2`, `recur(3)` = `recur(1) + recur(2)` = `3`, and `recur(4)` = `recur(2) + recur(3)` = `2 + 3` = `5`.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST042"
+      ],
+      "skills": [
+        "SK012",
+        "SK001"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q035",
+      "status": "active",
+      "text": "The following recursive method is intended to return `true` if `origNum` is divisible by each digit in `numsToDivideBy`, and to return `false` otherwise. For example, `isDivisible(236, 24)` should return `true` because `236` is divisible by both `2` and `4`. The method does not always work as intended.\n\n```java\npublic static boolean isDivisible(int origNum, int numsToDivideBy)\n{\n  if (numsToDivideBy == 0)\n  {\n    return true;\n  }\n  else if (origNum % (numsToDivideBy % 10) != 0)\n  {\n    return false;\n  }\n  else\n  {\n    return isDivisible(origNum, numsToDivideBy / 10);\n  }\n}\n```\n\nWhich of the following method calls can be used to demonstrate that the method does **not** work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`isDivisible(120, 12)`",
+          "is_correct": false,
+          "explanation": "It checks `120 % 2` and `120 % 1`, both `0`, and correctly returns `true`."
+        },
+        {
+          "id": "b",
+          "text": "`isDivisible(135, 5)`",
+          "is_correct": false,
+          "explanation": "`135 % 5` is `0`, and the next call has `numsToDivideBy` equal to `0`, so it correctly returns `true`."
+        },
+        {
+          "id": "c",
+          "text": "`isDivisible(225, 105)`",
+          "is_correct": true,
+          "explanation": "Correct. The call `isDivisible(225, 105)` first checks the digit `5` (`105 % 10`); `225 % 5` is `0`, so it calls `isDivisible(225, 10)`. In that call, `numsToDivideBy` is `10`, not `0`, so the method evaluates `225 % (10 % 10)`, which is `225 % 0`, and throws an `ArithmeticException`. The method has no check for a digit of `0`, so it fails instead of returning a result."
+        },
+        {
+          "id": "d",
+          "text": "`isDivisible(296, 341)`",
+          "is_correct": false,
+          "explanation": "It checks `296 % 1` and `296 % 4` (both `0`), then `296 % 3`, which is `2`, so it correctly returns `false`."
+        }
+      ],
+      "explanation": "The call `isDivisible(225, 105)` first checks the digit `5` (`105 % 10`); `225 % 5` is `0`, so it calls `isDivisible(225, 10)`. In that call, `numsToDivideBy` is `10`, not `0`, so the method evaluates `225 % (10 % 10)`, which is `225 % 0`, and throws an `ArithmeticException`. The method has no check for a digit of `0`, so it fails instead of returning a result.",
+      "topics": [
+        "T009",
+        "T001"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST003"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q036",
+      "status": "active",
+      "text": "The `bark` method below is intended to print the string `\"woof\"` a total of `num` times.\n\n```java\npublic static void bark(int num)\n{\n  if (num > 0)\n  {\n    System.out.println(\"woof\");\n    /* missing code */\n  }\n}\n```\n\nWhich of the following can be used to replace `/* missing code */` so that the call `bark(5)` will cause `\"woof\"` to be printed five times?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`bark(num - 5);`",
+          "is_correct": false,
+          "explanation": "From `bark(5)` the next call is `bark(0)`, which prints nothing, so `\"woof\"` is printed only once."
+        },
+        {
+          "id": "b",
+          "text": "`bark(num - 1);`",
+          "is_correct": true,
+          "explanation": "Correct. Each call prints `\"woof\"` once and then calls `bark(num - 1)`. The calls are `bark(5)`, `bark(4)`, `bark(3)`, `bark(2)`, `bark(1)`, which each print once, and `bark(0)`, which prints nothing and stops, for five prints in total."
+        },
+        {
+          "id": "c",
+          "text": "`bark(num);`",
+          "is_correct": false,
+          "explanation": "The argument never changes, so the recursion never stops and `\"woof\"` is printed until a `StackOverflowError` occurs."
+        },
+        {
+          "id": "d",
+          "text": "`bark(num + 1);`",
+          "is_correct": false,
+          "explanation": "The argument grows, so `num > 0` stays true and the recursion never stops."
+        }
+      ],
+      "explanation": "Each call prints `\"woof\"` once and then calls `bark(num - 1)`. The calls are `bark(5)`, `bark(4)`, `bark(3)`, `bark(2)`, `bark(1)`, which each print once, and `bark(0)`, which prints nothing and stops, for five prints in total.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST042"
+      ],
+      "skills": [
+        "SK012",
+        "SK016"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q038",
+      "status": "active",
+      "text": "Consider the following method, which correctly implements a recursive binary search.\n\n```java\n/**\n * Returns an index in arr where the value x appears if x appears\n * in arr between arr[left] and arr[right], inclusive;\n * otherwise returns -1.\n * Preconditions: arr is sorted in ascending order.\n *               left >= 0, right < arr.length, arr.length > 0\n */\npublic static int bSearch(int[] arr, int left, int right, int x)\n{\n  if (right >= left)\n  {\n    int mid = (left + right) / 2;\n    if (arr[mid] == x)\n    {\n      return mid;\n    }\n    else if (arr[mid] > x)\n    {\n      return bSearch(arr, left, mid - 1, x);\n    }\n    else\n    {\n      return bSearch(arr, mid + 1, right, x);\n    }\n  }\n  return -1;\n}\n```\n\nThe following code segment appears in a method in the same class as `bSearch`.\n\n```java\nint[] nums = {10, 20, 30, 40, 50};\nint result = bSearch(nums, 0, nums.length - 1, 40);\n```\n\nHow many times will the `bSearch` method be called as a result of executing the code segment, including the initial call?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "1",
+          "is_correct": false,
+          "explanation": "The first call checks index `2` (`30`), not `40`, so a second call is needed."
+        },
+        {
+          "id": "b",
+          "text": "2",
+          "is_correct": true,
+          "explanation": "Correct. On the first call, `left` is `0`, `right` is `4`, and `mid` is `2`; `arr[2]` is `30`, which is less than `40`, so `bSearch` is called with `left` = `3` and `right` = `4`. On the second call `mid` is `3`, and `arr[3]` is `40`, so `3` is returned. The method is called 2 times."
+        },
+        {
+          "id": "c",
+          "text": "3",
+          "is_correct": false,
+          "explanation": "`40` is found on the second call, so no third call is made."
+        },
+        {
+          "id": "d",
+          "text": "4",
+          "is_correct": false,
+          "explanation": "This is the number of elements a linear search would check to reach `40`; binary search needs only 2 calls here."
+        }
+      ],
+      "explanation": "On the first call, `left` is `0`, `right` is `4`, and `mid` is `2`; `arr[2]` is `30`, which is less than `40`, so `bSearch` is called with `left` = `3` and `right` = `4`. On the second call `mid` is `3`, and `arr[3]` is `40`, so `3` is returned. The method is called 2 times.",
+      "topics": [
+        "T010",
+        "T009",
+        "T022"
+      ],
+      "subtopics": [
+        "ST045",
+        "ST042",
+        "ST079"
+      ],
+      "skills": [
+        "SK001",
+        "SK012"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q039",
+      "status": "active",
+      "text": "Consider the following method, which correctly implements a recursive binary search.\n\n```java\n/**\n * Returns an index in arr where the value x appears if x appears\n * in arr between arr[left] and arr[right], inclusive;\n * otherwise returns -1.\n * Preconditions: arr is sorted in ascending order.\n *               left >= 0, right < arr.length, arr.length > 0\n */\npublic static int bSearch(int[] arr, int left, int right, int x)\n{\n  if (left <= right)\n  {\n    int mid = (left + right) / 2;\n    if (arr[mid] == x)\n    {\n      return mid;\n    }\n    else if (x < arr[mid])\n    {\n      return bSearch(arr, left, mid - 1, x);\n    }\n    else\n    {\n      return bSearch(arr, mid + 1, right, x);\n    }\n  }\n  return -1;\n}\n```\n\nThe following statement appears in a method in the same class as `bSearch`. Assume that `nums` is an integer array of length 7, containing only positive integers in ascending order.\n\n```java\nint result = bSearch(nums, 0, nums.length - 1, -100);\n```\n\nHow many times will the `bSearch` method be called as a result of executing the statement, including the initial call?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "3",
+          "is_correct": false,
+          "explanation": "This leaves out the final call with `left` = `0` and `right` = `-1`, which is still a call even though it immediately returns `-1`."
+        },
+        {
+          "id": "b",
+          "text": "4",
+          "is_correct": true,
+          "explanation": "Correct. Because `-100` is smaller than every element, the search always moves left. The calls have (`left`, `right`) equal to `(0, 6)` with `mid` = `3`, then `(0, 2)` with `mid` = `1`, then `(0, 0)` with `mid` = `0`, and finally `(0, -1)`, where `left <= right` is false and `-1` is returned. That is 4 calls in total."
+        },
+        {
+          "id": "c",
+          "text": "5",
+          "is_correct": false,
+          "explanation": "The range shrinks from 7 elements to 3, then 1, then 0, which takes only 4 calls."
+        },
+        {
+          "id": "d",
+          "text": "7",
+          "is_correct": false,
+          "explanation": "This is the number of elements a linear search would check; binary search halves the range each call."
+        }
+      ],
+      "explanation": "Because `-100` is smaller than every element, the search always moves left. The calls have (`left`, `right`) equal to `(0, 6)` with `mid` = `3`, then `(0, 2)` with `mid` = `1`, then `(0, 0)` with `mid` = `0`, and finally `(0, -1)`, where `left <= right` is false and `-1` is returned. That is 4 calls in total.",
+      "topics": [
+        "T010",
+        "T009",
+        "T022"
+      ],
+      "subtopics": [
+        "ST045",
+        "ST042",
+        "ST079"
+      ],
+      "skills": [
+        "SK003",
+        "SK012"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q040",
+      "status": "active",
+      "text": "Consider the following recursive method.\n\n```java\npublic static int calculateValue(int num)\n{\n  if (num >= 8)\n  {\n    return num;\n  }\n  else\n  {\n    return num + calculateValue(num + 2);\n  }\n}\n```\n\nWhat value is returned as a result of the method call `calculateValue(4)`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "28",
+          "is_correct": false,
+          "explanation": "This is `4 + 6 + 8 + 10`, which treats the base case as `num > 8`; the condition is `num >= 8`, so the recursion stops at `8`."
+        },
+        {
+          "id": "b",
+          "text": "18",
+          "is_correct": true,
+          "explanation": "Correct. `calculateValue(4)` returns `4 + calculateValue(6)`, and `calculateValue(6)` returns `6 + calculateValue(8)`. Since `8 >= 8`, `calculateValue(8)` returns `8`, so the result is `4 + 6 + 8`, or `18`."
+        },
+        {
+          "id": "c",
+          "text": "10",
+          "is_correct": false,
+          "explanation": "This is `4 + 6`, which leaves out the `8` returned by the base case."
+        },
+        {
+          "id": "d",
+          "text": "8",
+          "is_correct": false,
+          "explanation": "This is only the base case value; the earlier calls add `4` and `6`."
+        }
+      ],
+      "explanation": "`calculateValue(4)` returns `4 + calculateValue(6)`, and `calculateValue(6)` returns `6 + calculateValue(8)`. Since `8 >= 8`, `calculateValue(8)` returns `8`, so the result is `4 + 6 + 8`, or `18`.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST042"
+      ],
+      "skills": [
+        "SK012",
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q041",
+      "status": "active",
+      "text": "Consider the following recursive method.\n\n```java\npublic static String doSomething(String str)\n{\n  if (str.length() < 1)\n  {\n    return \"\";\n  }\n  else\n  {\n    return str.substring(0, 1) + doSomething(str.substring(1));\n  }\n}\n```\n\nAssume that `myString` is a properly declared and initialized `String` object. Which of the following best describes the result of the call `doSomething(myString)`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The method call returns a `String` containing the contents of `myString` unchanged.",
+          "is_correct": true,
+          "explanation": "Correct. For a nonempty `str`, the method returns its first character followed by the result of the recursive call on the rest of the string (`str.substring(1)`). The empty string returns `\"\"`, so the characters are joined back together in their original order. For example, `doSomething(\"abc\")` returns `\"a\" + \"b\" + \"c\" + \"\"`, or `\"abc\"`."
+        },
+        {
+          "id": "b",
+          "text": "The method call returns a `String` containing the contents of `myString` with the order of the characters reversed from their order in `myString`.",
+          "is_correct": false,
+          "explanation": "Reversing would require putting the first character after the recursive result, as in `doSomething(str.substring(1)) + str.substring(0, 1)`."
+        },
+        {
+          "id": "c",
+          "text": "The method call returns a `String` containing all but the first character of `myString`.",
+          "is_correct": false,
+          "explanation": "The first character, `str.substring(0, 1)`, is included at the front of the result."
+        },
+        {
+          "id": "d",
+          "text": "The method call returns a `String` containing only the first and second characters of `myString`.",
+          "is_correct": false,
+          "explanation": "The recursion continues through the whole string, adding one character per call until the string is empty."
+        }
+      ],
+      "explanation": "For a nonempty `str`, the method returns its first character followed by the result of the recursive call on the rest of the string (`str.substring(1)`). The empty string returns `\"\"`, so the characters are joined back together in their original order. For example, `doSomething(\"abc\")` returns `\"a\" + \"b\" + \"c\" + \"\"`, or `\"abc\"`.",
+      "topics": [
+        "T009",
+        "T013"
+      ],
+      "subtopics": [
+        "ST042",
+        "ST009"
+      ],
+      "skills": [
+        "SK012",
+        "SK019"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "searchsort_q042",
+      "status": "active",
+      "text": "Consider the following recursive method.\n\n```java\npublic static int mystery(int x)\n{\n  if (x <= 0)\n  {\n    return 5;\n  }\n  else\n  {\n    return x + mystery(x - 2);\n  }\n}\n```\n\nWhat is returned as a result of the method call `mystery(5)`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "8",
+          "is_correct": false,
+          "explanation": "This is `5 + 3`, which leaves out the `1` and the base case value `5`."
+        },
+        {
+          "id": "b",
+          "text": "13",
+          "is_correct": false,
+          "explanation": "This is `5 + 3 + 5`, which treats `mystery(1)` as the base case; since `1` is not `<= 0`, `mystery(1)` adds `1` and recurses again."
+        },
+        {
+          "id": "c",
+          "text": "14",
+          "is_correct": true,
+          "explanation": "Correct. `mystery(5)` returns `5 + mystery(3)`, `mystery(3)` returns `3 + mystery(1)`, and `mystery(1)` returns `1 + mystery(-1)`. The call `mystery(-1)` is the base case and returns `5`, so the result is `5 + 3 + 1 + 5`, or `14`."
+        },
+        {
+          "id": "d",
+          "text": "20",
+          "is_correct": false,
+          "explanation": "This is `5 + 4 + 3 + 2 + 1 + 5`, which decreases `x` by 1 each call instead of by 2."
+        }
+      ],
+      "explanation": "`mystery(5)` returns `5 + mystery(3)`, `mystery(3)` returns `3 + mystery(1)`, and `mystery(1)` returns `1 + mystery(-1)`. The call `mystery(-1)` is the base case and returns `5`, so the result is `5 + 3 + 1 + 5`, or `14`.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST042"
+      ],
+      "skills": [
+        "SK012",
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q043",
+      "status": "active",
+      "text": "The following recursive method is intended to return the index of the first occurrence of `goal` in `arr` between index `start` and index `end`, inclusive. The index of the first occurrence of `goal` is the index closest to `start` where `goal` is found. If `goal` does not appear in the range of indices from `start` to `end`, the method returns `-1`. However, the method does not work as intended.\n\n```java\n/** Precondition: 0 <= start <= end, end < arr.length */\npublic static int locateItem(int[] arr, int goal, int start, int end)\n{\n  if (start == end)                          // Line 4\n  {\n    return -1;\n  }\n  else if (arr[start] == goal)               // Line 8\n  {\n    return start;                            // Line 10\n  }\n  else\n  {\n    return locateItem(arr, goal, start + 1, end);   // Line 14\n  }\n}\n```\n\nWhich of the following changes can be made so that the method works as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Changing line 4 to `if (start > end)`",
+          "is_correct": true,
+          "explanation": "Correct. As written, the method returns `-1` as soon as `start` reaches `end`, without ever checking `arr[end]`, so it fails when `goal` occurs only at index `end`. With `if (start > end)`, the call where `start == end` checks `arr[end]` and returns `end` on a match, and the method returns `-1` only after the whole range has been checked."
+        },
+        {
+          "id": "b",
+          "text": "Changing line 8 to `else if (start == goal)`",
+          "is_correct": false,
+          "explanation": "This compares an index with the value being searched for, instead of comparing the array element `arr[start]` with `goal`."
+        },
+        {
+          "id": "c",
+          "text": "Changing line 10 to `return arr[start];`",
+          "is_correct": false,
+          "explanation": "This returns the matching value instead of its index."
+        },
+        {
+          "id": "d",
+          "text": "Changing line 14 to `return locateItem(arr, goal, start + 1, end + 1);`",
+          "is_correct": false,
+          "explanation": "`start` and `end` both increase, so they never become equal; the indices eventually go past the end of the array and an `ArrayIndexOutOfBoundsException` occurs when `goal` is not found."
+        }
+      ],
+      "explanation": "As written, the method returns `-1` as soon as `start` reaches `end`, without ever checking `arr[end]`, so it fails when `goal` occurs only at index `end`. With `if (start > end)`, the call where `start == end` checks `arr[end]` and returns `end` on a match, and the method returns `-1` only after the whole range has been checked.",
+      "topics": [
+        "T009",
+        "T010",
+        "T006"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST044",
+        "ST034"
+      ],
+      "skills": [
+        "SK004",
+        "SK010"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q044",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static void find(String[] words, int s, int i)\n{\n  if (i != words.length)\n  {\n    if (i == 0 || !(words[s].equals(words[i])))\n    {\n      s = i;\n      System.out.print(s + \" \");\n    }\n    find(words, s, i + 1);\n  }\n}\n```\n\nThe following code segment appears in a method in the same class as `find`.\n\n```java\nString[] furniture = /* missing initialization */ ;\nfind(furniture, 0, 0);\n```\n\nWhich of the following can be used to replace `/* missing initialization */` so that the code segment prints `0 1 4 6 7` ?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{\"Stool\", \"Chair\", \"Chair\", \"Chair\", \"Stool\", \"Couch\", \"Couch\", \"Table\"}`",
+          "is_correct": false,
+          "explanation": "The runs start at `0`, `1`, `4`, `5`, and `7`, so it prints `0 1 4 5 7`."
+        },
+        {
+          "id": "b",
+          "text": "`{\"Table\", \"Couch\", \"Couch\", \"Stool\", \"Chair\", \"Chair\", \"Chair\", \"Stool\"}`",
+          "is_correct": false,
+          "explanation": "The runs start at `0`, `1`, `3`, `4`, and `7`, so it prints `0 1 3 4 7`."
+        },
+        {
+          "id": "c",
+          "text": "`{\"Stool\", \"Chair\", \"Chair\", \"Chair\", \"Couch\", \"Couch\", \"Stool\", \"Table\"}`",
+          "is_correct": true,
+          "explanation": "Correct. The method prints index `0`, and then prints each index `i` whose word differs from `words[s]`, the word that started the current run of equal words; `s` then moves to `i`. So it prints the starting index of each run of identical adjacent words. In `{\"Stool\", \"Chair\", \"Chair\", \"Chair\", \"Couch\", \"Couch\", \"Stool\", \"Table\"}`, the runs start at indices `0`, `1`, `4`, `6`, and `7`, so it prints `0 1 4 6 7`."
+        },
+        {
+          "id": "d",
+          "text": "`{\"Table\", \"Stool\", \"Couch\", \"Couch\", \"Chair\", \"Chair\", \"Chair\", \"Stool\"}`",
+          "is_correct": false,
+          "explanation": "The runs start at `0`, `1`, `2`, `4`, and `7`, so it prints `0 1 2 4 7`."
+        }
+      ],
+      "explanation": "The method prints index `0`, and then prints each index `i` whose word differs from `words[s]`, the word that started the current run of equal words; `s` then moves to `i`. So it prints the starting index of each run of identical adjacent words. In `{\"Stool\", \"Chair\", \"Chair\", \"Chair\", \"Couch\", \"Couch\", \"Stool\", \"Table\"}`, the runs start at indices `0`, `1`, `4`, `6`, and `7`, so it prints `0 1 4 6 7`.",
+      "topics": [
+        "T009",
+        "T006",
+        "T013"
+      ],
+      "subtopics": [
+        "ST042",
+        "ST031",
+        "ST011"
+      ],
+      "skills": [
+        "SK012",
+        "SK005"
+      ],
+      "difficulty": "D3",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q045",
+      "status": "active",
+      "text": "Consider the following two methods, which are intended to return the same values when they are called with the same positive integer parameter `n`.\n\n```java\npublic static int mystery1(int n)\n{\n  if (n > 1)\n  {\n    return 5 + mystery1(n - 1);\n  }\n  else\n  {\n    return 1;\n  }\n}\n\npublic static int mystery2(int n)\n{\n  int total = 0;\n  int x = 1;\n  while (x < n)\n  {\n    total += 5;\n    x++;\n  }\n  return total;\n}\n```\n\nWhich, if any, of the following changes to `mystery2` is required so that the two methods work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The variable `total` should be initialized to `1`.",
+          "is_correct": true,
+          "explanation": "Correct. `mystery1(n)` adds `5` once for each call with `n > 1`, that is `n - 1` times, and the base case returns `1`, so it returns `1 + 5 * (n - 1)`. The loop in `mystery2` runs for `x` = `1` through `n - 1`, also `n - 1` times, but `total` starts at `0`, so it returns `5 * (n - 1)`. Starting `total` at `1` makes `mystery2` return `1 + 5 * (n - 1)`, matching `mystery1`; for example, both then return `11` for `n` = `3`."
+        },
+        {
+          "id": "b",
+          "text": "The variable `x` should be initialized to `0`.",
+          "is_correct": false,
+          "explanation": "The loop then runs `n` times and returns `5 * n` (for `n` = `3`, `15` instead of `11`)."
+        },
+        {
+          "id": "c",
+          "text": "The condition in the `while` loop header should be `x < n - 1`.",
+          "is_correct": false,
+          "explanation": "The loop then runs one fewer time and still starts from `0` (for `n` = `3`, `5` instead of `11`)."
+        },
+        {
+          "id": "d",
+          "text": "The condition in the `while` loop header should be `x <= n`.",
+          "is_correct": false,
+          "explanation": "The loop then runs `n` times and returns `5 * n` (for `n` = `3`, `15` instead of `11`)."
+        }
+      ],
+      "explanation": "`mystery1(n)` adds `5` once for each call with `n > 1`, that is `n - 1` times, and the base case returns `1`, so it returns `1 + 5 * (n - 1)`. The loop in `mystery2` runs for `x` = `1` through `n - 1`, also `n - 1` times, but `total` starts at `0`, so it returns `5 * (n - 1)`. Starting `total` at `1` makes `mystery2` return `1 + 5 * (n - 1)`, matching `mystery1`; for example, both then return `11` for `n` = `3`.",
+      "topics": [
+        "T009",
+        "T004"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST042",
+        "ST017"
+      ],
+      "skills": [
+        "SK012",
+        "SK011",
+        "SK004"
+      ],
+      "difficulty": "D3",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q046",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\n/** Precondition: j <= k */\npublic static void mystery(int j, int k)\n{\n  System.out.println(j);\n  if (j < k)\n  {\n    mystery(j + 1, k);\n  }\n}\n```\n\nWhich of the following best describes the behavior of the `mystery` method?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "It repeatedly prints the value `j` due to infinite recursion.",
+          "is_correct": false,
+          "explanation": "`j` increases by 1 each call, so it reaches `k` and the recursion stops."
+        },
+        {
+          "id": "b",
+          "text": "It prints the initial value of `j` a total of `k` times.",
+          "is_correct": false,
+          "explanation": "The argument changes to `j + 1` each call, so different values are printed, and there are `k - j + 1` lines, not `k`."
+        },
+        {
+          "id": "c",
+          "text": "It prints the integers from `j` to `k`, inclusive, in order from least to greatest.",
+          "is_correct": true,
+          "explanation": "Correct. Each call prints `j` and then, if `j < k`, calls `mystery(j + 1, k)`. The printed value increases by 1 each call until `j` equals `k`, which is printed and ends the recursion, so the integers from `j` to `k` are printed in increasing order."
+        },
+        {
+          "id": "d",
+          "text": "It prints the integers from `j` to `k`, inclusive, in order from greatest to least.",
+          "is_correct": false,
+          "explanation": "The print comes before the recursive call, so the smallest value, `j`, is printed first."
+        }
+      ],
+      "explanation": "Each call prints `j` and then, if `j < k`, calls `mystery(j + 1, k)`. The printed value increases by 1 each call until `j` equals `k`, which is printed and ends the recursion, so the integers from `j` to `k` are printed in increasing order.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST042"
+      ],
+      "skills": [
+        "SK012",
+        "SK005"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "searchsort_q047",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\n/** Precondition: num > 0 */\npublic static int mystery(int num)\n{\n  if (num / 10 == 0)\n  {\n    return 2;\n  }\n  else\n  {\n    return 2 + mystery(num / 10);\n  }\n}\n```\n\nWhich of the following best describes the value returned by the method?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "It returns 2 more than the number of digits in `num`.",
+          "is_correct": false,
+          "explanation": "Every digit, including the last, contributes `2`, so the result is `6` for `345`, not `5`."
+        },
+        {
+          "id": "b",
+          "text": "It returns 2 more than the sum of the digits in `num`.",
+          "is_correct": false,
+          "explanation": "The method never uses the values of the digits (there is no `num % 10`), so their sum plays no part."
+        },
+        {
+          "id": "c",
+          "text": "It returns 2 times the number of digits in `num`.",
+          "is_correct": true,
+          "explanation": "Correct. Each recursive call removes one digit with `num / 10` and adds `2`, and when only one digit is left the base case returns `2` for that last digit. So `2` is counted once per digit; for example, `mystery(345)` returns `2 + 2 + 2`, or `6`."
+        },
+        {
+          "id": "d",
+          "text": "It returns 2 times the sum of the digits in `num`.",
+          "is_correct": false,
+          "explanation": "The method never uses the values of the digits; for `345` it returns `6`, not `24`."
+        }
+      ],
+      "explanation": "Each recursive call removes one digit with `num / 10` and adds `2`, and when only one digit is left the base case returns `2` for that last digit. So `2` is counted once per digit; for example, `mystery(345)` returns `2 + 2 + 2`, or `6`.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST042"
+      ],
+      "skills": [
+        "SK012",
+        "SK005"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "searchsort_q048",
+      "status": "active",
+      "text": "Consider the following recursive method.\n\n```java\n/** Precondition: 0 <= numVals <= nums.length */\npublic static int mystery(int[] nums, int v, int numVals)\n{\n  if (numVals == 0)\n  {\n    return 0;\n  }\n  else if (v == nums[numVals - 1])\n  {\n    return 1 + mystery(nums, v, numVals - 1);\n  }\n  else\n  {\n    return mystery(nums, v, numVals - 1);\n  }\n}\n```\n\nWhich of the following best describes the value returned by the call `mystery(nums, v, nums.length)` ?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The value 1 is returned.",
+          "is_correct": false,
+          "explanation": "`1` is added only for each element equal to `v`, so the result can be any count from `0` to `nums.length`."
+        },
+        {
+          "id": "b",
+          "text": "The number of times that `v` occurs in `nums` is returned.",
+          "is_correct": true,
+          "explanation": "Correct. A call returns the number of occurrences of `v` among the first `numVals` elements of `nums`. It checks the last of those elements, `nums[numVals - 1]`, adds `1` if it equals `v` (otherwise `0`), and adds the count for the first `numVals - 1` elements. When no elements remain (`numVals == 0`) it returns `0`, so the call with `nums.length` counts the occurrences of `v` in the whole array."
+        },
+        {
+          "id": "c",
+          "text": "The number of times that `numVals` occurs in `nums` is returned.",
+          "is_correct": false,
+          "explanation": "`numVals` is only the number of elements still to check; the elements are compared with `v`."
+        },
+        {
+          "id": "d",
+          "text": "Nothing is returned. A runtime error occurs because of infinite recursion.",
+          "is_correct": false,
+          "explanation": "`numVals` decreases by 1 each call and reaches the base case `0`."
+        }
+      ],
+      "explanation": "A call returns the number of occurrences of `v` among the first `numVals` elements of `nums`. It checks the last of those elements, `nums[numVals - 1]`, adds `1` if it equals `v` (otherwise `0`), and adds the count for the first `numVals - 1` elements. When no elements remain (`numVals == 0`) it returns `0`, so the call with `nums.length` counts the occurrences of `v` in the whole array.",
+      "topics": [
+        "T009",
+        "T006"
+      ],
+      "subtopics": [
+        "ST042",
+        "ST034"
+      ],
+      "skills": [
+        "SK012",
+        "SK005"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "searchsort_q052",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static int mystery(int n)\n{\n  if (n < 10)\n  {\n    return n;\n  }\n  return (n % 10) + mystery(n / 10);\n}\n```\n\nAssume that the `int` variable `num` is properly declared and initialized to a value greater than 0. Which of the following best describes the value returned by the call `mystery(num)`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "The value of `num`",
+          "is_correct": false,
+          "explanation": "The digits are added together, not kept in their places; `mystery(352)` is `10`, not `352`."
+        },
+        {
+          "id": "b",
+          "text": "The rightmost digit of `num`",
+          "is_correct": false,
+          "explanation": "The rightmost digit is only the first term; the other digits are added by the recursive calls."
+        },
+        {
+          "id": "c",
+          "text": "The sum of the digits of `num`",
+          "is_correct": true,
+          "explanation": "Correct. The recursive case adds the rightmost digit (`n % 10`) to the result of calling `mystery` on the remaining digits (`n / 10`), and a one-digit number returns itself. For example, `mystery(352)` is `2 + mystery(35)` = `2 + 5 + mystery(3)` = `2 + 5 + 3`, or `10`."
+        },
+        {
+          "id": "d",
+          "text": "Two times the rightmost digit of `num`",
+          "is_correct": false,
+          "explanation": "Each recursive call uses a different digit, since `n / 10` removes the rightmost digit."
+        }
+      ],
+      "explanation": "The recursive case adds the rightmost digit (`n % 10`) to the result of calling `mystery` on the remaining digits (`n / 10`), and a one-digit number returns itself. For example, `mystery(352)` is `2 + mystery(35)` = `2 + 5 + mystery(3)` = `2 + 5 + 3`, or `10`.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST041",
+        "ST042"
+      ],
+      "skills": [
+        "SK012",
+        "SK005"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B2"
+    },
+    {
+      "id": "searchsort_q053",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static int someSearch(int[] arr, int value)\n{\n  for (int j = 0; j < arr.length; j++)\n  {\n    if (arr[j] == value)\n    {\n      return j;\n    }\n  }\n  return -1;\n}\n```\n\nThe following code segment appears in a method in the same class as `someSearch`.\n\n```java\nint[] myNumbers = {1, 2, 5, 2, 6, 3, 3, 5, 3};\nSystem.out.println(someSearch(myNumbers, 3));\n```\n\nWhat is printed as a result of executing the code segment?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "-1",
+          "is_correct": false,
+          "explanation": "`3` is in the array, so `-1` is not returned."
+        },
+        {
+          "id": "b",
+          "text": "5",
+          "is_correct": true,
+          "explanation": "Correct. `someSearch` is a linear search from left to right that returns as soon as it finds a match. Although `3` appears several times, the first `3` is at index `5`, so `5` is printed."
+        },
+        {
+          "id": "c",
+          "text": "6",
+          "is_correct": false,
+          "explanation": "This is the second occurrence of `3`; the method returns at the first match."
+        },
+        {
+          "id": "d",
+          "text": "8",
+          "is_correct": false,
+          "explanation": "This is the last occurrence of `3`, which would be found only by searching from right to left."
+        }
+      ],
+      "explanation": "`someSearch` is a linear search from left to right that returns as soon as it finds a match. Although `3` appears several times, the first `3` is at index `5`, so `5` is printed.",
+      "topics": [
+        "T010",
+        "T006"
+      ],
+      "subtopics": [
+        "ST044",
+        "ST031",
+        "ST034"
+      ],
+      "skills": [
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q054",
+      "status": "active",
+      "text": "The following method is a correct implementation of the selection sort algorithm. The method correctly sorts the elements of `data` so that they appear in order from least to greatest.\n\n```java\npublic static void selectionSort(int[] data)\n{\n  for (int j = 0; j < data.length - 1; j++)\n  {\n    int minIndex = j;\n\n    for (int k = j + 1; k < data.length; k++)\n    {\n      if (data[k] < data[minIndex])\n      {\n        minIndex = k;      // Line 11\n      }\n    }\n\n    if (j != minIndex)\n    {\n      int temp = data[j];\n      data[j] = data[minIndex];\n      data[minIndex] = temp;\n    }\n  }\n}\n```\n\nThe following code segment appears in a method in the same class as `selectionSort`.\n\n```java\nint[] vals = {5, 10, 2, 1, 12};\nselectionSort(vals);\n```\n\nHow many times is the statement in line 11 of the method executed as a result of the call to `selectionSort`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "1",
+          "is_correct": false,
+          "explanation": "This counts only one update, but the first pass alone updates the minimum twice (to `2`, then to `1`)."
+        },
+        {
+          "id": "b",
+          "text": "2",
+          "is_correct": false,
+          "explanation": "This counts only the updates in the first pass; later passes also find new minimums."
+        },
+        {
+          "id": "c",
+          "text": "3",
+          "is_correct": false,
+          "explanation": "This is the number of swaps, not the number of times the minimum index is updated."
+        },
+        {
+          "id": "d",
+          "text": "4",
+          "is_correct": true,
+          "explanation": "Correct. Line 11 runs each time the inner loop finds a new smallest element. With `j` = `0`, the minimum changes to `2` and then to `1` (2 times), and the swap gives `{1, 10, 2, 5, 12}`. With `j` = `1`, it changes to `2` (1 time), giving `{1, 2, 10, 5, 12}`. With `j` = `2`, it changes to `5` (1 time), giving `{1, 2, 5, 10, 12}`. With `j` = `3`, `12` is not smaller than `10`, so there is no change, for a total of 4."
+        }
+      ],
+      "explanation": "Line 11 runs each time the inner loop finds a new smallest element. With `j` = `0`, the minimum changes to `2` and then to `1` (2 times), and the swap gives `{1, 10, 2, 5, 12}`. With `j` = `1`, it changes to `2` (1 time), giving `{1, 2, 10, 5, 12}`. With `j` = `2`, it changes to `5` (1 time), giving `{1, 2, 5, 10, 12}`. With `j` = `3`, `12` is not smaller than `10`, so there is no change, for a total of 4.",
+      "topics": [
+        "T011",
+        "T022"
+      ],
+      "subtopics": [
+        "ST046",
+        "ST079"
+      ],
+      "skills": [
+        "SK001",
+        "SK011"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q055",
+      "status": "active",
+      "text": "The following method is a correct implementation of the selection sort algorithm. The method correctly sorts the elements of `arr` so that they appear in order from least to greatest.\n\n```java\npublic static void selectionSort(int[] arr)\n{\n  for (int j = 0; j < arr.length - 1; j++)\n  {\n    int minIndex = j;\n    for (int k = j + 1; k < arr.length; k++)\n    {\n      if (arr[k] < arr[minIndex])\n      {\n        minIndex = k;\n      }\n    }\n    int temp = arr[j];\n    arr[j] = arr[minIndex];\n    arr[minIndex] = temp;\n    /* end of outer loop */\n  }\n}\n```\n\nWhich of the following could be the contents of `arr` after two passes of the outer loop (i.e., when `j == 1` at the point indicated by `/* end of outer loop */`)?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{10, 20, 50, 40, 30}`",
+          "is_correct": true,
+          "explanation": "Correct. After two passes of selection sort, the two smallest elements must be in indices `0` and `1`, in order, while the rest can be in any order. In `{10, 20, 50, 40, 30}`, the two smallest values `10` and `20` are in place. For example, starting from `{20, 10, 50, 40, 30}`, the first pass swaps `20` and `10`, and the second pass leaves `20` where it is."
+        },
+        {
+          "id": "b",
+          "text": "`{10, 30, 50, 40, 20}`",
+          "is_correct": false,
+          "explanation": "The second pass would have moved `20`, the smallest of the remaining values, into index `1`."
+        },
+        {
+          "id": "c",
+          "text": "`{20, 10, 50, 40, 30}`",
+          "is_correct": false,
+          "explanation": "The first pass would have moved the smallest value, `10`, into index `0`."
+        },
+        {
+          "id": "d",
+          "text": "`{20, 30, 50, 40, 10}`",
+          "is_correct": false,
+          "explanation": "The smallest value, `10`, is still at the end, but the first pass puts it at index `0`."
+        }
+      ],
+      "explanation": "After two passes of selection sort, the two smallest elements must be in indices `0` and `1`, in order, while the rest can be in any order. In `{10, 20, 50, 40, 30}`, the two smallest values `10` and `20` are in place. For example, starting from `{20, 10, 50, 40, 30}`, the first pass swaps `20` and `10`, and the second pass leaves `20` where it is.",
+      "topics": [
+        "T011"
+      ],
+      "subtopics": [
+        "ST046"
+      ],
+      "skills": [
+        "SK003",
+        "SK009"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q056",
+      "status": "active",
+      "text": "Consider the static method `selectSort` shown below. Method `selectSort` is intended to sort an array into increasing order; however, it does not always work as intended.\n\n```java\n// precondition:  numbers.length > 0\n// postcondition: numbers is sorted in increasing order\npublic static void selectSort(int[] numbers)\n{\n  int temp;\n  for (int j = 0; j < numbers.length - 1; j++)     // Line 1\n  {\n    int pos = 0;                                    // Line 2\n    for (int k = j + 1; k < numbers.length; k++)    // Line 3\n    {\n      if (numbers[k] < numbers[pos])                // Line 4\n      {\n        pos = k;                                    // Line 5\n      }\n    }\n    temp = numbers[j];\n    numbers[j] = numbers[pos];\n    numbers[pos] = temp;\n  }\n}\n```\n\nWhich of the following changes should be made so that `selectSort` will work as intended?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "Line 1 should be changed to\n\n```java\nfor (int j = 0; j < numbers.length - 2; j++)\n```",
+          "is_correct": false,
+          "explanation": "This only skips the last pass; `pos` still starts at `0`, so the same error remains (and the last two elements may stay unsorted)."
+        },
+        {
+          "id": "b",
+          "text": "Line 2 should be changed to\n\n```java\nint pos = j;\n```",
+          "is_correct": true,
+          "explanation": "Correct. Selection sort should find the smallest element among indices `j` through the end and swap it into index `j`. Starting `pos` at `0` lets the already sorted element at index `0` be chosen again; for example, `{1, 2, 3}` becomes `{2, 1, 3}` on the second pass. Starting with `int pos = j;` makes the search cover only the unsorted part, so the method becomes a correct selection sort."
+        },
+        {
+          "id": "c",
+          "text": "Line 3 should be changed to\n\n```java\nfor (int k = 0; k < numbers.length; k++)\n```",
+          "is_correct": false,
+          "explanation": "This searches the whole array each pass, so the overall minimum keeps being swapped into each position, which scrambles the sorted part."
+        },
+        {
+          "id": "d",
+          "text": "Line 4 should be changed to\n\n```java\nif (numbers[k] > numbers[pos])\n```",
+          "is_correct": false,
+          "explanation": "This looks for the largest element instead of the smallest, and `pos` still starts at `0`, so the array is not sorted into increasing order."
+        }
+      ],
+      "explanation": "Selection sort should find the smallest element among indices `j` through the end and swap it into index `j`. Starting `pos` at `0` lets the already sorted element at index `0` be chosen again; for example, `{1, 2, 3}` becomes `{2, 1, 3}` on the second pass. Starting with `int pos = j;` makes the search cover only the unsorted part, so the method becomes a correct selection sort.",
+      "topics": [
+        "T011"
+      ],
+      "subtopics": [
+        "ST046"
+      ],
+      "skills": [
+        "SK004",
+        "SK003"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q057",
+      "status": "active",
+      "text": "The following incomplete method is intended to sort its array parameter `arr` in increasing order.\n\n```java\n// postcondition: arr is sorted in increasing order\npublic static void sortArray(int[] arr)\n{\n  int j, k;\n\n  for (j = arr.length - 1; j > 0; j--)\n  {\n    int pos = j;\n\n    for ( /* missing code */ )\n    {\n      if (arr[k] > arr[pos])\n      {\n        pos = k;\n      }\n    }\n    swap(arr, j, pos);\n  }\n}\n```\n\nAssume that `swap(arr, j, pos)` exchanges the values of `arr[j]` and `arr[pos]`. Which of the following could be used to replace `/* missing code */` so that executing the method sorts the values in array `arr`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`k = j - 1; k > 0; k--`",
+          "is_correct": false,
+          "explanation": "This never checks index `0`, so if the largest remaining value is in `arr[0]` it is not moved (for example, `{3, 1, 2}` is not sorted)."
+        },
+        {
+          "id": "b",
+          "text": "`k = j - 1; k >= 0; k--`",
+          "is_correct": true,
+          "explanation": "Correct. The method is a selection sort that works from the back: on each pass it finds the largest value among `arr[0]` through `arr[j]` and swaps it into index `j`. Since `pos` starts at `j`, the inner loop must check every index from `j - 1` down to `0`, which is exactly what `k = j - 1; k >= 0; k--` does."
+        },
+        {
+          "id": "c",
+          "text": "`k = 1; k < arr.length; k++`",
+          "is_correct": false,
+          "explanation": "This skips index `0` and also looks at indices after `j`, which already hold the largest values, so it can swap them back out of place."
+        },
+        {
+          "id": "d",
+          "text": "`k = 0; k <= arr.length; k++`",
+          "is_correct": false,
+          "explanation": "This accesses `arr[arr.length]`, which throws an `ArrayIndexOutOfBoundsException`."
+        }
+      ],
+      "explanation": "The method is a selection sort that works from the back: on each pass it finds the largest value among `arr[0]` through `arr[j]` and swaps it into index `j`. Since `pos` starts at `j`, the inner loop must check every index from `j - 1` down to `0`, which is exactly what `k = j - 1; k >= 0; k--` does.",
+      "topics": [
+        "T011",
+        "T004"
+      ],
+      "subtopics": [
+        "ST046",
+        "ST020"
+      ],
+      "skills": [
+        "SK010",
+        "SK016"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B4"
+    },
+    {
+      "id": "searchsort_q058",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static void sort(String[] arr)\n{\n  for (int pass = arr.length - 1; pass >= 1; pass--)\n  {\n    String large = arr[0];\n    int index = 0;\n    for (int k = 0; k <= pass; k++)\n    {\n      if ((arr[k].compareTo(large)) > 0)\n      {\n        large = arr[k];\n        index = k;\n      }\n    }\n    arr[index] = arr[pass];\n    arr[pass] = large;\n  }\n}\n```\n\nAssume `arr` is the following array.\n\n```java\n{\"Ann\", \"Mike\", \"Walt\", \"Lisa\", \"Shari\", \"Jose\", \"Mary\", \"Bill\"}\n```\n\nWhat is the intermediate value of `arr` after two iterations of the outer `for` loop in the call `sort(arr)`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "`{\"Ann\", \"Mike\", \"Walt\", \"Lisa\", \"Shari\", \"Jose\", \"Mary\", \"Bill\"}`",
+          "is_correct": false,
+          "explanation": "This is the original array; each pass changes it unless the largest value is already in place, and here `\"Walt\"` is not."
+        },
+        {
+          "id": "b",
+          "text": "`{\"Ann\", \"Mike\", \"Lisa\", \"Shari\", \"Jose\", \"Mary\", \"Bill\", \"Walt\"}`",
+          "is_correct": false,
+          "explanation": "This shifts the other elements left to make room for `\"Walt\"`, but the method swaps `\"Walt\"` with `\"Bill\"`, and it also leaves out the second pass."
+        },
+        {
+          "id": "c",
+          "text": "`{\"Ann\", \"Bill\", \"Jose\", \"Lisa\", \"Mary\", \"Mike\", \"Shari\", \"Walt\"}`",
+          "is_correct": false,
+          "explanation": "This is the fully sorted array, which takes more than two passes."
+        },
+        {
+          "id": "d",
+          "text": "`{\"Ann\", \"Mike\", \"Bill\", \"Lisa\", \"Mary\", \"Jose\", \"Shari\", \"Walt\"}`",
+          "is_correct": true,
+          "explanation": "Correct. Each pass finds the alphabetically largest string among indices `0` through `pass` and swaps it with the element at `pass`. In the first pass (`pass` = `7`), the largest is `\"Walt\"` at index `2`, so `\"Walt\"` and `\"Bill\"` swap, giving `{\"Ann\", \"Mike\", \"Bill\", \"Lisa\", \"Shari\", \"Jose\", \"Mary\", \"Walt\"}`. In the second pass (`pass` = `6`), the largest is `\"Shari\"` at index `4`, so `\"Shari\"` and `\"Mary\"` swap, giving `{\"Ann\", \"Mike\", \"Bill\", \"Lisa\", \"Mary\", \"Jose\", \"Shari\", \"Walt\"}`."
+        }
+      ],
+      "explanation": "Each pass finds the alphabetically largest string among indices `0` through `pass` and swaps it with the element at `pass`. In the first pass (`pass` = `7`), the largest is `\"Walt\"` at index `2`, so `\"Walt\"` and `\"Bill\"` swap, giving `{\"Ann\", \"Mike\", \"Bill\", \"Lisa\", \"Shari\", \"Jose\", \"Mary\", \"Walt\"}`. In the second pass (`pass` = `6`), the largest is `\"Shari\"` at index `4`, so `\"Shari\"` and `\"Mary\"` swap, giving `{\"Ann\", \"Mike\", \"Bill\", \"Lisa\", \"Mary\", \"Jose\", \"Shari\", \"Walt\"}`.",
+      "topics": [
+        "T011",
+        "T013"
+      ],
+      "subtopics": [
+        "ST046",
+        "ST011"
+      ],
+      "skills": [
+        "SK001",
+        "SK019"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q059",
+      "status": "active",
+      "text": "Consider the following correct implementation of the selection sort algorithm.\n\n```java\npublic static void selectionSort(int[] elements)\n{\n  for (int j = 0; j < elements.length - 1; j++)\n  {\n    int minIndex = j;\n    for (int k = j + 1; k < elements.length; k++)\n    {\n      if (elements[k] < elements[minIndex])\n      {\n        minIndex = k;\n      }\n    }\n    if (j != minIndex)\n    {\n      int temp = elements[j];\n      elements[j] = elements[minIndex];\n      elements[minIndex] = temp;   // line 17\n    }\n  }\n}\n```\n\nThe following declaration and method call appear in a method in the same class as `selectionSort`.\n\n```java\nint[] arr = {30, 40, 10, 50, 20};\nselectionSort(arr);\n```\n\nHow many times is the statement `elements[minIndex] = temp;` in line 17 of the method executed as a result of the call to `selectionSort`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "2",
+          "is_correct": false,
+          "explanation": "This misses the last swap of `50` and `40` when `j` is `3`."
+        },
+        {
+          "id": "b",
+          "text": "3",
+          "is_correct": true,
+          "explanation": "Correct. Line 17 executes once for each actual swap. With `j` = `0`, `30` and `10` swap, giving `{10, 40, 30, 50, 20}`; with `j` = `1`, `40` and `20` swap, giving `{10, 20, 30, 50, 40}`; with `j` = `2`, `30` is already in place, so no swap occurs; with `j` = `3`, `50` and `40` swap, giving `{10, 20, 30, 40, 50}`. That is 3 swaps."
+        },
+        {
+          "id": "c",
+          "text": "4",
+          "is_correct": false,
+          "explanation": "This is the number of outer loop iterations; it ignores the `if (j != minIndex)` check, which skips the swap when `j` is `2`."
+        },
+        {
+          "id": "d",
+          "text": "5",
+          "is_correct": false,
+          "explanation": "This is the length of the array; the outer loop runs only `elements.length - 1` times and not every iteration swaps."
+        }
+      ],
+      "explanation": "Line 17 executes once for each actual swap. With `j` = `0`, `30` and `10` swap, giving `{10, 40, 30, 50, 20}`; with `j` = `1`, `40` and `20` swap, giving `{10, 20, 30, 50, 40}`; with `j` = `2`, `30` is already in place, so no swap occurs; with `j` = `3`, `50` and `40` swap, giving `{10, 20, 30, 40, 50}`. That is 3 swaps.",
+      "topics": [
+        "T011",
+        "T022"
+      ],
+      "subtopics": [
+        "ST046",
+        "ST079"
+      ],
+      "skills": [
+        "SK001",
+        "SK011"
+      ],
+      "difficulty": "D2",
+      "cognitive_level": "B3"
+    },
+    {
+      "id": "searchsort_q060",
+      "status": "active",
+      "text": "Consider the following method.\n\n```java\npublic static void mystery(int j, int k)\n{\n  if (j > k)\n  {\n    mystery(j - 2, k + 2);\n  }\n  System.out.print(j + \" \");\n}\n```\n\nWhat is printed as a result of the call `mystery(10, 0)`?",
+      "answers": [
+        {
+          "id": "a",
+          "text": "10 8 6 4",
+          "is_correct": false,
+          "explanation": "This is the order of the calls, which would be printed only if the print came before the recursive call."
+        },
+        {
+          "id": "b",
+          "text": "10 8 6",
+          "is_correct": false,
+          "explanation": "This is in call order and also leaves out the `4` printed by `mystery(4, 6)`."
+        },
+        {
+          "id": "c",
+          "text": "6 8 10",
+          "is_correct": false,
+          "explanation": "This leaves out `mystery(4, 6)`, but that call still prints `j` even though it does not recurse."
+        },
+        {
+          "id": "d",
+          "text": "4 6 8 10",
+          "is_correct": true,
+          "explanation": "Correct. The calls are `mystery(10, 0)`, `mystery(8, 2)`, `mystery(6, 4)`, and `mystery(4, 6)`; in the last one `j > k` is false, so it does not recurse. Every call prints `j` after its recursive call (if any) returns, so the values are printed from the last call back to the first: `4 6 8 10`."
+        }
+      ],
+      "explanation": "The calls are `mystery(10, 0)`, `mystery(8, 2)`, `mystery(6, 4)`, and `mystery(4, 6)`; in the last one `j > k` is false, so it does not recurse. Every call prints `j` after its recursive call (if any) returns, so the values are printed from the last call back to the first: `4 6 8 10`.",
+      "topics": [
+        "T009"
+      ],
+      "subtopics": [
+        "ST042",
+        "ST043"
+      ],
+      "skills": [
+        "SK012",
+        "SK001"
+      ],
+      "difficulty": "D1",
+      "cognitive_level": "B3"
+    }
+  ]
+}

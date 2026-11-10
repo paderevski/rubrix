@@ -1,0 +1,299 @@
+AP Computer Science A - Topics and Subtopics (schema 2.5.0)
+Topics are Rubrix T-codes; subtopics list the AP topic(s) they cover.
+[legacy] = pre-2025 AP content; [custom] = not part of AP.
+
+T001  Primitive Types
+    ST001  Variable Declaration
+        = AP 1.2 Variables and Data Types
+    ST002  Type Casting
+        = AP 1.5 Casting and Range of Variables
+    ST003  Arithmetic Operators
+        = AP 1.3 Expressions and Output
+    ST004  Integer Division
+        = AP 1.3 Expressions and Output
+    ST005  Integer Overflow
+        = AP 1.5 Casting and Range of Variables
+    ST066  Assignment Statements and Input
+        = AP 1.4 Assignment Statements and Input
+    ST067  Compound Assignment Operators
+        = AP 1.6 Compound Assignment Operators
+    ST087  Output and Escape Sequences
+        = AP 1.3 Expressions and Output
+
+T002  Using Objects
+    ST006  Object Instantiation
+        = AP 1.13 Object Creation and Storage (Instantiation)
+    ST007  Method Calls
+        = AP 1.14 Calling Instance Methods
+    ST008  Null References
+        = AP 1.13 Object Creation and Storage (Instantiation)
+    ST062  Math Class Methods
+        = AP 1.11 Math Class
+    ST070  APIs and Libraries
+        = AP 1.7 Application Program Interface (API) and Libraries
+    ST072  Objects: Instances of Classes
+        = AP 1.12 Objects: Instances of Classes
+
+T003  Boolean Expressions and if Statements
+    ST012  Conditional Statements
+        = AP 2.3 if Statements
+    ST013  Logical Operators
+        = AP 2.5 Compound Boolean Expressions
+    ST014  Short-Circuit Evaluation
+        = AP 2.5 Compound Boolean Expressions
+    ST015  Nested Conditionals
+        = AP 2.4 Nested if Statements
+    ST016  Boolean Comparison
+        = AP 2.2 Boolean Expressions
+    ST076  Comparing Boolean Expressions
+        = AP 2.6 Comparing Boolean Expressions
+
+T004  Iteration
+    ST017  while Loops
+        = AP 2.7 while Loops
+    ST018  for Loops
+        = AP 2.8 for Loops
+    ST019  Nested Loops
+        = AP 2.11 Nested Iteration
+    ST020  Loop Conditions
+        = AP 2.7 while Loops
+        = AP 2.8 for Loops
+    ST021  Infinite Loops
+        = AP 2.7 while Loops
+    ST077  Implementing Selection and Iteration Algorithms
+        = AP 2.9 Implementing Selection and Iteration Algorithms
+    ST078  Algorithms with Selection and Repetition
+        = AP 2.1 Algorithms with Selection and Repetition
+
+T005  Writing Classes
+    ST022  Class Definition
+        = AP 3.3 Anatomy of a Class
+    ST023  Constructors
+        = AP 3.4 Constructors
+    ST024  Instance Variables
+        = AP 3.3 Anatomy of a Class
+    ST025  Accessor Methods (Getters)
+        = AP 3.5 Methods: How to Write Them
+    ST026  Mutator Methods (Setters)
+        = AP 3.5 Methods: How to Write Them
+    ST027  Static vs Instance
+        = AP 3.7 Class Variables and Methods
+    ST028  this Keyword
+        = AP 3.9 this Keyword
+    ST055  Access Modifiers (public/private)
+        = AP 3.8 Scope and Access
+    ST056  Encapsulation
+        = AP 3.3 Anatomy of a Class
+        = AP 3.8 Scope and Access
+
+T006  Array
+    ST029  Array Declaration
+        = AP 4.3 Array Creation and Access
+    ST030  Array Initialization
+        = AP 4.3 Array Creation and Access
+    ST031  Array Traversal
+        = AP 4.4 Array Traversals
+    ST032  Array Indexing
+        = AP 4.3 Array Creation and Access
+    ST033  Array Length
+        = AP 4.3 Array Creation and Access
+    ST034  Array Manipulation
+        = AP 4.5 Implementing Array Algorithms
+
+T007  ArrayList
+    ST035  ArrayList Methods
+        = AP 4.8 ArrayList Methods
+    ST036  ArrayList Traversal
+        = AP 4.9 ArrayList Traversals
+    ST037  Wrapper Classes
+        = AP 4.7 Wrapper Classes
+    ST081  Implementing ArrayList Algorithms
+        = AP 4.10 Implementing ArrayList Algorithms
+
+T008  2D Array
+    ST038  2D Array Traversal
+        = AP 4.12 2D Array Traversals
+    ST039  Row-Major Order
+        = AP 4.12 2D Array Traversals
+    ST040  Column-Major Order
+        = AP 4.12 2D Array Traversals
+    ST082  2D Array Creation and Access
+        = AP 4.11 2D Array Creation and Access
+    ST083  Implementing 2D Array Algorithms
+        = AP 4.13 Implementing 2D Array Algorithms
+
+T009  Recursion
+    ST041  Base Case
+        = AP 4.16 Recursion
+    ST042  Recursive Case
+        = AP 4.16 Recursion
+    ST043  Call Stack
+        = AP 4.16 Recursion
+
+T010  Searching
+    ST044  Linear Search
+        = AP 4.14 Searching Algorithms
+    ST045  Binary Search
+        = AP 4.14 Searching Algorithms
+        = AP 4.17 Recursive Searching and Sorting
+
+T011  Sorting
+    ST046  Selection Sort
+        = AP 4.15 Sorting Algorithms
+    ST047  Insertion Sort
+        = AP 4.15 Sorting Algorithms
+    ST048  Merge Sort
+        = AP 4.17 Recursive Searching and Sorting
+
+T012  Methods
+    ST049  Parameter Passing
+        = AP 3.5 Methods: How to Write Them
+    ST050  Return Values
+        = AP 3.5 Methods: How to Write Them
+    ST051  Method Overloading
+        = AP 3.5 Methods: How to Write Them
+    ST052  Void Methods
+        = AP 3.5 Methods: How to Write Them
+    ST063  Variable Scope
+        = AP 3.8 Scope and Access
+    ST071  Calling Class (static) Methods
+        = AP 1.10 Calling Class Methods
+    ST073  Method Signatures
+        = AP 1.9 Method Signatures
+    ST074  Passing and Returning Object References
+        = AP 3.6 Methods: Passing and Returning References of an Object
+
+T013  Strings
+    ST009  String Methods
+        = AP 1.15 String Manipulation
+    ST010  String Concatenation
+        = AP 1.15 String Manipulation
+    ST011  String Comparison
+        = AP 1.15 String Manipulation
+    ST075  String Algorithms
+        = AP 2.10 Implementing String Algorithms
+
+T014  Data Sets and File I/O
+    ST053  File I/O with Scanner
+        = AP 4.6 Using Text Files
+    ST054  Data Processing
+        = AP 4.2 Introduction to Using Data Sets
+
+T015  Ethical and Social Implications
+    ST064  System Reliability and Testing
+        = AP 3.2 Impact of Program Design
+    ST065  Bias in Data Collection
+        = AP 4.1 Ethical and Social Issues Around Data Collection
+
+T016  Inheritance (Extends/Super) [legacy]
+    ST057  Extends and Class Hierarchy
+        = AP legacy 9.1 Creating Superclasses and Subclasses
+    ST058  Method Overriding
+        = AP legacy 9.3 Overriding Methods
+    ST059  super Keyword (constructors/methods)
+        = AP legacy 9.2 Writing Constructors for Subclasses
+        = AP legacy 9.4 super Keyword
+    ST084  Writing Constructors for Subclasses
+        = AP legacy 9.2 Writing Constructors for Subclasses
+    ST086  Object Superclass
+        = AP legacy 9.7 Object Superclass
+
+T017  Polymorphism [legacy]
+    ST060  Dynamic Binding / Polymorphism
+        = AP legacy 9.6 Polymorphism
+    ST085  References Using Inheritance Hierarchies
+        = AP legacy 9.5 Creating References Using Inheritance Hierarchies
+
+T018  Abstract Classes [legacy]
+    (no subtopics)
+
+T019  Interfaces [legacy]
+    ST061  Implementing Interfaces
+        = (no AP correlate)
+
+T020  Number Systems (Binary/Hex) [custom]
+    (no subtopics)
+
+T021  Program Design and Abstraction [custom]
+    ST080  Abstraction and Program Design
+        = AP 3.1 Abstraction and Program Design
+
+T022  Run-Time Analysis [custom]
+    ST079  Informal Run-Time Analysis
+        = AP 2.12 Informal Run-Time Analysis
+
+T023  Documentation and Comments [custom]
+    ST069  Documentation with Comments
+        = AP 1.8 Documentation with Comments
+
+T024  Algorithms, Programming, and Compilation [custom]
+    ST068  Algorithms, Programming, and Compilers
+        = AP 1.1 Introduction to Algorithms, Programming, and Compilers
+
+AP topics and the subtopics that cover them
+
+Unit 1: Using Objects and Methods
+    1.1  Introduction to Algorithms, Programming, and Compilers  ->  ST068
+    1.2  Variables and Data Types  ->  ST001
+    1.3  Expressions and Output  ->  ST003, ST004, ST087
+    1.4  Assignment Statements and Input  ->  ST066
+    1.5  Casting and Range of Variables  ->  ST002, ST005
+    1.6  Compound Assignment Operators  ->  ST067
+    1.7  Application Program Interface (API) and Libraries  ->  ST070
+    1.8  Documentation with Comments  ->  ST069
+    1.9  Method Signatures  ->  ST073
+    1.10  Calling Class Methods  ->  ST071
+    1.11  Math Class  ->  ST062
+    1.12  Objects: Instances of Classes  ->  ST072
+    1.13  Object Creation and Storage (Instantiation)  ->  ST006, ST008
+    1.14  Calling Instance Methods  ->  ST007
+    1.15  String Manipulation  ->  ST009, ST010, ST011
+Unit 2: Selection and Iteration
+    2.1  Algorithms with Selection and Repetition  ->  ST078
+    2.2  Boolean Expressions  ->  ST016
+    2.3  if Statements  ->  ST012
+    2.4  Nested if Statements  ->  ST015
+    2.5  Compound Boolean Expressions  ->  ST013, ST014
+    2.6  Comparing Boolean Expressions  ->  ST076
+    2.7  while Loops  ->  ST017, ST020, ST021
+    2.8  for Loops  ->  ST018, ST020
+    2.9  Implementing Selection and Iteration Algorithms  ->  ST077
+    2.10  Implementing String Algorithms  ->  ST075
+    2.11  Nested Iteration  ->  ST019
+    2.12  Informal Run-Time Analysis  ->  ST079
+Unit 3: Class Creation
+    3.1  Abstraction and Program Design  ->  ST080
+    3.2  Impact of Program Design  ->  ST064
+    3.3  Anatomy of a Class  ->  ST022, ST024, ST056
+    3.4  Constructors  ->  ST023
+    3.5  Methods: How to Write Them  ->  ST025, ST026, ST049, ST050, ST051, ST052
+    3.6  Methods: Passing and Returning References of an Object  ->  ST074
+    3.7  Class Variables and Methods  ->  ST027
+    3.8  Scope and Access  ->  ST055, ST056, ST063
+    3.9  this Keyword  ->  ST028
+Unit 4: Data Collections
+    4.1  Ethical and Social Issues Around Data Collection  ->  ST065
+    4.2  Introduction to Using Data Sets  ->  ST054
+    4.3  Array Creation and Access  ->  ST029, ST030, ST032, ST033
+    4.4  Array Traversals  ->  ST031
+    4.5  Implementing Array Algorithms  ->  ST034
+    4.6  Using Text Files  ->  ST053
+    4.7  Wrapper Classes  ->  ST037
+    4.8  ArrayList Methods  ->  ST035
+    4.9  ArrayList Traversals  ->  ST036
+    4.10  Implementing ArrayList Algorithms  ->  ST081
+    4.11  2D Array Creation and Access  ->  ST082
+    4.12  2D Array Traversals  ->  ST038, ST039, ST040
+    4.13  Implementing 2D Array Algorithms  ->  ST083
+    4.14  Searching Algorithms  ->  ST044, ST045
+    4.15  Sorting Algorithms  ->  ST046, ST047
+    4.16  Recursion  ->  ST041, ST042, ST043
+    4.17  Recursive Searching and Sorting  ->  ST045, ST048
+Legacy Unit 9: Inheritance
+    legacy 9.1  Creating Superclasses and Subclasses  ->  ST057
+    legacy 9.2  Writing Constructors for Subclasses  ->  ST059, ST084
+    legacy 9.3  Overriding Methods  ->  ST058
+    legacy 9.4  super Keyword  ->  ST059
+    legacy 9.5  Creating References Using Inheritance Hierarchies  ->  ST085
+    legacy 9.6  Polymorphism  ->  ST060
+    legacy 9.7  Object Superclass  ->  ST086

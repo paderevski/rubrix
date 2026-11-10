@@ -216,10 +216,24 @@ fn normalize_math_delimiters(content: &str) -> String {
 
 /// Convert answer text to HTML with proper escaping and line break preservation
 fn convert_answer_to_html(answer: &str) -> String {
+    let fenced_code_re = Regex::new(r"```(?:[a-zA-Z0-9_+\-]+)?\n([\s\S]*?)\n```").unwrap();
     let display_latex_re = Regex::new(r"\$\$([^\$]+)\$\$").unwrap();
     let inline_latex_re = Regex::new(r"\$([^\$]+)\$").unwrap();
 
-    let lines: Vec<&str> = answer.lines().collect();
+    let mut code_block_index = 0usize;
+    let mut code_blocks: Vec<(String, String)> = Vec::new();
+    let answer_with_placeholders = fenced_code_re
+        .replace_all(answer, |caps: &regex::Captures| {
+            let code = caps.get(1).map(|m| m.as_str()).unwrap_or("");
+            let token = format!("__RUBRIX_ANSWER_CODE_BLOCK_{}__", code_block_index);
+            let html = format!("<pre>{}</pre>", htmlescape::encode_minimal(code.trim_end()));
+            code_blocks.push((token.clone(), html));
+            code_block_index += 1;
+            token
+        })
+        .to_string();
+
+    let lines: Vec<&str> = answer_with_placeholders.lines().collect();
     let mut html_lines = Vec::new();
 
     for line in lines {
@@ -288,7 +302,14 @@ fn convert_answer_to_html(answer: &str) -> String {
     }
 
     // Join with <br /> for line breaks
-    html_lines.join("<br />")
+    let mut html = html_lines.join("<br />");
+
+    // Reinsert fenced code blocks as block-level preformatted sections.
+    for (token, block_html) in code_blocks {
+        html = html.replace(&token, &block_html);
+    }
+
+    html
 }
 
 // ============================================================================
@@ -302,6 +323,9 @@ pub struct ExportMdOptions {
     pub include_choices: bool,
     pub shuffle_choices: bool,
     pub shuffle_questions: bool,
+    /// Wrap the "Question N." label in a Pandoc custom-style div so Word
+    /// can apply a paragraph border (or other style) to exactly one line.
+    pub pandoc_docx_styles: bool,
 }
 
 impl Default for ExportMdOptions {
@@ -312,6 +336,7 @@ impl Default for ExportMdOptions {
             include_choices: true,
             shuffle_choices: true,
             shuffle_questions: false,
+            pandoc_docx_styles: false,
         }
     }
 }
@@ -322,6 +347,9 @@ pub struct ExportBankMdOptions {
     pub include_choices: bool,
     pub shuffle_choices: bool,
     pub shuffle_questions: bool,
+    /// Wrap the "Question N." label in a Pandoc custom-style div so Word
+    /// can apply a paragraph border (or other style) to exactly one line.
+    pub pandoc_docx_styles: bool,
 }
 
 impl Default for ExportBankMdOptions {
@@ -331,6 +359,7 @@ impl Default for ExportBankMdOptions {
             include_choices: true,
             shuffle_choices: false,
             shuffle_questions: false,
+            pandoc_docx_styles: false,
         }
     }
 }
@@ -353,6 +382,27 @@ pub fn export_md(title: &str, questions: &[Question]) -> Result<String, String> 
     export_md_with_options(title, questions, ExportMdOptions::default())
 }
 
+fn format_markdown_choice(label: char, body: &str) -> String {
+    // If the answer contains fenced code, emit a list-style block where the fence
+    // is indented under the label so pandoc keeps both label and code association.
+    if body.contains("```") {
+        let indented = body
+            .lines()
+            .map(|line| {
+                if line.trim().is_empty() {
+                    String::new()
+                } else {
+                    format!("    {}", line)
+                }
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
+        format!("{})\n{}\n", label, indented)
+    } else {
+        format!("{}) {}\n", label, body)
+    }
+}
+
 pub fn export_md_with_options(
     title: &str,
     questions: &[Question],
@@ -361,7 +411,7 @@ pub fn export_md_with_options(
     let mut output = format!("# {}\n\n", title);
     let mut rng = thread_rng();
     let mut answer_key: Vec<(usize, char)> = Vec::new();
-    let mut explanation_key: Vec<(usize, String)> = Vec::new();
+    let mut solution_key: Vec<(usize, Option<String>, Option<String>)> = Vec::new();
     let mut ordered_questions = questions.to_vec();
 
     if options.shuffle_questions {
@@ -371,7 +421,25 @@ pub fn export_md_with_options(
     for (i, q) in ordered_questions.iter().enumerate() {
         let question_text =
             convert_codeblock_tables_to_markdown(&normalize_math_delimiters(q.text.trim()));
-        output.push_str(&format!("**Question {}.** {}\n\n", i + 1, question_text));
+        if options.pandoc_docx_styles {
+            // Only wrap the first line/paragraph in the custom-style block so
+            // Word applies exactly one paragraph border per question. The
+            // remainder (code blocks, follow-up sentences) renders unstyled.
+            let (first_line, rest) = question_text
+                .split_once('\n')
+                .map(|(a, b)| (a.trim_end(), b.trim_start()))
+                .unwrap_or((question_text.as_str(), ""));
+            output.push_str(&format!(
+                "::: {{custom-style=\"QuestionBody\"}}\n**Question {}.** {}\n:::\n\n",
+                i + 1,
+                first_line
+            ));
+            if !rest.is_empty() {
+                output.push_str(&format!("{rest}\n\n"));
+            }
+        } else {
+            output.push_str(&format!("**Question {}.** {}\n\n", i + 1, question_text));
+        }
 
         let mut answers = q.answers.clone();
         if options.shuffle_choices {
@@ -384,9 +452,7 @@ pub fn export_md_with_options(
                 let body = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(
                     answer.text.trim(),
                 ));
-                let formatted = format!("{}) {}", label, body);
-                output.push_str(&formatted);
-                output.push('\n');
+                output.push_str(&format_markdown_choice(label, &body));
             }
         }
 
@@ -398,15 +464,26 @@ pub fn export_md_with_options(
         }
 
         if options.include_explanations_section {
-            if let Some(explanation) = q
+            let explanation = q
                 .explanation
                 .as_ref()
                 .map(|value| value.trim())
                 .filter(|value| !value.is_empty())
-            {
-                let normalized =
-                    convert_codeblock_tables_to_markdown(&normalize_math_delimiters(explanation));
-                explanation_key.push((i + 1, normalized));
+                .map(|value| {
+                    convert_codeblock_tables_to_markdown(&normalize_math_delimiters(value))
+                });
+
+            let rubric = q
+                .rubric
+                .as_ref()
+                .map(|value| value.trim())
+                .filter(|value| !value.is_empty())
+                .map(|value| {
+                    convert_codeblock_tables_to_markdown(&normalize_math_delimiters(value))
+                });
+
+            if explanation.is_some() || rubric.is_some() {
+                solution_key.push((i + 1, explanation, rubric));
             }
         }
 
@@ -420,10 +497,19 @@ pub fn export_md_with_options(
         }
     }
 
-    if options.include_explanations_section && !explanation_key.is_empty() {
-        output.push_str("\n## Explanations\n\n");
-        for (number, explanation) in explanation_key {
-            output.push_str(&format!("### Question {}\n\n{}\n\n", number, explanation));
+    if options.include_explanations_section && !solution_key.is_empty() {
+        output.push_str("\n## Solutions and Rubrics\n\n");
+        for (number, explanation, rubric) in solution_key {
+            output.push_str(&format!("### Question {}\n\n", number));
+
+            if let Some(explanation) = explanation {
+                output.push_str(&format!("{}\n\n", explanation));
+            }
+
+            if let Some(rubric) = rubric {
+                output.push_str("**Rubric:**\n\n");
+                output.push_str(&format!("{}\n\n", rubric));
+            }
         }
     }
 
@@ -446,9 +532,24 @@ pub fn export_bank_md_with_options(
     for (i, entry) in ordered_entries.iter().enumerate() {
         let question_text =
             convert_codeblock_tables_to_markdown(&normalize_math_delimiters(entry.text.trim()));
-        output.push_str(&format!("**Question {}.** {}\n\n", i + 1, question_text));
+        if options.pandoc_docx_styles {
+            let (first_line, rest) = question_text
+                .split_once('\n')
+                .map(|(a, b)| (a.trim_end(), b.trim_start()))
+                .unwrap_or((question_text.as_str(), ""));
+            output.push_str(&format!(
+                "::: {{custom-style=\"QuestionBody\"}}\n**Question {}.** {}\n:::\n\n",
+                i + 1,
+                first_line
+            ));
+            if !rest.is_empty() {
+                output.push_str(&format!("{rest}\n\n"));
+            }
+        } else {
+            output.push_str(&format!("**Question {}.** {}\n\n", i + 1, question_text));
+        }
 
-        let mut ordered_options = entry.options.clone();
+        let mut ordered_options = entry.answers.clone();
         if options.include_choices && options.shuffle_choices {
             ordered_options.shuffle(&mut rng);
         }
@@ -459,7 +560,7 @@ pub fn export_bank_md_with_options(
                 let body = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(
                     option.text.trim(),
                 ));
-                output.push_str(&format!("{}) {}\n", label, body));
+                output.push_str(&format_markdown_choice(label, &body));
             }
         }
 
@@ -470,33 +571,6 @@ pub fn export_bank_md_with_options(
                 ));
                 output.push_str("\n**Explanation:**\n\n");
                 output.push_str(&format!("{}\n", explanation));
-            }
-
-            if !entry.distractors.common_errors.is_empty() {
-                output.push_str("\n**Distractors - Common errors:**\n");
-                for err in &entry.distractors.common_errors {
-                    let cleaned = convert_codeblock_tables_to_markdown(&normalize_math_delimiters(
-                        err.trim(),
-                    ));
-                    output.push_str(&format!("- {}\n", cleaned));
-                }
-            }
-
-            if !entry.distractors.common_mistakes.is_empty() {
-                output.push_str("\n**Distractors - Misconceptions by option:**\n");
-                for mistake in &entry.distractors.common_mistakes {
-                    let label = ordered_options
-                        .iter()
-                        .enumerate()
-                        .find(|(_, option)| option.id == mistake.option_id)
-                        .map(|(idx, _)| (b'A' + idx as u8) as char)
-                        .map(|letter| letter.to_string())
-                        .unwrap_or_else(|| mistake.option_id.clone());
-                    let misconception = convert_codeblock_tables_to_markdown(
-                        &normalize_math_delimiters(mistake.misconception.trim()),
-                    );
-                    output.push_str(&format!("- {}: {}\n", label, misconception));
-                }
             }
         }
 
@@ -773,7 +847,7 @@ fn sanitize_filename(name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Answer, CommonMistake, DistractorInfo, QuestionBankEntry, QuestionBankOption};
+    use crate::{Answer, QuestionBankAnswer, QuestionBankEntry};
 
     #[test]
     fn test_export_txt() {
@@ -781,10 +855,12 @@ mod tests {
             id: "1".to_string(),
             text: "What is 2+2?".to_string(),
             explanation: None,
-            distractors: None,
+            rubric: None,
             subject: "Test".to_string(),
             topics: vec!["Math".to_string()],
             difficulty: String::new(),
+            cognitive_level: String::new(),
+            subtopics: Vec::new(),
             answers: vec![
                 Answer {
                     text: "4".to_string(),
@@ -800,9 +876,11 @@ mod tests {
         }];
 
         let result = export_txt("Test", &questions).unwrap();
-        assert!(result.contains("Title: Test"));
-        assert!(result.contains("1. What is 2+2?"));
-        assert!(result.contains("a. 4"));
+        assert!(result.contains("# Test"));
+        assert!(result.contains("**Question 1.** What is 2+2?"));
+        assert!(result.contains("4"));
+        assert!(result.contains("3"));
+        assert!(result.contains("## Answers"));
     }
 
     #[test]
@@ -842,10 +920,12 @@ mod tests {
             id: "1".to_string(),
             text: "Find $F'(x)$ and $g''(t)$".to_string(),
             explanation: None,
-            distractors: None,
+            rubric: None,
             subject: "Calculus".to_string(),
             topics: vec!["Derivatives".to_string()],
             difficulty: String::new(),
+            cognitive_level: String::new(),
+            subtopics: Vec::new(),
             answers: vec![],
         };
 
@@ -883,16 +963,30 @@ mod tests {
     }
 
     #[test]
+    fn test_answer_fenced_java_code_block_to_pre() {
+        let input = "Before\n```java\nSystem.out.println(\"Hello\");\n```\nAfter";
+        let result = convert_answer_to_html(input);
+
+        assert!(result.contains("Before"));
+        assert!(result.contains("After"));
+        assert!(result.contains("<pre>"));
+        assert!(result.contains("</pre>"));
+        assert!(result.contains("System.out.println"));
+    }
+
+    #[test]
     fn test_inline_latex_grouped_in_paragraph() {
         // Test that inline LaTeX stays within the same paragraph as surrounding text
         let q = Question {
             id: "1".to_string(),
             text: "Find $F'(x)$ here".to_string(),
             explanation: None,
-            distractors: None,
+            rubric: None,
             subject: "Calculus".to_string(),
             topics: vec!["Derivatives".to_string()],
             difficulty: String::new(),
+            cognitive_level: String::new(),
+            subtopics: Vec::new(),
             answers: vec![],
         };
 
@@ -934,10 +1028,12 @@ mod tests {
             id: "1".to_string(),
             text: "Here is an equation: $$F'(x) = 2x$$ and more text".to_string(),
             explanation: None,
-            distractors: None,
+            rubric: None,
             subject: "Calculus".to_string(),
             topics: vec!["Derivatives".to_string()],
             difficulty: String::new(),
+            cognitive_level: String::new(),
+            subtopics: Vec::new(),
             answers: vec![],
         };
 
@@ -960,20 +1056,24 @@ mod tests {
     }
 
     #[test]
-    fn test_export_bank_md_explanations_and_distractors_toggle() {
+    fn test_export_bank_md_explanations_toggle() {
         let entries = vec![QuestionBankEntry {
             id: "q1".to_string(),
+            status: "active".to_string(),
+            migration_note: None,
             text: "What does this return?".to_string(),
-            options: vec![
-                QuestionBankOption {
+            answers: vec![
+                QuestionBankAnswer {
                     id: "opt_a".to_string(),
                     text: "42".to_string(),
                     is_correct: true,
+                    explanation: "Correct loop trace.".to_string(),
                 },
-                QuestionBankOption {
+                QuestionBankAnswer {
                     id: "opt_b".to_string(),
                     text: "24".to_string(),
                     is_correct: false,
+                    explanation: "Swapped operands.".to_string(),
                 },
             ],
             explanation: "Because the loop runs exactly 42 times.".to_string(),
@@ -981,14 +1081,6 @@ mod tests {
             cognitive_level: "apply".to_string(),
             topics: vec!["loops".to_string()],
             subtopics: None,
-            skills: vec!["trace code".to_string()],
-            distractors: DistractorInfo {
-                common_mistakes: vec![CommonMistake {
-                    option_id: "opt_b".to_string(),
-                    misconception: "Swapped operands in multiplication.".to_string(),
-                }],
-                common_errors: vec!["Off-by-one in loop bounds.".to_string()],
-            },
         }];
 
         let bank_md = |include_explanations: bool| {
@@ -1005,16 +1097,12 @@ mod tests {
 
         let without_explanations = bank_md(false);
         assert!(!without_explanations.contains("**Explanation:**"));
-        assert!(!without_explanations.contains("**Distractors - Common errors:**"));
-        assert!(!without_explanations.contains("**Distractors - Misconceptions by option:**"));
 
         let with_explanations = bank_md(true);
         assert!(with_explanations.contains("**Explanation:**"));
         assert!(with_explanations.contains("Because the loop runs exactly 42 times."));
-        assert!(with_explanations.contains("**Distractors - Common errors:**"));
-        assert!(with_explanations.contains("Off-by-one in loop bounds."));
-        assert!(with_explanations.contains("**Distractors - Misconceptions by option:**"));
-        assert!(with_explanations.contains("B: Swapped operands in multiplication."));
+        assert!(!with_explanations.contains("**Distractors - Common errors:**"));
+        assert!(!with_explanations.contains("**Distractors - Misconceptions by option:**"));
     }
 
     #[test]
@@ -1023,10 +1111,12 @@ mod tests {
             id: "q1".to_string(),
             text: "What is 2 + 2?".to_string(),
             explanation: Some("Add the two integers directly.".to_string()),
-            distractors: None,
+            rubric: None,
             subject: "Math".to_string(),
             topics: vec!["arithmetic".to_string()],
             difficulty: String::new(),
+            cognitive_level: String::new(),
+            subtopics: Vec::new(),
             answers: vec![
                 Answer {
                     text: "4".to_string(),
@@ -1043,7 +1133,7 @@ mod tests {
 
         let without_explanations =
             export_md_with_options("Quiz", &questions, ExportMdOptions::default()).unwrap();
-        assert!(!without_explanations.contains("## Explanations"));
+        assert!(!without_explanations.contains("## Solutions and Rubrics"));
 
         let with_explanations = export_md_with_options(
             "Quiz",
@@ -1057,10 +1147,101 @@ mod tests {
         .unwrap();
 
         let answers_idx = with_explanations.find("## Answers").unwrap();
-        let explanations_idx = with_explanations.find("## Explanations").unwrap();
+        let explanations_idx = with_explanations.find("## Solutions and Rubrics").unwrap();
         assert!(explanations_idx > answers_idx);
         assert!(with_explanations.contains("### Question 1"));
         assert!(with_explanations.contains("Add the two integers directly."));
         assert!(!with_explanations.contains("1. Add the two integers directly."));
+    }
+
+    #[test]
+    fn test_export_md_with_fenced_choice_uses_indented_list_block_layout() {
+        let questions = vec![Question {
+            id: "q1".to_string(),
+            text: "Choose the output.".to_string(),
+            explanation: None,
+            rubric: None,
+            subject: "Computer Science".to_string(),
+            topics: vec!["control_flow".to_string()],
+            difficulty: String::new(),
+            cognitive_level: String::new(),
+            subtopics: Vec::new(),
+            answers: vec![
+                Answer {
+                    text: "```java\nSystem.out.println(\"A\");\n```".to_string(),
+                    is_correct: true,
+                    explanation: None,
+                },
+                Answer {
+                    text: "Plain text".to_string(),
+                    is_correct: false,
+                    explanation: None,
+                },
+            ],
+        }];
+
+        let result = export_md_with_options(
+            "Quiz",
+            &questions,
+            ExportMdOptions {
+                include_explanations_section: false,
+                include_answer_key: true,
+                include_choices: true,
+                shuffle_choices: false,
+                shuffle_questions: false,
+                pandoc_docx_styles: false,
+            },
+        )
+        .unwrap();
+
+        assert!(result.contains("A)\n    ```java"));
+        assert!(!result.contains("A) ```java"));
+        assert!(result.contains("B) Plain text"));
+    }
+
+    #[test]
+    fn test_export_bank_md_with_fenced_choice_uses_indented_list_block_layout() {
+        let entries = vec![QuestionBankEntry {
+            id: "q1".to_string(),
+            status: "active".to_string(),
+            migration_note: None,
+            text: "Choose the output.".to_string(),
+            answers: vec![
+                QuestionBankAnswer {
+                    id: "opt_a".to_string(),
+                    text: "```java\nSystem.out.println(\"A\");\n```".to_string(),
+                    is_correct: true,
+                    explanation: "Correct output.".to_string(),
+                },
+                QuestionBankAnswer {
+                    id: "opt_b".to_string(),
+                    text: "Plain text".to_string(),
+                    is_correct: false,
+                    explanation: "Incorrect output.".to_string(),
+                },
+            ],
+            explanation: String::new(),
+            difficulty: "medium".to_string(),
+            cognitive_level: "apply".to_string(),
+            topics: vec!["control_flow".to_string()],
+            subtopics: None,
+        }];
+
+        let result = export_bank_md_with_options(
+            "Bank",
+            &entries,
+            ExportBankMdOptions {
+                include_explanations: false,
+                include_choices: true,
+                shuffle_choices: false,
+                shuffle_questions: false,
+                pandoc_docx_styles: false,
+            },
+        )
+        .unwrap();
+
+        assert!(result.contains("A)\n    ```java"));
+        assert!(!result.contains("A) ```java"));
+        assert!(result.contains("B) Plain text"));
     }
 }

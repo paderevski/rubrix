@@ -12,6 +12,7 @@ import SubmitBugModal from "./components/SubmitBugModal";
 import ExportOptionsModal from "./components/ExportOptionsModal";
 import PreferencesModal from "./components/PreferencesModal";
 import OpenRecentModal from "./components/OpenRecentModal";
+import StartScreen from "./components/StartScreen";
 import SaveChangesModal from "./components/SaveChangesModal";
 import {
   Question,
@@ -34,6 +35,8 @@ interface StreamEvent {
   text: string;
   done: boolean;
   remaining_tokens?: number;
+  block_type?: "reasoning" | "response" | "reasoning_end";
+  reasoning_done?: boolean;
 }
 
 interface RegenerateAllQuestionResult {
@@ -49,8 +52,16 @@ interface RegenerateAllProgressEvent {
   success: boolean;
 }
 
-const catieFileFilter = { name: "Catie Document", extensions: ["kt"] };
-const legacySessionFileFilter = { name: "Legacy Session", extensions: ["json", "md"] };
+type PendingDocumentAction =
+  | { type: "close" }
+  | { type: "new" }
+  | { type: "open" }
+  | { type: "open-recent"; filePath: string };
+
+const catieFileFilter = { name: "Catie Document", extensions: ["catie"] };
+const llmQuestionFileFilter = { name: "LLM Question JSON", extensions: ["json"] };
+// Older Catie documents used the .kt extension (also Kotlin's), so they are still readable.
+const legacySessionFileFilter = { name: "Legacy Session", extensions: ["kt", "json", "md"] };
 const remainingTokensStorageKey = "remainingTokens";
 const exportPresetStorageKey = "exportPresets";
 const preferredSubjectStorageKey = "preferredSubject";
@@ -149,12 +160,11 @@ function parseSessionQuestions(raw: unknown): Question[] {
       const text =
         typeof q.text === "string" && q.text.trim().length > 0
           ? q.text
+          : typeof q.question === "string" && q.question.trim().length > 0
+          ? q.question
           : stringifyValue(q.text) ?? "Untitled question";
 
       const answers = coerceAnswers(q, questionIndex);
-      if (answers.length === 0) {
-        warn(`Question ${questionIndex + 1} has no valid answers; it may fail to render.`);
-      }
 
       const topics = Array.isArray(q.topics)
         ? (q.topics as unknown[]).filter(
@@ -169,13 +179,17 @@ function parseSessionQuestions(raw: unknown): Question[] {
             : `q${questionIndex + 1}`,
         text,
         answers,
-        explanation: coerceRichText(q.explanation),
-        distractors: coerceRichText(q.distractors),
+        explanation: coerceRichText(q.explanation) ?? coerceRichText(q.solution),
+        rubric: coerceRichText(q.rubric),
         subject: typeof q.subject === "string" ? q.subject : undefined,
         topics,
         difficulty:
           typeof q.difficulty === "string" && q.difficulty.trim().length > 0
             ? q.difficulty
+            : undefined,
+        cognitive_level:
+          typeof q.cognitive_level === "string" && q.cognitive_level.trim().length > 0
+            ? q.cognitive_level
             : undefined,
       };
 
@@ -266,7 +280,7 @@ function parseMarkdownQuestions(content: string): Question[] {
       text: questionText,
       answers,
       explanation: undefined,
-      distractors: undefined,
+      rubric: undefined,
       subject: undefined,
       topics: undefined,
       difficulty: undefined,
@@ -292,6 +306,20 @@ function App() {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [topics, setTopics] = useState<TopicInfo[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [questionType, setQuestionType] = useState("multiple_choice");
+  const [frqQuestionType, setFrqQuestionType] = useState("series");
+  const questionTypeOptions = [
+    { value: "multiple_choice", label: "Multiple Choice" },
+    { value: "frq", label: "FRQ" },
+  ];
+  const frqQuestionTypeOptions = [
+    { value: "series", label: "Series" },
+    { value: "polar", label: "Polar" },
+    { value: "particle_motion", label: "Particle Motion" },
+    { value: "parametric", label: "Parametric" },
+    { value: "differential_equations", label: "Differential Equations" },
+    { value: "limits_continuity", label: "Limits and Continuity" },
+  ];
   const [difficulty, setDifficulty] = useState(() => {
     if (typeof localStorage === "undefined") return "medium";
     const saved = localStorage.getItem(preferredDifficultyStorageKey);
@@ -308,6 +336,9 @@ function App() {
   const [documentMode, setDocumentMode] = useState<DocumentMode>("blank");
   const [openRecentOpen, setOpenRecentOpen] = useState(false);
   const [saveChangesOpen, setSaveChangesOpen] = useState(false);
+  const [pendingDocumentAction, setPendingDocumentAction] = useState<PendingDocumentAction | null>(
+    null
+  );
   const [recentDocuments, setRecentDocuments] = useState<string[]>(() => {
     if (typeof localStorage === "undefined") return [];
     try {
@@ -346,6 +377,8 @@ function App() {
   const [regeneratingQuestionId, setRegeneratingQuestionId] = useState<string | null>(null);
   const [isRegeneratingAll, setIsRegeneratingAll] = useState(false);
   const latestStreamingTextRef = useRef("");
+  const lastStreamBlockTypeRef = useRef<"reasoning" | "response" | null>(null);
+  const hasInsertedReasoningEndMarkerRef = useRef(false);
   const [activeTab, setActiveTab] = useState<"generate" | "bank">("generate");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [wordGeneratePreset, setWordGeneratePreset] = useState<WordPreset>(() => {
@@ -440,6 +473,28 @@ function App() {
       return false;
     }
   });
+  const [wordTemplateDocxPath, setWordTemplateDocxPath] = useState<string>(() => {
+    if (typeof localStorage === "undefined") return "";
+    try {
+      const saved = localStorage.getItem(exportPresetStorageKey);
+      if (!saved) return "";
+      const parsed = JSON.parse(saved);
+      return typeof parsed.wordTemplateDocxPath === "string" ? parsed.wordTemplateDocxPath : "";
+    } catch {
+      return "";
+    }
+  });
+  const [wordExportTitle, setWordExportTitle] = useState<string>(() => {
+    if (typeof localStorage === "undefined") return "";
+    try {
+      const saved = localStorage.getItem(exportPresetStorageKey);
+      if (!saved) return "";
+      const parsed = JSON.parse(saved);
+      return typeof parsed.wordExportTitle === "string" ? parsed.wordExportTitle : "";
+    } catch {
+      return "";
+    }
+  });
   const [exportOptionsOpen, setExportOptionsOpen] = useState(false);
   const [pendingExportKind, setPendingExportKind] = useState<ExportKind | null>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -461,8 +516,17 @@ function App() {
   const documentName = currentDocumentPath
     ? currentDocumentPath.split(/[/\\]/).pop() || currentDocumentPath
     : documentMode === "new"
-    ? "Untitled.kt"
+    ? "Untitled.catie"
     : null;
+  const defaultWordExportTitle = useMemo(() => {
+    if (activeTab === "bank") {
+      return selectedSubject ? `${selectedSubject} Question Bank` : "Question Bank";
+    }
+
+    const rawName = documentName ?? "Quiz";
+    const withoutExtension = rawName.replace(/\.[^/.]+$/, "").trim();
+    return withoutExtension || "Quiz";
+  }, [activeTab, documentName, selectedSubject]);
   const questionsSnapshot = useMemo(() => JSON.stringify(questions), [questions]);
   const isDocumentDirty = useMemo(() => {
     if (documentMode === "blank") return false;
@@ -540,6 +604,19 @@ function App() {
     return text || "Authentication failed. Please retry.";
   };
 
+  const shouldPromptLoginForGenerationError = (raw: string): boolean => {
+    const lower = raw.trim().toLowerCase();
+    return (
+      lower.includes("invalid password") ||
+      lower.includes("invalid credentials") ||
+      lower.includes("user not found") ||
+      lower.includes("authentication required") ||
+      lower.includes("no gateway credentials") ||
+      lower.includes("status 401") ||
+      lower.includes("status 404")
+    );
+  };
+
   const handleLogin = async (username: string, password: string) => {
     setAuthError("");
     try {
@@ -598,6 +675,8 @@ function App() {
       wordVersionCount,
       wordShuffleChoices,
       wordShuffleQuestions,
+      wordTemplateDocxPath,
+      wordExportTitle,
     };
     localStorage.setItem(exportPresetStorageKey, JSON.stringify(payload));
   }, [
@@ -609,6 +688,8 @@ function App() {
     wordVersionCount,
     wordShuffleChoices,
     wordShuffleQuestions,
+    wordTemplateDocxPath,
+    wordExportTitle,
   ]);
 
   useEffect(() => {
@@ -630,17 +711,104 @@ function App() {
     }
   }, [selectedSubject]);
 
+  useEffect(() => {
+    if (questionType === "frq" && questionCount !== 1) {
+      setQuestionCount(1);
+    }
+  }, [questionType, questionCount]);
+
   // Listen for streaming events from backend
   useEffect(() => {
     const unlisten = listen<StreamEvent>("llm-stream", (event) => {
-      setStreamingText(event.payload.text);
-      latestStreamingTextRef.current = event.payload.text;
+      const payload = event.payload;
+      const blockType = payload.block_type;
+
+      if (blockType) {
+        let nextText = latestStreamingTextRef.current;
+
+        if (payload.reasoning_done && !hasInsertedReasoningEndMarkerRef.current) {
+          if (nextText.trim().length > 0) {
+            nextText += "\n\n";
+          }
+          nextText += "[REASONING DONE]\n\n";
+          hasInsertedReasoningEndMarkerRef.current = true;
+        }
+
+        if (blockType === "reasoning_end") {
+          if (!hasInsertedReasoningEndMarkerRef.current) {
+            nextText += "\n\n[REASONING DONE]\n\n";
+            hasInsertedReasoningEndMarkerRef.current = true;
+          }
+        } else {
+          if (
+            blockType === "response" &&
+            lastStreamBlockTypeRef.current === "reasoning" &&
+            !hasInsertedReasoningEndMarkerRef.current
+          ) {
+            if (nextText.trim().length > 0) {
+              nextText += "\n";
+            }
+            nextText += "[REASONING DONE]\n";
+            hasInsertedReasoningEndMarkerRef.current = true;
+          }
+
+          if (lastStreamBlockTypeRef.current !== blockType) {
+            if (nextText.trim().length > 0) {
+              nextText += "\n\n";
+            }
+            nextText += blockType === "reasoning" ? "[REASONING]\n" : "[RESPONSE]\n";
+            lastStreamBlockTypeRef.current = blockType;
+          }
+
+          if (payload.text) {
+            nextText += payload.text;
+          }
+        }
+
+        setStreamingText(nextText);
+        latestStreamingTextRef.current = nextText;
+      } else {
+        // Backward compatibility for legacy emitters that send full-buffer text.
+        // Ignore empty payloads so final done events do not wipe visible stream text.
+        if (payload.text) {
+          setStreamingText(payload.text);
+          latestStreamingTextRef.current = payload.text;
+        }
+
+        if (payload.reasoning_done && !hasInsertedReasoningEndMarkerRef.current) {
+          const nextText = `${latestStreamingTextRef.current}\n\n[REASONING DONE]\n\n`;
+          setStreamingText(nextText);
+          latestStreamingTextRef.current = nextText;
+          hasInsertedReasoningEndMarkerRef.current = true;
+        }
+      }
+
       setStreamingComplete(event.payload.done);
       if (typeof event.payload.remaining_tokens === "number") {
         setRemainingTokens(event.payload.remaining_tokens);
       }
     });
 
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, []);
+
+  // Window close button: close the open document (prompting to save) and return to the start
+  // screen; with no document open, quit. The latest handler is kept in a ref so the listener
+  // registers once.
+  const windowCloseHandlerRef = useRef<() => void>(() => {});
+  windowCloseHandlerRef.current = () => {
+    if (documentMode === "blank") {
+      void invoke("quit_app");
+      return;
+    }
+    void requestDocumentAction({ type: "close" });
+  };
+
+  useEffect(() => {
+    const unlisten = listen("close-requested", () => windowCloseHandlerRef.current());
+    void unlisten.then(() => invoke("register_close_handler"));
     return () => {
       unlisten.then((f) => f());
     };
@@ -696,20 +864,20 @@ function App() {
       if (action === "submit_bug") {
         setSubmitBugOpen(true);
       } else if (action === "new_document") {
-        void handleNewDocument();
+        void requestDocumentAction({ type: "new" });
       } else if (action === "add_custom_question") {
         setActiveTab("generate");
         void handleAddQuestion();
       } else if (action === "close_document") {
         void handleCloseDocumentRequest();
       } else if (action === "open_session") {
-        void handleOpenDocument();
+        void requestDocumentAction({ type: "open" });
       } else if (action === "open_recent") {
         setOpenRecentOpen(true);
       } else if (action === "save_session") {
         void handleSaveDocument();
       } else if (action === "save_session_as") {
-        void handleSaveDocument(true);
+        void handleSaveDocumentAs();
       } else if (action === "export_md") {
         openExportOptions("md");
       } else if (action === "export_qti") {
@@ -740,7 +908,18 @@ function App() {
     return () => {
       unlistenAction.then((f) => f());
     };
-  }, [streamingText, activeTab, questions.length, selectedSubject, isGenerating, isRegeneratingAll, isAuthenticated]);
+  }, [
+    streamingText,
+    activeTab,
+    questionsSnapshot,
+    selectedSubject,
+    isGenerating,
+    isRegeneratingAll,
+    isAuthenticated,
+    currentDocumentPath,
+    documentMode,
+    isDocumentDirty,
+  ]);
 
   useEffect(() => {
     void invoke("set_menu_state", {
@@ -804,7 +983,7 @@ function App() {
       return;
     }
 
-    if (selectedTopics.length === 0) {
+    if (questionType !== "frq" && selectedTopics.length === 0) {
       setStatus("Please select at least one topic");
       return;
     }
@@ -820,6 +999,8 @@ function App() {
     const previousQuestionCount = questions.length;
     setStreamingText("");
     latestStreamingTextRef.current = "";
+    lastStreamBlockTypeRef.current = null;
+    hasInsertedReasoningEndMarkerRef.current = false;
     setStreamingComplete(false);
     setShowPreview(true);
     setRegeneratingQuestionId(null);
@@ -833,6 +1014,8 @@ function App() {
         count: questionCount,
         notes: notes || null,
         append: true,
+        question_type: questionType,
+        frq_question_type: questionType === "frq" ? frqQuestionType : undefined,
       };
 
       const allQuestions = await invoke<Question[]>("generate_questions", {
@@ -880,14 +1063,15 @@ function App() {
       console.error("Generation failed:", err);
       const errorMsg = String(err);
 
-      // If error suggests missing auth, show login modal
-      if (
-        errorMsg.includes("BEDROCK_GATEWAY_URL") ||
-        errorMsg.toLowerCase().includes("gateway") ||
-        errorMsg.toLowerCase().includes("auth")
-      ) {
+      // Only prompt for login on clear credential/session errors.
+      if (shouldPromptLoginForGenerationError(errorMsg)) {
         setLoginModalOpen(true);
         setStatus("Authentication required");
+      } else if (
+        errorMsg.includes("BEDROCK_GATEWAY_URL") ||
+        errorMsg.toLowerCase().includes("gateway mode is required")
+      ) {
+        setStatus("Error: Gateway is not configured");
       } else {
         setStatus(`Error: ${err}`);
       }
@@ -906,6 +1090,8 @@ function App() {
     setRegeneratingQuestionId(previousQuestionId ?? null);
     setStreamingText("");
     latestStreamingTextRef.current = "";
+    lastStreamBlockTypeRef.current = null;
+    hasInsertedReasoningEndMarkerRef.current = false;
     setStreamingComplete(false);
     setShowPreview(true);
 
@@ -961,6 +1147,8 @@ function App() {
     setRegeneratingQuestionId(null);
     setStreamingText("");
     latestStreamingTextRef.current = "";
+    lastStreamBlockTypeRef.current = null;
+    hasInsertedReasoningEndMarkerRef.current = false;
     setStreamingComplete(true);
     setShowPreview(false);
     setStatus(`Regenerating ${total} questions...`);
@@ -1159,9 +1347,9 @@ function App() {
 
   const handleExportDocx = async () => {
     const exportingBank = activeTab === "bank";
-    const defaultName = exportingBank
-      ? `${selectedSubject || "question-bank"}.docx`
-      : "questions.docx";
+    const exportTitle = wordExportTitle.trim() || defaultWordExportTitle;
+    const sanitizedTitle = exportTitle.replace(/[/\\:*?"<>|]/g, "").trim() || "questions";
+    const defaultName = `${sanitizedTitle}.docx`;
 
     const filePath = await save({
       defaultPath: defaultName,
@@ -1172,6 +1360,7 @@ function App() {
 
     try {
       setIsExporting(true);
+      setWordExportTitle(exportTitle);
       const normalizedVersionCount = Math.min(Math.max(wordVersionCount, 1), 20);
       const includeChoices = wordIncludeChoices;
       const useChoiceShuffle = includeChoices && normalizedVersionCount > 1 && wordShuffleChoices;
@@ -1190,10 +1379,11 @@ function App() {
           version_count: normalizedVersionCount,
           shuffle_choices: useChoiceShuffle,
           shuffle_questions: useQuestionShuffle,
+          template_docx_path: wordTemplateDocxPath || undefined,
         };
         const data = await invoke<number[]>("export_question_bank_to_docx", {
           subject: selectedSubject,
-          title: `${selectedSubject} Question Bank`,
+          title: exportTitle,
           options,
         });
         await writeBinaryFile(filePath, new Uint8Array(data));
@@ -1208,9 +1398,10 @@ function App() {
           version_count: normalizedVersionCount,
           shuffle_choices: useChoiceShuffle,
           shuffle_questions: useQuestionShuffle,
+          template_docx_path: wordTemplateDocxPath || undefined,
         };
         const data = await invoke<number[]>("export_to_docx", {
-          title: "Quiz",
+          title: exportTitle,
           options,
         });
         await writeBinaryFile(filePath, new Uint8Array(data));
@@ -1247,6 +1438,10 @@ function App() {
       return;
     }
 
+    if (kind === "word") {
+      setWordExportTitle((prev) => (prev.trim().length > 0 ? prev : defaultWordExportTitle));
+    }
+
     setPendingExportKind(kind);
     setExportOptionsOpen(true);
   };
@@ -1271,8 +1466,52 @@ function App() {
     await handleExportDocx();
   };
 
+  const handlePickWordTemplate = async () => {
+    const picked = await open({
+      multiple: false,
+      filters: [{ name: "Word Template", extensions: ["docx"] }],
+    });
+
+    if (!picked) return;
+    if (Array.isArray(picked)) {
+      setWordTemplateDocxPath(picked[0] ?? "");
+      return;
+    }
+
+    setWordTemplateDocxPath(picked);
+  };
+
   const updateRecentDocuments = (filePath: string) => {
     setRecentDocuments((prev) => [filePath, ...prev.filter((p) => p !== filePath)].slice(0, 10));
+  };
+
+  const performDocumentAction = async (action: PendingDocumentAction) => {
+    if (action.type === "close") {
+      await resetToBlankState();
+      return;
+    }
+
+    if (action.type === "new") {
+      await handleNewDocument();
+      return;
+    }
+
+    if (action.type === "open") {
+      await handleOpenDocument();
+      return;
+    }
+
+    await handleOpenRecentPath(action.filePath);
+  };
+
+  const requestDocumentAction = async (action: PendingDocumentAction) => {
+    if (documentMode !== "blank" && isDocumentDirty) {
+      setPendingDocumentAction(action);
+      setSaveChangesOpen(true);
+      return;
+    }
+
+    await performDocumentAction(action);
   };
 
   const resetToBlankState = async () => {
@@ -1280,6 +1519,8 @@ function App() {
     setRawTextByQuestionId({});
     setStreamingText("");
     latestStreamingTextRef.current = "";
+    lastStreamBlockTypeRef.current = null;
+    hasInsertedReasoningEndMarkerRef.current = false;
     setStreamingComplete(false);
     setRegeneratingQuestionId(null);
     setCurrentDocumentPath(null);
@@ -1296,11 +1537,7 @@ function App() {
 
   const handleCloseDocumentRequest = async () => {
     if (documentMode === "blank") return;
-    if (isDocumentDirty) {
-      setSaveChangesOpen(true);
-      return;
-    }
-    await resetToBlankState();
+    await requestDocumentAction({ type: "close" });
   };
 
   const handleNewDocument = async () => {
@@ -1308,12 +1545,14 @@ function App() {
     setRawTextByQuestionId({});
     setStreamingText("");
     latestStreamingTextRef.current = "";
+    lastStreamBlockTypeRef.current = null;
+    hasInsertedReasoningEndMarkerRef.current = false;
     setStreamingComplete(false);
     setRegeneratingQuestionId(null);
     setCurrentDocumentPath(null);
     setDocumentMode("new");
     setSavedQuestionsSnapshot(JSON.stringify([]));
-    setStatus("New document • Unsaved (Untitled.kt)");
+    setStatus("New document • Unsaved (Untitled.catie)");
     try {
       await invoke("set_questions", { newQuestions: [] as Question[] });
     } catch (err) {
@@ -1358,29 +1597,51 @@ function App() {
     setStatus("Cleared recent documents");
   };
 
-  const handleSaveDocument = async (saveAs = false): Promise<boolean> => {
+  const handleSaveDocument = async (): Promise<boolean> => {
+    return handleSaveDocumentToPath(currentDocumentPath);
+  };
+
+  const handleSaveDocumentToPath = async (
+    requestedPath?: string | null,
+    defaultPath = "untitled.catie"
+  ): Promise<boolean> => {
     if (questions.length === 0) {
       setStatus("No questions to save");
       return false;
     }
 
-    let filePath = saveAs ? null : currentDocumentPath;
+    let filePath = requestedPath ?? null;
 
     if (!filePath) {
       filePath = await save({
-        defaultPath: currentDocumentPath ?? "untitled.kt",
-        filters: [catieFileFilter],
+        defaultPath,
+        filters: [catieFileFilter, llmQuestionFileFilter],
       });
     }
 
     if (!filePath) return false;
 
     try {
-      const payload = {
-        version: 1,
-        savedAt: new Date().toISOString(),
-        questions,
-      };
+      const lowerPath = filePath.toLowerCase();
+      const isCatieDocument = lowerPath.endsWith(".catie") || lowerPath.endsWith(".kt");
+      const llmQuestions = questions.map(({ id, rubric, subject, ...question }) => ({
+        ...question,
+        explanation: question.explanation ?? "",
+        difficulty: question.difficulty ?? "",
+        cognitive_level: question.cognitive_level ?? "",
+        topics: question.topics ?? [],
+        answers: question.answers.map((answer) => ({
+          ...answer,
+          explanation: answer.explanation ?? "",
+        })),
+      }));
+      const payload = isCatieDocument
+        ? {
+            version: 1,
+            savedAt: new Date().toISOString(),
+            questions,
+          }
+        : llmQuestions;
       await invoke("write_document_file", {
         path: filePath,
         content: JSON.stringify(payload, null, 2),
@@ -1398,10 +1659,16 @@ function App() {
     }
   };
 
+  const handleSaveDocumentAs = async (): Promise<boolean> => {
+    const currentName = currentDocumentPath?.split(/[/\\]/).pop();
+    const defaultPath = currentName && currentName.trim().length > 0 ? currentName : "untitled.catie";
+    return handleSaveDocumentToPath(null, defaultPath);
+  };
+
   const handleOpenDocument = async () => {
     const selection = await open({
       multiple: false,
-      filters: [catieFileFilter, legacySessionFileFilter],
+      filters: [catieFileFilter, llmQuestionFileFilter, legacySessionFileFilter],
     });
 
     if (!selection) return;
@@ -1495,6 +1762,8 @@ function App() {
   }, [topics]);
   const selectedSubjectName = subjects.find((s) => s.id === selectedSubject)?.name ?? selectedSubject;
   const appHeading = `${selectedSubjectName || "Catie"} Question Generator`;
+  // With no document open, the generator is replaced by a launch view (New / Open / Recent).
+  const showStartScreen = documentMode === "blank" && activeTab === "generate";
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -1506,24 +1775,37 @@ function App() {
       <OpenRecentModal
         open={openRecentOpen}
         recentPaths={recentDocuments}
-        onOpenPath={handleOpenRecentPath}
+        onOpenPath={(filePath) => {
+          void requestDocumentAction({ type: "open-recent", filePath });
+        }}
         onClear={handleClearRecent}
         onClose={() => setOpenRecentOpen(false)}
       />
       <SaveChangesModal
         open={saveChangesOpen}
-        documentName={documentName ?? "Untitled.kt"}
-        onCancel={() => setSaveChangesOpen(false)}
+        documentName={documentName ?? "Untitled.catie"}
+        onCancel={() => {
+          setSaveChangesOpen(false);
+          setPendingDocumentAction(null);
+        }}
         onDontSave={() => {
           setSaveChangesOpen(false);
-          void resetToBlankState();
+          const nextAction = pendingDocumentAction;
+          setPendingDocumentAction(null);
+          if (nextAction) {
+            void performDocumentAction(nextAction);
+          }
         }}
         onSave={() => {
           void (async () => {
             const saved = await handleSaveDocument();
             if (!saved) return;
             setSaveChangesOpen(false);
-            await resetToBlankState();
+            const nextAction = pendingDocumentAction;
+            setPendingDocumentAction(null);
+            if (nextAction) {
+              await performDocumentAction(nextAction);
+            }
           })();
         }}
       />
@@ -1536,7 +1818,18 @@ function App() {
         </span>
       </header>
 
-      <div className="flex flex-1 min-h-0">
+      {showStartScreen && (
+        <StartScreen
+          recentPaths={recentDocuments}
+          status={status}
+          onNew={() => void requestDocumentAction({ type: "new" })}
+          onOpen={() => void requestDocumentAction({ type: "open" })}
+          onOpenRecent={(filePath) => void requestDocumentAction({ type: "open-recent", filePath })}
+          onClearRecent={handleClearRecent}
+        />
+      )}
+
+      <div className={showStartScreen ? "hidden" : "flex flex-1 min-h-0"}>
         {/* Sidebar */}
         <div
           className={documentMode === "blank" ? "pointer-events-none opacity-50" : ""}
@@ -1544,6 +1837,12 @@ function App() {
         >
           <Sidebar
             topics={topics}
+            questionType={questionType}
+            questionTypeOptions={questionTypeOptions}
+            onQuestionTypeChange={setQuestionType}
+            frqQuestionType={frqQuestionType}
+            frqQuestionTypeOptions={frqQuestionTypeOptions}
+            onFrqQuestionTypeChange={setFrqQuestionType}
             selectedTopics={selectedTopics}
             onTopicsChange={setSelectedTopics}
             difficulty={difficulty}
@@ -1697,6 +1996,9 @@ function App() {
         wordVersionCount={wordVersionCount}
         wordShuffleChoices={wordShuffleChoices}
         wordShuffleQuestions={wordShuffleQuestions}
+        wordTemplateDocxPath={wordTemplateDocxPath}
+        wordExportTitle={wordExportTitle}
+        defaultWordExportTitle={defaultWordExportTitle}
         onChangeWordGeneratePreset={setWordGeneratePreset}
         onChangeWordBankPreset={setWordBankPreset}
         onChangeMarkdownPreset={setMarkdownPreset}
@@ -1705,6 +2007,9 @@ function App() {
         onChangeWordVersionCount={setWordVersionCount}
         onChangeWordShuffleChoices={setWordShuffleChoices}
         onChangeWordShuffleQuestions={setWordShuffleQuestions}
+        onChangeWordExportTitle={setWordExportTitle}
+        onPickWordTemplate={handlePickWordTemplate}
+        onClearWordTemplate={() => setWordTemplateDocxPath("")}
         onCancel={() => {
           if (isExporting) return;
           setExportOptionsOpen(false);

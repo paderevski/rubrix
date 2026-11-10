@@ -5,13 +5,57 @@ use crate::{GenerationRequest, Question, QuestionBankEntry};
 /// Configuration for prompt building
 pub struct PromptConfig<'a> {
     pub topics: String,
+    pub topic_ids: &'a [String],
     pub difficulty: &'a str,
     pub count: usize,
     pub examples: &'a [QuestionBankEntry],
     pub user_instructions: Option<&'a str>,
     pub regenerate_context: Option<RegenerateContext<'a>>,
     pub prompt_template: Option<&'a str>,
+    /// Stems of questions already in the current set (generation appends to it)
+    pub existing_questions: &'a [String],
+    /// Suggested assessment structure, used to break mode collapse on single-question requests
+    pub structure_hint: Option<&'a str>,
+    /// Subtopics (from the subject schema) that the question(s) should draw from
+    pub subtopics: &'a [SubtopicRef],
+    /// Subtopic the single requested question must assess
+    pub assigned_subtopic: Option<&'a SubtopicRef>,
 }
+
+/// A schema subtopic, as shown to the model
+#[derive(Debug, Clone, PartialEq)]
+pub struct SubtopicRef {
+    pub id: String,
+    pub name: String,
+}
+
+/// Extra context for a generation request, assembled by the caller from app state
+#[derive(Debug, Default)]
+pub struct GenerationContext {
+    /// Questions already in the set being appended to, as one-line summaries
+    pub existing_questions: Vec<String>,
+    /// Subtopics of the requested topic(s); empty when the schema defines none
+    pub subtopics: Vec<SubtopicRef>,
+    /// Subtopic picked for a single-question request
+    pub assigned_subtopic: Option<SubtopicRef>,
+}
+
+/// Assessment structures the prompt templates know about (see `{structure_hint}`).
+pub const ASSESSMENT_STRUCTURES: &[&str] = &[
+    "value_trace",
+    "code_selection",
+    "algorithm_selection",
+    "equivalence",
+    "error_analysis",
+    "code_completion",
+    "conceptual",
+    "modification",
+];
+
+/// Max number of existing question stems included in a generation prompt
+const MAX_EXISTING_QUESTIONS: usize = 15;
+/// Max characters of each existing question stem included in a generation prompt
+const EXISTING_QUESTION_CHARS: usize = 300;
 
 /// Context for regeneration requests
 pub struct RegenerateContext<'a> {
@@ -39,7 +83,6 @@ Return ONLY a JSON array with this structure:
   {{
     "text": "Question text",
     "explanation": "Explanation of the correct answer",
-    "distractors": "Why wrong answers are tempting",
     "answers": [
       {{"text": "Answer 1", "is_correct": false, "explanation": "Why wrong"}},
       {{"text": "Answer 2", "is_correct": true, "explanation": "Why correct"}}
@@ -60,6 +103,12 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
         "hard" => "D3 (Hard) - Complex analysis, synthesis of multiple concepts, 5+ steps",
         _ => "D2 (Medium) - Requires analysis or multi-step reasoning",
     };
+    let difficulty_code = match config.difficulty {
+        "easy" => "D1",
+        "medium" => "D2",
+        "hard" => "D3",
+        _ => "D2",
+    };
 
     let examples_str = if config.examples.is_empty() {
         String::from("(No examples available)")
@@ -79,10 +128,77 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
             .join("\n\n")
     };
 
+    // Whole section (header included) is omitted when there are no instructions,
+    // so templates should place `{user_instructions}` on its own line without a header.
     let user_instructions_str = match config.user_instructions {
-        Some(notes) if !notes.trim().is_empty() => {
-            format!("\n\n**Additional Instructions from User:**\n{}", notes)
-        }
+        Some(notes) if !notes.trim().is_empty() => format!(
+            "## User Instructions (high priority)\n\n{}\n\nFollow these unless they conflict with correctness.",
+            notes.trim()
+        ),
+        _ => String::new(),
+    };
+
+    let existing_questions_str = if config.existing_questions.is_empty() {
+        String::new()
+    } else {
+        let skipped = config
+            .existing_questions
+            .len()
+            .saturating_sub(MAX_EXISTING_QUESTIONS);
+        let listed = config.existing_questions[skipped..]
+            .iter()
+            .enumerate()
+            .map(|(i, q)| {
+                let one_line = q.split_whitespace().collect::<Vec<_>>().join(" ");
+                format!("{}. {}", skipped + i + 1, truncate(&one_line, EXISTING_QUESTION_CHARS))
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        format!(
+            "## Questions Already in This Set\n\n\
+             The new question(s) will be added to a set that already contains the questions below. \
+             Classify the assessment structure and specific skill of each one internally. \
+             The new question(s) MUST NOT repeat the same task with different values: \
+             prefer an assessment structure and skill not yet used below. \
+             If the topic genuinely forces reuse of a structure, the new question must still require different reasoning.\n\n{}",
+            listed
+        )
+    };
+
+    let subtopics_str = if config.subtopics.is_empty() {
+        String::new()
+    } else {
+        format!(
+            "**Subtopics of the Target Topic(s):**\n\n{}\n\n\
+             Each question should assess one or more of these subtopics. \
+             Do not substitute a skill from outside this list, even one you associate with the topic. \
+             When generating several questions, spread them across different subtopics.",
+            config
+                .subtopics
+                .iter()
+                .map(|s| format!("- `{}`: {}", s.id, s.name))
+                .collect::<Vec<_>>()
+                .join("\n")
+        )
+    };
+
+    let subtopic_hint_str = match config.assigned_subtopic {
+        Some(sub) => format!(
+            "**Assigned subtopic for this question:** `{}`: {}. \
+             The question must primarily assess this subtopic. Include `{}` in `subtopics`; add others only if the question genuinely assesses them too.",
+            sub.id, sub.name, sub.id
+        ),
+        None => String::new(),
+    };
+
+    let structure_hint_str = match config.structure_hint {
+        Some(hint) if config.count == 1 => format!(
+            "**Suggested assessment structure for this question:** `{}`. \
+             Use it if it can genuinely assess the target topic at the requested difficulty. \
+             If it cannot, or if it duplicates the structure of a question already in the set, \
+             choose a different structure, and avoid defaulting to `value_trace`.",
+            hint
+        ),
         _ => String::new(),
     };
 
@@ -108,105 +224,91 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
         None => String::new(),
     };
 
+    let topic_ids_json =
+        serde_json::to_string(config.topic_ids).unwrap_or_else(|_| "[]".to_string());
+
     // Replace placeholders in template
-    template
+    let filled = template
         .replace("{topics}", &config.topics)
+        .replace("{topic_ids}", &topic_ids_json)
         .replace("{difficulty}", difficulty_desc)
+        .replace("{difficulty_code}", difficulty_code)
         .replace("{count}", &config.count.to_string())
         .replace("{examples}", &examples_str)
         .replace("{user_instructions}", &user_instructions_str)
         .replace("{regenerate}", &regenerate_section)
+        .replace("{existing_questions}", &existing_questions_str)
+        .replace("{structure_hint}", &structure_hint_str)
+        .replace("{subtopics}", &subtopics_str)
+        .replace("{subtopic_hint}", &subtopic_hint_str);
+
+    collapse_blank_lines(&filled)
 }
 
-/// Build the prompt for generating multiple questions using JSON examples
+/// Tidy up after empty optional sections: collapse runs of 3+ newlines into one blank
+/// line, then merge `---` separators that ended up adjacent.
+fn collapse_blank_lines(s: &str) -> String {
+    let mut out = collapse_newlines(s);
+    while out.contains("\n---\n\n---\n") {
+        out = out.replace("\n---\n\n---\n", "\n---\n");
+    }
+    out
+}
+
+fn collapse_newlines(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut newlines = 0;
+    for c in s.chars() {
+        if c == '\n' {
+            newlines += 1;
+            if newlines > 2 {
+                continue;
+            }
+        } else if c != ' ' && c != '\t' && c != '\r' {
+            newlines = 0;
+        }
+        out.push(c);
+    }
+    out
+}
+
+/// Build the prompt for generating multiple questions using JSON examples.
 pub fn build_generation_prompt(
     request: &GenerationRequest,
     examples: &[QuestionBankEntry],
     prompt_template: Option<&str>,
     topics_label: &str,
+    context: &GenerationContext,
 ) -> String {
+    use rand::seq::SliceRandom;
+    let structure_hint = if request.count == 1 {
+        ASSESSMENT_STRUCTURES
+            .choose(&mut rand::thread_rng())
+            .copied()
+    } else {
+        None
+    };
+
     let config = PromptConfig {
         topics: topics_label.to_string(),
+        topic_ids: &request.topics,
         difficulty: &request.difficulty,
         count: request.count as usize,
         examples,
         user_instructions: request.notes.as_deref(),
         regenerate_context: None,
         prompt_template,
+        existing_questions: &context.existing_questions,
+        structure_hint,
+        subtopics: &context.subtopics,
+        assigned_subtopic: context.assigned_subtopic.as_ref(),
     };
     build_core_prompt(&config)
 }
 
-/// Format a question bank entry as JSON with only pedagogically useful fields
+/// Format a question bank entry as JSON with all bank metadata
 fn format_example_as_json(q: &QuestionBankEntry) -> String {
-    // Build a clean JSON representation with the useful fields
-    let answers_json: Vec<String> = q
-        .options
-        .iter()
-        .map(|opt| {
-            // Use the current generation schema (`answers`) to reduce model confusion.
-            // We intentionally omit `id` and per-choice `explanation` because the bank doesn't store them.
-            format!(
-                r#"    {{"text": "{}", "is_correct": {}}}"#,
-                escape_json_string(&opt.text),
-                opt.is_correct
-            )
-        })
-        .collect();
-
-    // Emit distractors as a string (matches the app's Question schema), but still preserve
-    // the pedagogy signal from the bank examples.
-    let distractors_text = {
-        let mut lines: Vec<String> = Vec::new();
-
-        if !q.distractors.common_mistakes.is_empty() {
-            lines.push("Common mistakes:".to_string());
-            for m in &q.distractors.common_mistakes {
-                lines.push(format!("- {}: {}", m.option_id, m.misconception));
-            }
-        }
-
-        if !q.distractors.common_errors.is_empty() {
-            lines.push(format!(
-                "Common errors: {}",
-                q.distractors.common_errors.join(", ")
-            ));
-        }
-
-        lines.join("\n")
-    };
-
-    let skills_json: Vec<String> = q.skills.iter().map(|s| format!(r#""{}""#, s)).collect();
-
-    format!(
-        r#"{{
-  "text": "{text}",
-  "answers": [
-{answers}
-  ],
-  "explanation": "{explanation}",
-  "difficulty": "{difficulty}",
-  "cognitive_level": "{cognitive_level}",
-  "skills": [{skills}],
-    "distractors": "{distractors}"
-}}"#,
-        text = escape_json_string(&q.text),
-        answers = answers_json.join(",\n"),
-        explanation = escape_json_string(&q.explanation),
-        difficulty = q.difficulty,
-        cognitive_level = q.cognitive_level,
-        skills = skills_json.join(", "),
-        distractors = escape_json_string(&distractors_text),
-    )
-}
-
-/// Escape special characters for JSON strings
-fn escape_json_string(s: &str) -> String {
-    s.replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
-        .replace('\r', "\\r")
-        .replace('\t', "\\t")
+    serde_json::to_string_pretty(q).unwrap_or_else(|_| "{}".to_string())
 }
 
 /// Build prompt for regenerating a single question
@@ -235,15 +337,26 @@ pub fn build_regenerate_prompt(
         current.subject.clone()
     };
 
-    let inferred_difficulty = examples
-        .first()
-        .map(|e| e.difficulty.clone())
-        .unwrap_or_else(|| "same as original".to_string());
+    let inferred_difficulty = if !current.difficulty.trim().is_empty() {
+        current.difficulty.clone()
+    } else {
+        examples
+            .first()
+            .map(|e| e.difficulty.clone())
+            .unwrap_or_else(|| "same as original".to_string())
+    };
 
-    let inferred_style = examples
-        .first()
-        .map(|e| e.cognitive_level.clone())
-        .unwrap_or_else(|| "same as original".to_string());
+    let inferred_style = if !current.cognitive_level.trim().is_empty() {
+        current.cognitive_level.clone()
+    } else {
+        examples
+            .first()
+            .map(|e| e.cognitive_level.clone())
+            .unwrap_or_else(|| "same as original".to_string())
+    };
+
+    let topic_ids_json =
+        serde_json::to_string(&current.topics).unwrap_or_else(|_| "[]".to_string());
 
     let current_json = serde_json::to_string_pretty(current)
         .unwrap_or_else(|_| "{\"error\":\"failed to serialize current question\"}".to_string());
@@ -276,6 +389,7 @@ pub fn build_regenerate_prompt(
             .replace("{current_question_json}", &current_json)
             .replace("{difficulty}", &inferred_difficulty)
             .replace("{topics}", &topics_label)
+            .replace("{topic_ids}", &topic_ids_json)
             .replace("{subject}", &subject_label)
             .replace("{style}", &inferred_style)
             .replace("{other_questions}", &other_questions_block)
@@ -308,7 +422,6 @@ Required guards:
 2. Preserve schema exactly:
    - text (string)
    - explanation (string)
-   - distractors (string)
    - answers (array of objects with text, is_correct, explanation)
 3. Include exactly one correct answer (`is_correct: true`).
 4. Keep explanations internally consistent with the marked correct answer.
@@ -319,7 +432,6 @@ Output format (strict):
   {{
     "text": "...",
     "explanation": "...",
-    "distractors": "...",
     "answers": [
       {{"text": "...", "is_correct": false, "explanation": "..."}},
       {{"text": "...", "is_correct": true,  "explanation": "..."}}
@@ -715,8 +827,8 @@ fn normalize_question_text(question: &mut Question) {
         question.explanation = Some(normalize_escaped_math_and_newlines(explanation));
     }
 
-    if let Some(distractors) = question.distractors.as_ref() {
-        question.distractors = Some(normalize_escaped_math_and_newlines(distractors));
+    if let Some(rubric) = question.rubric.as_ref() {
+        question.rubric = Some(normalize_escaped_math_and_newlines(rubric));
     }
 
     for answer in &mut question.answers {
@@ -733,6 +845,31 @@ fn normalize_escaped_math_and_newlines(input: &str) -> String {
     let mut i = 0;
 
     while i < chars.len() {
+        // Convert escaped newline sequences into real newlines.
+        // Handle both runtime forms:
+        // 1) "\\n" (single backslash + n) after JSON parsing of "\\\\n"
+        // 2) "\\\\n" (double backslash + n), which some model outputs include directly
+        if chars[i] == '\\' && i + 1 < chars.len() && chars[i + 1] == 'n' {
+            let mut is_exception = false;
+            for exception in DOUBLE_BACKSLASH_N_EXCEPTIONS.iter() {
+                let end = i + 2 + exception.len();
+                if end <= chars.len() && chars[i + 2..end].iter().copied().eq(exception.chars()) {
+                    is_exception = true;
+                    break;
+                }
+            }
+
+            if is_exception {
+                output.push(chars[i]);
+                output.push(chars[i + 1]);
+            } else {
+                output.push('\n');
+            }
+
+            i += 2;
+            continue;
+        }
+
         if chars[i] == '\\' && i + 2 < chars.len() && chars[i + 1] == '\\' && chars[i + 2] == 'n' {
             let mut is_exception = false;
             for exception in DOUBLE_BACKSLASH_N_EXCEPTIONS.iter() {
@@ -865,12 +1002,11 @@ fn sanitize_json_string(input: &str) -> String {
     output
 }
 
-/// Truncate string to max length
+/// Truncate string to max length (in chars, so multi-byte text can't panic)
 fn truncate(s: &str, max_len: usize) -> String {
-    if s.len() <= max_len {
-        s.to_string()
-    } else {
-        format!("{}...", &s[..max_len])
+    match s.char_indices().nth(max_len) {
+        None => s.to_string(),
+        Some((byte_idx, _)) => format!("{}...", &s[..byte_idx]),
     }
 }
 
@@ -902,6 +1038,9 @@ mod tests {
             questions[0].text,
             "What is returned by this code?\n\n```java\nreturn 5 + 3;\n```"
         );
+        assert!(!serde_json::to_string(&questions[0])
+            .unwrap()
+            .contains("distractors"));
     }
 
     #[test]
@@ -927,6 +1066,229 @@ mod tests {
         assert_eq!(questions.len(), 2);
         assert_eq!(questions[0].id, "q1");
         assert_eq!(questions[1].id, "q2");
+    }
+
+    #[test]
+    fn test_custom_prompt_injects_selected_subtopic_ids() {
+        let request = GenerationRequest {
+            subject: "Computer Science".to_string(),
+            topics: vec!["ST021".to_string()],
+            difficulty: "medium".to_string(),
+            count: 1,
+            notes: None,
+            append: false,
+            question_type: "multiple_choice".to_string(),
+            frq_question_type: None,
+        };
+
+        let prompt = build_generation_prompt(
+            &request,
+            &[],
+            Some(
+                r#"Target difficulty: {difficulty}\n{\"difficulty\": \"{difficulty_code}\", \"topics\": {topic_ids}}"#,
+            ),
+            "Writing Classes > Class Definition",
+            &GenerationContext::default(),
+        );
+
+        assert_eq!(
+            prompt,
+            r#"Target difficulty: D2 (Medium) - Requires analysis or multi-step reasoning, 3-5 steps\n{\"difficulty\": \"D2\", \"topics\": ["ST021"]}"#
+        );
+    }
+
+    fn cs_generation_prompt(count: u32, notes: Option<&str>, existing: &[String]) -> String {
+        let request = GenerationRequest {
+            subject: "Computer Science".to_string(),
+            topics: vec!["T002".to_string()],
+            difficulty: "medium".to_string(),
+            count,
+            notes: notes.map(|s| s.to_string()),
+            append: true,
+            question_type: "multiple_choice".to_string(),
+            frq_question_type: None,
+        };
+        build_generation_prompt(
+            &request,
+            &[],
+            Some(include_str!(
+                "../../imports/knowledge/Computer Science/prompt.txt"
+            )),
+            "Using Objects",
+            &GenerationContext {
+                existing_questions: existing.to_vec(),
+                ..Default::default()
+            },
+        )
+    }
+
+    #[test]
+    fn test_cs_prompt_has_no_unfilled_placeholders_or_empty_sections() {
+        let prompt = cs_generation_prompt(3, None, &[]);
+        for placeholder in [
+            "{topics}", "{topic_ids}", "{topic_id}", "{difficulty}", "{difficulty_code}",
+            "{count}", "{examples}", "{user_instructions}", "{regenerate}",
+            "{existing_questions}", "{structure_hint}",
+        ] {
+            assert!(!prompt.contains(placeholder), "unfilled {}", placeholder);
+        }
+        assert!(prompt.contains(r#""topics": ["T002"]"#));
+        assert!(!prompt.contains("User Instructions"));
+        assert!(!prompt.contains("## Questions Already in This Set"));
+        assert!(!prompt.contains("Suggested assessment structure"));
+        assert!(!prompt.contains("\n---\n\n---\n"));
+        assert!(!prompt.contains("\n\n\n"));
+    }
+
+    #[test]
+    fn test_single_question_prompt_gets_structure_hint_and_existing_set() {
+        let existing = vec![
+            "Consider the following code segment.\n\n```java\nString s = \"JavaProgramming\";\n```".to_string(),
+        ];
+        let prompt = cs_generation_prompt(1, Some("Use a scenario about a library"), &existing);
+        assert!(prompt.contains("Suggested assessment structure for this question:"));
+        assert!(ASSESSMENT_STRUCTURES
+            .iter()
+            .any(|s| prompt.contains(&format!("question:** `{}`", s))));
+        assert!(prompt.contains("## Questions Already in This Set"));
+        assert!(prompt.contains(
+            "1. Consider the following code segment. ```java String s = \"JavaProgramming\"; ```"
+        ));
+        assert!(prompt.contains("## User Instructions (high priority)\n\nUse a scenario about a library"));
+    }
+
+    fn cs_prompt_with_context(count: u32, context: &GenerationContext) -> String {
+        let request = GenerationRequest {
+            subject: "Computer Science".to_string(),
+            topics: vec!["T002".to_string()],
+            difficulty: "medium".to_string(),
+            count,
+            notes: None,
+            append: true,
+            question_type: "multiple_choice".to_string(),
+            frq_question_type: None,
+        };
+        build_generation_prompt(
+            &request,
+            &[],
+            Some(include_str!(
+                "../../imports/knowledge/Computer Science/prompt.txt"
+            )),
+            "T002: Using Objects",
+            context,
+        )
+    }
+
+    fn t002_subtopics() -> Vec<SubtopicRef> {
+        [("ST006", "Object Instantiation"), ("ST007", "Method Calls")]
+            .iter()
+            .map(|(id, name)| SubtopicRef { id: id.to_string(), name: name.to_string() })
+            .collect()
+    }
+
+    #[test]
+    fn test_subtopic_list_and_assignment_are_rendered() {
+        let subs = t002_subtopics();
+        let prompt = cs_prompt_with_context(
+            1,
+            &GenerationContext {
+                subtopics: subs.clone(),
+                assigned_subtopic: Some(subs[1].clone()),
+                ..Default::default()
+            },
+        );
+        assert!(prompt.contains("**Subtopics of the Target Topic(s):**\n\n- `ST006`: Object Instantiation\n- `ST007`: Method Calls"));
+        assert!(prompt.contains("**Assigned subtopic for this question:** `ST007`: Method Calls."));
+        assert!(prompt.contains("Include `ST007` in `subtopics`"));
+        assert!(!prompt.contains("{subtopic"));
+    }
+
+    #[test]
+    fn test_no_subtopic_sections_without_schema_subtopics() {
+        let prompt = cs_prompt_with_context(1, &GenerationContext::default());
+        assert!(!prompt.contains("**Subtopics of the Target Topic(s):**"));
+        assert!(!prompt.contains("Assigned subtopic"));
+        assert!(!prompt.contains("{subtopic"));
+        assert!(!prompt.contains("\n\n\n"));
+    }
+
+    #[test]
+    fn test_existing_questions_are_capped_and_truncated() {
+        let existing: Vec<String> = (1..=20).map(|i| format!("Q{} {}", i, "é".repeat(400))).collect();
+        let prompt = cs_generation_prompt(2, None, &existing);
+        assert!(!prompt.contains("\n5. Q5 "));
+        assert!(prompt.contains("\n6. Q6 "));
+        assert!(prompt.contains("\n20. Q20 "));
+        assert!(!prompt.contains("Suggested assessment structure"));
+    }
+
+    #[test]
+    fn test_regeneration_template_uses_current_question_metadata_and_topic_ids() {
+        let current = Question {
+            id: "q1".to_string(),
+            text: "Original question".to_string(),
+            answers: vec![],
+            explanation: Some("Original explanation".to_string()),
+            rubric: None,
+            subject: "Computer Science".to_string(),
+            topics: vec!["T009".to_string(), "ST041".to_string()],
+            difficulty: "D2".to_string(),
+            cognitive_level: "B3".to_string(),
+            subtopics: Vec::new(),
+        };
+        let template =
+            include_str!("../../imports/knowledge/Computer Science/regeneration-prompt.txt");
+
+        let prompt = build_regenerate_prompt(
+            &current,
+            &[current.clone()],
+            &[],
+            None,
+            Some(template),
+            Some("T009: Arrays, ST041: Array Traversal"),
+        );
+
+        assert!(prompt.contains("**Target Difficulty:** D2"));
+        assert!(prompt.contains("**Target Cognitive Level:** B3"));
+        assert!(prompt.contains("**Target Topic IDs:** [\"T009\",\"ST041\"]"));
+        assert!(prompt.contains("\"topics\": [\"T009\",\"ST041\"]"));
+        assert!(!prompt.contains("{current_question_json}"));
+        assert!(!prompt.contains("{topic_ids}"));
+        assert!(!prompt.contains("{user_instructions}"));
+    }
+
+    #[test]
+    fn test_v2_bank_examples_include_all_bank_metadata() {
+        let entry = QuestionBankEntry {
+            id: "pt1_q001".to_string(),
+            status: "active".to_string(),
+            migration_note: Some("Imported".to_string()),
+            text: "What is printed?".to_string(),
+            answers: vec![crate::QuestionBankAnswer {
+                id: "a".to_string(),
+                text: "42".to_string(),
+                is_correct: true,
+                explanation: "The loop executes 42 times.".to_string(),
+            }],
+            explanation: "Trace the loop.".to_string(),
+            topics: vec!["T009".to_string()],
+            subtopics: Some(vec!["ST041".to_string()]),
+            difficulty: "D2".to_string(),
+            cognitive_level: "B3".to_string(),
+        };
+
+        let example = format_example_as_json(&entry);
+        let example_json: serde_json::Value = serde_json::from_str(&example).unwrap();
+
+        assert!(example.contains("\"explanation\": \"The loop executes 42 times.\""));
+        assert_eq!(example_json["id"], "pt1_q001");
+        assert_eq!(example_json["status"], "active");
+        assert_eq!(example_json["_migration_note"], "Imported");
+        assert_eq!(example_json["difficulty"], "D2");
+        assert_eq!(example_json["cognitive_level"], "B3");
+        assert_eq!(example_json["topics"][0], "T009");
+        assert_eq!(example_json["subtopics"].as_array().unwrap()[0], "ST041");
+        assert_eq!(example_json["answers"][0]["id"], "a");
     }
 
     #[test]
@@ -1104,18 +1466,16 @@ Line 2",
         // Escaped delimiters are normalized to $...$ and $$...$$
         assert!(questions[0].text.contains("$f(x)=x^2$"));
         assert!(questions[0].text.contains("$$0,2$$"));
-        assert!(
-            questions[0]
-                .explanation
-                .as_deref()
-                .unwrap_or("")
-                .contains("$$f(x) = x^2$$")
-        );
+        assert!(questions[0]
+            .explanation
+            .as_deref()
+            .unwrap_or("")
+            .contains("$$f(x) = x^2$$"));
     }
 
-        #[test]
-        fn test_parse_prefers_question_tag_block_over_outer_arrays() {
-                let input = r#"Some accidental array before the tagged payload:
+    #[test]
+    fn test_parse_prefers_question_tag_block_over_outer_arrays() {
+        let input = r#"Some accidental array before the tagged payload:
 [
     {"text": "Not a question object"}
 ]
@@ -1133,23 +1493,23 @@ Line 2",
 </question>
 "#;
 
-                let questions = parse_llm_response(input).unwrap();
-                assert_eq!(questions.len(), 1);
-                assert_eq!(questions[0].text, "Tagged question");
-                assert_eq!(questions[0].answers.len(), 2);
-                assert!(questions[0].answers[0].is_correct);
-        }
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert_eq!(questions[0].text, "Tagged question");
+        assert_eq!(questions[0].answers.len(), 2);
+        assert!(questions[0].answers[0].is_correct);
+    }
 
-        #[test]
-        fn test_parse_errors_when_question_tags_have_no_json_array() {
-                let input = r#"<question>no json here</question>"#;
-                let err = parse_llm_response(input).unwrap_err();
-                assert!(err.contains("<question>...</question>"));
-        }
+    #[test]
+    fn test_parse_errors_when_question_tags_have_no_json_array() {
+        let input = r#"<question>no json here</question>"#;
+        let err = parse_llm_response(input).unwrap_err();
+        assert!(err.contains("<question>...</question>"));
+    }
 
-        #[test]
-        fn test_parse_handles_question_tag_case_and_whitespace() {
-                let input = r#"<QUESTION   >
+    #[test]
+    fn test_parse_handles_question_tag_case_and_whitespace() {
+        let input = r#"<QUESTION   >
 [
     {
         "text": "Case insensitive tagged question",
@@ -1160,14 +1520,14 @@ Line 2",
 ]
 </Question   >"#;
 
-                let questions = parse_llm_response(input).unwrap();
-                assert_eq!(questions.len(), 1);
-                assert_eq!(questions[0].text, "Case insensitive tagged question");
-        }
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert_eq!(questions[0].text, "Case insensitive tagged question");
+    }
 
-        #[test]
-        fn test_parse_ignores_non_question_similar_tag_name() {
-                let input = r#"<questionnaire>ignore me</questionnaire>
+    #[test]
+    fn test_parse_ignores_non_question_similar_tag_name() {
+        let input = r#"<questionnaire>ignore me</questionnaire>
 <question>
 [
     {
@@ -1179,14 +1539,14 @@ Line 2",
 ]
 </question>"#;
 
-                let questions = parse_llm_response(input).unwrap();
-                assert_eq!(questions.len(), 1);
-                assert_eq!(questions[0].text, "Real tagged question");
-        }
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert_eq!(questions[0].text, "Real tagged question");
+    }
 
-        #[test]
-        fn test_parse_handles_unpaired_reasoning_tag_before_final_answer_tag() {
-                let input = r#"Reasoning stream token: <question>
+    #[test]
+    fn test_parse_handles_unpaired_reasoning_tag_before_final_answer_tag() {
+        let input = r#"Reasoning stream token: <question>
 Some scratch text and partial structures.
 
 Assistant final:
@@ -1202,16 +1562,16 @@ Assistant final:
 ]
 </question>"#;
 
-                let questions = parse_llm_response(input).unwrap();
-                assert_eq!(questions.len(), 1);
-                assert_eq!(questions[0].text, "Final tagged question");
-                assert_eq!(questions[0].answers.len(), 2);
-                assert!(questions[0].answers[0].is_correct);
-        }
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 1);
+        assert_eq!(questions[0].text, "Final tagged question");
+        assert_eq!(questions[0].answers.len(), 2);
+        assert!(questions[0].answers[0].is_correct);
+    }
 
-        #[test]
-        fn test_parse_salvages_valid_items_when_one_object_is_malformed() {
-                let input = r#"[
+    #[test]
+    fn test_parse_salvages_valid_items_when_one_object_is_malformed() {
+        let input = r#"[
     {
         "text": "Valid question 1",
         "answers": [
@@ -1234,9 +1594,52 @@ Assistant final:
     }
 ]"#;
 
-                let questions = parse_llm_response(input).unwrap();
-                assert_eq!(questions.len(), 2);
-                assert_eq!(questions[0].text, "Valid question 1");
-                assert_eq!(questions[1].text, "Valid question 2");
-        }
+        let questions = parse_llm_response(input).unwrap();
+        assert_eq!(questions.len(), 2);
+        assert_eq!(questions[0].text, "Valid question 1");
+        assert_eq!(questions[1].text, "Valid question 2");
+    }
+
+    #[test]
+    fn test_normalize_single_backslash_n_to_newline() {
+        let input = r#"Line 1\nLine 2"#;
+        let out = normalize_escaped_math_and_newlines(input);
+        assert_eq!(out, "Line 1\nLine 2");
+    }
+
+    #[test]
+    fn test_normalize_double_backslash_n_to_newline() {
+        let input = r#"Line 1\\nLine 2"#;
+        let out = normalize_escaped_math_and_newlines(input);
+        assert_eq!(out, "Line 1\nLine 2");
+    }
+
+    #[test]
+    fn test_normalize_preserves_latex_n_commands() {
+        let input = r#"$a \neq b$, $\\nabla f$, and \\newcommand{\\mycmd}{x}$"#;
+        let out = normalize_escaped_math_and_newlines(input);
+
+        // We should preserve LaTeX commands that start with \n...
+        assert!(out.contains(r#"\neq"#));
+        assert!(out.contains(r#"\\nabla"#) || out.contains(r#"\nabla"#));
+        assert!(out.contains(r#"\\newcommand"#) || out.contains(r#"\newcommand"#));
+
+        // Should not accidentally insert newline characters in these commands.
+        assert!(!out.contains("\nabla f"));
+        assert!(!out.contains("\newcommand"));
+    }
+
+    #[test]
+    fn test_normalize_mixed_newlines_and_latex_commands() {
+        let input = r#"First\\nSecond\\neqThird\\nFourth\\newlinecmd"#;
+        let out = normalize_escaped_math_and_newlines(input);
+
+        // First and last escaped newlines convert.
+        assert!(out.starts_with("First\nSecond"));
+        assert!(out.contains("Third\nFourth"));
+
+        // \neq and \newline-like command tokens should remain escaped, not converted.
+        assert!(out.contains(r#"\\neq"#) || out.contains(r#"\neq"#));
+        assert!(out.contains(r#"\\newlinecmd"#) || out.contains(r#"\newlinecmd"#));
+    }
 }
