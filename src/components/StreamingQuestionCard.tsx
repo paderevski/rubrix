@@ -8,6 +8,36 @@ interface StreamingQuestionCardProps {
   onToggleRaw: () => void;
 }
 
+const STATUS_MAX_CHARS = 90;
+
+/** One-line status derived from the raw stream: the latest reasoning paragraph while the
+ *  model is thinking, then a progress line once it starts writing the questions. */
+function streamStatus(text: string, isComplete: boolean): string {
+  if (isComplete) return "Generation complete";
+  const trimmed = text.trim();
+  if (!trimmed) return "Waiting for response...";
+
+  const responseIdx = text.lastIndexOf("[RESPONSE]");
+  if (responseIdx >= 0) {
+    // Each finished question object ends with its "cognitive_level" field.
+    const done = (text.slice(responseIdx).match(/"cognitive_level"/g) ?? []).length;
+    return done === 0 ? "Writing the questions..." : `Writing questions... (${done} finished)`;
+  }
+
+  const reasoningIdx = text.lastIndexOf("[REASONING]");
+  const reasoning = reasoningIdx >= 0 ? text.slice(reasoningIdx + "[REASONING]".length) : text;
+  if (reasoning.includes("[REASONING DONE]")) return "Writing the questions...";
+  const paragraphs = reasoning
+    .split(/\n\s*\n/)
+    .map((p) => p.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  const latest = paragraphs[paragraphs.length - 1];
+  if (!latest) return "Thinking...";
+  return latest.length > STATUS_MAX_CHARS
+    ? `${latest.slice(0, STATUS_MAX_CHARS).trimEnd()}...`
+    : latest;
+}
+
 export default function StreamingQuestionCard({
   text,
   isComplete,
@@ -24,6 +54,7 @@ export default function StreamingQuestionCard({
   }, [text, showRaw]);
 
   const hasContent = text.trim().length > 0;
+  const status = streamStatus(text, isComplete);
 
   return (
     <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
@@ -58,8 +89,8 @@ export default function StreamingQuestionCard({
           <p className="font-medium text-foreground mb-1">
             {isComplete ? "Generation complete" : "Generating..."}
           </p>
-          <p>
-            Formatted question cards will appear here once response parsing completes.
+          <p className="truncate" title={status} aria-live="polite">
+            {status}
           </p>
         </div>
       )}
