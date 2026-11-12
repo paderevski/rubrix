@@ -1030,6 +1030,29 @@ fn truncate(s: &str, max_len: usize) -> String {
     }
 }
 
+/// Check that every multiple-choice question has a usable answer key: at least two answer
+/// choices and exactly one marked correct. FRQs (questions with a rubric) are not checked.
+/// Returns a description of the first problem found.
+pub fn validate_answer_keys(questions: &[Question]) -> Result<(), String> {
+    for (i, q) in questions.iter().enumerate() {
+        if q.rubric.is_some() {
+            continue;
+        }
+        let correct = q.answers.iter().filter(|a| a.is_correct).count();
+        let problem = if q.answers.len() < 2 {
+            Some(format!("has {} answer choice(s)", q.answers.len()))
+        } else if correct != 1 {
+            Some(format!("has {} answers marked correct", correct))
+        } else {
+            None
+        };
+        if let Some(problem) = problem {
+            return Err(format!("Generated question {} {}", i + 1, problem));
+        }
+    }
+    Ok(())
+}
+
 /// Shorten `s` to about `max_len` characters by cutting from the middle, keeping the last
 /// `tail_len` characters (for a question stem, the question actually being asked).
 fn truncate_middle(s: &str, max_len: usize, tail_len: usize) -> String {
@@ -1339,6 +1362,42 @@ mod tests {
             "T002: Using Objects",
             &GenerationContext::default(),
         )
+    }
+
+    fn mcq(correct_flags: &[bool]) -> Question {
+        Question {
+            id: "q1".to_string(),
+            text: "Stem".to_string(),
+            answers: correct_flags
+                .iter()
+                .map(|&is_correct| crate::Answer {
+                    text: "choice".to_string(),
+                    is_correct,
+                    explanation: None,
+                })
+                .collect(),
+            explanation: None,
+            rubric: None,
+            subject: "Computer Science".to_string(),
+            topics: vec![],
+            difficulty: "D2".to_string(),
+            cognitive_level: "B3".to_string(),
+            subtopics: vec![],
+        }
+    }
+
+    #[test]
+    fn test_validate_answer_keys() {
+        assert!(validate_answer_keys(&[mcq(&[false, true, false, false, false])]).is_ok());
+        // The real failure seen in the log: five choices, none marked correct.
+        let err = validate_answer_keys(&[mcq(&[true, false]), mcq(&[false; 5])]).unwrap_err();
+        assert_eq!(err, "Generated question 2 has 0 answers marked correct");
+        assert!(validate_answer_keys(&[mcq(&[true, true, false])]).is_err());
+        assert!(validate_answer_keys(&[mcq(&[true])]).is_err());
+        // FRQs have a rubric instead of answer choices and are not checked.
+        let mut frq = mcq(&[]);
+        frq.rubric = Some("2 points".to_string());
+        assert!(validate_answer_keys(&[frq]).is_ok());
     }
 
     #[test]

@@ -896,6 +896,35 @@ fn get_topics(subject: String, state: State<AppState>) -> Vec<TopicInfo> {
     state.knowledge.get_topics(&subject)
 }
 
+/// Call the model and parse its questions, retrying once when the output can't be parsed or a
+/// multiple-choice question has an unusable answer key (no correct answer, or more than one).
+/// Gateway errors are returned immediately without a retry.
+async fn generate_checked_questions(
+    prompt: &str,
+    app_handle: Option<AppHandle>,
+    gateway_auth: Option<llm::GatewayAuth>,
+    question_type: Option<&str>,
+) -> Result<Vec<Question>, String> {
+    const ATTEMPTS: usize = 2;
+    let mut last_error = String::new();
+    for attempt in 1..=ATTEMPTS {
+        let response =
+            llm::generate(prompt, app_handle.clone(), gateway_auth.clone(), question_type).await?;
+        let checked = prompts::parse_llm_response(&response).and_then(|questions| {
+            prompts::validate_answer_keys(&questions)?;
+            Ok(questions)
+        });
+        match checked {
+            Ok(questions) => return Ok(questions),
+            Err(err) => {
+                eprintln!("Attempt {}/{}: unusable model output: {}", attempt, ATTEMPTS, err);
+                last_error = err;
+            }
+        }
+    }
+    Err(format!("{} (still failing after {} attempts)", last_error, ATTEMPTS))
+}
+
 #[tauri::command]
 async fn generate_questions(
     request: GenerationRequest,
@@ -1003,9 +1032,9 @@ async fn generate_questions(
             password: creds.password.clone(),
         });
 
-    // Call LLM with streaming
+    // Call LLM with streaming, then parse and check the answer keys
     let question_type = request.question_type.trim();
-    let response = llm::generate(
+    let mut new_questions = generate_checked_questions(
         &prompt,
         Some(app_handle),
         gateway_auth,
@@ -1016,9 +1045,6 @@ async fn generate_questions(
         },
     )
     .await?;
-
-    // Parse response into questions
-    let mut new_questions = prompts::parse_llm_response(&response)?;
 
     // Set subject and topics on each generated question
     for question in &mut new_questions {
@@ -1121,16 +1147,14 @@ async fn regenerate_question(
         Some("multiple_choice")
     };
 
-    let response = llm::generate(
+    // Generate, parse and check the single replacement question
+    let mut new_questions = generate_checked_questions(
         &prompt,
         Some(app_handle),
         gateway_auth,
         inferred_question_type,
     )
     .await?;
-
-    // Parse the single question
-    let mut new_questions = prompts::parse_llm_response(&response)?;
     if new_questions.is_empty() {
         return Err("Failed to generate replacement question".to_string());
     }
@@ -1217,7 +1241,7 @@ async fn regenerate_all_questions_parallel(
                     Some("multiple_choice")
                 };
 
-                let result = match llm::generate(
+                let result = match generate_checked_questions(
                     &prompt,
                     None,
                     gateway_auth,
@@ -1225,32 +1249,25 @@ async fn regenerate_all_questions_parallel(
                 )
                 .await
                 {
-                    Ok(response) => match prompts::parse_llm_response(&response) {
-                        Ok(mut new_questions) if !new_questions.is_empty() => {
-                            let mut new_question = new_questions.remove(0);
-                            new_question.id = current.id.clone();
-                            new_question.subject = current.subject.clone();
-                            new_question.topics = current.topics.clone();
-                            new_question.difficulty = current.difficulty.clone();
-                            new_question.cognitive_level = current.cognitive_level.clone();
-                            new_question.subtopics = current.subtopics.clone();
+                    Ok(mut new_questions) if !new_questions.is_empty() => {
+                        let mut new_question = new_questions.remove(0);
+                        new_question.id = current.id.clone();
+                        new_question.subject = current.subject.clone();
+                        new_question.topics = current.topics.clone();
+                        new_question.difficulty = current.difficulty.clone();
+                        new_question.cognitive_level = current.cognitive_level.clone();
+                        new_question.subtopics = current.subtopics.clone();
 
-                            RegenerateAllQuestionResult {
-                                index,
-                                question: Some(new_question),
-                                error: None,
-                            }
+                        RegenerateAllQuestionResult {
+                            index,
+                            question: Some(new_question),
+                            error: None,
                         }
-                        Ok(_) => RegenerateAllQuestionResult {
-                            index,
-                            question: None,
-                            error: Some("Failed to generate replacement question".to_string()),
-                        },
-                        Err(err) => RegenerateAllQuestionResult {
-                            index,
-                            question: None,
-                            error: Some(err),
-                        },
+                    }
+                    Ok(_) => RegenerateAllQuestionResult {
+                        index,
+                        question: None,
+                        error: Some("Failed to generate replacement question".to_string()),
                     },
                     Err(err) => RegenerateAllQuestionResult {
                         index,
