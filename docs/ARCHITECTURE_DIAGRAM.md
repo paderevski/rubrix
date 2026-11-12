@@ -48,7 +48,7 @@ sequenceDiagram
     GW->>BR: Invoke model
     BR-->>GW: Stream chunks
     GW-->>BE: SSE stream
-    BE-->>FE: emit_all("llm-stream", { text, done, remaining_tokens? })
+    BE-->>FE: emit_all("llm-stream", { text, done, remaining_tokens?, remaining_usd? })
 ```
 
 ## Startup Behavior
@@ -67,4 +67,4 @@ sequenceDiagram
 
 - Direct Bedrock token modes are removed from active runtime flow.
 - Gateway JSON error payloads are treated as errors even when transport status is `200` in stream mode.
-- Streaming event payload remains stable as `{ text, done, remaining_tokens? }`.
+- Streaming event payload remains stable as `{ text, done, remaining_tokens?, remaining_usd? }`.

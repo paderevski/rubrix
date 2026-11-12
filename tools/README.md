@@ -17,7 +17,7 @@ Usernames are normalized (sanitized) the same way in the app, the scripts, and t
 | `add_users_from_csv.sh [-n\|--dry-run]` | Bulk-add users from `catie-users.csv` (columns `Email Address`, `Password`); `-n` previews only |
 | `verify_user.py <username> [password]` | Check a user exists; optionally verify a password matches |
 | `list_users.py` | List users that have stored credentials |
-| `user_budget.py list \| get <user> \| set <user> <budget> \| add <user> <tokens> \| reset <user>` | View/update token budgets in DynamoDB `catieBedrockUsage` (see below) |
+| `user_budget.py list \| get <user> \| set <user> <usd> \| add <user> <usd> \| reset <user>` | View/update dollar budgets in DynamoDB `catieBedrockUsage` |
 | `delete_user.py <username> [--purge-usage] [-y]` | Delete a user's SSM credentials (blocks login); `--purge-usage` also deletes their DynamoDB budget/usage records. Prompts for confirmation unless `-y` |
 | `old/` | Archived one-off debugging/migration scripts; not maintained |
 

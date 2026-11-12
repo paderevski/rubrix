@@ -105,6 +105,8 @@ pub struct StreamEvent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub remaining_tokens: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub remaining_usd: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub block_type: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reasoning_done: Option<bool>,
@@ -132,6 +134,8 @@ struct GatewayStreamChunk {
     done: bool,
     #[serde(default)]
     remaining_tokens: Option<u64>,
+    #[serde(default)]
+    remaining_usd: Option<f64>,
     #[serde(default)]
     block_type: Option<String>,
     #[serde(default)]
@@ -241,7 +245,7 @@ pub async fn generate(
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
 
-    emit_stream(&app_handle, "", false, None, None, None);
+    emit_stream(&app_handle, "", false, None, None, None, None);
 
     let request = GatewayRequest {
         user: gateway_auth.user,
@@ -420,12 +424,13 @@ pub async fn generate(
                                 &cleaned,
                                 false,
                                 None,
+                                None,
                                 chunk.block_type.clone(),
                                 chunk.reasoning_done,
                             );
                         } else {
                             // Legacy path: keep emitting full accumulated buffer.
-                            emit_stream(&app_handle, &accumulated, false, None, None, None);
+                            emit_stream(&app_handle, &accumulated, false, None, None, None, None);
                         }
                     }
 
@@ -445,6 +450,7 @@ pub async fn generate(
                             "",
                             true,
                             chunk.remaining_tokens,
+                            chunk.remaining_usd,
                             None,
                             chunk.reasoning_done,
                         );
@@ -456,7 +462,7 @@ pub async fn generate(
         }
     }
 
-    emit_stream(&app_handle, "", true, None, None, None);
+    emit_stream(&app_handle, "", true, None, None, None, None);
     log_llm_interaction(prompt, &accumulated);
     Ok(accumulated)
 }
@@ -467,6 +473,7 @@ fn emit_stream(
     text: &str,
     done: bool,
     remaining_tokens: Option<u64>,
+    remaining_usd: Option<f64>,
     block_type: Option<String>,
     reasoning_done: Option<bool>,
 ) {
@@ -475,6 +482,7 @@ fn emit_stream(
             text: text.to_string(),
             done,
             remaining_tokens,
+            remaining_usd,
             block_type,
             reasoning_done,
         };
