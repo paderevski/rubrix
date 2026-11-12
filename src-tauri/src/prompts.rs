@@ -43,8 +43,12 @@ pub struct GenerationContext {
 
 /// Max number of existing question stems included in a generation prompt
 const MAX_EXISTING_QUESTIONS: usize = 15;
-/// Max characters of each existing question stem included in a generation prompt
-const EXISTING_QUESTION_CHARS: usize = 300;
+/// Max characters of each existing question stem included in a generation prompt. Long enough
+/// for a typical stem's code, which is where the skill being assessed shows up.
+const EXISTING_QUESTION_CHARS: usize = 900;
+/// When a stem is longer than the cap, this many characters from its end (the question being
+/// asked) are kept after an ellipsis.
+const EXISTING_QUESTION_TAIL_CHARS: usize = 200;
 
 /// Context for regeneration requests
 pub struct RegenerateContext<'a> {
@@ -139,7 +143,7 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
             .enumerate()
             .map(|(i, q)| {
                 let one_line = q.split_whitespace().collect::<Vec<_>>().join(" ");
-                format!("{}. {}", skipped + i + 1, truncate(&one_line, EXISTING_QUESTION_CHARS))
+                format!("{}. {}", skipped + i + 1, truncate_middle(&one_line, EXISTING_QUESTION_CHARS, EXISTING_QUESTION_TAIL_CHARS))
             })
             .collect::<Vec<_>>()
             .join("\n");
@@ -1026,6 +1030,18 @@ fn truncate(s: &str, max_len: usize) -> String {
     }
 }
 
+/// Shorten `s` to about `max_len` characters by cutting from the middle, keeping the last
+/// `tail_len` characters (for a question stem, the question actually being asked).
+fn truncate_middle(s: &str, max_len: usize, tail_len: usize) -> String {
+    let len = s.chars().count();
+    if len <= max_len {
+        return s.to_string();
+    }
+    let head: String = s.chars().take(max_len.saturating_sub(tail_len)).collect();
+    let tail: String = s.chars().skip(len - tail_len.min(len)).collect();
+    format!("{} … {}", head.trim_end(), tail.trim_start())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1233,6 +1249,24 @@ mod tests {
         assert!(!prompt.contains("\n5. Q5 "));
         assert!(prompt.contains("\n6. Q6 "));
         assert!(prompt.contains("\n20. Q20 "));
+    }
+
+    #[test]
+    fn test_existing_question_summary_keeps_code_and_final_question() {
+        // A preamble long enough that a 300-char cut would have dropped the code entirely.
+        let stem = format!(
+            "Consider the following method. {} ```java int scan(int[][] grid) {{ total += grid[row][col]; }} ``` {} Which of the following best describes the value returned by the `scan` method?",
+            "Preamble sentence. ".repeat(12),
+            "x".repeat(800)
+        );
+        let prompt = cs_generation_prompt(1, None, &[stem]);
+        let section = prompt.split("## Questions Already in This Set").nth(1).unwrap();
+        let line = section.lines().find(|l| l.starts_with("1. ")).unwrap();
+        assert!(line.contains("grid[row][col]"), "code was cut: {}", line);
+        assert!(line.ends_with("returned by the `scan` method?"));
+        assert!(line.contains(" … "));
+        assert!(line.chars().count() <= 3 + 900 + 3);
+        assert_eq!(truncate_middle("short", 900, 200), "short");
     }
 
     #[test]

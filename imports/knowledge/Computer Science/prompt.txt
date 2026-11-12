@@ -185,6 +185,13 @@ Match all of these to the form-model example. In particular:
 
 Variety comes from the content: a different skill within the target topic, different code, a different scenario. It does not come from inventing a form that the examples do not use.
 
+Copy the form, NOT the setup or the wording:
+
+- Use different data, different variable and method names, and a different algorithm or traversal from the form model. For example, if the form model fills an `ArrayList` named `result` from `mat` and states what `result` should contain, do not build your question around an `ArrayList` named `result` filled from a 2D array.
+- Write your own sentences. Reuse the form model's wording only for the standard question line (for example "Which of the following can replace `/* missing code */` ..."), and do not copy explanatory sentences or notes from its stem.
+- If the form model contains a grammar or typing error, do not reproduce it.
+- A student who has seen the form model should not recognize your question as the same question with new numbers.
+
 If the form model's task genuinely cannot assess the assigned subtopic at the requested difficulty, use the form of another reference example instead. Never use a form that none of the examples use.
 
 If no examples are provided, keep answer choices short (values, expressions, or one-line statements) unless the task itself requires choosing between code segments.
@@ -301,7 +308,7 @@ Before returning the batch, verify ALL of the following:
 - every method, class, table, or data set the stem refers to (for example "the following method") is actually shown in the stem
 - answer choices are code blocks only if the form-model example's choices are; when they are, they are fenced `java` blocks laid out over several lines, not one-line inline code
 - code in the question stem contains no comments that reveal computation steps, intermediate values, or the solution path
-- the generated questions use different code, values, wording, and scenarios from the examples
+- the generated questions use different code, values, wording, and scenarios from the examples, and do not reuse the form model's setup (its data structures, variable names, or explanatory sentences)
 
 A contextual comment such as `// ASCII value 65` may be acceptable when it merely supplies necessary background.
 
