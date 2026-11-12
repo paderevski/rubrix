@@ -14,8 +14,9 @@ pub struct PromptConfig<'a> {
     pub prompt_template: Option<&'a str>,
     /// Stems of questions already in the current set (generation appends to it)
     pub existing_questions: &'a [String],
-    /// Suggested assessment structure, used to break mode collapse on single-question requests
-    pub structure_hint: Option<&'a str>,
+    /// For each requested question, the 0-based index into `examples` of the example whose
+    /// form (task, answer-choice format, lengths) it must follow. Empty when there are no examples.
+    pub form_models: Vec<usize>,
     /// Subtopics (from the subject schema) that the question(s) should draw from
     pub subtopics: &'a [SubtopicRef],
     /// Subtopic the single requested question must assess
@@ -39,18 +40,6 @@ pub struct GenerationContext {
     /// Subtopic picked for a single-question request
     pub assigned_subtopic: Option<SubtopicRef>,
 }
-
-/// Assessment structures the prompt templates know about (see `{structure_hint}`).
-pub const ASSESSMENT_STRUCTURES: &[&str] = &[
-    "value_trace",
-    "code_selection",
-    "algorithm_selection",
-    "equivalence",
-    "error_analysis",
-    "code_completion",
-    "conceptual",
-    "modification",
-];
 
 /// Max number of existing question stems included in a generation prompt
 const MAX_EXISTING_QUESTIONS: usize = 15;
@@ -159,8 +148,9 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
              The new question(s) will be added to a set that already contains the questions below. \
              Classify the assessment structure and specific skill of each one internally. \
              The new question(s) MUST NOT repeat the same task with different values: \
-             prefer an assessment structure and skill not yet used below. \
-             If the topic genuinely forces reuse of a structure, the new question must still require different reasoning.\n\n{}",
+             assess a skill or scenario not yet covered below. \
+             The form of each new question still comes from its form-model example, \
+             even if a question below already uses that form.\n\n{}",
             listed
         )
     };
@@ -191,16 +181,7 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
         None => String::new(),
     };
 
-    let structure_hint_str = match config.structure_hint {
-        Some(hint) if config.count == 1 => format!(
-            "**Suggested assessment structure for this question:** `{}`. \
-             Use it if it can genuinely assess the target topic at the requested difficulty. \
-             If it cannot, or if it duplicates the structure of a question already in the set, \
-             choose a different structure, and avoid defaulting to `value_trace`.",
-            hint
-        ),
-        _ => String::new(),
-    };
+    let form_models_str = format_form_models(&config.form_models);
 
     let regenerate_section = match &config.regenerate_context {
         Some(ctx) => {
@@ -238,7 +219,9 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
         .replace("{user_instructions}", &user_instructions_str)
         .replace("{regenerate}", &regenerate_section)
         .replace("{existing_questions}", &existing_questions_str)
-        .replace("{structure_hint}", &structure_hint_str)
+        .replace("{form_models}", &form_models_str)
+        // Older templates used `{structure_hint}` in the same spot.
+        .replace("{structure_hint}", &form_models_str)
         .replace("{subtopics}", &subtopics_str)
         .replace("{subtopic_hint}", &subtopic_hint_str);
 
@@ -280,14 +263,11 @@ pub fn build_generation_prompt(
     topics_label: &str,
     context: &GenerationContext,
 ) -> String {
-    use rand::seq::SliceRandom;
-    let structure_hint = if request.count == 1 {
-        ASSESSMENT_STRUCTURES
-            .choose(&mut rand::thread_rng())
-            .copied()
-    } else {
-        None
-    };
+    let form_models = assign_form_models(
+        request.count as usize,
+        examples.len(),
+        rand::random::<usize>(),
+    );
 
     let config = PromptConfig {
         topics: topics_label.to_string(),
@@ -299,11 +279,47 @@ pub fn build_generation_prompt(
         regenerate_context: None,
         prompt_template,
         existing_questions: &context.existing_questions,
-        structure_hint,
+        form_models,
         subtopics: &context.subtopics,
         assigned_subtopic: context.assigned_subtopic.as_ref(),
     };
     build_core_prompt(&config)
+}
+
+/// Pick, for each of `count` questions, the example whose form it copies. Examples are used
+/// round-robin from a random starting point, so a batch spreads across the examples and repeated
+/// single-question requests do not always land on Example 1.
+fn assign_form_models(count: usize, example_count: usize, start: usize) -> Vec<usize> {
+    if example_count == 0 {
+        return Vec::new();
+    }
+    (0..count).map(|i| (start + i) % example_count).collect()
+}
+
+/// Render the form-model assignment for the `{form_models}` template slot.
+fn format_form_models(form_models: &[usize]) -> String {
+    match form_models {
+        [] => String::new(),
+        [only] => format!(
+            "**Form model for this question:** Example {}. \
+             Write the new question in the same form as Example {}: the same kind of task for the student, \
+             the same answer-choice format, and a similar stem length and answer-choice length. \
+             Change the content (code, values, scenario), not the form.",
+            only + 1,
+            only + 1
+        ),
+        many => format!(
+            "**Form models:** each new question copies the form of one reference example: \
+             the same kind of task for the student, the same answer-choice format, \
+             and a similar stem length and answer-choice length. \
+             Change the content (code, values, scenario), not the form.\n\n{}",
+            many.iter()
+                .enumerate()
+                .map(|(i, ex)| format!("- Question {}: Example {}", i + 1, ex + 1))
+                .collect::<Vec<_>>()
+                .join("\n")
+        ),
+    }
 }
 
 /// Format a question bank entry as JSON with all bank metadata
@@ -1128,28 +1144,26 @@ mod tests {
         for placeholder in [
             "{topics}", "{topic_ids}", "{topic_id}", "{difficulty}", "{difficulty_code}",
             "{count}", "{examples}", "{user_instructions}", "{regenerate}",
-            "{existing_questions}", "{structure_hint}",
+            "{existing_questions}", "{structure_hint}", "{form_models}",
         ] {
             assert!(!prompt.contains(placeholder), "unfilled {}", placeholder);
         }
         assert!(prompt.contains(r#""topics": ["T002"]"#));
         assert!(!prompt.contains("User Instructions"));
         assert!(!prompt.contains("## Questions Already in This Set"));
-        assert!(!prompt.contains("Suggested assessment structure"));
+        assert!(!prompt.contains("**Form model"));
         assert!(!prompt.contains("\n---\n\n---\n"));
         assert!(!prompt.contains("\n\n\n"));
     }
 
     #[test]
-    fn test_single_question_prompt_gets_structure_hint_and_existing_set() {
+    fn test_single_question_prompt_gets_existing_set() {
         let existing = vec![
             "Consider the following code segment.\n\n```java\nString s = \"JavaProgramming\";\n```".to_string(),
         ];
         let prompt = cs_generation_prompt(1, Some("Use a scenario about a library"), &existing);
-        assert!(prompt.contains("Suggested assessment structure for this question:"));
-        assert!(ASSESSMENT_STRUCTURES
-            .iter()
-            .any(|s| prompt.contains(&format!("question:** `{}`", s))));
+        // No examples, so there is nothing to use as a form model.
+        assert!(!prompt.contains("**Form model"));
         assert!(prompt.contains("## Questions Already in This Set"));
         assert!(prompt.contains(
             "1. Consider the following code segment. ```java String s = \"JavaProgramming\"; ```"
@@ -1219,7 +1233,6 @@ mod tests {
         assert!(!prompt.contains("\n5. Q5 "));
         assert!(prompt.contains("\n6. Q6 "));
         assert!(prompt.contains("\n20. Q20 "));
-        assert!(!prompt.contains("Suggested assessment structure"));
     }
 
     #[test]
@@ -1255,6 +1268,78 @@ mod tests {
         assert!(!prompt.contains("{current_question_json}"));
         assert!(!prompt.contains("{topic_ids}"));
         assert!(!prompt.contains("{user_instructions}"));
+    }
+
+    fn bank_example(id: &str) -> QuestionBankEntry {
+        QuestionBankEntry {
+            id: id.to_string(),
+            status: "active".to_string(),
+            migration_note: None,
+            text: format!("Stem {}", id),
+            answers: vec![],
+            explanation: String::new(),
+            topics: vec!["T002".to_string()],
+            subtopics: None,
+            difficulty: "D2".to_string(),
+            cognitive_level: "B3".to_string(),
+        }
+    }
+
+    fn cs_prompt_with_examples(count: u32, examples: &[QuestionBankEntry]) -> String {
+        let request = GenerationRequest {
+            subject: "Computer Science".to_string(),
+            topics: vec!["T002".to_string()],
+            difficulty: "medium".to_string(),
+            count,
+            notes: None,
+            append: true,
+            question_type: "multiple_choice".to_string(),
+            frq_question_type: None,
+        };
+        build_generation_prompt(
+            &request,
+            examples,
+            Some(include_str!(
+                "../../imports/knowledge/Computer Science/prompt.txt"
+            )),
+            "T002: Using Objects",
+            &GenerationContext::default(),
+        )
+    }
+
+    #[test]
+    fn test_assign_form_models_round_robin() {
+        assert_eq!(assign_form_models(1, 0, 7), Vec::<usize>::new());
+        assert_eq!(assign_form_models(1, 3, 7), vec![1]);
+        assert_eq!(assign_form_models(5, 3, 1), vec![1, 2, 0, 1, 2]);
+        assert_eq!(assign_form_models(2, 1, 9), vec![0, 0]);
+    }
+
+    #[test]
+    fn test_single_question_gets_one_form_model() {
+        let examples: Vec<_> = ["e1", "e2", "e3"].iter().map(|id| bank_example(id)).collect();
+        let prompt = cs_prompt_with_examples(1, &examples);
+        assert!((1..=3).any(|k| prompt.contains(&format!(
+            "**Form model for this question:** Example {}.",
+            k
+        ))));
+        assert!(!prompt.contains("**Form models:**"));
+        assert!(!prompt.contains("{form_models}"));
+    }
+
+    #[test]
+    fn test_batch_assigns_a_form_model_to_every_question() {
+        let examples: Vec<_> = ["e1", "e2"].iter().map(|id| bank_example(id)).collect();
+        let prompt = cs_prompt_with_examples(3, &examples);
+        assert!(prompt.contains("**Form models:**"));
+        for q in 1..=3 {
+            assert!(
+                (1..=2).any(|k| prompt.contains(&format!("- Question {}: Example {}", q, k))),
+                "question {} has no form model",
+                q
+            );
+        }
+        assert!(!prompt.contains("- Question 4:"));
     }
 
     #[test]
