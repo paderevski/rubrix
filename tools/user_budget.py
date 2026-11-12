@@ -12,7 +12,7 @@ Budgets live in DynamoDB table `catieBedrockUsage` (us-east-1), in the item
 
 remaining = budget - spent. The gateway rejects requests (HTTP 429) once it
 reaches 0. Users without a record get the gateway's default budget
-(USAGE_DEFAULT_BUDGET_USD, $1.00 unless configured) on their first request.
+(USAGE_DEFAULT_BUDGET_USD, $5.00 unless configured) on their first request.
 
 The older token fields (budget_tokens, remaining_tokens) are still updated by
 the gateway for old app versions but are no longer enforced; this tool ignores them.
@@ -40,7 +40,7 @@ REGION = "us-east-1"
 TABLE_NAME = "catieBedrockUsage"
 NANOUSD_PER_USD = 1_000_000_000
 # Keep in sync with USAGE_DEFAULT_BUDGET_USD in the gateway (lambda_handler.js).
-DEFAULT_BUDGET_NANOUSD = 1 * NANOUSD_PER_USD
+DEFAULT_BUDGET_NANOUSD = 5 * NANOUSD_PER_USD
 
 ddb = boto3.client("dynamodb", region_name=REGION)
 ssm = boto3.client("ssm", region_name=REGION)

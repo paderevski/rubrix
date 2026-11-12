@@ -1969,7 +1969,7 @@ function App() {
               <span>
                 {questions.length} questions
                 {remainingUsd !== null
-                  ? ` • $${remainingUsd.toFixed(2)} left`
+                  ? ` • $${remainingUsd.toFixed(4)} left`
                   : ` • ${remainingTokens !== null ? remainingTokens.toLocaleString() : "N/A"} tokens left`}
               </span>
             </div>
