@@ -49,7 +49,7 @@ Current FRQ fallback model ID: `deepseek.v3.2`.
 - Content-Type: text/event-stream
 - Each chunk uses the `data:` prefix and ends with a blank line.
 - Payload matches the `llm-stream` shape: `{ "text": "...", "done": false }`.
-- The gateway may add `remaining_tokens` (number) when usage tracking is enabled; the client forwards it to the UI.
+- The gateway may add `remaining_usd` (number, dollars) and the legacy `remaining_tokens` (number) when usage tracking is enabled; the client forwards both to the UI, which shows dollars when present.
 
 Example stream:
 ```
@@ -73,7 +73,7 @@ data: {"text":"","done":true}
 - 400: Invalid JSON or missing required fields.
 - 401: Invalid credentials (password hash mismatch).
 - 404: User not found.
-- 429: Usage budget exceeded (the user's token budget is used up).
+- 429: Usage budget exceeded (the user's dollar budget is used up).
 - 500: Internal error, including usage control not configured.
 
 Errors are returned as JSON (not SSE) with the status repeated in the body:
@@ -84,4 +84,8 @@ Errors are returned as JSON (not SSE) with the status repeated in the body:
 The client treats any `application/json` response as an error, even if the transport status is `200` (streaming Lambda responses cannot always set the status code).
 
 ## Usage control
-The gateway tracks a per-user token budget in DynamoDB (`catieBedrockUsage`, default budget 1,000,000 tokens). Each streamed event may carry `remaining_tokens`, which the app displays after generation.
+The gateway tracks a per-user dollar budget in DynamoDB (`catieBedrockUsage`, summary item `record_id = "summary"`). Amounts are nano-dollars (1e-9 USD): `budget_nanousd` (default `USAGE_DEFAULT_BUDGET_USD`, $1.00) and `spent_nanousd`; remaining = budget - spent, and requests are refused with 429 once it reaches 0.
+
+Each request's cost is computed from the API's reported usage (input, cache write, cache read and output tokens, thinking included) and the per-model price table `MODEL_PRICES_NANOUSD` in the gateway; Claude Haiku 5.5 switches to its higher prices when a prompt exceeds 100,000 tokens. Spending is added atomically (`ADD spent_nanousd`), so overlapping requests cannot overwrite each other. Each per-request record stores `model_id` and `cost_nanousd`. A model missing from the price table is logged as `usage_unpriced_model` and not charged, so update the table whenever the model or prices change.
+
+The legacy token fields (`budget_tokens`, `remaining_tokens`, `total_tokens`) are still maintained for older app versions but are no longer enforced. Manage budgets with `tools/user_budget.py`.
