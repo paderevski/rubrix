@@ -739,28 +739,12 @@ fn latest_llm_log_snapshot() -> Option<(String, String, String)> {
     const PROMPT_MARKER: &str = "--- PROMPT ---";
     const RESPONSE_MARKER: &str = "--- RESPONSE ---";
     const SNAPSHOT_MAX_CHARS: usize = 8_000;
-    const CANDIDATE_PATHS: [&str; 4] = [
-        "../llm_log.txt",
-        "./llm_log.txt",
-        "llm_log.txt",
-        "../llm_log_03012026.txt",
-    ];
-
-    let mut selected_path: Option<String> = None;
-    let mut content: Option<String> = None;
-
-    for candidate in CANDIDATE_PATHS.iter() {
-        if let Ok(text) = fs::read_to_string(candidate) {
-            if !text.trim().is_empty() {
-                selected_path = Some((*candidate).to_string());
-                content = Some(text);
-                break;
-            }
-        }
+    let log_path = llm::llm_log_path();
+    let text = fs::read_to_string(&log_path).ok()?;
+    if text.trim().is_empty() {
+        return None;
     }
-
-    let source = selected_path?;
-    let text = content?;
+    let source = log_path.display().to_string();
 
     let prompt_marker_idx = text.rfind(PROMPT_MARKER)?;
     let response_marker_idx = text[prompt_marker_idx..]
@@ -2117,6 +2101,7 @@ fn main() {
     tauri::Builder::default()
         .menu(menu)
         .setup(|app| {
+            llm::init_llm_log_path(&app.handle());
             if let Some(main_window) = app.get_window("main") {
                 restore_window_state(&main_window);
             }
