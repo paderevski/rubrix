@@ -1244,15 +1244,14 @@ function App() {
     setEditingIndex(index);
   };
 
-  const handleSaveEdit = async (question: Question) => {
-    if (editingIndex === null) return;
-    const previousId = questions[editingIndex]?.id;
+  const handleUpdateQuestion = async (index: number, question: Question): Promise<boolean> => {
+    const previousId = questions[index]?.id;
 
     try {
-      await invoke("update_question", { index: editingIndex, question });
+      await invoke("update_question", { index, question });
       setQuestions((prev) => {
         const updated = [...prev];
-        updated[editingIndex] = question;
+        updated[index] = question;
         return updated;
       });
       if (previousId && previousId !== question.id) {
@@ -1265,11 +1264,19 @@ function App() {
           return next;
         });
       }
-      setEditingIndex(null);
       setStatus("Question updated");
+      return true;
     } catch (err) {
       console.error("Update failed:", err);
       setStatus(`Error: ${err}`);
+      return false;
+    }
+  };
+
+  const handleSaveEdit = async (question: Question) => {
+    if (editingIndex === null) return;
+    if (await handleUpdateQuestion(editingIndex, question)) {
+      setEditingIndex(null);
     }
   };
 
@@ -1933,6 +1940,7 @@ function App() {
                   onRegenerate={handleRegenerate}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
+                  onUpdate={handleUpdateQuestion}
                 />
               )}
             </main>
