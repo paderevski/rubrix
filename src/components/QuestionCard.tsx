@@ -321,7 +321,7 @@ export default function QuestionCard({
                 <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium bg-white border">
                   {String.fromCharCode(65 + i)}
                 </span>
-                <div className="flex-1 text-sm">
+                <div className="flex-1 min-w-0 text-sm">
                   <RichMarkdown
                     content={answer.text}
                     components={{
