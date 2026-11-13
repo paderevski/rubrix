@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
 import { open, save } from "@tauri-apps/api/dialog";
@@ -6,6 +6,7 @@ import { writeBinaryFile, writeTextFile } from "@tauri-apps/api/fs";
 import Sidebar from "./components/Sidebar";
 import QuestionList from "./components/QuestionList";
 import EditModal from "./components/EditModal";
+import { useQuestionHistory, routeTextUndo, type QuestionSnapshot } from "./hooks/useQuestionHistory";
 import BankEditor from "./components/BankEditor";
 import LoginModal from "./components/LoginModal";
 import SubmitBugModal from "./components/SubmitBugModal";
@@ -333,6 +334,30 @@ function App() {
   const [rawTextByQuestionId, setRawTextByQuestionId] = useState<Record<string, string>>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  // ---- Undo/redo of question-list changes ----
+  // Refs give the history hook the latest committed state from inside async handlers.
+  const questionsRef = useRef(questions);
+  questionsRef.current = questions;
+  const rawTextRef = useRef(rawTextByQuestionId);
+  rawTextRef.current = rawTextByQuestionId;
+  const getHistorySnapshot = useCallback(
+    (): QuestionSnapshot => ({
+      questions: questionsRef.current,
+      rawTextByQuestionId: rawTextRef.current,
+    }),
+    []
+  );
+  const restoreHistorySnapshot = useCallback(async (snapshot: QuestionSnapshot) => {
+    await invoke("set_questions", { newQuestions: snapshot.questions });
+    setQuestions(snapshot.questions);
+    setRawTextByQuestionId(snapshot.rawTextByQuestionId);
+    setEditingIndex(null);
+  }, []);
+  const history = useQuestionHistory({
+    getCurrent: getHistorySnapshot,
+    restore: restoreHistorySnapshot,
+  });
   const [status, setStatus] = useState("Ready");
   const [currentDocumentPath, setCurrentDocumentPath] = useState<string | null>(null);
   const [documentMode, setDocumentMode] = useState<DocumentMode>("blank");
@@ -875,12 +900,56 @@ function App() {
     };
   }, []);
 
+  // Undo/redo: text editors with focus get it first; otherwise it's app-level history.
+  const isHistoryLocked = isGenerating || isRegeneratingAll || regeneratingQuestionId !== null;
+  const handleHistoryAction = async (direction: "undo" | "redo") => {
+    if (routeTextUndo(direction)) return;
+    if (isHistoryLocked) {
+      setStatus(`Can't ${direction} while questions are generating`);
+      return;
+    }
+    try {
+      const label = direction === "undo" ? await history.undo() : await history.redo();
+      setStatus(label ? `${direction === "undo" ? "Undid" : "Redid"}: ${label}` : `Nothing to ${direction}`);
+    } catch (err) {
+      console.error(`${direction} failed:`, err);
+      setStatus(`Error: ${err}`);
+    }
+  };
+  const historyActionRef = useRef(handleHistoryAction);
+  historyActionRef.current = handleHistoryAction;
+
+  // Outside Tauri (browser dev) there is no native menu accelerator, so bind ⌘Z here.
+  useEffect(() => {
+    if ((window as any).__TAURI_IPC__) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.altKey) return;
+      const key = e.key.toLowerCase();
+      const direction = key === "z" ? (e.shiftKey ? "redo" : "undo") : key === "y" ? "redo" : null;
+      if (!direction) return;
+      const el = document.activeElement as HTMLElement | null;
+      const inTextField =
+        !!el &&
+        (el.closest(".cm-editor") !== null ||
+          el instanceof HTMLTextAreaElement ||
+          el instanceof HTMLInputElement ||
+          el.isContentEditable);
+      if (inTextField) return; // let the field's own undo run
+      e.preventDefault();
+      void historyActionRef.current(direction);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   // Listen for general app actions from native menu
   useEffect(() => {
     const unlistenAction = listen<string>("app-action", (event) => {
       const action = event.payload;
 
-      if (action === "submit_bug") {
+      if (action === "undo" || action === "redo") {
+        void historyActionRef.current(action);
+      } else if (action === "submit_bug") {
         setSubmitBugOpen(true);
       } else if (action === "new_document") {
         void requestDocumentAction({ type: "new" });
@@ -949,10 +1018,21 @@ function App() {
       hasRawPreview: Boolean(streamingText),
       canRegenerateAll:
         activeTab === "generate" && questions.length > 0 && !isGenerating && !isRegeneratingAll,
+      undoLabel: history.undoLabel,
+      redoLabel: history.redoLabel,
     }).catch((err) => {
       console.warn("Failed to sync menu state:", err);
     });
-  }, [questions.length, activeTab, selectedSubject, streamingText, isGenerating, isRegeneratingAll]);
+  }, [
+    questions.length,
+    activeTab,
+    selectedSubject,
+    streamingText,
+    isGenerating,
+    isRegeneratingAll,
+    history.undoLabel,
+    history.redoLabel,
+  ]);
 
   const loadSubjects = async () => {
     try {
@@ -1040,6 +1120,10 @@ function App() {
       const allQuestions = await invoke<Question[]>("generate_questions", {
         request,
       });
+      const generatedCount = Math.max(allQuestions.length - previousQuestionCount, 0);
+      if (generatedCount > 0) {
+        history.record(`Generate ${generatedCount} question${generatedCount === 1 ? "" : "s"}`);
+      }
       setQuestions(allQuestions);
       if (documentMode === "blank") {
         setDocumentMode("new");
@@ -1119,6 +1203,7 @@ function App() {
         index,
         instructions: instructions || null,
       });
+      history.record(`Regenerate Q${index + 1}`);
       setQuestions((prev) => {
         const updated = [...prev];
         updated[index] = newQuestion;
@@ -1185,6 +1270,9 @@ function App() {
         .map((item) => item.index);
       const failedResults = results.filter((item) => !item.question);
 
+      if (succeededIndexes.length > 0) {
+        history.record("Regenerate all");
+      }
       setQuestions((prev) => {
         const updated = [...prev];
         for (const item of results) {
@@ -1244,11 +1332,16 @@ function App() {
     setEditingIndex(index);
   };
 
-  const handleUpdateQuestion = async (index: number, question: Question): Promise<boolean> => {
+  const handleUpdateQuestion = async (
+    index: number,
+    question: Question,
+    label = "Edit"
+  ): Promise<boolean> => {
     const previousId = questions[index]?.id;
 
     try {
       await invoke("update_question", { index, question });
+      history.record(`${label} (Q${index + 1})`);
       setQuestions((prev) => {
         const updated = [...prev];
         updated[index] = question;
@@ -1284,6 +1377,7 @@ function App() {
     try {
       const deletedId = questions[index]?.id;
       await invoke("delete_question", { index });
+      history.record(`Delete Q${index + 1}`);
       setQuestions((prev) => prev.filter((_, i) => i !== index));
       if (deletedId) {
         setRawTextByQuestionId((prev) => {
@@ -1302,6 +1396,7 @@ function App() {
   const handleAddQuestion = async () => {
     try {
       const newQuestion = await invoke<Question>("add_question");
+      history.record("Add question");
       setQuestions((prev) => [...prev, newQuestion]);
       if (documentMode === "blank") {
         setDocumentMode("new");
@@ -1541,6 +1636,7 @@ function App() {
   };
 
   const resetToBlankState = async () => {
+    history.clear();
     setQuestions([]);
     setRawTextByQuestionId({});
     setStreamingText("");
@@ -1567,6 +1663,7 @@ function App() {
   };
 
   const handleNewDocument = async () => {
+    history.clear();
     setQuestions([]);
     setRawTextByQuestionId({});
     setStreamingText("");
@@ -1597,6 +1694,7 @@ function App() {
       parsed = parseSessionQuestions(JSON.parse(content));
     }
 
+    history.clear();
     setQuestions(parsed);
     setRawTextByQuestionId({});
     setCurrentDocumentPath(filePath);
@@ -1940,7 +2038,7 @@ function App() {
                   onRegenerate={handleRegenerate}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
-                  onUpdate={handleUpdateQuestion}
+                  onUpdate={(index, question, label) => void handleUpdateQuestion(index, question, label)}
                 />
               )}
             </main>

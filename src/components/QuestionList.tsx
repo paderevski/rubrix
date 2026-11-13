@@ -18,7 +18,7 @@ interface QuestionListProps {
   onRegenerate: (index: number, instructions?: string) => void;
   onEdit: (index: number) => void;
   onDelete: (index: number) => void;
-  onUpdate?: (index: number, question: Question) => void;
+  onUpdate?: (index: number, question: Question, label: string) => void;
 }
 
 export default function QuestionList({
@@ -58,7 +58,7 @@ export default function QuestionList({
             onRegenerate={(instructions) => onRegenerate(index, instructions)}
             onEdit={() => onEdit(index)}
             onDelete={() => onDelete(index)}
-            onUpdate={onUpdate ? (updated) => onUpdate(index, updated) : undefined}
+            onUpdate={onUpdate ? (updated, label) => onUpdate(index, updated, label) : undefined}
           />
         </div>
       ))}
