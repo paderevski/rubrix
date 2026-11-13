@@ -1,6 +1,6 @@
 import { Question } from "../types";
 import { RefreshCw, Pencil, Trash2, Check, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -9,6 +9,7 @@ import rehypeRaw from "rehype-raw";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { ghcolors } from "react-syntax-highlighter/dist/esm/styles/prism";
 import "katex/dist/katex.min.css";
+import MarkdownEditor from "./MarkdownEditor";
 
 interface QuestionCardProps {
   question: Question;
@@ -21,6 +22,106 @@ interface QuestionCardProps {
   onRegenerate: (instructions?: string) => void;
   onEdit: () => void;
   onDelete: () => void;
+  /** Save an in-place edit of one field. When omitted, in-card editing is hidden. */
+  onUpdate?: (question: Question) => void;
+}
+
+/** Field keys for in-card editing: "text", "explanation", "rubric", or "answer:<index>". */
+type EditableFieldKey = string;
+
+// Answers sometimes arrive with literal "\n" escapes; edit them as real line breaks
+// (same normalization the full edit modal applies).
+const answerEditText = (text: string) => text.replace(/\\n/g, "\n");
+
+/** Two-step delete: first click arms, second click deletes. */
+function DeleteChoiceButton({
+  disabledReason,
+  onDelete,
+}: {
+  disabledReason: string | null;
+  onDelete: () => void;
+}) {
+  const [armed, setArmed] = useState(false);
+  if (disabledReason) {
+    return (
+      <span
+        title={disabledReason}
+        className="inline-flex items-center gap-1 px-2.5 py-1 rounded border text-muted-foreground/60 cursor-not-allowed"
+      >
+        <Trash2 className="w-3.5 h-3.5" />
+        Delete choice
+      </span>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => (armed ? onDelete() : setArmed(true))}
+      onBlur={() => setArmed(false)}
+      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded border transition-colors ${
+        armed
+          ? "bg-destructive text-destructive-foreground border-destructive"
+          : "bg-white text-destructive hover:bg-destructive/10"
+      }`}
+    >
+      <Trash2 className="w-3.5 h-3.5" />
+      {armed ? "Click again to delete" : "Delete choice"}
+    </button>
+  );
+}
+
+function EditableField({
+  enabled,
+  editing,
+  initialValue,
+  label,
+  onStartEdit,
+  onSave,
+  onCancel,
+  extraActions,
+  className = "",
+  children,
+}: {
+  enabled: boolean;
+  editing: boolean;
+  initialValue: string;
+  label: string;
+  onStartEdit: () => void;
+  onSave: (value: string) => void;
+  onCancel: () => void;
+  extraActions?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  if (editing) {
+    return (
+      <div className={className}>
+        <MarkdownEditor
+          initialValue={initialValue}
+          onSave={onSave}
+          onCancel={onCancel}
+          extraActions={extraActions}
+        />
+      </div>
+    );
+  }
+  if (!enabled) return <div className={className}>{children}</div>;
+  return (
+    <div
+      className={`group/edit relative rounded-md -mx-1 px-1 hover:ring-1 hover:ring-slate-200 ${className}`}
+    >
+      {children}
+      <button
+        type="button"
+        onClick={onStartEdit}
+        title={`Edit ${label}`}
+        aria-label={`Edit ${label}`}
+        className="absolute -top-2 -right-2 p-1 rounded-md border bg-white shadow-sm text-muted-foreground hover:text-foreground opacity-0 group-hover/edit:opacity-100 focus:opacity-100 transition-opacity"
+      >
+        <Pencil className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
 }
 
 const questionMarkdownComponents = {
@@ -142,12 +243,67 @@ export default function QuestionCard({
   onRegenerate,
   onEdit,
   onDelete,
+  onUpdate,
 }: QuestionCardProps) {
   const [showInstructions, setShowInstructions] = useState(false);
   const [instructions, setInstructions] = useState("");
   const [showExplanation, setShowExplanation] = useState(false);
   const [showRubric, setShowRubric] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
+  const [editingField, setEditingField] = useState<EditableFieldKey | null>(null);
+
+  // Drop any open field editor if the question is replaced (e.g. regenerated).
+  useEffect(() => {
+    setEditingField(null);
+  }, [question.id]);
+
+  const canEditInPlace = Boolean(onUpdate) && !isRegenerating;
+  const cancelFieldEdit = () => setEditingField(null);
+
+  const saveField = (field: EditableFieldKey, value: string) => {
+    setEditingField(null);
+    let next: Question | null = null;
+    if (field === "text") {
+      if (value !== question.text) next = { ...question, text: value };
+    } else if (field === "explanation") {
+      if (value !== (question.explanation ?? "")) next = { ...question, explanation: value };
+    } else if (field === "rubric") {
+      if (value !== (question.rubric ?? "")) next = { ...question, rubric: value };
+    } else if (field.startsWith("answer:")) {
+      const i = Number(field.slice("answer:".length));
+      const current = question.answers[i];
+      if (current && value !== answerEditText(current.text)) {
+        next = {
+          ...question,
+          answers: question.answers.map((a, j) => (j === i ? { ...a, text: value } : a)),
+        };
+      }
+    }
+    if (next) onUpdate?.(next);
+  };
+
+  const MIN_CHOICES = 2;
+  const deleteChoice = (i: number) => {
+    setEditingField(null);
+    const target = question.answers[i];
+    if (!target || target.is_correct || question.answers.length <= MIN_CHOICES) return;
+    onUpdate?.({ ...question, answers: question.answers.filter((_, j) => j !== i) });
+  };
+  const deleteChoiceDisabledReason = (i: number): string | null => {
+    if (question.answers[i]?.is_correct) return "The correct answer can't be deleted";
+    if (question.answers.length <= MIN_CHOICES) return `A question needs at least ${MIN_CHOICES} choices`;
+    return null;
+  };
+
+  const fieldProps = (field: EditableFieldKey, initialValue: string, label: string) => ({
+    enabled: canEditInPlace && editingField === null,
+    editing: editingField === field,
+    initialValue,
+    label,
+    onStartEdit: () => setEditingField(field),
+    onSave: (value: string) => saveField(field, value),
+    onCancel: cancelFieldEdit,
+  });
 
   const iconButtonBase = "p-1.5 rounded transition-colors";
   const iconButtonNeutral =
@@ -302,9 +458,11 @@ export default function QuestionCard({
           ) : (
             <>
           {/* Question Text (with HTML, Markdown, LaTeX, and code blocks) */}
-          <div className="prose max-w-none mb-4">
-            <RichMarkdown content={question.text} />
-          </div>
+          <EditableField {...fieldProps("text", question.text, "question text")} className="mb-4">
+            <div className="prose max-w-none">
+              <RichMarkdown content={question.text} />
+            </div>
+          </EditableField>
 
         {/* Answers (MCQ) */}
         {hasAnswers && (
@@ -321,7 +479,16 @@ export default function QuestionCard({
                 <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium bg-white border">
                   {String.fromCharCode(65 + i)}
                 </span>
-                <div className="flex-1 min-w-0 text-sm">
+                <EditableField
+                  {...fieldProps(`answer:${i}`, answerEditText(answer.text), `choice ${String.fromCharCode(65 + i)}`)}
+                  className="flex-1 min-w-0 text-sm"
+                  extraActions={
+                    <DeleteChoiceButton
+                      disabledReason={deleteChoiceDisabledReason(i)}
+                      onDelete={() => deleteChoice(i)}
+                    />
+                  }
+                >
                   <RichMarkdown
                     content={answer.text}
                     components={{
@@ -330,7 +497,7 @@ export default function QuestionCard({
                       },
                     }}
                   />
-                </div>
+                </EditableField>
                 {answer.is_correct && (
                   <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
                 )}
@@ -354,8 +521,12 @@ export default function QuestionCard({
                 )}
               </button>
               {showExplanation && (
-                <div className="prose px-4 py-3 border-t border-slate-200 bg-white">
-                  <RichMarkdown content={formattedExplanation} />
+                <div className="px-4 py-3 border-t border-slate-200 bg-white">
+                  <EditableField {...fieldProps("explanation", question.explanation ?? "", "solution")}>
+                    <div className="prose">
+                      <RichMarkdown content={formattedExplanation} />
+                    </div>
+                  </EditableField>
                 </div>
               )}
             </div>
@@ -376,8 +547,12 @@ export default function QuestionCard({
                 )}
               </button>
               {showRubric && (
-                <div className="prose px-4 py-3 border-t border-slate-200 bg-white">
-                  <RichMarkdown content={rubricContent} />
+                <div className="px-4 py-3 border-t border-slate-200 bg-white">
+                  <EditableField {...fieldProps("rubric", question.rubric ?? "", "rubric")}>
+                    <div className="prose">
+                      <RichMarkdown content={rubricContent} />
+                    </div>
+                  </EditableField>
                 </div>
               )}
             </div>

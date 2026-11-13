@@ -18,6 +18,7 @@ interface QuestionListProps {
   onRegenerate: (index: number, instructions?: string) => void;
   onEdit: (index: number) => void;
   onDelete: (index: number) => void;
+  onUpdate?: (index: number, question: Question) => void;
 }
 
 export default function QuestionList({
@@ -36,6 +37,7 @@ export default function QuestionList({
   onRegenerate,
   onEdit,
   onDelete,
+  onUpdate,
 }: QuestionListProps) {
   const centeredContainerClass = "w-full max-w-5xl mx-auto";
 
@@ -56,6 +58,7 @@ export default function QuestionList({
             onRegenerate={(instructions) => onRegenerate(index, instructions)}
             onEdit={() => onEdit(index)}
             onDelete={() => onDelete(index)}
+            onUpdate={onUpdate ? (updated) => onUpdate(index, updated) : undefined}
           />
         </div>
       ))}

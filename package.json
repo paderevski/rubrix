@@ -11,6 +11,12 @@
     "version": "node -e \"const fs=require('fs');const pkg=require('./package.json');const tauri=JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json'));tauri.package.version=pkg.version;fs.writeFileSync('src-tauri/tauri.conf.json',JSON.stringify(tauri,null,2)+'\\n')\" && git add src-tauri/tauri.conf.json"
   },
   "dependencies": {
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/lang-java": "^6.0.2",
+    "@codemirror/lang-markdown": "^6.5.2",
+    "@codemirror/language": "^6.13.1",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.15",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-dropdown-menu": "^2.0.6",
