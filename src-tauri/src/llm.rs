@@ -6,6 +6,8 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::fs::OpenOptions;
 use std::io::Write;
+use std::path::PathBuf;
+use std::sync::OnceLock;
 use tauri::Manager;
 use tokio::time::Duration;
 
@@ -19,10 +21,43 @@ const GATEWAY_RESPONSE_START_TIMEOUT: Duration = Duration::from_secs(120);
 const GATEWAY_STREAM_IDLE_TIMEOUT: Duration = Duration::from_secs(60);
 const GATEWAY_STREAM_MAX_TOTAL: Duration = Duration::from_secs(900);
 
+static LLM_LOG_PATH: OnceLock<PathBuf> = OnceLock::new();
+
+/// Resolve where the LLM log lives. Call once at startup.
+///
+/// Debug builds (`tauri dev`, cwd = src-tauri/) write to the repo root, outside src-tauri so
+/// Tauri's file watcher is not triggered. Release builds run with cwd = `/` on macOS, where a
+/// relative path is unwritable, so they use the platform log dir
+/// (macOS: ~/Library/Logs/<bundle id>/llm_log.txt).
+pub fn init_llm_log_path(app: &tauri::AppHandle) {
+    let path = if cfg!(debug_assertions) {
+        PathBuf::from("../llm_log.txt")
+    } else {
+        match app.path_resolver().app_log_dir() {
+            Some(dir) => {
+                if let Err(e) = std::fs::create_dir_all(&dir) {
+                    eprintln!("DEBUG: Failed to create log dir {}: {}", dir.display(), e);
+                }
+                dir.join("llm_log.txt")
+            }
+            None => std::env::temp_dir().join("rubrix_llm_log.txt"),
+        }
+    };
+    eprintln!("DEBUG: LLM log path: {}", path.display());
+    let _ = LLM_LOG_PATH.set(path);
+}
+
+/// Path of the LLM log (falls back to the dev location if `init_llm_log_path` was not called).
+pub fn llm_log_path() -> PathBuf {
+    LLM_LOG_PATH
+        .get()
+        .cloned()
+        .unwrap_or_else(|| PathBuf::from("../llm_log.txt"))
+}
+
 /// Log prompt and response to a file (appends each time)
 fn log_llm_interaction(prompt: &str, response: &str) {
-    // Write to parent directory (rubrix/) to avoid triggering Tauri's file watcher
-    let log_path = std::path::Path::new("../llm_log.txt");
+    let log_path = llm_log_path();
 
     let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
 
@@ -43,13 +78,13 @@ TIMESTAMP: {}
         timestamp, prompt, response
     );
 
-    match OpenOptions::new().create(true).append(true).open(log_path) {
+    match OpenOptions::new().create(true).append(true).open(&log_path) {
         Ok(mut file) => {
             let _ = write!(file, "{}", formatted);
-            eprintln!("DEBUG: Logged LLM interaction to llm_log.txt");
+            eprintln!("DEBUG: Logged LLM interaction to {}", log_path.display());
         }
         Err(e) => {
-            eprintln!("DEBUG: Failed to write log: {}", e);
+            eprintln!("DEBUG: Failed to write log {}: {}", log_path.display(), e);
         }
     }
 }
@@ -69,6 +104,8 @@ pub struct StreamEvent {
     pub done: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub remaining_tokens: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub remaining_usd: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub block_type: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -97,6 +134,8 @@ struct GatewayStreamChunk {
     done: bool,
     #[serde(default)]
     remaining_tokens: Option<u64>,
+    #[serde(default)]
+    remaining_usd: Option<f64>,
     #[serde(default)]
     block_type: Option<String>,
     #[serde(default)]
@@ -206,7 +245,7 @@ pub async fn generate(
         .build()
         .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
 
-    emit_stream(&app_handle, "", false, None, None, None);
+    emit_stream(&app_handle, "", false, None, None, None, None);
 
     let request = GatewayRequest {
         user: gateway_auth.user,
@@ -385,12 +424,13 @@ pub async fn generate(
                                 &cleaned,
                                 false,
                                 None,
+                                None,
                                 chunk.block_type.clone(),
                                 chunk.reasoning_done,
                             );
                         } else {
                             // Legacy path: keep emitting full accumulated buffer.
-                            emit_stream(&app_handle, &accumulated, false, None, None, None);
+                            emit_stream(&app_handle, &accumulated, false, None, None, None, None);
                         }
                     }
 
@@ -410,6 +450,7 @@ pub async fn generate(
                             "",
                             true,
                             chunk.remaining_tokens,
+                            chunk.remaining_usd,
                             None,
                             chunk.reasoning_done,
                         );
@@ -421,7 +462,7 @@ pub async fn generate(
         }
     }
 
-    emit_stream(&app_handle, "", true, None, None, None);
+    emit_stream(&app_handle, "", true, None, None, None, None);
     log_llm_interaction(prompt, &accumulated);
     Ok(accumulated)
 }
@@ -432,6 +473,7 @@ fn emit_stream(
     text: &str,
     done: bool,
     remaining_tokens: Option<u64>,
+    remaining_usd: Option<f64>,
     block_type: Option<String>,
     reasoning_done: Option<bool>,
 ) {
@@ -440,6 +482,7 @@ fn emit_stream(
             text: text.to_string(),
             done,
             remaining_tokens,
+            remaining_usd,
             block_type,
             reasoning_done,
         };

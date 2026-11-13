@@ -14,8 +14,9 @@ pub struct PromptConfig<'a> {
     pub prompt_template: Option<&'a str>,
     /// Stems of questions already in the current set (generation appends to it)
     pub existing_questions: &'a [String],
-    /// Suggested assessment structure, used to break mode collapse on single-question requests
-    pub structure_hint: Option<&'a str>,
+    /// For each requested question, the 0-based index into `examples` of the example whose
+    /// form (task, answer-choice format, lengths) it must follow. Empty when there are no examples.
+    pub form_models: Vec<usize>,
     /// Subtopics (from the subject schema) that the question(s) should draw from
     pub subtopics: &'a [SubtopicRef],
     /// Subtopic the single requested question must assess
@@ -40,22 +41,14 @@ pub struct GenerationContext {
     pub assigned_subtopic: Option<SubtopicRef>,
 }
 
-/// Assessment structures the prompt templates know about (see `{structure_hint}`).
-pub const ASSESSMENT_STRUCTURES: &[&str] = &[
-    "value_trace",
-    "code_selection",
-    "algorithm_selection",
-    "equivalence",
-    "error_analysis",
-    "code_completion",
-    "conceptual",
-    "modification",
-];
-
 /// Max number of existing question stems included in a generation prompt
 const MAX_EXISTING_QUESTIONS: usize = 15;
-/// Max characters of each existing question stem included in a generation prompt
-const EXISTING_QUESTION_CHARS: usize = 300;
+/// Max characters of each existing question stem included in a generation prompt. Long enough
+/// for a typical stem's code, which is where the skill being assessed shows up.
+const EXISTING_QUESTION_CHARS: usize = 900;
+/// When a stem is longer than the cap, this many characters from its end (the question being
+/// asked) are kept after an ellipsis.
+const EXISTING_QUESTION_TAIL_CHARS: usize = 200;
 
 /// Context for regeneration requests
 pub struct RegenerateContext<'a> {
@@ -150,7 +143,7 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
             .enumerate()
             .map(|(i, q)| {
                 let one_line = q.split_whitespace().collect::<Vec<_>>().join(" ");
-                format!("{}. {}", skipped + i + 1, truncate(&one_line, EXISTING_QUESTION_CHARS))
+                format!("{}. {}", skipped + i + 1, truncate_middle(&one_line, EXISTING_QUESTION_CHARS, EXISTING_QUESTION_TAIL_CHARS))
             })
             .collect::<Vec<_>>()
             .join("\n");
@@ -159,8 +152,9 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
              The new question(s) will be added to a set that already contains the questions below. \
              Classify the assessment structure and specific skill of each one internally. \
              The new question(s) MUST NOT repeat the same task with different values: \
-             prefer an assessment structure and skill not yet used below. \
-             If the topic genuinely forces reuse of a structure, the new question must still require different reasoning.\n\n{}",
+             assess a skill or scenario not yet covered below. \
+             The form of each new question still comes from its form-model example, \
+             even if a question below already uses that form.\n\n{}",
             listed
         )
     };
@@ -191,16 +185,7 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
         None => String::new(),
     };
 
-    let structure_hint_str = match config.structure_hint {
-        Some(hint) if config.count == 1 => format!(
-            "**Suggested assessment structure for this question:** `{}`. \
-             Use it if it can genuinely assess the target topic at the requested difficulty. \
-             If it cannot, or if it duplicates the structure of a question already in the set, \
-             choose a different structure, and avoid defaulting to `value_trace`.",
-            hint
-        ),
-        _ => String::new(),
-    };
+    let form_models_str = format_form_models(&config.form_models);
 
     let regenerate_section = match &config.regenerate_context {
         Some(ctx) => {
@@ -238,7 +223,9 @@ fn format_custom_prompt(template: &str, config: &PromptConfig) -> String {
         .replace("{user_instructions}", &user_instructions_str)
         .replace("{regenerate}", &regenerate_section)
         .replace("{existing_questions}", &existing_questions_str)
-        .replace("{structure_hint}", &structure_hint_str)
+        .replace("{form_models}", &form_models_str)
+        // Older templates used `{structure_hint}` in the same spot.
+        .replace("{structure_hint}", &form_models_str)
         .replace("{subtopics}", &subtopics_str)
         .replace("{subtopic_hint}", &subtopic_hint_str);
 
@@ -280,14 +267,11 @@ pub fn build_generation_prompt(
     topics_label: &str,
     context: &GenerationContext,
 ) -> String {
-    use rand::seq::SliceRandom;
-    let structure_hint = if request.count == 1 {
-        ASSESSMENT_STRUCTURES
-            .choose(&mut rand::thread_rng())
-            .copied()
-    } else {
-        None
-    };
+    let form_models = assign_form_models(
+        request.count as usize,
+        examples.len(),
+        rand::random::<usize>(),
+    );
 
     let config = PromptConfig {
         topics: topics_label.to_string(),
@@ -299,11 +283,47 @@ pub fn build_generation_prompt(
         regenerate_context: None,
         prompt_template,
         existing_questions: &context.existing_questions,
-        structure_hint,
+        form_models,
         subtopics: &context.subtopics,
         assigned_subtopic: context.assigned_subtopic.as_ref(),
     };
     build_core_prompt(&config)
+}
+
+/// Pick, for each of `count` questions, the example whose form it copies. Examples are used
+/// round-robin from a random starting point, so a batch spreads across the examples and repeated
+/// single-question requests do not always land on Example 1.
+fn assign_form_models(count: usize, example_count: usize, start: usize) -> Vec<usize> {
+    if example_count == 0 {
+        return Vec::new();
+    }
+    (0..count).map(|i| (start + i) % example_count).collect()
+}
+
+/// Render the form-model assignment for the `{form_models}` template slot.
+fn format_form_models(form_models: &[usize]) -> String {
+    match form_models {
+        [] => String::new(),
+        [only] => format!(
+            "**Form model for this question:** Example {}. \
+             Write the new question in the same form as Example {}: the same kind of task for the student, \
+             the same answer-choice format, and a similar stem length and answer-choice length. \
+             Change the content (code, values, scenario), not the form.",
+            only + 1,
+            only + 1
+        ),
+        many => format!(
+            "**Form models:** each new question copies the form of one reference example: \
+             the same kind of task for the student, the same answer-choice format, \
+             and a similar stem length and answer-choice length. \
+             Change the content (code, values, scenario), not the form.\n\n{}",
+            many.iter()
+                .enumerate()
+                .map(|(i, ex)| format!("- Question {}: Example {}", i + 1, ex + 1))
+                .collect::<Vec<_>>()
+                .join("\n")
+        ),
+    }
 }
 
 /// Format a question bank entry as JSON with all bank metadata
@@ -1010,6 +1030,41 @@ fn truncate(s: &str, max_len: usize) -> String {
     }
 }
 
+/// Check that every multiple-choice question has a usable answer key: at least two answer
+/// choices and exactly one marked correct. FRQs (questions with a rubric) are not checked.
+/// Returns a description of the first problem found.
+pub fn validate_answer_keys(questions: &[Question]) -> Result<(), String> {
+    for (i, q) in questions.iter().enumerate() {
+        if q.rubric.is_some() {
+            continue;
+        }
+        let correct = q.answers.iter().filter(|a| a.is_correct).count();
+        let problem = if q.answers.len() < 2 {
+            Some(format!("has {} answer choice(s)", q.answers.len()))
+        } else if correct != 1 {
+            Some(format!("has {} answers marked correct", correct))
+        } else {
+            None
+        };
+        if let Some(problem) = problem {
+            return Err(format!("Generated question {} {}", i + 1, problem));
+        }
+    }
+    Ok(())
+}
+
+/// Shorten `s` to about `max_len` characters by cutting from the middle, keeping the last
+/// `tail_len` characters (for a question stem, the question actually being asked).
+fn truncate_middle(s: &str, max_len: usize, tail_len: usize) -> String {
+    let len = s.chars().count();
+    if len <= max_len {
+        return s.to_string();
+    }
+    let head: String = s.chars().take(max_len.saturating_sub(tail_len)).collect();
+    let tail: String = s.chars().skip(len - tail_len.min(len)).collect();
+    format!("{} … {}", head.trim_end(), tail.trim_start())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1128,28 +1183,26 @@ mod tests {
         for placeholder in [
             "{topics}", "{topic_ids}", "{topic_id}", "{difficulty}", "{difficulty_code}",
             "{count}", "{examples}", "{user_instructions}", "{regenerate}",
-            "{existing_questions}", "{structure_hint}",
+            "{existing_questions}", "{structure_hint}", "{form_models}",
         ] {
             assert!(!prompt.contains(placeholder), "unfilled {}", placeholder);
         }
         assert!(prompt.contains(r#""topics": ["T002"]"#));
         assert!(!prompt.contains("User Instructions"));
         assert!(!prompt.contains("## Questions Already in This Set"));
-        assert!(!prompt.contains("Suggested assessment structure"));
+        assert!(!prompt.contains("**Form model"));
         assert!(!prompt.contains("\n---\n\n---\n"));
         assert!(!prompt.contains("\n\n\n"));
     }
 
     #[test]
-    fn test_single_question_prompt_gets_structure_hint_and_existing_set() {
+    fn test_single_question_prompt_gets_existing_set() {
         let existing = vec![
             "Consider the following code segment.\n\n```java\nString s = \"JavaProgramming\";\n```".to_string(),
         ];
         let prompt = cs_generation_prompt(1, Some("Use a scenario about a library"), &existing);
-        assert!(prompt.contains("Suggested assessment structure for this question:"));
-        assert!(ASSESSMENT_STRUCTURES
-            .iter()
-            .any(|s| prompt.contains(&format!("question:** `{}`", s))));
+        // No examples, so there is nothing to use as a form model.
+        assert!(!prompt.contains("**Form model"));
         assert!(prompt.contains("## Questions Already in This Set"));
         assert!(prompt.contains(
             "1. Consider the following code segment. ```java String s = \"JavaProgramming\"; ```"
@@ -1219,7 +1272,24 @@ mod tests {
         assert!(!prompt.contains("\n5. Q5 "));
         assert!(prompt.contains("\n6. Q6 "));
         assert!(prompt.contains("\n20. Q20 "));
-        assert!(!prompt.contains("Suggested assessment structure"));
+    }
+
+    #[test]
+    fn test_existing_question_summary_keeps_code_and_final_question() {
+        // A preamble long enough that a 300-char cut would have dropped the code entirely.
+        let stem = format!(
+            "Consider the following method. {} ```java int scan(int[][] grid) {{ total += grid[row][col]; }} ``` {} Which of the following best describes the value returned by the `scan` method?",
+            "Preamble sentence. ".repeat(12),
+            "x".repeat(800)
+        );
+        let prompt = cs_generation_prompt(1, None, &[stem]);
+        let section = prompt.split("## Questions Already in This Set").nth(1).unwrap();
+        let line = section.lines().find(|l| l.starts_with("1. ")).unwrap();
+        assert!(line.contains("grid[row][col]"), "code was cut: {}", line);
+        assert!(line.ends_with("returned by the `scan` method?"));
+        assert!(line.contains(" … "));
+        assert!(line.chars().count() <= 3 + 900 + 3);
+        assert_eq!(truncate_middle("short", 900, 200), "short");
     }
 
     #[test]
@@ -1255,6 +1325,114 @@ mod tests {
         assert!(!prompt.contains("{current_question_json}"));
         assert!(!prompt.contains("{topic_ids}"));
         assert!(!prompt.contains("{user_instructions}"));
+    }
+
+    fn bank_example(id: &str) -> QuestionBankEntry {
+        QuestionBankEntry {
+            id: id.to_string(),
+            status: "active".to_string(),
+            migration_note: None,
+            text: format!("Stem {}", id),
+            answers: vec![],
+            explanation: String::new(),
+            topics: vec!["T002".to_string()],
+            subtopics: None,
+            difficulty: "D2".to_string(),
+            cognitive_level: "B3".to_string(),
+        }
+    }
+
+    fn cs_prompt_with_examples(count: u32, examples: &[QuestionBankEntry]) -> String {
+        let request = GenerationRequest {
+            subject: "Computer Science".to_string(),
+            topics: vec!["T002".to_string()],
+            difficulty: "medium".to_string(),
+            count,
+            notes: None,
+            append: true,
+            question_type: "multiple_choice".to_string(),
+            frq_question_type: None,
+        };
+        build_generation_prompt(
+            &request,
+            examples,
+            Some(include_str!(
+                "../../imports/knowledge/Computer Science/prompt.txt"
+            )),
+            "T002: Using Objects",
+            &GenerationContext::default(),
+        )
+    }
+
+    fn mcq(correct_flags: &[bool]) -> Question {
+        Question {
+            id: "q1".to_string(),
+            text: "Stem".to_string(),
+            answers: correct_flags
+                .iter()
+                .map(|&is_correct| crate::Answer {
+                    text: "choice".to_string(),
+                    is_correct,
+                    explanation: None,
+                })
+                .collect(),
+            explanation: None,
+            rubric: None,
+            subject: "Computer Science".to_string(),
+            topics: vec![],
+            difficulty: "D2".to_string(),
+            cognitive_level: "B3".to_string(),
+            subtopics: vec![],
+        }
+    }
+
+    #[test]
+    fn test_validate_answer_keys() {
+        assert!(validate_answer_keys(&[mcq(&[false, true, false, false, false])]).is_ok());
+        // The real failure seen in the log: five choices, none marked correct.
+        let err = validate_answer_keys(&[mcq(&[true, false]), mcq(&[false; 5])]).unwrap_err();
+        assert_eq!(err, "Generated question 2 has 0 answers marked correct");
+        assert!(validate_answer_keys(&[mcq(&[true, true, false])]).is_err());
+        assert!(validate_answer_keys(&[mcq(&[true])]).is_err());
+        // FRQs have a rubric instead of answer choices and are not checked.
+        let mut frq = mcq(&[]);
+        frq.rubric = Some("2 points".to_string());
+        assert!(validate_answer_keys(&[frq]).is_ok());
+    }
+
+    #[test]
+    fn test_assign_form_models_round_robin() {
+        assert_eq!(assign_form_models(1, 0, 7), Vec::<usize>::new());
+        assert_eq!(assign_form_models(1, 3, 7), vec![1]);
+        assert_eq!(assign_form_models(5, 3, 1), vec![1, 2, 0, 1, 2]);
+        assert_eq!(assign_form_models(2, 1, 9), vec![0, 0]);
+    }
+
+    #[test]
+    fn test_single_question_gets_one_form_model() {
+        let examples: Vec<_> = ["e1", "e2", "e3"].iter().map(|id| bank_example(id)).collect();
+        let prompt = cs_prompt_with_examples(1, &examples);
+        assert!((1..=3).any(|k| prompt.contains(&format!(
+            "**Form model for this question:** Example {}.",
+            k
+        ))));
+        assert!(!prompt.contains("**Form models:**"));
+        assert!(!prompt.contains("{form_models}"));
+    }
+
+    #[test]
+    fn test_batch_assigns_a_form_model_to_every_question() {
+        let examples: Vec<_> = ["e1", "e2"].iter().map(|id| bank_example(id)).collect();
+        let prompt = cs_prompt_with_examples(3, &examples);
+        assert!(prompt.contains("**Form models:**"));
+        for q in 1..=3 {
+            assert!(
+                (1..=2).any(|k| prompt.contains(&format!("- Question {}: Example {}", q, k))),
+                "question {} has no form model",
+                q
+            );
+        }
+        assert!(!prompt.contains("- Question 4:"));
     }
 
     #[test]

@@ -5,7 +5,7 @@ Your goal is to create AP CSA multiple-choice questions that are:
 - mathematically and logically correct
 - faithful to the specified topic(s)
 - appropriate for the requested difficulty
-- varied in assessment structure
+- written in the same form as their assigned reference example
 - based on realistic student misconceptions
 - stylistically similar to the supplied reference questions
 
@@ -17,7 +17,7 @@ Follow these priorities in order:
 
 1. Correctness
 2. Topic fidelity
-3. Question-type diversity
+3. Form fidelity to the assigned reference example
 4. Difficulty fidelity
 5. Distractor quality
 6. Style similarity to the reference examples
@@ -56,7 +56,7 @@ Perform all planning, solving, and verification internally. Do NOT output your i
 
 {subtopic_hint}
 
-{structure_hint}
+{form_models}
 
 {regenerate}
 
@@ -71,9 +71,9 @@ The examples demonstrate TWO things:
 1. the content being assessed
 2. the assessment structure used to assess it
 
-Do not simply imitate variable names, code style, arithmetic, or surface wording.
+Do not copy variable names, code, arithmetic, or scenarios. DO copy the form of the question's form-model example (see FORM FIDELITY below).
 
-Pay particular attention to what the student is being asked to DO.
+Pay particular attention to what the student is being asked to DO and to how the answer choices are written.
 
 Examples may optionally include explicit `question_type` metadata. If `question_type` is provided, use it when planning the new questions.
 
@@ -159,41 +159,44 @@ If YES, redesign the question so that the target topic remains the primary sourc
 Generate {count} NEW question(s) that:
 
 1. Test the specified topic(s) at the requested difficulty.
-2. Use the reference examples as guides for content, style, difficulty, and assessment structure.
+2. Follow the form of their assigned form-model example.
 3. Use different code, values, expressions, scenarios, and wording from the examples.
 4. Use realistic student misconceptions for distractors.
 5. Have internally consistent and independently verified correct answers.
 6. Match the quality and style shown in the examples.
-7. Provide meaningful variety in assessment structure across the generated batch.
+7. Assess different skills or scenarios from each other and from any questions already in the set.
 
 ---
 
-## QUESTION-TYPE DIVERSITY — CRITICAL
+## FORM FIDELITY — CRITICAL
 
-Before designing individual questions, internally classify the assessment structure of each reference example.
+Each new question is assigned a form-model example (see Target). The form of a question is:
 
-Then create a batch-level diversity plan.
+- the kind of task the student does (for example: determine an output, choose code that works, identify an error, choose a missing expression, choose a true statement)
+- how the stem is laid out (for example: code segment then question, method with a blank, a described goal and no code)
+- the answer-choice format: single values, short expressions, one-line statements or sentences, or multi-line code blocks
+- the approximate length of the stem and of each answer choice
 
-Maximize meaningful variety in what students are required to do.
+Match all of these to the form-model example. In particular:
 
-When enough suitable assessment structures are available:
+- If the form model's answer choices are single values, expressions, or one-line statements, yours must be too. Do NOT turn them into code blocks.
+- Use multi-line code blocks as answer choices ONLY if the form model does, and keep them about as long as its choices.
+- Do not switch to a different kind of task because it seems more interesting or more varied.
 
-- do not repeat a question type until other appropriate types have been used
-- vary the student's task, not merely the variables, constants, operators, or scenario
-- do not convert every reference example into a value/output tracing question
-- use the structural variety present in the reference examples as guidance
+Variety comes from the content: a different skill within the target topic, different code, a different scenario. It does not come from inventing a form that the examples do not use.
 
-For example, a batch of three questions on one topic might use:
+Copy the form, NOT the setup or the wording:
 
-- a code-selection question
-- an equivalence or conceptual question
-- a value-tracing question
+- Use different data, different variable and method names, and a different algorithm or traversal from the form model. For example, if the form model fills an `ArrayList` named `result` from `mat` and states what `result` should contain, do not build your question around an `ArrayList` named `result` filled from a 2D array.
+- Write your own sentences. Reuse the form model's wording only for the standard question line (for example "Which of the following can replace `/* missing code */` ..."), and do not copy explanatory sentences or notes from its stem.
+- If the form model contains a grammar or typing error, do not reproduce it.
+- A student who has seen the form model should not recognize your question as the same question with new numbers.
 
-This is only an example. Choose structures appropriate to the target topic.
+If the form model's task genuinely cannot assess the assigned subtopic at the requested difficulty, use the form of another reference example instead. Never use a form that none of the examples use.
 
-If the target topic genuinely supports fewer distinct structures than `{count}`, repetition is allowed, but repeated questions must still assess meaningfully different reasoning.
+If no examples are provided, keep answer choices short (values, expressions, or one-line statements) unless the task itself requires choosing between code segments.
 
-**When generating a single question:** the "batch" also includes any questions listed under "Questions Already in This Set". Questions are often generated one at a time, so without care every call produces the same kind of question. Do not default to the most obvious structure, such as tracing a single method call. Follow the suggested assessment structure when one is given and it fits the topic. Otherwise choose a structure and skill that the existing questions have not already covered.
+Questions listed under "Questions Already in This Set" may share a form with the new question. That is fine. They must not share the same skill with only the values changed.
 
 ---
 
@@ -203,17 +206,14 @@ Perform the following steps internally for the entire batch.
 
 Do NOT output these steps.
 
-### Step 1: Batch Diversity Plan
+### Step 1: Form Plan
 
-For each question decide:
+For each question:
 
-- the assessment structure
-- the specific skill within the target topic
-- the reasoning required
-- how the question differs structurally from the others
-- which reference example, if any, inspired its assessment structure
-
-Verify that the batch has as much meaningful structural variety as the topic and examples support.
+- look at its form-model example and note its task, stem layout, answer-choice format, and lengths
+- decide the specific skill within the target topic
+- decide the reasoning required
+- confirm the skill differs from the other new questions and from any questions already in the set
 
 ---
 
@@ -295,7 +295,7 @@ Before returning the batch, verify ALL of the following:
 - every answer choice has been independently evaluated
 - every answer marked incorrect is actually incorrect for the stem AS WRITTEN
 - every question primarily assesses the specified target topic(s)
-- assessment structures are meaningfully varied when the topic supports variation
+- each question matches its form-model example's task, stem layout, answer-choice format, and approximate lengths
 - each question reasonably matches the requested difficulty
 - every distractor explanation matches the actual choice (see Step 3)
 - every correct-answer explanation is accurate
@@ -306,9 +306,9 @@ Before returning the batch, verify ALL of the following:
 - all inline code references are wrapped in backticks
 - Java code blocks use `java`
 - every method, class, table, or data set the stem refers to (for example "the following method") is actually shown in the stem
-- code-selection options are fenced `java` blocks laid out over several lines like the examples, not one-line inline code
+- answer choices are code blocks only if the form-model example's choices are; when they are, they are fenced `java` blocks laid out over several lines, not one-line inline code
 - code in the question stem contains no comments that reveal computation steps, intermediate values, or the solution path
-- the generated questions use different code, values, wording, and scenarios from the examples
+- the generated questions use different code, values, wording, and scenarios from the examples, and do not reuse the form model's setup (its data structures, variable names, or explanatory sentences)
 
 A contextual comment such as `// ASCII value 65` may be acceptable when it merely supplies necessary background.
 
@@ -403,9 +403,9 @@ Do not output planning, internal reasoning, analysis, commentary, or text before
 
 ## FINAL REMINDER
 
-Create distinct assessments of the target concept rather than variations of the same question.
+Write each question in the form of its form-model example, including the answer-choice format.
 
-Vary what the student must reason about and do.
+Vary the skill and content, not the form. Do not repeat a question with only the values changed.
 
 Preserve topic fidelity.
 

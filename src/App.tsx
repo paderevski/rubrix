@@ -35,6 +35,7 @@ interface StreamEvent {
   text: string;
   done: boolean;
   remaining_tokens?: number;
+  remaining_usd?: number;
   block_type?: "reasoning" | "response" | "reasoning_end";
   reasoning_done?: boolean;
 }
@@ -63,6 +64,7 @@ const llmQuestionFileFilter = { name: "LLM Question JSON", extensions: ["json"] 
 // Older Catie documents used the .kt extension (also Kotlin's), so they are still readable.
 const legacySessionFileFilter = { name: "Legacy Session", extensions: ["kt", "json", "md"] };
 const remainingTokensStorageKey = "remainingTokens";
+const remainingUsdStorageKey = "remainingUsd";
 const exportPresetStorageKey = "exportPresets";
 const preferredSubjectStorageKey = "preferredSubject";
 const preferredDifficultyStorageKey = "preferredDifficulty";
@@ -355,6 +357,14 @@ function App() {
   const [remainingTokens, setRemainingTokens] = useState<number | null>(() => {
     if (typeof localStorage === "undefined") return null;
     const saved = localStorage.getItem(remainingTokensStorageKey);
+    if (!saved) return null;
+    const parsed = Number(saved);
+    return Number.isFinite(parsed) ? parsed : null;
+  });
+  // Dollar budget left, reported by gateways that track spending in dollars.
+  const [remainingUsd, setRemainingUsd] = useState<number | null>(() => {
+    if (typeof localStorage === "undefined") return null;
+    const saved = localStorage.getItem(remainingUsdStorageKey);
     if (!saved) return null;
     const parsed = Number(saved);
     return Number.isFinite(parsed) ? parsed : null;
@@ -666,6 +676,12 @@ function App() {
 
   useEffect(() => {
     if (typeof localStorage === "undefined") return;
+    if (remainingUsd === null) return;
+    localStorage.setItem(remainingUsdStorageKey, remainingUsd.toString());
+  }, [remainingUsd]);
+
+  useEffect(() => {
+    if (typeof localStorage === "undefined") return;
     const payload = {
       wordGeneratePreset,
       wordBankPreset,
@@ -786,6 +802,9 @@ function App() {
       setStreamingComplete(event.payload.done);
       if (typeof event.payload.remaining_tokens === "number") {
         setRemainingTokens(event.payload.remaining_tokens);
+      }
+      if (typeof event.payload.remaining_usd === "number") {
+        setRemainingUsd(event.payload.remaining_usd);
       }
     });
 
@@ -1949,7 +1968,9 @@ function App() {
               )}
               <span>
                 {questions.length} questions
-                {` • ${remainingTokens !== null ? remainingTokens.toLocaleString() : "N/A"} tokens left`}
+                {remainingUsd !== null
+                  ? ` • $${remainingUsd.toFixed(4)} left`
+                  : ` • ${remainingTokens !== null ? remainingTokens.toLocaleString() : "N/A"} tokens left`}
               </span>
             </div>
           </footer>

@@ -44,6 +44,54 @@ const USAGE_TABLE_NAME = "catieBedrockUsage";
 const USAGE_DEFAULT_BUDGET = 1000000;
 const USAGE_MAX_TEXT_BYTES = 300000;
 
+// Dollar budget per user. Spending is tracked in nano-dollars (1e-9 USD) so per-token prices
+// are whole numbers and running totals stay exact.
+const NANOUSD_PER_USD = 1e9;
+const USAGE_DEFAULT_BUDGET_USD = process.env.USAGE_DEFAULT_BUDGET_USD
+  ? Number(process.env.USAGE_DEFAULT_BUDGET_USD)
+  : 5;
+const USAGE_DEFAULT_BUDGET_NANOUSD = Math.round(
+  USAGE_DEFAULT_BUDGET_USD * NANOUSD_PER_USD,
+);
+
+// Anthropic API prices in nano-dollars per token ($ per million tokens x 1000).
+// Source: https://platform.claude.com/docs/en/about-claude/pricing (checked 2026-11-12).
+// Update this table when prices change or a new model is configured; requests on a model
+// missing here are logged as unpriced and do not reduce the dollar budget.
+const MODEL_PRICES_NANOUSD = {
+  "claude-haiku-5-5": {
+    // A request whose prompt (input + cache reads + cache writes) exceeds this pays the
+    // long-context prices for the whole request.
+    longContextThreshold: 100000,
+    standard: { input: 100, cacheWrite: 125, cacheRead: 10, output: 500 },
+    longContext: { input: 500, cacheWrite: 625, cacheRead: 50, output: 2500 },
+  },
+};
+
+/** Cost of one request in nano-dollars, or null if the model has no price entry. */
+function computeCostNanoUsd(modelId, apiUsage) {
+  const prices = MODEL_PRICES_NANOUSD[modelId];
+  if (!prices || !apiUsage) {
+    return null;
+  }
+  const input = apiUsage.input_tokens || 0;
+  // Cache writes are priced at the 5-minute rate; the gateway does not request 1-hour caching.
+  const cacheWrite = apiUsage.cache_creation_input_tokens || 0;
+  const cacheRead = apiUsage.cache_read_input_tokens || 0;
+  const output = apiUsage.output_tokens || 0;
+  const promptTokens = input + cacheWrite + cacheRead;
+  const rate =
+    prices.longContextThreshold && promptTokens > prices.longContextThreshold
+      ? prices.longContext
+      : prices.standard;
+  return (
+    input * rate.input +
+    cacheWrite * rate.cacheWrite +
+    cacheRead * rate.cacheRead +
+    output * rate.output
+  );
+}
+
 function logGatewayError(code, message, details = null) {
   const entry = {
     level: "error",
@@ -96,10 +144,14 @@ function normalizeUser(user) {
   return sanitized;
 }
 
-function sseEvent(text, done, remainingTokens = null, meta = null) {
+/** `remaining` is `{ tokens, usd }` from `computeProjectedRemaining`, or null. */
+function sseEvent(text, done, remaining = null, meta = null) {
   const payload = { text, done };
-  if (Number.isFinite(remainingTokens)) {
-    payload.remaining_tokens = remainingTokens;
+  if (remaining && Number.isFinite(remaining.tokens)) {
+    payload.remaining_tokens = remaining.tokens;
+  }
+  if (remaining && Number.isFinite(remaining.usd)) {
+    payload.remaining_usd = remaining.usd;
   }
   if (meta && typeof meta === "object") {
     Object.assign(payload, meta);
@@ -107,16 +159,40 @@ function sseEvent(text, done, remainingTokens = null, meta = null) {
   return `data: ${JSON.stringify(payload)}\n\n`;
 }
 
-function computeProjectedRemainingTokens(usageRecord, usageTokens) {
-  const currentRemaining =
+/** Dollar budget left (nano-dollars) according to a summary record, before this request. */
+function remainingNanoUsd(usageRecord) {
+  const budget =
+    usageRecord && Number.isFinite(usageRecord.budget_nanousd)
+      ? usageRecord.budget_nanousd
+      : USAGE_DEFAULT_BUDGET_NANOUSD;
+  const spent =
+    usageRecord && Number.isFinite(usageRecord.spent_nanousd)
+      ? usageRecord.spent_nanousd
+      : 0;
+  return budget - spent;
+}
+
+/**
+ * Remaining budget to report to the app after this request: legacy tokens (still shown by
+ * older app versions) and dollars. `usageState` may be null (no model call made).
+ */
+function computeProjectedRemaining(usageRecord, usageState) {
+  const currentTokens =
     usageRecord && Number.isFinite(usageRecord.remaining_tokens)
       ? usageRecord.remaining_tokens
       : USAGE_DEFAULT_BUDGET;
   const usedTokens =
-    usageTokens && Number.isFinite(usageTokens.totalTokens)
-      ? usageTokens.totalTokens
+    usageState?.tokens && Number.isFinite(usageState.tokens.totalTokens)
+      ? usageState.tokens.totalTokens
       : 0;
-  return Math.max(currentRemaining - usedTokens, 0);
+  const cost = usageState?.tokens ? usageState.tokens.costNanoUsd : 0;
+  const usedNano = Number.isFinite(cost) ? cost : 0;
+  const remainingNano = Math.max(remainingNanoUsd(usageRecord) - usedNano, 0);
+  return {
+    tokens: Math.max(currentTokens - usedTokens, 0),
+    // Rounded to a millionth of a dollar; plenty for display.
+    usd: Math.round(remainingNano / 1000) / 1e6,
+  };
 }
 
 function truncateTextToBytes(text, maxBytes) {
@@ -228,6 +304,8 @@ function recordUsage(usageState, usage) {
     promptTokens: input,
     completionTokens: output,
     cachedTokens: u.cache_read_input_tokens || 0,
+    cacheWriteTokens: u.cache_creation_input_tokens || 0,
+    costNanoUsd: computeCostNanoUsd(usageState.modelId, u),
   };
 }
 
@@ -442,6 +520,8 @@ const streamingHandler = async (event, responseStream) => {
         budget_tokens: USAGE_DEFAULT_BUDGET,
         remaining_tokens: USAGE_DEFAULT_BUDGET,
         total_tokens: 0,
+        budget_nanousd: USAGE_DEFAULT_BUDGET_NANOUSD,
+        spent_nanousd: 0,
         updated_at: now,
       };
       await usageDb.send(
@@ -498,14 +578,13 @@ const streamingHandler = async (event, responseStream) => {
     }
   }
 
+  // The dollar budget is what is enforced; the legacy token count is reported only.
   if (usageRecord) {
-    const remaining = Number.isFinite(usageRecord.remaining_tokens)
-      ? usageRecord.remaining_tokens
-      : USAGE_DEFAULT_BUDGET;
-    if (remaining <= 0) {
+    const remainingNano = remainingNanoUsd(usageRecord);
+    if (remainingNano <= 0) {
       return buildErrorResponse(responseStream, 429, "Usage budget exceeded", {
         safe_user: safeUser,
-        remaining,
+        remaining_usd: remainingNano / NANOUSD_PER_USD,
       });
     }
   }
@@ -515,11 +594,9 @@ const streamingHandler = async (event, responseStream) => {
     if (typeof responseStream.setContentType === "function") {
       responseStream.setContentType("text/event-stream");
     }
-    const remaining =
-      usageRecord && Number.isFinite(usageRecord.remaining_tokens)
-        ? usageRecord.remaining_tokens
-        : USAGE_DEFAULT_BUDGET;
-    responseStream.write(sseEvent("", true, remaining));
+    responseStream.write(
+      sseEvent("", true, computeProjectedRemaining(usageRecord, null)),
+    );
     responseStream.end();
     return;
   }
@@ -549,6 +626,7 @@ const streamingHandler = async (event, responseStream) => {
   const promptMaxBytes = Math.max(Math.floor(USAGE_MAX_TEXT_BYTES / 2), 0);
   const promptResult = truncateTextToBytes(promptText, promptMaxBytes);
   const usageState = {
+    modelId: selectedModelId,
     tokens: null,
     apiUsage: {},
     responseParts: [],
@@ -583,9 +661,9 @@ const streamingHandler = async (event, responseStream) => {
 
     if (finalMessage.stop_reason === "refusal") {
       const category = finalMessage.stop_details?.category || null;
-      const projectedRemaining = computeProjectedRemainingTokens(
+      const projectedRemaining = computeProjectedRemaining(
         usageRecord,
-        usageState.tokens,
+        usageState,
       );
       logGatewayError("model_refusal", "Model declined the request", {
         safe_user: safeUser,
@@ -614,9 +692,9 @@ const streamingHandler = async (event, responseStream) => {
       );
     }
 
-    const projectedRemaining = computeProjectedRemainingTokens(
+    const projectedRemaining = computeProjectedRemaining(
       usageRecord,
-      usageState.tokens,
+      usageState,
     );
     if (usageState.responseParts.length === 0) {
       logGatewayError(
@@ -626,7 +704,7 @@ const streamingHandler = async (event, responseStream) => {
           safe_user: safeUser,
           selected_model_id: selectedModelId,
           question_type: questionType || null,
-          projected_remaining_tokens: projectedRemaining,
+          projected_remaining: projectedRemaining,
         },
       );
       responseStream.write(
@@ -640,9 +718,9 @@ const streamingHandler = async (event, responseStream) => {
     }
     responseStream.end();
   } catch (error) {
-    const projectedRemaining = computeProjectedRemainingTokens(
+    const projectedRemaining = computeProjectedRemaining(
       usageRecord,
-      usageState.tokens,
+      usageState,
     );
     const message =
       (error && typeof error.message === "string" && error.message.trim()) ||
@@ -657,7 +735,7 @@ const streamingHandler = async (event, responseStream) => {
       error_name: name,
       api_status: error instanceof Anthropic.APIError ? error.status : null,
       stack: error?.stack,
-      projected_remaining_tokens: projectedRemaining,
+      projected_remaining: projectedRemaining,
     });
     responseStream.write(
       sseEvent("", true, projectedRemaining, {
@@ -672,28 +750,37 @@ const streamingHandler = async (event, responseStream) => {
     const responseTruncated = usageState.responseTruncated;
     const tokens = usageState.tokens || {};
     const totalTokens = tokens.totalTokens;
+    const costNanoUsd = Number.isFinite(tokens.costNanoUsd)
+      ? tokens.costNanoUsd
+      : null;
     if (Number.isFinite(totalTokens) && totalTokens > 0) {
-      const remaining =
-        usageRecord && Number.isFinite(usageRecord.remaining_tokens)
-          ? usageRecord.remaining_tokens
-          : USAGE_DEFAULT_BUDGET;
-      const newRemaining = Math.max(remaining - totalTokens, 0);
+      if (costNanoUsd === null) {
+        logGatewayError(
+          "usage_unpriced_model",
+          "No price entry for model; dollar budget not charged",
+          { safe_user: safeUser, selected_model_id: selectedModelId },
+        );
+      }
       const now = new Date().toISOString();
       try {
+        // ADD is atomic, so overlapping requests from one user cannot overwrite each
+        // other's deductions (the old read-then-SET of remaining_tokens could).
         await usageDb.send(
           new UpdateItemCommand({
             TableName: USAGE_TABLE_NAME,
             Key: marshall({ user_id: safeUser, record_id: "summary" }),
             UpdateExpression:
-              "SET remaining_tokens = :remaining, " +
-              "total_tokens = if_not_exists(total_tokens, :zero) + :used, " +
-              "budget_tokens = if_not_exists(budget_tokens, :budget), " +
-              "updated_at = :now",
+              "SET budget_tokens = if_not_exists(budget_tokens, :budget), " +
+              "budget_nanousd = if_not_exists(budget_nanousd, :budgetNano), " +
+              "updated_at = :now " +
+              "ADD total_tokens :used, remaining_tokens :negUsed, " +
+              "spent_nanousd :cost",
             ExpressionAttributeValues: marshall({
-              ":remaining": newRemaining,
               ":used": totalTokens,
-              ":zero": 0,
+              ":negUsed": -totalTokens,
+              ":cost": costNanoUsd ?? 0,
               ":budget": USAGE_DEFAULT_BUDGET,
+              ":budgetNano": USAGE_DEFAULT_BUDGET_NANOUSD,
               ":now": now,
             }),
           }),
@@ -734,6 +821,11 @@ const streamingHandler = async (event, responseStream) => {
         tokens_cached: Number.isFinite(tokens.cachedTokens)
           ? tokens.cachedTokens
           : null,
+        tokens_cache_write: Number.isFinite(tokens.cacheWriteTokens)
+          ? tokens.cacheWriteTokens
+          : null,
+        model_id: selectedModelId,
+        cost_nanousd: costNanoUsd,
       };
       await usageDb.send(
         new PutItemCommand({
