@@ -238,6 +238,8 @@ pub struct KnowledgeBase {
     pub regeneration_prompts: HashMap<String, String>,
     /// FRQ generation prompt templates for each subject
     pub frq_prompts: HashMap<String, String>,
+    /// Question review prompt templates for each subject (optional; see review.rs)
+    pub review_prompts: HashMap<String, String>,
 }
 
 fn append_random_matches<F>(
@@ -274,6 +276,7 @@ impl KnowledgeBase {
         let mut subjects: HashMap<String, Vec<TopicInfo>> = HashMap::new();
         let mut prompts: HashMap<String, String> = HashMap::new();
         let mut regeneration_prompts: HashMap<String, String> = HashMap::new();
+        let mut review_prompts: HashMap<String, String> = HashMap::new();
         let mut frq_prompts: HashMap<String, String> = HashMap::new();
         let mut bank_entries: HashMap<String, Vec<QuestionBankEntry>> = HashMap::new();
         let mut topic_code_mappings: HashMap<String, HashMap<String, Vec<String>>> = HashMap::new();
@@ -440,6 +443,12 @@ impl KnowledgeBase {
                 );
             }
 
+            // Load optional review prompt template for this subject
+            let review_prompt_filename = format!("{}/review-prompt.txt", subject_name);
+            if let Some(content) = load_knowledge_file(&review_prompt_filename) {
+                review_prompts.insert(subject_name.to_string(), content);
+            }
+
             // Load optional FRQ prompt template for this subject
             let frq_prompt_filename = format!("{}/frq-test-prompt.txt", subject_name);
             if let Some(content) = load_knowledge_file(&frq_prompt_filename) {
@@ -459,6 +468,7 @@ impl KnowledgeBase {
             prompts,
             regeneration_prompts,
             frq_prompts,
+            review_prompts,
         }
     }
 
@@ -566,6 +576,11 @@ impl KnowledgeBase {
         self.regeneration_prompts.get(subject).map(|s| s.as_str())
     }
 
+    /// Subject review template, or `None` to use the built-in default.
+    pub fn get_review_prompt(&self, subject: &str) -> Option<&str> {
+        self.review_prompts.get(subject).map(|s| s.as_str())
+    }
+
     /// Get FRQ prompt template for a subject
     pub fn get_frq_prompt(&self, subject: &str) -> Option<&str> {
         self.frq_prompts.get(subject).map(|s| s.as_str())
@@ -652,6 +667,7 @@ mod tests {
             )]),
             prompts: HashMap::new(),
             regeneration_prompts: HashMap::new(),
+            review_prompts: HashMap::new(),
             frq_prompts: HashMap::new(),
         };
 

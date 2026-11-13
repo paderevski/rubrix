@@ -5,6 +5,7 @@ mod knowledge;
 mod llm;
 mod prompts;
 mod qti;
+mod review;
 
 use base64::Engine as _;
 use futures_util::stream::{self, StreamExt};
@@ -1174,6 +1175,85 @@ async fn regenerate_question(
     Ok(new_question)
 }
 
+/// Review one multiple-choice question: the model solves it independently, checks it, and may
+/// propose a minimal fix. Does not change stored questions; the frontend applies a fix through
+/// `update_question`. `previous` is the version before the user's hand edits, if any.
+#[tauri::command]
+async fn review_question(
+    index: usize,
+    notes: Option<String>,
+    previous: Option<Question>,
+    state: State<'_, AppState>,
+    app_handle: tauri::AppHandle,
+) -> Result<review::ReviewResult, String> {
+    let current = state
+        .questions
+        .lock()
+        .unwrap()
+        .get(index)
+        .cloned()
+        .ok_or_else(|| "Invalid question index".to_string())?;
+    if current.rubric.is_some() {
+        return Err("Review is only available for multiple-choice questions".to_string());
+    }
+
+    let subject = if current.subject.is_empty() {
+        "Computer Science"
+    } else {
+        current.subject.as_str()
+    };
+    let topics_label = topic_labels_for_prompt(subject, &current.topics, &state.knowledge);
+    let prompt = review::build_review_prompt(
+        state.knowledge.get_review_prompt(subject),
+        &current,
+        previous.as_ref(),
+        notes.as_deref(),
+        &topics_label,
+    );
+
+    let gateway_auth = state
+        .credentials
+        .lock()
+        .unwrap()
+        .clone()
+        .map(|creds| llm::GatewayAuth {
+            user: creds.username,
+            password: creds.password.clone(),
+        });
+
+    // Retry once if the output is unreadable or the proposed fix fails the checks.
+    const ATTEMPTS: usize = 2;
+    let mut fallback: Option<review::ReviewResult> = None;
+    let mut last_error = String::new();
+    for attempt in 1..=ATTEMPTS {
+        let response = llm::generate(
+            &prompt,
+            Some(app_handle.clone()),
+            gateway_auth.clone(),
+            Some("review"),
+        )
+        .await?;
+        match review::interpret_review_response(&current, &response) {
+            Ok(result) if result.revision_problem.is_none() => return Ok(result),
+            Ok(result) => {
+                eprintln!(
+                    "Review attempt {}/{}: {}",
+                    attempt,
+                    ATTEMPTS,
+                    result.revision_problem.as_deref().unwrap_or("")
+                );
+                fallback = Some(result);
+            }
+            Err(err) => {
+                eprintln!("Review attempt {}/{}: {}", attempt, ATTEMPTS, err);
+                last_error = err;
+            }
+        }
+    }
+    // Findings without a usable fix are still worth showing.
+    fallback.ok_or_else(|| format!("{} (still failing after {} attempts)", last_error, ATTEMPTS))
+}
+
 #[tauri::command]
 async fn regenerate_all_questions_parallel(
     max_concurrency: Option<usize>,
@@ -2231,6 +2311,7 @@ fn main() {
             get_topics,
             generate_questions,
             regenerate_question,
+            review_question,
             regenerate_all_questions_parallel,
             update_question,
             add_question,

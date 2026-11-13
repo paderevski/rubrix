@@ -1,0 +1,126 @@
+[
+  {
+    "name": "wrong-key",
+    "expect": "issues: key is wrong (answer is 5); fix marked choice B to `5`",
+    "question": {
+      "subject": "Computer Science",
+      "text": "Consider the following code segment.\n\n```java\nint a = 7;\nint b = 3;\nint c = a / b + a % b * b;\nSystem.out.print(c);\n```\n\nWhat is printed as a result of executing the code segment?",
+      "answers": [
+        {"text": "`2`", "is_correct": false, "explanation": "Computes only `a / b` and ignores the rest of the expression."},
+        {"text": "`8`", "is_correct": true, "explanation": "`7 / 3` is 2 and `7 % 3 * 3` is 6, so the result is 8."},
+        {"text": "`9`", "is_correct": false, "explanation": "Evaluates `(a / b + a % b) * b` left to right, ignoring precedence."},
+        {"text": "`3`", "is_correct": false, "explanation": "Adds `a / b` and `a % b` but forgets the multiplication."},
+        {"text": "`6`", "is_correct": false, "explanation": "Treats `%` as division, so `a % b * b` becomes 6, then drops `a / b`."}
+      ],
+      "explanation": "Integer division gives `7 / 3` = 2. Then `7 % 3` = 2 and 2 * 3 = 6. So `c` = 2 + 6 = 8."
+    }
+  },
+  {
+    "name": "wrong-key-collides",
+    "expect": "issues: key is wrong (answer is 5) and 5 is already choice A; fix B to `5` and replace A",
+    "question": {
+      "subject": "Computer Science",
+      "text": "Consider the following code segment.\n\n```java\nint a = 7;\nint b = 3;\nint c = a / b + a % b * b;\nSystem.out.print(c);\n```\n\nWhat is printed as a result of executing the code segment?",
+      "answers": [
+        {"text": "`5`", "is_correct": false, "explanation": "Forgets that `*` is evaluated before `+`."},
+        {"text": "`8`", "is_correct": true, "explanation": "`7 / 3` is 2 and `7 % 3 * 3` is 6, so the result is 8."},
+        {"text": "`9`", "is_correct": false, "explanation": "Evaluates `(a / b + a % b) * b` left to right, ignoring precedence."},
+        {"text": "`3`", "is_correct": false, "explanation": "Adds `a / b` and `a % b` but forgets the multiplication."},
+        {"text": "`2`", "is_correct": false, "explanation": "Computes only `a / b`."}
+      ],
+      "explanation": "Integer division gives `7 / 3` = 2. Then `7 % 3` = 2 and 2 * 3 = 6. So `c` = 2 + 6 = 8."
+    }
+  },
+  {
+    "name": "equivalent-distractors",
+    "expect": "issues: choices B and C are equivalent for positive x; replace one",
+    "question": {
+      "subject": "Computer Science",
+      "text": "Assume that `x` is a positive `int`. Which of the following expressions evaluates to `true` exactly when `x` is even?",
+      "answers": [
+        {"text": "`x % 2 == 0`", "is_correct": true, "explanation": "An even number leaves remainder 0 when divided by 2."},
+        {"text": "`x % 2 == 1`", "is_correct": false, "explanation": "This is true exactly when `x` is odd."},
+        {"text": "`x % 2 != 0`", "is_correct": false, "explanation": "This is true when the remainder is nonzero, which means `x` is odd."},
+        {"text": "`x / 2 == 0`", "is_correct": false, "explanation": "Confuses `/` with `%`; this is true only when `x` is 1."},
+        {"text": "`x % 2 == 2`", "is_correct": false, "explanation": "A remainder when dividing by 2 can never be 2."}
+      ],
+      "explanation": "The remainder operator `%` gives the remainder after division. A number is even when `x % 2` is 0."
+    }
+  },
+  {
+    "name": "giveaway-name",
+    "expect": "issues (warning): method name countNegatives gives away the answer; rename consistently",
+    "question": {
+      "subject": "Computer Science",
+      "text": "Consider the following method.\n\n```java\npublic static int countNegatives(int[] nums)\n{\n    int total = 0;\n    for (int n : nums)\n    {\n        if (n < 0)\n        {\n            total++;\n        }\n    }\n    return total;\n}\n```\n\nWhich of the following best describes the value returned by the method?",
+      "answers": [
+        {"text": "The number of negative values in `nums`", "is_correct": true, "explanation": "`total` is incremented once for each element less than 0."},
+        {"text": "The sum of the negative values in `nums`", "is_correct": false, "explanation": "Confuses counting with summing; `total++` adds 1, not `n`."},
+        {"text": "The number of nonnegative values in `nums`", "is_correct": false, "explanation": "Misreads the condition `n < 0`."},
+        {"text": "The index of the first negative value in `nums`", "is_correct": false, "explanation": "The loop never stops early or records an index."},
+        {"text": "The number of values in `nums`", "is_correct": false, "explanation": "Ignores the `if` condition."}
+      ],
+      "explanation": "The loop visits every element and increments `total` only when the element is less than 0, so the method returns how many elements are negative."
+    }
+  },
+  {
+    "name": "comment-leak",
+    "expect": "issues (warning): comment performs part of the trace; remove it",
+    "question": {
+      "subject": "Computer Science",
+      "text": "Consider the following code segment.\n\n```java\nint sum = 0;\nfor (int k = 1; k <= 4; k++)\n{\n    sum += k * k; // sum is 1, 5, 14, 30\n}\nSystem.out.println(sum);\n```\n\nWhat is printed as a result of executing the code segment?",
+      "answers": [
+        {"text": "`30`", "is_correct": true, "explanation": "1 + 4 + 9 + 16 = 30."},
+        {"text": "`10`", "is_correct": false, "explanation": "Adds `k` instead of `k * k`."},
+        {"text": "`14`", "is_correct": false, "explanation": "Stops one iteration early, as if the condition were `k < 4`."},
+        {"text": "`16`", "is_correct": false, "explanation": "Prints only the last value of `k * k`."},
+        {"text": "`55`", "is_correct": false, "explanation": "Runs one extra iteration, as if the condition were `k <= 5`."}
+      ],
+      "explanation": "The loop adds 1, 4, 9, and 16, so `sum` is 30."
+    }
+  },
+  {
+    "name": "clean",
+    "expect": "ok, no findings, no revision",
+    "question": {
+      "subject": "Computer Science",
+      "text": "Consider the following method.\n\n```java\npublic static int mystery(int[] arr)\n{\n    int count = 0;\n    for (int i = 1; i < arr.length; i++)\n    {\n        if (arr[i] > arr[i - 1])\n        {\n            count++;\n        }\n    }\n    return count;\n}\n```\n\nWhat value is returned by the call `mystery(new int[]{3, 5, 2, 8, 9})`?",
+      "answers": [
+        {"text": "`1`", "is_correct": false, "explanation": "Counts only the first increase and then stops tracking."},
+        {"text": "`2`", "is_correct": false, "explanation": "Misses the comparison between 8 and 9 at the end of the array."},
+        {"text": "`3`", "is_correct": true, "explanation": "Increases occur from 3 to 5, from 2 to 8, and from 8 to 9."},
+        {"text": "`4`", "is_correct": false, "explanation": "Counts every adjacent pair instead of only increasing ones."},
+        {"text": "`5`", "is_correct": false, "explanation": "Counts every element of the array instead of only the elements that are greater than the one before them."}
+      ],
+      "explanation": "The loop compares each element with the one before it: 5 > 3 (count 1), 2 > 5 is false, 8 > 2 (count 2), 9 > 8 (count 3). The method returns 3."
+    }
+  },
+  {
+    "name": "edit-broke-key",
+    "expect": "issues: user changed last element from 9 to 1, so answer is now 2; fix C to `2` and replace old choice B (`2`)",
+    "previous": {
+      "subject": "Computer Science",
+      "text": "Consider the following method.\n\n```java\npublic static int mystery(int[] arr)\n{\n    int count = 0;\n    for (int i = 1; i < arr.length; i++)\n    {\n        if (arr[i] > arr[i - 1])\n        {\n            count++;\n        }\n    }\n    return count;\n}\n```\n\nWhat value is returned by the call `mystery(new int[]{3, 5, 2, 8, 9})`?",
+      "answers": [
+        {"text": "`1`", "is_correct": false, "explanation": "Counts only the first increase and then stops tracking."},
+        {"text": "`2`", "is_correct": false, "explanation": "Misses the comparison between 8 and 9 at the end of the array."},
+        {"text": "`3`", "is_correct": true, "explanation": "Increases occur from 3 to 5, from 2 to 8, and from 8 to 9."},
+        {"text": "`4`", "is_correct": false, "explanation": "Counts every adjacent pair instead of only increasing ones."},
+        {"text": "`5`", "is_correct": false, "explanation": "Counts every element, as if the loop started at 0 and had no condition."}
+      ],
+      "explanation": "The loop compares each element with the one before it: 5 > 3 (count 1), 2 > 5 is false, 8 > 2 (count 2), 9 > 8 (count 3). The method returns 3."
+    },
+    "question": {
+      "subject": "Computer Science",
+      "text": "Consider the following method.\n\n```java\npublic static int mystery(int[] arr)\n{\n    int count = 0;\n    for (int i = 1; i < arr.length; i++)\n    {\n        if (arr[i] > arr[i - 1])\n        {\n            count++;\n        }\n    }\n    return count;\n}\n```\n\nWhat value is returned by the call `mystery(new int[]{3, 5, 2, 8, 1})`?",
+      "answers": [
+        {"text": "`1`", "is_correct": false, "explanation": "Counts only the first increase and then stops tracking."},
+        {"text": "`2`", "is_correct": false, "explanation": "Misses the comparison between 8 and 9 at the end of the array."},
+        {"text": "`3`", "is_correct": true, "explanation": "Increases occur from 3 to 5, from 2 to 8, and from 8 to 9."},
+        {"text": "`4`", "is_correct": false, "explanation": "Counts every adjacent pair instead of only increasing ones."},
+        {"text": "`5`", "is_correct": false, "explanation": "Counts every element, as if the loop started at 0 and had no condition."}
+      ],
+      "explanation": "The loop compares each element with the one before it: 5 > 3 (count 1), 2 > 5 is false, 8 > 2 (count 2), 9 > 8 (count 3). The method returns 3."
+    }
+  }
+]
