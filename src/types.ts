@@ -122,3 +122,24 @@ export interface SubmitBugResult {
   upstream_url?: string;
   message: string;
 }
+
+/** One problem reported by the question reviewer (see src-tauri/src/review.rs). */
+export interface ReviewFinding {
+  severity: "error" | "warning";
+  fields: string[];
+  summary: string;
+}
+
+/** Result of the `review_question` command. */
+export interface ReviewResult {
+  verdict: "ok" | "issues";
+  solved_answer: string | null;
+  findings: ReviewFinding[];
+  revised: Question | null;
+  revision_problem: string | null;
+}
+
+/** Review state for one question card. */
+export type QuestionReviewView =
+  | { status: "running" }
+  | { status: "done"; result: ReviewResult; stale: boolean };

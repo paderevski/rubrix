@@ -1,4 +1,4 @@
-import { Question } from "../types";
+import { Question, QuestionReviewView } from "../types";
 import QuestionCard from "./QuestionCard";
 import StreamingQuestionCard from "./StreamingQuestionCard";
 
@@ -19,6 +19,13 @@ interface QuestionListProps {
   onEdit: (index: number) => void;
   onDelete: (index: number) => void;
   onUpdate?: (index: number, question: Question, label: string) => void;
+  reviewingQuestionId?: string | null;
+  reviewStreamingText?: string;
+  reviewById?: Record<string, QuestionReviewView>;
+  isReviewDisabled?: boolean;
+  onReview?: (index: number, notes?: string) => void;
+  onApplyReview?: (index: number) => void;
+  onDismissReview?: (index: number) => void;
 }
 
 export default function QuestionList({
@@ -38,6 +45,13 @@ export default function QuestionList({
   onEdit,
   onDelete,
   onUpdate,
+  reviewingQuestionId = null,
+  reviewStreamingText = "",
+  reviewById = {},
+  isReviewDisabled = false,
+  onReview,
+  onApplyReview,
+  onDismissReview,
 }: QuestionListProps) {
   const centeredContainerClass = "w-full max-w-5xl mx-auto";
 
@@ -50,15 +64,26 @@ export default function QuestionList({
             index={index}
             topicMetaById={topicMetaById}
             rawText={rawTextByQuestionId[question.id]}
-            liveRawText={question.id === regeneratingQuestionId ? regenerationStreamingText : undefined}
+            liveRawText={
+              question.id === regeneratingQuestionId
+                ? regenerationStreamingText
+                : question.id === reviewingQuestionId
+                ? reviewStreamingText
+                : undefined
+            }
             isRegenerating={
               question.id === regeneratingQuestionId && !regenerationStreamingComplete
             }
-            isRegenerationDisabled={isRegeneratingAll}
+            isRegenerationDisabled={isRegeneratingAll || reviewingQuestionId !== null}
             onRegenerate={(instructions) => onRegenerate(index, instructions)}
             onEdit={() => onEdit(index)}
             onDelete={() => onDelete(index)}
             onUpdate={onUpdate ? (updated, label) => onUpdate(index, updated, label) : undefined}
+            review={reviewById[question.id]}
+            onReview={onReview ? (notes) => onReview(index, notes) : undefined}
+            isReviewDisabled={isReviewDisabled}
+            onApplyReview={() => onApplyReview?.(index)}
+            onDismissReview={() => onDismissReview?.(index)}
           />
         </div>
       ))}

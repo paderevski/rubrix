@@ -1,5 +1,15 @@
-import { Question } from "../types";
-import { RefreshCw, Pencil, Trash2, Check, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
+import { Question, QuestionReviewView } from "../types";
+import {
+  RefreshCw,
+  Pencil,
+  Trash2,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+} from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -10,6 +20,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { ghcolors } from "react-syntax-highlighter/dist/esm/styles/prism";
 import "katex/dist/katex.min.css";
 import MarkdownEditor from "./MarkdownEditor";
+import ReviewPanel from "./ReviewPanel";
 
 interface QuestionCardProps {
   question: Question;
@@ -24,6 +35,13 @@ interface QuestionCardProps {
   onDelete: () => void;
   /** Save an in-place edit of one field. When omitted, in-card editing is hidden. */
   onUpdate?: (question: Question, label: string) => void;
+  /** Review state for this card, if a review is running or has a result. */
+  review?: QuestionReviewView;
+  /** Run a review; `notes` comes from the shared notes box. Omit to hide the Review button. */
+  onReview?: (notes?: string) => void;
+  isReviewDisabled?: boolean;
+  onApplyReview?: () => void;
+  onDismissReview?: () => void;
 }
 
 /** Field keys for in-card editing: "text", "explanation", "rubric", or "answer:<index>". */
@@ -244,6 +262,11 @@ export default function QuestionCard({
   onEdit,
   onDelete,
   onUpdate,
+  review,
+  onReview,
+  isReviewDisabled = false,
+  onApplyReview,
+  onDismissReview,
 }: QuestionCardProps) {
   const [showInstructions, setShowInstructions] = useState(false);
   const [instructions, setInstructions] = useState("");
@@ -257,7 +280,8 @@ export default function QuestionCard({
     setEditingField(null);
   }, [question.id]);
 
-  const canEditInPlace = Boolean(onUpdate) && !isRegenerating;
+  const isReviewing = review?.status === "running";
+  const canEditInPlace = Boolean(onUpdate) && !isRegenerating && !isReviewing;
   const cancelFieldEdit = () => setEditingField(null);
 
   const saveField = (field: EditableFieldKey, value: string) => {
@@ -344,6 +368,12 @@ export default function QuestionCard({
   ) ?? null;
   const difficultyChip = normalizeDifficultyLabel(question.difficulty);
 
+  const isMultipleChoice = !question.rubric && hasAnswers;
+  const handleReview = () => {
+    const trimmed = instructions.trim();
+    onReview?.(trimmed || undefined);
+  };
+
   const handleRegenerate = () => {
     const trimmed = instructions.trim();
 
@@ -388,7 +418,7 @@ export default function QuestionCard({
                   ? "text-primary bg-secondary"
                   : "text-muted-foreground hover:text-foreground"
               }`}
-              title="Add regeneration instructions"
+              title="Notes for Regenerate / Review"
             >
               {showInstructions ? (
                 <ChevronUp className="w-4 h-4" />
@@ -404,6 +434,19 @@ export default function QuestionCard({
             >
               <RefreshCw className={`w-4 h-4 ${isRegenerating ? "animate-spin" : ""}`} />
             </button>
+            {onReview && isMultipleChoice && (
+              <button
+                onClick={handleReview}
+                disabled={isReviewDisabled}
+                className={`${iconButtonNeutral} disabled:opacity-40 disabled:pointer-events-none ${
+                  isReviewing ? "text-indigo-600" : ""
+                }`}
+                title="Review this question (uses notes, if any)"
+                aria-label="Review question"
+              >
+                <ShieldCheck className={`w-4 h-4 ${isReviewing ? "animate-pulse" : ""}`} />
+              </button>
+            )}
             {hasRawText && (
               <button
                 onClick={() => setShowRaw((prev) => !prev)}
@@ -440,7 +483,7 @@ export default function QuestionCard({
         <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
           <div className="w-full max-w-4xl mx-auto">
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Custom instructions for regeneration:
+              Notes for Regenerate / Review:
             </label>
             <textarea
               value={instructions}
@@ -450,10 +493,20 @@ export default function QuestionCard({
               rows={3}
             />
             <p className="text-xs text-slate-600 mt-1">
-              These instructions will be included when regenerating this question.
+              Regenerate follows these as instructions. Review checks them first (e.g. "B and D look the same").
             </p>
           </div>
         </div>
+      )}
+
+      {review && (
+        <ReviewPanel
+          view={review}
+          question={question}
+          liveText={liveRawText}
+          onApply={() => onApplyReview?.()}
+          onDismiss={() => onDismissReview?.()}
+        />
       )}
 
       {/* Content */}

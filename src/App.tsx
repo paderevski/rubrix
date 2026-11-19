@@ -24,6 +24,8 @@ import {
   Answer,
   BugSubmissionInput,
   SubmitBugResult,
+  ReviewResult,
+  QuestionReviewView,
 } from "./types";
 import {
   Loader2,
@@ -411,6 +413,17 @@ function App() {
   const [showPreview, setShowPreview] = useState(true);
   const [regeneratingQuestionId, setRegeneratingQuestionId] = useState<string | null>(null);
   const [isRegeneratingAll, setIsRegeneratingAll] = useState(false);
+  // ---- Question review ----
+  const [reviewingQuestionId, setReviewingQuestionId] = useState<string | null>(null);
+  // Latest result per question, with the JSON of the question it reviewed (to detect staleness).
+  const [reviewResults, setReviewResults] = useState<
+    Record<string, { result: ReviewResult; reviewedAgainst: string }>
+  >({});
+  // Each question as last produced by the model or opened from disk, so a review can see the
+  // user's hand edits. Not saved with the document.
+  const [baselineById, setBaselineById] = useState<Record<string, Question>>({});
+  const isModelBusy =
+    isGenerating || isRegeneratingAll || regeneratingQuestionId !== null || reviewingQuestionId !== null;
   const latestStreamingTextRef = useRef("");
   const lastStreamBlockTypeRef = useRef<"reasoning" | "response" | null>(null);
   const hasInsertedReasoningEndMarkerRef = useRef(false);
@@ -901,7 +914,7 @@ function App() {
   }, []);
 
   // Undo/redo: text editors with focus get it first; otherwise it's app-level history.
-  const isHistoryLocked = isGenerating || isRegeneratingAll || regeneratingQuestionId !== null;
+  const isHistoryLocked = isModelBusy;
   const handleHistoryAction = async (direction: "undo" | "redo") => {
     if (routeTextUndo(direction)) return;
     if (isHistoryLocked) {
@@ -1081,6 +1094,10 @@ function App() {
       setStatus("Please wait for Regenerate All to finish");
       return;
     }
+    if (reviewingQuestionId !== null) {
+      setStatus("Please wait for the review to finish");
+      return;
+    }
 
     if (questionType !== "frq" && selectedTopics.length === 0) {
       setStatus("Please select at least one topic");
@@ -1119,6 +1136,11 @@ function App() {
 
       const allQuestions = await invoke<Question[]>("generate_questions", {
         request,
+      });
+      setBaselineById((prev) => {
+        const next = { ...prev };
+        for (const q of allQuestions.slice(previousQuestionCount)) next[q.id] = q;
+        return next;
       });
       const generatedCount = Math.max(allQuestions.length - previousQuestionCount, 0);
       if (generatedCount > 0) {
@@ -1184,7 +1206,7 @@ function App() {
   };
 
   const handleRegenerate = async (index: number, instructions?: string) => {
-    if (isGenerating || isRegeneratingAll) {
+    if (isModelBusy) {
       return;
     }
 
@@ -1209,6 +1231,12 @@ function App() {
         updated[index] = newQuestion;
         return updated;
       });
+      setBaselineById((prev) => ({ ...prev, [newQuestion.id]: newQuestion }));
+      setReviewResults((prev) => {
+        const next = { ...prev };
+        delete next[newQuestion.id];
+        return next;
+      });
       const streamSnapshot = latestStreamingTextRef.current.trim();
       setRawTextByQuestionId((prev) => {
         const next = { ...prev };
@@ -1230,7 +1258,7 @@ function App() {
   };
 
   const handleRegenerateAll = async () => {
-    if (isGenerating || isRegeneratingAll) {
+    if (isModelBusy) {
       return;
     }
 
@@ -1272,6 +1300,12 @@ function App() {
 
       if (succeededIndexes.length > 0) {
         history.record("Regenerate all");
+        setBaselineById((prev) => {
+          const next = { ...prev };
+          for (const item of results) if (item.question) next[item.question.id] = item.question;
+          return next;
+        });
+        setReviewResults({});
       }
       setQuestions((prev) => {
         const updated = [...prev];
@@ -1372,6 +1406,92 @@ function App() {
       setEditingIndex(null);
     }
   };
+
+  const handleReview = async (index: number, notes?: string) => {
+    const question = questions[index];
+    if (!question || isModelBusy) return;
+    if (!isAuthenticated) {
+      setLoginModalOpen(true);
+      setStatus("Authentication required");
+      return;
+    }
+
+    const reviewedAgainst = JSON.stringify(question);
+    setReviewingQuestionId(question.id);
+    setReviewResults((prev) => {
+      const next = { ...prev };
+      delete next[question.id];
+      return next;
+    });
+    setStreamingText("");
+    latestStreamingTextRef.current = "";
+    lastStreamBlockTypeRef.current = null;
+    hasInsertedReasoningEndMarkerRef.current = false;
+    setStreamingComplete(false);
+    setStatus(`Reviewing question ${index + 1}...`);
+
+    try {
+      const result = await invoke<ReviewResult>("review_question", {
+        index,
+        notes: notes ?? null,
+        previous: baselineById[question.id] ?? null,
+      });
+      setReviewResults((prev) => ({ ...prev, [question.id]: { result, reviewedAgainst } }));
+      const count = result.findings.length;
+      setStatus(
+        result.verdict === "ok"
+          ? `Q${index + 1}: review found no problems`
+          : `Q${index + 1}: review found ${count} issue${count === 1 ? "" : "s"}`
+      );
+    } catch (err) {
+      console.error("Review failed:", err);
+      setStatus(`Review failed: ${err}`);
+    } finally {
+      setReviewingQuestionId(null);
+      setStreamingComplete(true);
+    }
+  };
+
+  const handleApplyReview = async (index: number) => {
+    const question = questions[index];
+    const entry = question ? reviewResults[question.id] : undefined;
+    const revised = entry?.result.revised;
+    if (!question || !entry || !revised || JSON.stringify(question) !== entry.reviewedAgainst) return;
+    if (await handleUpdateQuestion(index, revised, "Apply review")) {
+      setBaselineById((prev) => ({ ...prev, [revised.id]: revised }));
+      setReviewResults((prev) => {
+        const next = { ...prev };
+        delete next[question.id];
+        return next;
+      });
+    }
+  };
+
+  const handleDismissReview = (index: number) => {
+    const id = questions[index]?.id;
+    if (!id) return;
+    setReviewResults((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  };
+
+  const reviewById = useMemo(() => {
+    const views: Record<string, QuestionReviewView> = {};
+    for (const q of questions) {
+      const entry = reviewResults[q.id];
+      if (entry) {
+        views[q.id] = {
+          status: "done",
+          result: entry.result,
+          stale: JSON.stringify(q) !== entry.reviewedAgainst,
+        };
+      }
+    }
+    if (reviewingQuestionId) views[reviewingQuestionId] = { status: "running" };
+    return views;
+  }, [questions, reviewResults, reviewingQuestionId]);
 
   const handleDelete = async (index: number) => {
     try {
@@ -1637,6 +1757,8 @@ function App() {
 
   const resetToBlankState = async () => {
     history.clear();
+    setReviewResults({});
+    setBaselineById({});
     setQuestions([]);
     setRawTextByQuestionId({});
     setStreamingText("");
@@ -1664,6 +1786,8 @@ function App() {
 
   const handleNewDocument = async () => {
     history.clear();
+    setReviewResults({});
+    setBaselineById({});
     setQuestions([]);
     setRawTextByQuestionId({});
     setStreamingText("");
@@ -1695,6 +1819,8 @@ function App() {
     }
 
     history.clear();
+    setReviewResults({});
+    setBaselineById(Object.fromEntries(parsed.map((q) => [q.id, q])));
     setQuestions(parsed);
     setRawTextByQuestionId({});
     setCurrentDocumentPath(filePath);
@@ -2039,6 +2165,13 @@ function App() {
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   onUpdate={(index, question, label) => void handleUpdateQuestion(index, question, label)}
+                  reviewingQuestionId={reviewingQuestionId}
+                  reviewStreamingText={streamingText}
+                  reviewById={reviewById}
+                  isReviewDisabled={isModelBusy}
+                  onReview={(index, notes) => void handleReview(index, notes)}
+                  onApplyReview={(index) => void handleApplyReview(index)}
+                  onDismissReview={handleDismissReview}
                 />
               )}
             </main>
