@@ -1483,6 +1483,8 @@ fn set_menu_state(
     can_save_session: bool,
     has_raw_preview: bool,
     can_regenerate_all: bool,
+    undo_label: Option<String>,
+    redo_label: Option<String>,
     app_handle: AppHandle,
 ) -> Result<(), String> {
     let window = app_handle
@@ -1513,6 +1515,20 @@ fn set_menu_state(
     menu.get_item("regenerate_all_questions")
         .set_enabled(can_regenerate_all)
         .map_err(|e| format!("Failed to set regenerate_all_questions state: {}", e))?;
+    // Undo/Redo stay enabled so the frontend can route them to a focused text editor;
+    // the title shows what app-level undo would do.
+    menu.get_item("undo")
+        .set_title(match undo_label {
+            Some(label) => format!("Undo {}", label),
+            None => "Undo".to_string(),
+        })
+        .map_err(|e| format!("Failed to set undo title: {}", e))?;
+    menu.get_item("redo")
+        .set_title(match redo_label {
+            Some(label) => format!("Redo {}", label),
+            None => "Redo".to_string(),
+        })
+        .map_err(|e| format!("Failed to set redo title: {}", e))?;
 
     Ok(())
 }
@@ -1957,6 +1973,8 @@ fn main() {
     log_startup_env_diagnostics();
 
     let new_document = CustomMenuItem::new("new_document", "New").accelerator("CmdOrCtrl+N");
+    let undo = CustomMenuItem::new("undo", "Undo").accelerator("CmdOrCtrl+Z");
+    let redo = CustomMenuItem::new("redo", "Redo").accelerator("CmdOrCtrl+Shift+Z");
     let add_custom_question = CustomMenuItem::new("add_custom_question", "Add Custom Question...")
         .accelerator("CmdOrCtrl+Shift+N");
     let open_session = CustomMenuItem::new("open_session", "Open…").accelerator("CmdOrCtrl+O");
@@ -2037,6 +2055,9 @@ fn main() {
     let edit_menu = Submenu::new(
         "Edit",
         Menu::new()
+            .add_item(undo.clone())
+            .add_item(redo.clone())
+            .add_native_item(MenuItem::Separator)
             .add_native_item(MenuItem::Cut)
             .add_native_item(MenuItem::Copy)
             .add_native_item(MenuItem::Paste)
@@ -2047,6 +2068,9 @@ fn main() {
     let edit_menu = Submenu::new(
         "Edit",
         Menu::new()
+            .add_item(undo.clone())
+            .add_item(redo.clone())
+            .add_native_item(MenuItem::Separator)
             .add_native_item(MenuItem::Cut)
             .add_native_item(MenuItem::Copy)
             .add_native_item(MenuItem::Paste)
@@ -2146,6 +2170,8 @@ fn main() {
             }
 
             let action_payload = match id {
+                "undo" => Some("undo"),
+                "redo" => Some("redo"),
                 "new_document" => Some("new_document"),
                 "add_custom_question" => Some("add_custom_question"),
                 "open_session" => Some("open_session"),

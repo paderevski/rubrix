@@ -23,7 +23,7 @@ interface QuestionCardProps {
   onEdit: () => void;
   onDelete: () => void;
   /** Save an in-place edit of one field. When omitted, in-card editing is hidden. */
-  onUpdate?: (question: Question) => void;
+  onUpdate?: (question: Question, label: string) => void;
 }
 
 /** Field keys for in-card editing: "text", "explanation", "rubric", or "answer:<index>". */
@@ -263,14 +263,19 @@ export default function QuestionCard({
   const saveField = (field: EditableFieldKey, value: string) => {
     setEditingField(null);
     let next: Question | null = null;
+    let label = "Edit";
     if (field === "text") {
+      label = "Edit question text";
       if (value !== question.text) next = { ...question, text: value };
     } else if (field === "explanation") {
+      label = "Edit solution";
       if (value !== (question.explanation ?? "")) next = { ...question, explanation: value };
     } else if (field === "rubric") {
+      label = "Edit rubric";
       if (value !== (question.rubric ?? "")) next = { ...question, rubric: value };
     } else if (field.startsWith("answer:")) {
       const i = Number(field.slice("answer:".length));
+      label = `Edit choice ${String.fromCharCode(65 + i)}`;
       const current = question.answers[i];
       if (current && value !== answerEditText(current.text)) {
         next = {
@@ -279,7 +284,7 @@ export default function QuestionCard({
         };
       }
     }
-    if (next) onUpdate?.(next);
+    if (next) onUpdate?.(next, label);
   };
 
   const MIN_CHOICES = 2;
@@ -287,7 +292,10 @@ export default function QuestionCard({
     setEditingField(null);
     const target = question.answers[i];
     if (!target || target.is_correct || question.answers.length <= MIN_CHOICES) return;
-    onUpdate?.({ ...question, answers: question.answers.filter((_, j) => j !== i) });
+    onUpdate?.(
+      { ...question, answers: question.answers.filter((_, j) => j !== i) },
+      `Delete choice ${String.fromCharCode(65 + i)}`
+    );
   };
   const deleteChoiceDisabledReason = (i: number): string | null => {
     if (question.answers[i]?.is_correct) return "The correct answer can't be deleted";
